@@ -190,7 +190,7 @@ function neotest.Adapter.build_spec(args)
     "-count=1",
     "-timeout=30s",
     "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-    -- "-json", -- TODO: enable json output and add parser
+    "-json", -- TODO: enable json output and add parser
     folder_path,
     "-run",
     "^" .. test_name .. "$",
@@ -216,33 +216,71 @@ end
 ---@param tree neotest.Tree
 ---@return table<string, neotest.Result>
 function neotest.Adapter.results(spec, result, tree)
-  -- debug written file
-  -- local output = async.fn.readfile(result.output)
+  -- debug
+  -- print(vim.inspect(result.output))
 
+  ---@type table
+  local raw_output = async.fn.readfile(result.output)
   ---@type neotest.ResultStatus
   local result_status = "skipped"
-
   ---@type neotest.Error[]
   local errors = {}
+  ---@type List<table>
+  local jsonlines = Process_json(raw_output) -- TODO: pcall and error checking
 
   if result.code == 0 then
     result_status = "passed"
-    errors = {}
   else
     result_status = "failed"
-    errors = { { message = "Whoa, error!" } } -- TODO: fix message, add line
   end
+
+  -- TODO: this is just the start of parsing the jsonlines output
+  local all_output = {}
+  for _, line in ipairs(jsonlines) do
+    if line.Action == "output" then
+      table.insert(all_output, line.Output)
+    end
+    if line.Action == "fail" then
+      if line.Test and type(line.Test) == "string" then
+        local error = { message = "Failed test: " .. line.Test } -- TODO: add line number
+        table.insert(errors, error)
+        result_status = "failed"
+      end
+    end
+  end
+
+  -- write json_decoded to file
+  local parsed_output_path = vim.fs.normalize(async.fn.tempname())
+  async.fn.writefile(all_output, parsed_output_path)
 
   ---@type table<string, neotest.Result>
   local results = {}
   results[spec.context.id] = {
     status = result_status,
-    output = result.output,
-    short = "yolo!", -- TODO: add shortened output string
+    output = parsed_output_path,
+    -- short = "", -- TODO: add shortened output string
     errors = errors,
   }
 
   return results
+end
+
+--- Process JSON and return objects of interest
+---@param raw_output table
+---@return List, table
+function Process_json(raw_output)
+  ---@type table
+  local jsonlines = {}
+
+  for _, line in ipairs(raw_output) do
+    if string.match(line, "^%s*{") then
+      local json_data = vim.fn.json_decode(line)
+      table.insert(jsonlines, json_data)
+    else
+      print("Warning, not a json line: " .. line)
+    end
+  end
+  return jsonlines
 end
 
 return neotest.Adapter
