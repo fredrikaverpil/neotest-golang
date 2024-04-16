@@ -157,7 +157,9 @@ function neotest.Adapter.build_spec(args)
   local pos = args.tree:data()
 
   -- require a test
+  print(pos.type)
   if pos.type ~= "test" then
+    -- TODO: if pos.typ == "file", run tests more efficiently?
     return
   end
 
@@ -181,22 +183,41 @@ function neotest.Adapter.build_spec(args)
 
   local test_output_path = vim.fs.normalize(async.fn.tempname())
 
-  local command = vim.tbl_flatten({
-    -- TODO: extract arguments to configurable opts
+  local gotest = {
     "go",
     "test",
+    "-json",
     "-v",
     "-race",
-    "-count=1",
+    -- "-count=1",
     "-timeout=30s",
     "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-    "-json", -- TODO: enable json output and add parser
     folder_path,
     "-run",
     "^" .. test_name .. "$",
-    "2>",
+    ">",
     test_output_path,
-  })
+  }
+
+  -- FIXME: using gotestsum for now, only because of
+  -- https://github.com/nvim-neotest/neotest/issues/391
+  local gotestsum = {
+    "gotestsum",
+    "--jsonfile",
+    test_output_path,
+    "--",
+    "-v",
+    "-race",
+    -- "-count=1",
+    "-timeout=30s",
+    "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+    folder_path,
+    "-run",
+    "^" .. test_name .. "$",
+  }
+
+  -- TODO: make it possible to pass arguments
+  local command = vim.tbl_flatten(gotestsum)
 
   ---@type neotest.RunSpec
   local spec = {
@@ -204,6 +225,7 @@ function neotest.Adapter.build_spec(args)
     context = {
       test_output_path = test_output_path,
       id = pos.id,
+      -- test_name = test_name, -- TODO: for comparison with test name in json output
     },
   }
 
@@ -219,8 +241,13 @@ function neotest.Adapter.results(spec, result, tree)
   -- debug
   -- print(vim.inspect(result.output))
 
+  -- FIXME: muting neotest stdout/stderr grabbed output for now:
+  -- https://github.com/nvim-neotest/neotest/issues/391
+  vim.fn.writefile({ "" }, result.output)
+
   ---@type table
-  local raw_output = async.fn.readfile(result.output)
+  -- local raw_output = async.fn.readfile(result.output)
+  local raw_output = async.fn.readfile(spec.context.test_output_path)
   ---@type neotest.ResultStatus
   local result_status = "skipped"
   ---@type neotest.Error[]
@@ -228,30 +255,36 @@ function neotest.Adapter.results(spec, result, tree)
   ---@type List<table>
   local jsonlines = Process_json(raw_output) -- TODO: pcall and error checking
 
+  -- FIXME: if one test fails (out of many), all are marked as failed
+
+  -- TODO: if jsonline says fail, match its test name against this one
+  -- so to know whether it was actually this test which failed or not
   if result.code == 0 then
     result_status = "passed"
   else
     result_status = "failed"
   end
 
-  -- TODO: this is just the start of parsing the jsonlines output
-  local all_output = {}
+  ---@type List
+  local test_result = {}
+
   for _, line in ipairs(jsonlines) do
     if line.Action == "output" then
-      table.insert(all_output, line.Output)
+      table.insert(test_result, line.Output)
     end
-    if line.Action == "fail" then
-      if line.Test and type(line.Test) == "string" then
-        local error = { message = "Failed test: " .. line.Test } -- TODO: add line number
-        table.insert(errors, error)
-        result_status = "failed"
+    if result.code ~= 0 then
+      if line.Action == "fail" then
+        if line.Test and type(line.Test) == "string" then
+          local error = { message = "Failed test: " .. line.Test } -- TODO: add line number
+          table.insert(errors, error)
+        end
       end
     end
   end
 
   -- write json_decoded to file
   local parsed_output_path = vim.fs.normalize(async.fn.tempname())
-  async.fn.writefile(all_output, parsed_output_path)
+  async.fn.writefile(test_result, parsed_output_path)
 
   ---@type table<string, neotest.Result>
   local results = {}
@@ -267,7 +300,7 @@ end
 
 --- Process JSON and return objects of interest
 ---@param raw_output table
----@return List, table
+---@return table
 function Process_json(raw_output)
   ---@type table
   local jsonlines = {}
