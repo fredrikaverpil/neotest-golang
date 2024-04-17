@@ -1,17 +1,18 @@
 local lib = require("neotest.lib")
 local async = require("neotest.async")
-local neotest = {}
+local neotest = require("neotest")
+local neotestgolang = {}
 
 ---@class neotest.Adapter
 ---@field name string
-neotest.Adapter = { name = "neotest-golang" }
+neotestgolang.Adapter = { name = "neotest-golang" }
 
 ---Find the project root directory given a current directory to work from.
 ---Should no root be found, the adapter can still be used in a non-project context if a test file matches.
 ---@async
 ---@param dir string @Directory to treat as cwd
 ---@return string | nil @Absolute root dir of test suite
-function neotest.Adapter.root(dir)
+function neotestgolang.Adapter.root(dir)
   ---@type string | nil
   local cwd = lib.files.match_root_pattern("go.mod", "go.sum")(dir)
   if cwd == nil then
@@ -25,7 +26,7 @@ end
 ---@param rel_path string Path to directory, relative to root
 ---@param root string Root directory of project
 ---@return boolean
-function neotest.Adapter.filter_dir(name, rel_path, root)
+function neotestgolang.Adapter.filter_dir(name, rel_path, root)
   local ignore_dirs = { ".git", "node_modules", ".venv", "venv" }
   for _, ignore in ipairs(ignore_dirs) do
     if name == ignore then
@@ -38,7 +39,7 @@ end
 ---@async
 ---@param file_path string
 ---@return boolean
-function neotest.Adapter.is_test_file(file_path)
+function neotestgolang.Adapter.is_test_file(file_path)
   ---@type boolean
   return vim.endswith(file_path, "_test.go")
 end
@@ -47,7 +48,7 @@ end
 ---@async
 ---@param file_path string Absolute file path
 ---@return neotest.Tree | nil
-function neotest.Adapter.discover_positions(file_path)
+function neotestgolang.Adapter.discover_positions(file_path)
   local functions_and_methods = [[
     ;;query
     ((function_declaration
@@ -139,35 +140,156 @@ function neotest.Adapter.discover_positions(file_path)
   ---@type neotest.Tree
   local positions = lib.treesitter.parse_positions(file_path, query, opts)
 
-  -- TODO: populate dynamically generated tests using gotestsum
+  -- TODO: populate dynamically generated tests during runtime
 
   return positions
 end
 
 ---@param args neotest.RunArgs
 ---@return nil | neotest.RunSpec | neotest.RunSpec[]
-function neotest.Adapter.build_spec(args)
+function neotestgolang.Adapter.build_spec(args)
+  --  print(vim.inspect(args))
+
+  ---@type neotest.Tree
   local tree = args.tree
+  ---@type neotest.Position
+  local pos = args.tree:data()
+  ---@type string
+  local test_output_path = vim.fs.normalize(async.fn.tempname())
+  ---@type string[]
+  local command = {}
 
   if not tree then
     return
   end
 
-  ---@type neotest.Position
-  local pos = args.tree:data()
+  -- TODO: make it possible to pass arguments
 
-  -- require a test
-  print(pos.type)
-  if pos.type ~= "test" then
-    -- TODO: if pos.typ == "file", run tests more efficiently?
+  if pos.type == "dir" and pos.path == vim.fn.getcwd() then
+    -- Test suite
+
+    -- FIXME: using gotestsum for now, only because of
+    -- https://github.com/nvim-neotest/neotest/issues/391
+    command = {
+      "gotestsum",
+      "--jsonfile",
+      test_output_path,
+      "--",
+      "-v",
+      "-race",
+      "-count=1",
+      "-timeout=60s", -- TODO: make it configurable
+      "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+      "./...",
+    }
+  elseif pos.type == "dir" then
+    -- Sub-directory
+
+    ---@type string
+    local relative_test_folderpath = vim.fn.fnamemodify(pos.path, ":~:.")
+    ---@type string
+    local relative_test_folderpath_go = "./"
+      .. relative_test_folderpath
+      .. "/..."
+
+    -- FIXME: using gotestsum for now, only because of
+    -- https://github.com/nvim-neotest/neotest/issues/391
+    command = {
+      "gotestsum",
+      "--jsonfile",
+      test_output_path,
+      "--",
+      "-v",
+      "-race",
+      "-count=1",
+      "-timeout=30s",
+      "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+      relative_test_folderpath_go,
+    }
+  elseif pos.type == "file" then
+    -- Single file
+
+    ---@type string
+    local test_filepath = pos.path
+
+    -- FIXME: using gotestsum for now, only because of
+    -- https://github.com/nvim-neotest/neotest/issues/391
+    command = {
+      "gotestsum",
+      "--jsonfile",
+      test_output_path,
+      "--",
+      "-v",
+      "-race",
+      "-count=1",
+      "-timeout=30s",
+      "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+      test_filepath,
+    }
+  elseif pos.type == "test" then
+    -- Single test
+
+    ---@type string
+    local test_name = neotestgolang.test_name_from_pos_id(pos.id)
+    ---@type string
+    local folder_path = string.match(pos.path, "(.+)/")
+
+    -- local gotest_command = {
+    --   "go",
+    --   "test",
+    --   "-json",
+    --   "-v",
+    --   "-race",
+    --   -- "-count=1",
+    --   "-timeout=30s",
+    --   "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+    --   folder_path,
+    --   "-run",
+    --   "^" .. test_name .. "$",
+    --   ">",
+    --   test_output_path,
+    -- }
+
+    -- FIXME: using gotestsum for now, only because of
+    -- https://github.com/nvim-neotest/neotest/issues/391
+    command = {
+      "gotestsum",
+      "--jsonfile",
+      test_output_path,
+      "--",
+      "-v",
+      "-race",
+      "-count=1",
+      "-timeout=30s",
+      "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+      folder_path,
+      "-run",
+      "^" .. test_name .. "$",
+    }
+  else
+    print("ERROR: WHAT IS THIS ???: " .. pos.type)
+
     return
   end
 
-  -- remove filename from path
-  local folder_path = string.match(pos.path, "(.+)/")
+  print(vim.inspect(command))
+  ---@type neotest.RunSpec
+  local spec = {
+    command = command,
+    context = {
+      test_output_path = test_output_path,
+      id = pos.id,
+    },
+  }
 
+  return spec
+end
+
+---@param pos_id string
+---@return string
+function neotestgolang.test_name_from_pos_id(pos_id)
   -- construct the test name
-  local test_name = pos.id
+  local test_name = pos_id
   -- Remove the path before ::
   test_name = test_name:match("::(.*)$")
   -- Replace :: with /
@@ -181,55 +303,7 @@ function neotest.Adapter.build_spec(args)
   -- Replace any spaces with _
   test_name = test_name:gsub(" ", "_")
 
-  local test_output_path = vim.fs.normalize(async.fn.tempname())
-
-  local gotest = {
-    "go",
-    "test",
-    "-json",
-    "-v",
-    "-race",
-    -- "-count=1",
-    "-timeout=30s",
-    "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-    folder_path,
-    "-run",
-    "^" .. test_name .. "$",
-    ">",
-    test_output_path,
-  }
-
-  -- FIXME: using gotestsum for now, only because of
-  -- https://github.com/nvim-neotest/neotest/issues/391
-  local gotestsum = {
-    "gotestsum",
-    "--jsonfile",
-    test_output_path,
-    "--",
-    "-v",
-    "-race",
-    -- "-count=1",
-    "-timeout=30s",
-    "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-    folder_path,
-    "-run",
-    "^" .. test_name .. "$",
-  }
-
-  -- TODO: make it possible to pass arguments
-  local command = vim.tbl_flatten(gotestsum)
-
-  ---@type neotest.RunSpec
-  local spec = {
-    command = command,
-    context = {
-      test_output_path = test_output_path,
-      id = pos.id,
-      -- test_name = test_name, -- TODO: for comparison with test name in json output
-    },
-  }
-
-  return spec
+  return test_name
 end
 
 ---@async
@@ -237,9 +311,15 @@ end
 ---@param result neotest.StrategyResult
 ---@param tree neotest.Tree
 ---@return table<string, neotest.Result>
-function neotest.Adapter.results(spec, result, tree)
-  -- debug
-  -- print(vim.inspect(result.output))
+function neotestgolang.Adapter.results(spec, result, tree)
+  -- FIXME: if one test fails (out of many), all are marked as failed
+
+  -- TODO: figure out which type of command this is (suite, dir, file or test)
+
+  -- TODO: if non-test was executed:
+  --       1. collect test names from output
+  --       2. find the corresponding node in the tree
+  --       3. map the test (name) results to the node and set the status on the node
 
   -- FIXME: muting neotest stdout/stderr grabbed output for now:
   -- https://github.com/nvim-neotest/neotest/issues/391
@@ -253,15 +333,12 @@ function neotest.Adapter.results(spec, result, tree)
   ---@type neotest.Error[]
   local errors = {}
   ---@type List<table>
-  local jsonlines = Process_json(raw_output) -- TODO: pcall and error checking
+  local jsonlines = neotestgolang.process_json(raw_output) -- TODO: pcall and error checking
 
-  -- FIXME: if one test fails (out of many), all are marked as failed
-
-  -- TODO: if jsonline says fail, match its test name against this one
-  -- so to know whether it was actually this test which failed or not
   if result.code == 0 then
     result_status = "passed"
   else
+    print("Result status code: " .. result.code)
     result_status = "failed"
   end
 
@@ -270,14 +347,13 @@ function neotest.Adapter.results(spec, result, tree)
 
   for _, line in ipairs(jsonlines) do
     if line.Action == "output" then
+      -- vim.print(vim.inspect(line))
       table.insert(test_result, line.Output)
-    end
-    if result.code ~= 0 then
-      if line.Action == "fail" then
-        if line.Test and type(line.Test) == "string" then
-          local error = { message = "Failed test: " .. line.Test } -- TODO: add line number
-          table.insert(errors, error)
-        end
+
+      local line_number = line.Output:match("test.go:(%d+)")
+      if line_number then
+        local error = { message = line.Output } -- , line = line_number }
+        table.insert(errors, error)
       end
     end
   end
@@ -301,7 +377,7 @@ end
 --- Process JSON and return objects of interest
 ---@param raw_output table
 ---@return table
-function Process_json(raw_output)
+function neotestgolang.process_json(raw_output)
   ---@type table
   local jsonlines = {}
 
@@ -316,4 +392,4 @@ function Process_json(raw_output)
   return jsonlines
 end
 
-return neotest.Adapter
+return neotestgolang.Adapter
