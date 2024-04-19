@@ -299,6 +299,8 @@ function neotestgolang.test_name_from_pos_id(pos_id)
   -- Replace any special characters with . so to avoid breaking regexp
   test_name = test_name:gsub("%[", ".")
   test_name = test_name:gsub("%]", ".")
+  test_name = test_name:gsub("%(", ".")
+  test_name = test_name:gsub("%)", ".")
   -- Replace any spaces with _
   test_name = test_name:gsub(" ", "_")
 
