@@ -272,7 +272,6 @@ function neotestgolang.Adapter.build_spec(args)
     return
   end
 
-  print(vim.inspect(command))
   ---@type neotest.RunSpec
   local spec = {
     command = command,
@@ -338,17 +337,21 @@ function neotestgolang.Adapter.results(spec, result, tree)
   if result.code == 0 then
     result_status = "passed"
   else
-    print("Result status code: " .. result.code)
+    -- print("Result status code: " .. result.code)
     result_status = "failed"
   end
 
   ---@type List
   local test_result = {}
 
+  -- FIXME: dir/file tests are not printed to test output panel
+
   for _, line in ipairs(jsonlines) do
     if line.Action == "output" then
-      -- vim.print(vim.inspect(line))
-      table.insert(test_result, line.Output)
+      if line.Output ~= nil then
+        print(vim.inspect(line.Output))
+        table.insert(test_result, line.Output)
+      end
 
       local line_number = line.Output:match("test.go:(%d+)")
       if line_number then
