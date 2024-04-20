@@ -140,8 +140,6 @@ function neotestgolang.Adapter.discover_positions(file_path)
   ---@type neotest.Tree
   local positions = lib.treesitter.parse_positions(file_path, query, opts)
 
-  -- TODO: populate dynamically generated tests during runtime
-
   return positions
 end
 
@@ -163,8 +161,6 @@ end
 ---@param args neotest.RunArgs
 ---@return nil | neotest.RunSpec | neotest.RunSpec[]
 function neotestgolang.Adapter.build_spec(args)
-  --  print(vim.inspect(args))
-
   ---@type neotest.Tree
   local tree = args.tree
   ---@type neotest.Position
@@ -175,26 +171,13 @@ function neotestgolang.Adapter.build_spec(args)
   local test_output_path = vim.fs.normalize(async.fn.tempname())
   ---@type string[]
   local command = {}
+  ---@type boolean
+  local skip = false
 
   if not tree then
     print("NOT A TREE!")
     return
   end
-
-  -- NOTE: it might be better to always run tests, but if dir or file is detected,
-  -- the test binary is first built ONCE, and then each test runs separately.
-  -- This can be achieved by using a naked return instead of returning a run spec.
-  -- However, the path to the test binary must be stored in some way so that
-  -- both the dir/file and the test can find it.
-  -- In this case, the test execution command would be slightly different, as
-  -- it would have to invoke the test binary.
-  -- By doing this, we can avoid having to attempt to map tests to nodes.
-  -- WARNING: it does not seem like JSON output is possible when running a
-  -- pre compiled test binary, or is it? See:
-  -- gotestsum --raw-command -- go tool test2json -t -p pkgname ./binary.test -test.v
-
-  -- TODO: check if we need to cd into a sub-project
-  -- the `pos.path` contains the path to the test file.
 
   if pos.type == "dir" and pos.path == vim.fn.getcwd() then
     -- Test suite
@@ -239,24 +222,20 @@ function neotestgolang.Adapter.build_spec(args)
     -- }
   elseif pos.type == "file" then
     -- Single file
+    -- Go does not run tests based on files, but on the package name. If Go
+    -- is given a filepath, in which tests resides, it also needs to have all
+    -- other filepaths that might be related passed as arguments to be able
+    -- to compile. This approach is too brittle, and therefore "file" type
+    -- invocations will be treated as "test" type.
 
-    ---@type string
-    local test_filepath = pos.path
-
-    -- FIXME: using gotestsum for now, only because of
-    -- https://github.com/nvim-neotest/neotest/issues/391
-    command = {
-      "gotestsum",
-      "--jsonfile",
-      test_output_path,
-      "--",
-      "-v",
-      "-race",
-      "-count=1",
-      "-timeout=30s",
-      "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-      test_filepath,
-    }
+    if neotestgolang.table_is_empty(tree:children()) then
+      -- No tests present in file
+      command = { "echo", "No tests found in file" }
+      skip = true
+    else
+      -- Run tests as if pos.typ == "test"
+      return
+    end
   elseif pos.type == "test" then
     -- Single test
 
@@ -307,19 +286,19 @@ function neotestgolang.Adapter.build_spec(args)
 
   for _, sub_project in ipairs(neotestgolang.sub_projects()) do
     if string.match(relative_test_folderpath, sub_project) then
-      -- cd into the sub-project
-      -- build the test binary
-      -- run the test binary
-      print("Sub-project detected: " .. sub_project)
-
-      -- insert "cd", sub_project, "&&" before the command
-      table.insert(command, 1, "cd")
-      table.insert(command, 2, sub_project)
-      table.insert(command, 3, "&&")
+      ---@type neotest.RunSpec
+      local spec = {
+        cwd = sub_project,
+        command = command,
+        context = {
+          test_output_path = test_output_path,
+          id = pos.id,
+          skip = skip,
+        },
+      }
+      return spec
     end
   end
-
-  print(vim.inspect(command))
 
   ---@type neotest.RunSpec
   local spec = {
@@ -327,14 +306,15 @@ function neotestgolang.Adapter.build_spec(args)
     context = {
       test_output_path = test_output_path,
       id = pos.id,
+      skip = skip,
     },
   }
 
-  print(vim.inspect(spec))
-
-  print("RETURNING SPEC NOW!")
-
   return spec
+end
+
+function neotestgolang.table_is_empty(t)
+  return next(t) == nil
 end
 
 ---@param pos_id string
@@ -366,45 +346,38 @@ end
 ---@param tree neotest.Tree
 ---@return table<string, neotest.Result>
 function neotestgolang.Adapter.results(spec, result, tree)
-  print("IN RESULTS METHOD, result.code = " .. result.code)
-
-  -- TODO: figure out which type of command this is (suite, dir, file or test)
-
-  -- FIXME: if one test fails (out of many), all are marked as failed
-
-  -- TODO: if non-test was executed:
-  --       1. collect test names from output
-  --       2. find the corresponding node in the tree
-  --       3. map the test (name) results to the node and set the status on the node
-
-  -- FIXME: muting neotest stdout/stderr grabbed output for now:
-  -- https://github.com/nvim-neotest/neotest/issues/391
-  -- vim.fn.writefile({ "" }, result.output)
-
-  print("I HAVE ERASED THE FILE")
-
-  ---@type table
-  -- local raw_output = async.fn.readfile(result.output)
-  local raw_output = async.fn.readfile(spec.context.test_output_path)
   ---@type neotest.ResultStatus
   local result_status = "skipped"
-  ---@type neotest.Error[]
-  local errors = {}
 
-  print("LETS PARSE JSON")
-
-  ---@type List<table>
-  local jsonlines = neotestgolang.process_json(raw_output) -- TODO: pcall and error checking
+  if spec.context.skip then
+    ---@type table<string, neotest.Result>
+    local results = {}
+    results[spec.context.id] = {
+      status = result_status,
+    }
+    return results
+  end
 
   if result.code == 0 then
     result_status = "passed"
   else
-    -- print("Result status code: " .. result.code)
     result_status = "failed"
   end
 
+  -- FIXME: muting neotest stdout/stderr grabbed output for now:
+  -- https://github.com/nvim-neotest/neotest/issues/391
+  vim.fn.writefile({ "" }, result.output)
+  -- local raw_output = async.fn.readfile(result.output)
+  -- print("I HAVE ERASED THE FILE")
+
   ---@type List
   local test_result = {}
+  ---@type neotest.Error[]
+  local errors = {}
+
+  local raw_output = async.fn.readfile(spec.context.test_output_path)
+  ---@type List<table>
+  local jsonlines = neotestgolang.process_json(raw_output) -- TODO: pcall and error checking
 
   -- FIXME: dir/file tests are not printed to test output panel
 
@@ -449,10 +422,7 @@ function neotestgolang.process_json(raw_output)
   ---@type table
   local jsonlines = {}
 
-  print("ABOUT TO READ JSON")
-
   for _, line in ipairs(raw_output) do
-    print("READING JSON LINE, GREAT")
     if string.match(line, "^%s*{") then
       local json_data = vim.fn.json_decode(line)
       table.insert(jsonlines, json_data)
