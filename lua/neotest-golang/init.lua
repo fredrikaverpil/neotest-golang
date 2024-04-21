@@ -184,24 +184,26 @@ function neotestgolang.Adapter.build_spec(args)
   if pos.type == "dir" and pos.path == vim.fn.getcwd() then
     -- Test suite
 
-    -- FIXME: using gotestsum for now, only because of
-    -- https://github.com/nvim-neotest/neotest/issues/391
-    command = {
-      "gotestsum",
-      "--jsonfile",
-      test_output_path,
-      "--",
-      "-v",
-      "-race",
-      "-count=1",
-      "-timeout=60s", -- TODO: make it configurable
-      "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-      "./...",
-    }
+    return -- temporarily try this out... per-test execution
+
+    -- -- FIXME: using gotestsum for now, only because of
+    -- -- https://github.com/nvim-neotest/neotest/issues/391
+    -- command = {
+    --   "gotestsum",
+    --   "--jsonfile",
+    --   test_output_path,
+    --   "--",
+    --   "-v",
+    --   "-race",
+    --   "-count=1",
+    --   "-timeout=60s", -- TODO: make it configurable
+    --   "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+    --   "./...",
+    -- }
   elseif pos.type == "dir" then
     -- Sub-directory
 
-    return -- temporarily try this out...
+    return -- temporarily try this out... per-test execution
 
     -- ---@type string
     -- local relative_test_folderpath_go = "./"
@@ -245,8 +247,6 @@ function neotestgolang.Adapter.build_spec(args)
     local test_name = neotestgolang.test_name_from_pos_id(pos.id)
     ---@type string
     local folder_path = string.match(pos.path, "(.+)/")
-
-    print("Folder path: " .. folder_path)
 
     -- local gotest_command = {
     --   "go",
@@ -391,7 +391,6 @@ function neotestgolang.Adapter.results(spec, result, tree)
   -- https://github.com/nvim-neotest/neotest/issues/391
   vim.fn.writefile({ "" }, result.output)
   -- local raw_output = async.fn.readfile(result.output)
-  -- print("I HAVE ERASED THE FILE")
 
   ---@type List
   local test_result = {}
@@ -407,7 +406,7 @@ function neotestgolang.Adapter.results(spec, result, tree)
   for _, line in ipairs(jsonlines) do
     if line.Action == "output" then
       if line.Output ~= nil then
-        print(vim.inspect(line.Output))
+        -- print(vim.inspect(line.Output))
         table.insert(test_result, line.Output)
       end
 
