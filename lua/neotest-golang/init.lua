@@ -166,6 +166,8 @@ function neotestgolang.Adapter.build_spec(args)
   ---@type neotest.Position
   local pos = args.tree:data()
   ---@type string
+  local strategy = args.strategy
+  ---@type string
   local relative_test_folderpath = vim.fn.fnamemodify(pos.path, ":~:.")
   ---@type string
   local test_output_path = vim.fs.normalize(async.fn.tempname())
@@ -296,6 +298,10 @@ function neotestgolang.Adapter.build_spec(args)
           skip = skip,
         },
       }
+
+      if strategy == "dap" then
+        spec.strategy = neotestgolang.get_dap_config()
+      end
       return spec
     end
   end
@@ -310,7 +316,24 @@ function neotestgolang.Adapter.build_spec(args)
     },
   }
 
+  if strategy == "dap" then
+    spec.strategy = neotestgolang.get_dap_config()
+  end
   return spec
+end
+
+---@return table | nil
+function neotestgolang.get_dap_config()
+  -- :help dap-configuration
+
+  local dap = require("dap")
+  return {
+    type = "go",
+    name = "Neotest Debugger",
+    request = "launch",
+    mode = "test",
+    program = "./${relativeFileDirname}",
+  }
 end
 
 function neotestgolang.table_is_empty(t)
