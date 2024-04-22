@@ -237,7 +237,7 @@ end
 ---@param tree neotest.Tree
 ---@return table<string, neotest.Result>
 function M.Adapter.results(spec, result, tree)
-  if spec.context.skip or spec.strategy == "dap" then
+  if spec.context.skip then
     ---@type table<string, neotest.Result>
     local results = {}
     results[spec.context.id] = {
@@ -347,7 +347,10 @@ function M.build_single_test_runspec(pos, strategy)
   ---@type string
   local test_name = M.test_name_from_pos_id(pos.id)
   ---@type string
-  local folder_path = string.match(pos.path, "(.+)/")
+  local test_folder_path = string.match(pos.path, "(.+)/")
+
+  ---@type string
+  local cwd = vim.fn.getcwd()
 
   -- go test -v 2>&1 | go tool test2json > output.json
 
@@ -369,8 +372,8 @@ function M.build_single_test_runspec(pos, strategy)
     "-race",
     "-count=1",
     "-timeout=30s",
-    "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-    folder_path,
+    "-coverprofile=" .. cwd .. "/coverage.out",
+    test_folder_path,
     "-run",
     "^" .. test_name .. "$",
   }
@@ -392,28 +395,34 @@ function M.build_single_test_runspec(pos, strategy)
   local relative_test_folderpath = vim.fn.fnamemodify(pos.path, ":~:.")
   for _, sub_project in ipairs(M.sub_projects()) do
     if string.match(relative_test_folderpath, sub_project) then
-      run_spec.cwd = sub_project
+      cwd = cwd .. "/" .. sub_project
+      run_spec.cwd = cwd
       break
     end
   end
 
   if strategy == "dap" then
-    run_spec.strategy = M.get_dap_config()
+    run_spec.strategy = M.get_dap_config(test_name, test_folder_path)
+    run_spec.context.skip = true -- do not attempt to parse test output
   end
 
   return run_spec
 end
 
+---@param test_name string
 ---@return table | nil
-function M.get_dap_config()
+function M.get_dap_config(test_name, test_folderpath)
   -- :help dap-configuration
-  return {
+  local dap_config = {
     type = "go",
-    name = "Neotest Debugger",
+    name = "Neotest-golang Debugger",
     request = "launch",
     mode = "test",
-    program = "./${relativeFileDirname}",
+    program = test_folderpath,
+    args = { "-test.run", "^" .. test_name .. "$" },
   }
+
+  return dap_config
 end
 
 ---@returns string[]
