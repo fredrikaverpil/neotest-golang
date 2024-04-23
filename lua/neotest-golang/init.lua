@@ -1,5 +1,6 @@
 local lib = require("neotest.lib")
 local async = require("neotest.async")
+localneotest = require("neotest")
 local M = {}
 
 ---@class neotest.Adapter
@@ -241,15 +242,18 @@ function M.Adapter.results(spec, result, tree)
     ---@type table<string, neotest.Result>
     local results = {}
     results[spec.context.id] = {
+      ---@type neotest.ResultStatus
       status = "skipped",
     }
     return results
   end
 
   ---@type neotest.ResultStatus
-  local result_status = "failed"
+  local result_status = "skipped"
   if result.code == 0 then
     result_status = "passed"
+  else
+    result_status = "failed"
   end
 
   -- FIXME: muting neotest stdout/stderr grabbed output for now:
@@ -269,26 +273,54 @@ function M.Adapter.results(spec, result, tree)
   ---@type List<table>
   local jsonlines = M.process_json(raw_output)
 
-  for _, line in ipairs(jsonlines) do
-    if line.Action == "output" then
-      if line.Output ~= nil then
-        table.insert(test_result, line.Output)
-      end
+  local panic_detected = false
 
-      if result.code ~= 0 then
-        -- do not record errors if the test passed
-        local line_number = line.Output:match(test_filename .. ":(%d+):")
+  for _, line in ipairs(jsonlines) do
+    if line.Action == "output" and line.Output ~= nil then
+      -- record output, prints to output panel
+      table.insert(test_result, line.Output)
+
+      -- register panic found
+      local panic_match = string.match(line.Output, "panic:")
+      if panic_match ~= nil then
+        panic_detected = true
+      end
+    end
+
+    if result.code ~= 0 and line.Output ~= nil then
+      -- record an error
+      ---@type string
+      local matched_line_number =
+        string.match(line.Output, test_filename .. ":(%d+)")
+
+      if matched_line_number == nil or panic_detected then
+        -- log the error without a line number
+        ---@type neotest.Error
+        local error = { message = line.Output }
+        table.insert(errors, error)
+      else
+        -- attempt to parse the line number...
+        ---@type number | nil
+        local line_number = tonumber(matched_line_number)
+
         if line_number ~= nil then
+          -- log the error along with its line number (for diagnostics)
           ---@type neotest.Error
-          local error = { message = line.Output, line = tonumber(line_number) }
-          table.insert(errors, error)
-        else
-          ---@type neotest.Error
-          local error = { message = line.Output }
+          local error = { message = line.Output, line = line_number }
           table.insert(errors, error)
         end
       end
     end
+  end
+
+  if panic_detected then
+    -- remove all line numbers, as neotest diagnostics will crash if they are present
+    local new_errors = {}
+    for _, error in ipairs(errors) do
+      local new_error = { message = error.message }
+      table.insert(new_errors, new_error)
+    end
+    errors = new_errors
   end
 
   -- write json_decoded to file
