@@ -491,7 +491,7 @@ M.Adapter._args = {
 
 setmetatable(M.Adapter, {
   __call = function(_, opts)
-    return M.setup(opts)
+    return M.Adapter.setup(opts)
   end,
 })
 
