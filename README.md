@@ -68,9 +68,9 @@ return {
 
 ### ⚙️ Configuration
 
-| Arguments | Default value                                  | Description                         |
-| --------- | ---------------------------------------------- | ----------------------------------- |
-| `args`    | `{ "-v", "-race", "-count=1", "timeout=60s" }` | Arguments to pass into `gotestsum`. |
+| Argument | Default value                                  | Description                         |
+| -------- | ---------------------------------------------- | ----------------------------------- |
+| `args`   | `{ "-v", "-race", "-count=1", "timeout=60s" }` | Arguments to pass into `gotestsum`. |
 
 Example:
 
