@@ -151,7 +151,7 @@ function M.Adapter.build_spec(args)
   local pos = args.tree:data()
 
   if not tree then
-    print("NOT A TREE!")
+    vim.notify("NOT A TREE!")
     return
   end
 
@@ -377,8 +377,6 @@ function M.build_single_test_runspec(pos, strategy)
   local gotestsum_command = vim.list_extend(gotestsum, combined_args)
   local gotest_command = vim.list_extend(gotest, combined_args)
 
-  print(vim.inspect(gotestsum_command))
-
   ---@type neotest.RunSpec
   local run_spec = {
     command = gotestsum_command,
@@ -477,7 +475,7 @@ function M.process_json(raw_output)
       local json_data = vim.fn.json_decode(line)
       table.insert(jsonlines, json_data)
     else
-      print("Warning, not a json line: " .. line)
+      vim.notify("Warning, not a json line: " .. line)
     end
   end
   return jsonlines
@@ -502,8 +500,6 @@ M.Adapter.setup = function(opts)
   if opts.args then
     M.Adapter._args = opts.args
   end
-
-  print(vim.inspect(opts))
 
   return M.Adapter
 end
