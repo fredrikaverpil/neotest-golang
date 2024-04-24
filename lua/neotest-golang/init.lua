@@ -1,6 +1,5 @@
 local lib = require("neotest.lib")
 local async = require("neotest.async")
-localneotest = require("neotest")
 local M = {}
 
 ---@class neotest.Adapter
