@@ -38,7 +38,8 @@ neotest-go.
 
 ## 🥸 Installation and configuration
 
-You need to have `gotestsum` on your `$PATH`:
+You need to have [`gotestsum`](https://github.com/gotestyourself/gotestsum) on
+your `$PATH`:
 
 ```bash
 go install gotest.tools/gotestsum@latest
