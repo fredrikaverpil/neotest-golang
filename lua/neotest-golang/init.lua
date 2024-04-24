@@ -237,6 +237,12 @@ end
 ---@param tree neotest.Tree
 ---@return table<string, neotest.Result>
 function M.Adapter.results(spec, result, tree)
+  if spec.context.cwd ~= nil then
+    -- vim.api.nvim_exec(":cd " .. spec.context.cwd, false)
+    print("Reverting cwd back to: " .. spec.context.cwd)
+    vim.uv.chdir(spec.context.cwd)
+  end
+
   if spec.context.skip then
     ---@type table<string, neotest.Result>
     local results = {}
@@ -384,6 +390,7 @@ function M.build_single_test_runspec(pos, strategy)
       test_output_path = test_output_path,
       id = pos.id,
       test_filepath = pos.path,
+      cwd = cwd,
     },
   }
 
@@ -398,8 +405,9 @@ function M.build_single_test_runspec(pos, strategy)
   end
 
   if strategy == "dap" then
-    run_spec.strategy = M.get_dap_config(test_name, test_folder_path)
+    run_spec.strategy = M.get_dap_config(test_name, test_folder_path, cwd)
     run_spec.context.skip = true -- do not attempt to parse test output
+    vim.uv.chdir(cwd) -- TODO: does DAP/neotest have a callback instead?
   end
 
   return run_spec
@@ -407,8 +415,19 @@ end
 
 ---@param test_name string
 ---@return table | nil
-function M.get_dap_config(test_name, test_folderpath)
+function M.get_dap_config(test_name, test_folderpath, cwd)
   -- :help dap-configuration
+
+  local dap = require("dap")
+  dap.listeners.before.event_terminated["me"] = function()
+    print("DAP listener before event TERMINATED")
+    vim.uv.chdir(cwd) -- TODO: does DAP/neotest have a callback instead?
+  end
+  dap.listeners.after.event_terminated["me"] = function()
+    print("DAP listener after event TERMINATED")
+    vim.uv.chdir(cwd) -- TODO: does DAP/neotest have a callback instead?
+  end
+
   local dap_config = {
     type = "go",
     name = "Neotest-golang Debugger",
@@ -416,6 +435,10 @@ function M.get_dap_config(test_name, test_folderpath)
     mode = "test",
     program = test_folderpath,
     args = { "-test.run", "^" .. test_name .. "$" },
+    cwd = cwd, -- TODO: is this being used?!
+    options = {
+      cwd = cwd, -- TODO: is this being used?!
+    },
   }
 
   return dap_config
