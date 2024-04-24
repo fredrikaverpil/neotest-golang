@@ -368,18 +368,16 @@ function M.build_single_test_runspec(pos, strategy)
 
   ---@type table
   local args = {
-    "-v",
-    "-race",
-    "-count=1",
-    "-timeout=30s",
-    "-coverprofile=" .. cwd .. "/coverage.out",
     test_folder_path,
     "-run",
     "^" .. test_name .. "$",
   }
 
-  local gotestsum_command = vim.list_extend(gotestsum, args)
-  local gotest_command = vim.list_extend(gotest, args)
+  local combined_args = vim.list_extend(M.Adapter._args, args)
+  local gotestsum_command = vim.list_extend(gotestsum, combined_args)
+  local gotest_command = vim.list_extend(gotest, combined_args)
+
+  print(vim.inspect(gotestsum_command))
 
   ---@type neotest.RunSpec
   local run_spec = {
@@ -483,6 +481,31 @@ function M.process_json(raw_output)
     end
   end
   return jsonlines
+end
+
+---@type List
+M.Adapter._args = {
+  "-v",
+  "-race",
+  "-count=1",
+  "-timeout=60s",
+}
+
+setmetatable(M.Adapter, {
+  __call = function(_, opts)
+    return M.setup(opts)
+  end,
+})
+
+M.Adapter.setup = function(opts)
+  opts = opts or {}
+  if opts.args then
+    M.Adapter._args = opts.args
+  end
+
+  print(vim.inspect(opts))
+
+  return M.Adapter
 end
 
 return M.Adapter

@@ -2,24 +2,22 @@
 
 A neotest adapter for running go tests.
 
-🚧 This neotest adapter is under heavy development and not ready to be used in
-daily work, although that's what I am doing (dogfooding ftw!).
+🚧 This neotest adapter is under heavy development.
 
-## Background
+## 🏓 Background
 
 I've been using Neovim and neotest with
 [neotest-go](https://github.com/nvim-neotest/neotest-go) but I have stumbled
 upon many problems which seems difficult to solve in the neotest-go codebase.
 
 I have full respect for the time and efforts put in by the developer(s) of
-neotest-go. I do not aim in any way to diminish their needs or efforts in
-creating the adapter.
+neotest-go. I do not aim in any way to diminish their needs or efforts.
 
 However, I would like to see if, by building a Go adapter for neotest from
 scractch, whether it will be possible to mitigate the issues I have found with
 neotest-go.
 
-## Issues mitigated from the original neotest-go adapter
+## ⛑️ Issues mitigated from the original neotest-go adapter
 
 - Test Output in JSON, making it difficult to read:
   [neotest-go#52](https://github.com/nvim-neotest/neotest-go/issues/52)
@@ -28,7 +26,7 @@ neotest-go.
 - Running test suite doesn't work:
   [neotest-go#89](https://github.com/nvim-neotest/neotest-go/issues/89)
 
-## Upstream bugs
+## 🪲 Upstream bugs
 
 - Test output is printed undesirably:
   [neotest#391](https://github.com/nvim-neotest/neotest/issues/391). This is
@@ -38,7 +36,7 @@ neotest-go.
 - Arithmetic error which prevents errors from being shown as inline diagnostics:
   [neotest#396](https://github.com/nvim-neotest/neotest/pull/396) (PR filed).
 
-## Installation
+## 🥸 Installation and configuration
 
 You need to have `gotestsum` on your `$PATH`:
 
@@ -46,22 +44,145 @@ You need to have `gotestsum` on your `$PATH`:
 go install gotest.tools/gotestsum@latest
 ```
 
-### Lazy.nvim
+### 💤 Lazy.nvim
 
 ```lua
 return {
-  {
-    "fredrikaverpil/neotest-golang",
-    branch = "main",
-    build = "go install gotest.tools/gotestsum@latest",
+  "nvim-neotest/neotest",
+  dependencies = {
+    "fredrikaverpil/neotest-golang", -- Installation
+    "nvim-lua/plenary.nvim",
+    "nvim-treesitter/nvim-treesitter",
+    "antoinemadec/FixCursorHold.nvim",
   },
+  config = function()
+    require("neotest").setup({
+      adapters = {
+        require("neotest-golang"), -- Registration
+      }
+    })
+  end
 }
 ```
 
-Full example:
+### ⚙️ Configuration
+
+| Arguments | Default value                                  | Description                         |
+| --------- | ---------------------------------------------- | ----------------------------------- |
+| `args`    | `{ "-v", "-race", "-count=1", "timeout=60s" }` | Arguments to pass into `gotestsum`. |
+
+Example:
 
 ```lua
 return {
+  "nvim-neotest/neotest",
+  dependencies = {
+    "fredrikaverpil/neotest-golang",
+    "nvim-lua/plenary.nvim",
+    "nvim-treesitter/nvim-treesitter",
+    "antoinemadec/FixCursorHold.nvim",
+  },
+  config = function()
+    local config = { -- Specify configuration
+      args = {
+        "-v",
+        "-race",
+        "-count=1",
+        "-timeout=60s",
+        "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+      },
+    }
+    require("neotest").setup({
+      adapters = {
+        require("neotest-golang")(config), -- Apply configuration
+      }
+    })
+  end
+}
+```
+
+<details>
+<summary>Full example</summary>
+
+```lua
+return {
+  -- Neotest setup
+  {
+    "nvim-neotest/neotest",
+    event = "VeryLazy",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "antoinemadec/FixCursorHold.nvim",
+      "nvim-treesitter/nvim-treesitter",
+
+      "nvim-neotest/neotest-plenary",
+      "nvim-neotest/neotest-vim-test",
+
+      "nvim-neotest/nvim-nio",
+
+      {
+        "fredrikaverpil/neotest-golang",
+        branch = "main",
+        buil = "go install gotest.tools/gotestsum@latest",
+      },
+    },
+    opts = function(_, opts)
+      opts.adapters = opts.adapters or {}
+      opts.adapters["neotest-golang"] = {
+        args = {
+          "-v",
+          "-race",
+          "-count=1",
+          "-timeout=60s",
+          "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+        },
+      }
+    end,
+    config = function(_, opts)
+      if opts.adapters then
+        local adapters = {}
+        for name, config in pairs(opts.adapters or {}) do
+          if type(name) == "number" then
+            if type(config) == "string" then
+              config = require(config)
+            end
+            adapters[#adapters + 1] = config
+          elseif config ~= false then
+            local adapter = require(name)
+            if type(config) == "table" and not vim.tbl_isempty(config) then
+              local meta = getmetatable(adapter)
+              if adapter.setup then
+                adapter.setup(config)
+              elseif meta and meta.__call then
+                adapter(config)
+              else
+                error("Adapter " .. name .. " does not support setup")
+              end
+            end
+            adapters[#adapters + 1] = adapter
+          end
+        end
+        opts.adapters = adapters
+      end
+
+      require("neotest").setup(opts)
+    end,
+    keys = {
+      { "<leader>ta", function() require("neotest").run.attach() end, desc = "[t]est [a]ttach" },
+      { "<leader>tf", function() require("neotest").run.run(vim.fn.expand("%")) end, desc = "[t]est run [f]ile" },
+      { "<leader>tA", function() require("neotest").run.run(vim.uv.cwd()) end, desc = "[t]est [A]ll files" },
+      { "<leader>tS", function() require("neotest").run.run({ suite = true }) end, desc = "[t]est [S]uite" },
+      { "<leader>tn", function() require("neotest").run.run() end, desc = "[t]est [n]earest" },
+      { "<leader>tl", function() require("neotest").run.run_last() end, desc = "[t]est [l]ast" },
+      { "<leader>ts", function() require("neotest").summary.toggle() end, desc = "[t]est [s]ummary" },
+      { "<leader>to", function() require("neotest").output.open({ enter = true, auto_close = true }) end, desc = "[t]est [o]utput" },
+      { "<leader>tO", function() require("neotest").output_panel.toggle() end, desc = "[t]est [O]utput panel" },
+      { "<leader>tt", function() require("neotest").run.stop() end, desc = "[t]est [t]erminate" },
+      { "<leader>td", function() require("neotest").run.run({ suite = false, strategy = "dap" }) end, desc = "Debug nearest test" },
+    },
+  },
+
+  -- DAP setup
   {
     "mfussenegger/nvim-dap",
     event = "VeryLazy",
@@ -89,8 +210,8 @@ return {
           end
         end,
         keys = {
-         { "<leader>du", function() require("dapui").toggle({}) end, desc = "[d]ap [u]i" },
-         { "<leader>de", function() require("dapui").eval() end, desc = "[d]ap [e]val" },
+          { "<leader>du", function() require("dapui").toggle({}) end, desc = "[d]ap [u]i" },
+          { "<leader>de", function() require("dapui").eval() end, desc = "[d]ap [e]val" },
         },
       },
       {
@@ -118,35 +239,12 @@ return {
       {"<leader>dw", function() require("dap.ui.widgets").hover() end, desc = "[d]ebug [w]idgets" },
     },
   },
-  {
-    "nvim-neotest/neotest",
-    event = "VeryLazy",
-    ft = { "go" },
-    dependencies = {
-      {
-        "fredrikaverpil/neotest-golang",
-        branch = "main",
-        build = "go install gotest.tools/gotestsum@latest",
-      },
-    },
-    keys = {
-      { "<leader>ta", function() require("neotest").run.attach() end, desc = "[t]est [a]ttach" },
-      { "<leader>tf", function() require("neotest").run.run(vim.fn.expand("%")) end, desc = "[t]est run [f]ile" },
-      { "<leader>tA", function() require("neotest").run.run(vim.uv.cwd()) end, desc = "[t]est [A]ll files" },
-      { "<leader>tS", function() require("neotest").run.run({ suite = true }) end, desc = "[t]est [S]uite" },
-      { "<leader>tn", function() require("neotest").run.run() end, desc = "[t]est [n]earest" },
-      { "<leader>tl", function() require("neotest").run.run_last() end, desc = "[t]est [l]ast" },
-      { "<leader>ts", function() require("neotest").summary.toggle() end, desc = "[t]est [s]ummary" },
-      { "<leader>to", function() require("neotest").output.open({ enter = true, auto_close = true }) end, desc = "[t]est [o]utput" },
-      { "<leader>tO", function() require("neotest").output_panel.toggle() end, desc = "[t]est [O]utput panel" },
-      { "<leader>tt", function() require("neotest").run.stop() end, desc = "[t]est [t]erminate" },
-      { "<leader>td", function() require("neotest").run.run({ suite = false, strategy = "dap" }) end, desc = "Debug nearest test" },
-    },
-  },
 }
 ```
 
-## PRs are welcome
+</details>
+
+## 🙏 PRs are welcome
 
 Improvement suggestion PRs to this repo are very much welcome, and I encourage
 you to begin in the discussions in case the change is not trivial.
