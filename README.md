@@ -2,7 +2,24 @@
 
 A neotest adapter for running go tests.
 
-🚧 This neotest adapter is under heavy development.
+## 🚧 Pre-release
+
+This neotest adapter is under heavy development and considered beta.
+
+My next focus areas:
+
+- [ ] Refactoring, polish and tests.
+  - [ ] Make use of `pcall` to handle potential errors gracefully.
+- [ ] Set up CI for linting, testing, require changes via PR.
+- [ ] Versioning and releases via release-please.
+- [ ] Ability to debug test from sub-project.
+- [ ] Get rid of the `gotestsum` dependency in favour for native tooling
+      (blocked by
+      [neotest#391](https://github.com/nvim-neotest/neotest/issues/391)).
+- [ ] Investigate ways to speed up test execution when running dir/file.
+- [ ] Documentation around expanding new syntax support for table tests via AST
+      parsing.
+- [ ] Add debug logging, set up bug report form.
 
 ## 🏓 Background
 
@@ -17,7 +34,7 @@ However, I would like to see if, by building a Go adapter for neotest from
 scractch, whether it will be possible to mitigate the issues I have found with
 neotest-go.
 
-## ⛑️ Issues mitigated from the original neotest-go adapter
+## ⛑️ Neotest-go issues mitigated in neotest-golang
 
 - Test Output in JSON, making it difficult to read:
   [neotest-go#52](https://github.com/nvim-neotest/neotest-go/issues/52)
@@ -26,7 +43,7 @@ neotest-go.
 - Running test suite doesn't work:
   [neotest-go#89](https://github.com/nvim-neotest/neotest-go/issues/89)
 
-## 🪲 Upstream bugs
+## 🪲 Upstream bugs found
 
 - Test output is printed undesirably:
   [neotest#391](https://github.com/nvim-neotest/neotest/issues/391). This is
