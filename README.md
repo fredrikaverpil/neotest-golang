@@ -49,6 +49,8 @@ neotest-go.
   [neotest-go#75](https://github.com/nvim-neotest/neotest-go/issues/75)
 - Support for Nested Subtests:
   [neotest-go#74](https://github.com/nvim-neotest/neotest-go/issues/74)
+- DAP support:
+  [neotest-go#12](https://github.com/nvim-neotest/neotest-go/issues/12)
 
 ## 🪲 Upstream/dependency issues found during development
 
@@ -69,20 +71,22 @@ Use my forks, or make the changes locally on your machine:
 
 ```lua
 return {
-  "nvim-neotest/neotest",
-  dependencies = {
-    "fredrikaverpil/neotest-golang", -- Installation
-    "nvim-lua/plenary.nvim",
-    "nvim-treesitter/nvim-treesitter",
-    "antoinemadec/FixCursorHold.nvim",
+  {
+    "nvim-neotest/neotest",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-treesitter/nvim-treesitter",
+      "antoinemadec/FixCursorHold.nvim",
+      "fredrikaverpil/neotest-golang", -- Installation
+    },
+    config = function()
+      require("neotest").setup({
+        adapters = {
+          require("neotest-golang"), -- Registration
+        },
+      })
+    end,
   },
-  config = function()
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang"), -- Registration
-      }
-    })
-  end
 }
 ```
 
@@ -91,8 +95,13 @@ return {
 | Argument | Default value                                   | Description                       |
 | -------- | ----------------------------------------------- | --------------------------------- |
 | `args`   | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`. |
+| Argument         | Default value                                   | Description                                         |
+| ---------------- | ----------------------------------------------- | --------------------------------------------------- |
+| `args`           | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `gotestsum`.                 |
+| `dap_go_enabled` | `false`                                         | Leverage nvim-dap-go for debugging tests.           |
+| `dap_go_args`    | `{}`                                            | Arguments to pass into `require("dap-go").setup()`. |
 
-Example:
+#### Example configuration: custom gotestsum arguments
 
 ```lua
 local config = { -- Specify configuration
@@ -111,8 +120,51 @@ require("neotest").setup({
 })
 ```
 
+#### Example configuration for debugging
+
+To debug tests, make sure you depend on
+[mfussenegger/nvim-dap](https://github.com/mfussenegger/nvim-dap),
+[rcarriga/nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) and
+[leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go).
+
+Then set `dap_go_enabled` to `true`:
+
+```lua
+local config = { dap_go_enabled = true } -- Specify configuration
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config), -- Apply configuration
+  },
+})
+```
+
+Finally, set a keymap, like:
+
+```lua
+return {
+  {
+    "nvim-neotest/neotest",
+    ...
+    keys = {
+      {
+        "<leader>td",
+        function()
+          require("neotest").run.run({ suite = false, strategy = "dap" })
+        end,
+        desc = "Debug nearest test",
+      },
+    }
+    require("neotest").setup({
+      adapters = {
+        require("neotest-golang")(config), -- Apply configuration
+      }
+    })
+  end
+}
+```
+
 <details>
-<summary>Full example</summary>
+<summary>Click to expand</summary>
 
 ```lua
 return {
@@ -132,6 +184,12 @@ return {
 
       {
         "fredrikaverpil/neotest-golang",
+        dependencies = {
+          {
+            "leoluz/nvim-dap-go",
+            opts = {},
+          },
+        },
         branch = "main",
       },
     },
@@ -145,6 +203,7 @@ return {
           "-timeout=60s",
           "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
         },
+        dap_go_enabled = true,
       }
     end,
     config = function(_, opts)
@@ -225,6 +284,10 @@ return {
       },
       {
         "theHamsta/nvim-dap-virtual-text",
+        opts = {},
+      },
+      {
+        "leoluz/nvim-dap-go",
         opts = {},
       },
     },

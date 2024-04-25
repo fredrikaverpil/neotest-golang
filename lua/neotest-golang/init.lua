@@ -361,19 +361,26 @@ function M.build_single_test_runspec(pos, strategy)
     },
   }
 
-  ---@type string
-  local relative_test_folderpath = vim.fn.fnamemodify(pos.path, ":~:.")
-  for _, sub_project in ipairs(M.sub_projects()) do
-    if string.match(relative_test_folderpath, sub_project) then
-      cwd = cwd .. "/" .. sub_project
-      run_spec.cwd = cwd
-      break
-    end
-  end
-
+  -- set up for debugging of test
   if strategy == "dap" then
     run_spec.strategy = M.get_dap_config(test_name, test_folder_absolute_path)
     run_spec.context.skip = true -- do not attempt to parse test output
+
+    -- nvim-dap and nvim-dap-go cwd
+    if M.Adapter._dap_go_enabled then
+      local dap_go_args = M.Adapter._dap_go_args or {}
+      local dap_go_args_original = vim.deepcopy(dap_go_args)
+      if dap_go_args.delve == nil then
+        dap_go_args.delve = {}
+      end
+      dap_go_args.delve.cwd = test_folder_absolute_path
+      require("dap-go").setup(dap_go_args)
+
+      -- reset nvim-dap-go (and cwd) after debugging with nvim-dap
+      require("dap").listeners.after.event_terminated["neotest-golang-debug"] = function()
+        require("dap-go").setup(dap_go_args_original)
+      end
+    end
   end
 
   return run_spec
@@ -464,6 +471,10 @@ M.Adapter._args = {
   "-timeout=60s",
 }
 
+-- nvim-dap-go config
+M.Adapter._dap_go_enabled = false
+M.Adapter._dap_go_args = {}
+
 setmetatable(M.Adapter, {
   __call = function(_, opts)
     return M.Adapter.setup(opts)
@@ -473,7 +484,15 @@ setmetatable(M.Adapter, {
 M.Adapter.setup = function(opts)
   opts = opts or {}
   if opts.args then
-    M.Adapter._args = opts.args
+    if opts.args then
+      M.Adapter._args = opts.args
+    end
+    if opts.dap_go_enabled then
+      M.Adapter._dap_go_enabled = opts.dap_go_enabled
+      if opts.dap_go_args then
+        M.Adapter._dap_go_args = opts.dap_go_args
+      end
+    end
   end
 
   return M.Adapter
