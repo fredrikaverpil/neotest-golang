@@ -380,6 +380,7 @@ function M.build_single_test_runspec(pos, strategy)
   ---@type neotest.RunSpec
   local run_spec = {
     command = gotestsum_command,
+    cwd = cwd,
     context = {
       test_output_path = test_output_path,
       id = pos.id,
