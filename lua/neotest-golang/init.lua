@@ -170,7 +170,7 @@ function M.Adapter.build_spec(args)
     --   "-v",
     --   "-race",
     --   "-count=1",
-    --   "-timeout=60s", -- TODO: make it configurable
+    --   "-timeout=60s",
     --   "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
     --   "./...",
     -- }
