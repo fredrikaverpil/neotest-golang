@@ -347,7 +347,7 @@ function M.build_single_test_runspec(pos, strategy)
   ---@type string
   local test_name = M.test_name_from_pos_id(pos.id)
   ---@type string
-  local test_folder_path = string.match(pos.path, "(.+)/")
+  local test_folder_absolute_path = string.match(pos.path, "(.+)/")
 
   ---@type string
   local cwd = vim.fn.getcwd()
@@ -368,7 +368,7 @@ function M.build_single_test_runspec(pos, strategy)
 
   ---@type table
   local args = {
-    test_folder_path,
+    test_folder_absolute_path,
     "-run",
     "^" .. test_name .. "$",
   }
@@ -398,7 +398,7 @@ function M.build_single_test_runspec(pos, strategy)
   end
 
   if strategy == "dap" then
-    run_spec.strategy = M.get_dap_config(test_name, test_folder_path)
+    run_spec.strategy = M.get_dap_config(test_name, test_folder_absolute_path)
     run_spec.context.skip = true -- do not attempt to parse test output
   end
 
