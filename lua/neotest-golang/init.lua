@@ -380,7 +380,7 @@ function M.build_single_test_runspec(pos, strategy)
   ---@type neotest.RunSpec
   local run_spec = {
     command = gotestsum_command,
-    cwd = cwd,
+    cwd = test_folder_absolute_path,
     context = {
       test_output_path = test_output_path,
       id = pos.id,
@@ -408,14 +408,14 @@ end
 
 ---@param test_name string
 ---@return table | nil
-function M.get_dap_config(test_name, test_folderpath)
+function M.get_dap_config(test_name, test_folder_absolute_path)
   -- :help dap-configuration
   local dap_config = {
     type = "go",
     name = "Neotest-golang Debugger",
     request = "launch",
     mode = "test",
-    program = test_folderpath,
+    program = test_folder_absolute_path,
     args = { "-test.run", "^" .. test_name .. "$" },
   }
 
