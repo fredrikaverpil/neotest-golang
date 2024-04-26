@@ -373,9 +373,10 @@ function M.build_single_test_runspec(pos, strategy)
     "^" .. test_name .. "$",
   }
 
-  local combined_args = vim.list_extend(M.Adapter._args, args)
-  local gotestsum_command = vim.list_extend(gotestsum, combined_args)
-  local gotest_command = vim.list_extend(gotest, combined_args)
+  local combined_args = vim.list_extend(vim.deepcopy(M.Adapter._args), args)
+  local gotestsum_command =
+    vim.list_extend(vim.deepcopy(gotestsum), combined_args)
+  local gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
 
   ---@type neotest.RunSpec
   local run_spec = {
