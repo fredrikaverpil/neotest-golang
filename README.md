@@ -4,7 +4,9 @@ A neotest adapter for running go tests.
 
 ## 🚧 Pre-release
 
-This neotest adapter is under heavy development and considered beta.
+This neotest adapter is under heavy development and considered beta. I'm,
+however, dogfooding myself with this project, as I use it daily as a full-time
+Go developer.
 
 My next focus areas:
 
@@ -43,16 +45,26 @@ neotest-go.
   [neotest-go#83](https://github.com/nvim-neotest/neotest-go/issues/83)
 - Running test suite doesn't work:
   [neotest-go#89](https://github.com/nvim-neotest/neotest-go/issues/89)
+- Diagnostics for table tests on the line of failure:
+  [neotest-go#75](https://github.com/nvim-neotest/neotest-go/issues/75)
+- Support for Nested Subtests:
+  [neotest-go#74](https://github.com/nvim-neotest/neotest-go/issues/74)
 
-## 🪲 Upstream bugs found
+## 🪲 Upstream/dependency issues found during development
 
 - Test output is printed undesirably:
   [neotest#391](https://github.com/nvim-neotest/neotest/issues/391). This is
   currently mitigated in neotest-golang by using `gotestsum`. Long-term, it
   would be great to be able to use the intended behavior of neotest and just run
   `go test`.
+
+Use my forks, or make the changes locally on your machine:
+
 - Arithmetic error which prevents errors from being shown as inline diagnostics:
   [neotest#396](https://github.com/nvim-neotest/neotest/pull/396) (PR filed).
+- In order to set the current working directory for `delve` (to support nested
+  go projects): [nvim-dap-go#81](https://github.com/leoluz/nvim-dap-go/pull/81)
+  (PR filed).
 
 ## 🥸 Installation and configuration
 
@@ -93,31 +105,20 @@ return {
 Example:
 
 ```lua
-return {
-  "nvim-neotest/neotest",
-  dependencies = {
-    "fredrikaverpil/neotest-golang",
-    "nvim-lua/plenary.nvim",
-    "nvim-treesitter/nvim-treesitter",
-    "antoinemadec/FixCursorHold.nvim",
+local config = { -- Specify configuration
+  args = {
+    "-v",
+    "-race",
+    "-count=1",
+    "-timeout=60s",
+    "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
   },
-  config = function()
-    local config = { -- Specify configuration
-      args = {
-        "-v",
-        "-race",
-        "-count=1",
-        "-timeout=60s",
-        "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-      },
-    }
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config), -- Apply configuration
-      }
-    })
-  end
 }
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config), -- Apply configuration
+  },
+})
 ```
 
 <details>
