@@ -60,8 +60,6 @@ neotest-go.
 
 Use my forks, or make the changes locally on your machine:
 
-- Arithmetic error which prevents errors from being shown as inline diagnostics:
-  [neotest#396](https://github.com/nvim-neotest/neotest/pull/396) (PR filed).
 - In order to set the current working directory for `delve` (to support nested
   go projects): [nvim-dap-go#81](https://github.com/leoluz/nvim-dap-go/pull/81)
   (PR filed).
