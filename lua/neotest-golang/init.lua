@@ -305,7 +305,10 @@ function M.Adapter.results(spec, result, tree)
         if line_number ~= nil then
           -- log the error along with its line number (for diagnostics)
           ---@type neotest.Error
-          local error = { message = line.Output, line = line_number }
+          local error = {
+            message = line.Output,
+            line = line_number - 1, -- neovim lines are 0-indexed
+          }
           table.insert(errors, error)
         end
       end
