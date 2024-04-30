@@ -92,12 +92,9 @@ return {
 
 ### ⚙️ Configuration
 
-| Argument | Default value                                   | Description                       |
-| -------- | ----------------------------------------------- | --------------------------------- |
-| `args`   | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`. |
 | Argument         | Default value                                   | Description                                         |
 | ---------------- | ----------------------------------------------- | --------------------------------------------------- |
-| `args`           | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `gotestsum`.                 |
+| `args`           | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`.                   |
 | `dap_go_enabled` | `false`                                         | Leverage nvim-dap-go for debugging tests.           |
 | `dap_go_args`    | `{}`                                            | Arguments to pass into `require("dap-go").setup()`. |
 

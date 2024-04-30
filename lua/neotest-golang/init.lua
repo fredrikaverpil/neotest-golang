@@ -392,7 +392,7 @@ function M.get_dap_config(test_name)
   -- :help dap-configuration
   local dap_config = {
     type = "go",
-    name = "Neotest-golang Debugger",
+    name = "Neotest-golang",
     request = "launch",
     mode = "test",
     program = "${fileDirname}",
