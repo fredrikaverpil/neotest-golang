@@ -54,9 +54,8 @@ neotest-go.
 
 - Test output is printed undesirably:
   [neotest#391](https://github.com/nvim-neotest/neotest/issues/391). This is
-  currently mitigated in neotest-golang by using `gotestsum`. Long-term, it
-  would be great to be able to use the intended behavior of neotest and just run
-  `go test`.
+  currently mitigated in neotest-golang by erasing the file written by neotest,
+  containing the test command output.
 
 Use my forks, or make the changes locally on your machine:
 
@@ -65,13 +64,6 @@ Use my forks, or make the changes locally on your machine:
   (PR filed).
 
 ## 🥸 Installation and configuration
-
-You need to have [`gotestsum`](https://github.com/gotestyourself/gotestsum) on
-your `$PATH`:
-
-```bash
-go install gotest.tools/gotestsum@latest
-```
 
 ### 💤 Lazy.nvim
 
@@ -96,9 +88,9 @@ return {
 
 ### ⚙️ Configuration
 
-| Argument | Default value                                   | Description                         |
-| -------- | ----------------------------------------------- | ----------------------------------- |
-| `args`   | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `gotestsum`. |
+| Argument | Default value                                   | Description                       |
+| -------- | ----------------------------------------------- | --------------------------------- |
+| `args`   | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`. |
 
 Example:
 
@@ -141,7 +133,6 @@ return {
       {
         "fredrikaverpil/neotest-golang",
         branch = "main",
-        build = "go install gotest.tools/gotestsum@latest",
       },
     },
     opts = function(_, opts)

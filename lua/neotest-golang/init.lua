@@ -160,53 +160,28 @@ function M.Adapter.build_spec(args)
 
     return -- delegate test execution to per-test execution
 
-    -- -- FIXME: using gotestsum for now, only because of
-    -- -- https://github.com/nvim-neotest/neotest/issues/391
-    -- command = {
-    --   "gotestsum",
-    --   "--jsonfile",
-    --   test_output_path,
-    --   "--",
-    --   "-v",
-    --   "-race",
-    --   "-count=1",
-    --   "-timeout=60s",
-    --   "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-    --   "./...",
-    -- }
+    -- NOTE: could potentially run 'go test' on the whole directory, to make
+    -- tests go a lot faster, but would come with the added complexity of
+    -- having to traverse the node tree manually and set statuses accordingly.
+    -- I'm not sure it's worth it...
   elseif pos.type == "dir" then
     -- Sub-directory
 
     return -- delegate test execution to per-test execution
 
+    -- NOTE: could potentially run 'go test' on the whole file, to make
+    -- tests go a lot faster, but would come with the added complexity of
+    -- having to traverse the node tree manually and set statuses accordingly.
+    -- I'm not sure it's worth it...
+    --
     -- ---@type string
     -- local relative_test_folderpath = vim.fn.fnamemodify(pos.path, ":~:.")
     -- ---@type string
     -- local relative_test_folderpath_go = "./"
     --   .. relative_test_folderpath
     --   .. "/..."
-    --
-    -- -- FIXME: using gotestsum for now, only because of
-    -- -- https://github.com/nvim-neotest/neotest/issues/391
-    -- command = {
-    --   "gotestsum",
-    --   "--jsonfile",
-    --   test_output_path,
-    --   "--",
-    --   "-v",
-    --   "-race",
-    --   "-count=1",
-    --   "-timeout=30s",
-    --   "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-    --   relative_test_folderpath_go,
-    -- }
   elseif pos.type == "file" then
     -- Single file
-    -- Go does not run tests based on files, but on the package name. If Go
-    -- is given a filepath, in which tests resides, it also needs to have all
-    -- other filepaths that might be related passed as arguments to be able
-    -- to compile. This approach is too brittle, and therefore this mode is not
-    -- supported. Instead, the tests of a file are run as if pos.typ == "test".
 
     if M.table_is_empty(tree:children()) then
       -- No tests present in file
@@ -220,6 +195,12 @@ function M.Adapter.build_spec(args)
       }
       return run_spec
     else
+      -- Go does not run tests based on files, but on the package name. If Go
+      -- is given a filepath, in which tests resides, it also needs to have all
+      -- other filepaths that might be related passed as arguments to be able
+      -- to compile. This approach is too brittle, and therefore this mode is not
+      -- supported. Instead, the tests of a file are run as if pos.typ == "test".
+
       return -- delegate test execution to per-test execution
     end
   elseif pos.type == "test" then
@@ -255,12 +236,8 @@ function M.Adapter.results(spec, result, tree)
     result_status = "failed"
   end
 
-  -- FIXME: muting neotest stdout/stderr grabbed output for now:
-  -- https://github.com/nvim-neotest/neotest/issues/391
-  vim.fn.writefile({ "" }, result.output)
   ---@type table
-  -- local raw_output = async.fn.readfile(result.output)
-  local raw_output = async.fn.readfile(spec.context.test_output_path)
+  local raw_output = async.fn.readfile(result.output)
 
   ---@type string
   local test_filepath = spec.context.test_filepath
@@ -337,6 +314,11 @@ function M.Adapter.results(spec, result, tree)
     errors = errors,
   }
 
+  -- FIXME: once output is parsed, erase file contents, so to avoid JSON in
+  -- output panel. This is a workaround for now, only because of
+  -- https://github.com/nvim-neotest/neotest/issues/391
+  vim.fn.writefile({ "" }, result.output)
+
   return results
 end
 
@@ -346,8 +328,6 @@ end
 ---@return neotest.RunSpec
 function M.build_single_test_runspec(pos, strategy)
   ---@type string
-  local test_output_path = vim.fs.normalize(async.fn.tempname())
-  ---@type string
   local test_name = M.test_name_from_pos_id(pos.id)
   ---@type string
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
@@ -355,18 +335,10 @@ function M.build_single_test_runspec(pos, strategy)
   ---@type string
   local cwd = vim.fn.getcwd()
 
-  -- go test -v 2>&1 | go tool test2json > output.json
-
-  local gotestsum = {
-    "gotestsum",
-    "--jsonfile",
-    test_output_path,
-    "--",
-  }
-
   local gotest = {
     "go",
     "test",
+    "-json",
   }
 
   ---@type table
@@ -377,16 +349,13 @@ function M.build_single_test_runspec(pos, strategy)
   }
 
   local combined_args = vim.list_extend(vim.deepcopy(M.Adapter._args), args)
-  local gotestsum_command =
-    vim.list_extend(vim.deepcopy(gotestsum), combined_args)
   local gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
 
   ---@type neotest.RunSpec
   local run_spec = {
-    command = gotestsum_command,
+    command = gotest_command,
     cwd = test_folder_absolute_path,
     context = {
-      test_output_path = test_output_path,
       id = pos.id,
       test_filepath = pos.path,
     },
@@ -480,7 +449,8 @@ function M.process_json(raw_output)
       local json_data = vim.fn.json_decode(line)
       table.insert(jsonlines, json_data)
     else
-      vim.notify("Warning, not a json line: " .. line)
+      -- TODO: log these to file instead...
+      -- vim.notify("Warning, not a json line: " .. line)
     end
   end
   return jsonlines
