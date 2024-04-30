@@ -363,7 +363,7 @@ function M.build_single_test_runspec(pos, strategy)
 
   -- set up for debugging of test
   if strategy == "dap" then
-    run_spec.strategy = M.get_dap_config(test_name, test_folder_absolute_path)
+    run_spec.strategy = M.get_dap_config(test_name)
     run_spec.context.skip = true -- do not attempt to parse test output
 
     -- nvim-dap and nvim-dap-go cwd
@@ -388,14 +388,14 @@ end
 
 ---@param test_name string
 ---@return table | nil
-function M.get_dap_config(test_name, test_folder_absolute_path)
+function M.get_dap_config(test_name)
   -- :help dap-configuration
   local dap_config = {
     type = "go",
     name = "Neotest-golang Debugger",
     request = "launch",
     mode = "test",
-    program = test_folder_absolute_path,
+    program = "${fileDirname}",
     args = { "-test.run", "^" .. test_name .. "$" },
   }
 
