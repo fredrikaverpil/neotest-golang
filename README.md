@@ -96,9 +96,9 @@ return {
 
 ### ⚙️ Configuration
 
-| Argument | Default value                                  | Description                         |
-| -------- | ---------------------------------------------- | ----------------------------------- |
-| `args`   | `{ "-v", "-race", "-count=1", "timeout=60s" }` | Arguments to pass into `gotestsum`. |
+| Argument | Default value                                   | Description                         |
+| -------- | ----------------------------------------------- | ----------------------------------- |
+| `args`   | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `gotestsum`. |
 
 Example:
 
@@ -141,7 +141,7 @@ return {
       {
         "fredrikaverpil/neotest-golang",
         branch = "main",
-        buil = "go install gotest.tools/gotestsum@latest",
+        build = "go install gotest.tools/gotestsum@latest",
       },
     },
     opts = function(_, opts)
