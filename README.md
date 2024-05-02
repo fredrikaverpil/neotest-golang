@@ -1,10 +1,10 @@
 # neotest-golang
 
-A neotest adapter for running go tests.
+A Neotest adapter for running Go tests.
 
 ## 🚧 Pre-release
 
-This neotest adapter is under heavy development and considered beta. I'm,
+This Neotest adapter is under heavy development and considered beta. I'm,
 however, dogfooding myself with this project, as I use it daily as a full-time
 Go developer.
 
@@ -25,16 +25,15 @@ My next focus areas:
 
 ## 🏓 Background
 
-I've been using Neovim and neotest with
+I've been using Neovim and Neotest with
 [neotest-go](https://github.com/nvim-neotest/neotest-go) but I have stumbled
 upon many problems which seems difficult to solve in the neotest-go codebase.
 
 I have full respect for the time and efforts put in by the developer(s) of
 neotest-go. I do not aim in any way to diminish their needs or efforts.
 
-However, I would like to see if, by building a Go adapter for neotest from
-scractch, whether it will be possible to mitigate the issues I have found with
-neotest-go.
+However, I would like to see if, by building a Go adapter for Neotest from
+scratch, if I can mitigate the issues I have found with neotest-go.
 
 ## ⛑️ Neotest-go issues mitigated in neotest-golang
 
@@ -55,10 +54,10 @@ neotest-go.
 
 - Test output is printed undesirably:
   [neotest#391](https://github.com/nvim-neotest/neotest/issues/391). This is
-  currently mitigated in neotest-golang by erasing the file written by neotest,
-  containing the test command output.
+  currently mitigated in neotest-golang by reading the neotest-written test
+  output file on disk, parsing it and then erasing its contents.
 
-## 🥸 Installation and configuration
+## 🥸 Installation
 
 ### 💤 Lazy.nvim
 
@@ -83,15 +82,15 @@ return {
 }
 ```
 
-### ⚙️ Configuration
+## ⚙️ Configuration
 
-| Argument         | Default value                                   | Description                                         |
-| ---------------- | ----------------------------------------------- | --------------------------------------------------- |
-| `args`           | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`.                   |
-| `dap_go_enabled` | `false`                                         | Leverage nvim-dap-go for debugging tests.           |
-| `dap_go_args`    | `{}`                                            | Arguments to pass into `require("dap-go").setup()`. |
+| Argument         | Default value                                   | Description                                                                               |
+| ---------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `args`           | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`.                                                         |
+| `dap_go_enabled` | `false`                                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests. |
+| `dap_go_args`    | `{}`                                            | Arguments to pass into `require("dap-go").setup()`.                                       |
 
-#### Example configuration: custom gotestsum arguments
+### Example configuration: custom gotestsum arguments
 
 ```lua
 local config = { -- Specify configuration
@@ -110,7 +109,7 @@ require("neotest").setup({
 })
 ```
 
-#### Example configuration for debugging
+### Example configuration: debugging
 
 To debug tests, make sure you depend on
 [mfussenegger/nvim-dap](https://github.com/mfussenegger/nvim-dap),
@@ -152,6 +151,8 @@ return {
   end
 }
 ```
+
+### Example configuration: extra everything
 
 <details>
 <summary>Click to expand</summary>
