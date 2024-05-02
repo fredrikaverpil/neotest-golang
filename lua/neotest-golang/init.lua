@@ -332,9 +332,6 @@ function M.build_single_test_runspec(pos, strategy)
   ---@type string
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
 
-  ---@type string
-  local cwd = vim.fn.getcwd()
-
   local gotest = {
     "go",
     "test",
@@ -400,21 +397,6 @@ function M.get_dap_config(test_name)
   }
 
   return dap_config
-end
-
----@returns string[]
-function M.sub_projects()
-  -- return a list of sub-projects which contain a go.mod file
-
-  local sub_projects = {}
-
-  local sub_project_dirs = vim.fn.glob("*/go.mod", true, true)
-  for _, sub_project_dir in ipairs(sub_project_dirs) do
-    local sub_project = vim.fn.fnamemodify(sub_project_dir, ":h")
-    table.insert(sub_projects, sub_project)
-  end
-
-  return sub_projects
 end
 
 function M.table_is_empty(t)
