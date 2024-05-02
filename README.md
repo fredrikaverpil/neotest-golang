@@ -59,12 +59,6 @@ neotest-go.
   currently mitigated in neotest-golang by erasing the file written by neotest,
   containing the test command output.
 
-Use my forks, or make the changes locally on your machine:
-
-- In order to set the current working directory for `delve` (to support nested
-  go projects): [nvim-dap-go#81](https://github.com/leoluz/nvim-dap-go/pull/81)
-  (PR filed).
-
 ## 🥸 Installation and configuration
 
 ### 💤 Lazy.nvim
