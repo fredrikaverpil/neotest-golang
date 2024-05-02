@@ -16,9 +16,8 @@ My next focus areas:
 - [ ] Versioning and releases via release-please.
 - [x] Ability to debug test from sub-project (see
       [nvim-dap-go#80](https://github.com/leoluz/nvim-dap-go/issues/80)).
-- [x] Get rid of the `gotestsum` dependency in favour for native tooling
-      (blocked by
-      [neotest#391](https://github.com/nvim-neotest/neotest/issues/391)).
+- [x] Get rid of the `gotestsum` dependency in favour for native `go test`
+      tooling.
 - [ ] Investigate ways to speed up test execution when running dir/file.
 - [ ] Documentation around expanding new syntax support for table tests via AST
       parsing.
