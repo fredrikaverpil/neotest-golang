@@ -339,13 +339,14 @@ function M.build_single_test_runspec(pos, strategy)
   }
 
   ---@type table
-  local args = {
+  local go_test_args = {
     test_folder_absolute_path,
     "-run",
     "^" .. test_name .. "$",
   }
 
-  local combined_args = vim.list_extend(vim.deepcopy(M.Adapter._args), args)
+  local combined_args =
+    vim.list_extend(vim.deepcopy(M.Adapter._go_test_args), go_test_args)
   local gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
 
   ---@type neotest.RunSpec
@@ -365,17 +366,17 @@ function M.build_single_test_runspec(pos, strategy)
 
     -- nvim-dap and nvim-dap-go cwd
     if M.Adapter._dap_go_enabled then
-      local dap_go_args = M.Adapter._dap_go_args or {}
-      local dap_go_args_original = vim.deepcopy(dap_go_args)
-      if dap_go_args.delve == nil then
-        dap_go_args.delve = {}
+      local dap_go_opts = M.Adapter._dap_go_opts or {}
+      local dap_go_opts_original = vim.deepcopy(dap_go_opts)
+      if dap_go_opts.delve == nil then
+        dap_go_opts.delve = {}
       end
-      dap_go_args.delve.cwd = test_folder_absolute_path
-      require("dap-go").setup(dap_go_args)
+      dap_go_opts.delve.cwd = test_folder_absolute_path
+      require("dap-go").setup(dap_go_opts)
 
       -- reset nvim-dap-go (and cwd) after debugging with nvim-dap
       require("dap").listeners.after.event_terminated["neotest-golang-debug"] = function()
-        require("dap-go").setup(dap_go_args_original)
+        require("dap-go").setup(dap_go_opts_original)
       end
     end
   end
@@ -446,7 +447,7 @@ function M.process_json(raw_output)
 end
 
 ---@type List
-M.Adapter._args = {
+M.Adapter._go_test_args = {
   "-v",
   "-race",
   "-count=1",
@@ -455,7 +456,7 @@ M.Adapter._args = {
 
 -- nvim-dap-go config
 M.Adapter._dap_go_enabled = false
-M.Adapter._dap_go_args = {}
+M.Adapter._dap_go_opts = {}
 
 setmetatable(M.Adapter, {
   __call = function(_, opts)
@@ -465,14 +466,21 @@ setmetatable(M.Adapter, {
 
 M.Adapter.setup = function(opts)
   opts = opts or {}
-  if opts.args then
-    if opts.args then
-      M.Adapter._args = opts.args
+  if opts.args or opts.dap_go_args then
+    -- temporary warning
+    vim.notify(
+      "Please update your config, the arguments/opts have changed for neotest-golang.",
+      vim.log.levels.WARN
+    )
+  end
+  if opts.go_test_args then
+    if opts.go_test_args then
+      M.Adapter._go_test_args = opts.go_test_args
     end
     if opts.dap_go_enabled then
       M.Adapter._dap_go_enabled = opts.dap_go_enabled
-      if opts.dap_go_args then
-        M.Adapter._dap_go_args = opts.dap_go_args
+      if opts.dap_go_opts then
+        M.Adapter._dap_go_opts = opts.dap_go_opts
       end
     end
   end
