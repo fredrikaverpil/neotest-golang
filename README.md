@@ -96,7 +96,7 @@ return {
 
 ```lua
 local config = { -- Specify configuration
-  args = {
+  go_test_args = {
     "-v",
     "-race",
     "-count=1",
@@ -189,7 +189,7 @@ return {
     opts = function(_, opts)
       opts.adapters = opts.adapters or {}
       opts.adapters["neotest-golang"] = {
-        args = {
+        go_test_args = {
           "-v",
           "-race",
           "-count=1",
