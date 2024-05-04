@@ -4,8 +4,6 @@ A Neotest adapter for running Go tests.
 
 <img width="1995" alt="neotest-golang" src="https://github.com/fredrikaverpil/neotest-golang/assets/994357/6f13689c-f1fd-4058-b814-fd940ee62544">
 
-
-
 ## 🚧 Pre-release
 
 This Neotest adapter is under heavy development and considered beta. I'm,
@@ -90,9 +88,9 @@ return {
 
 | Argument         | Default value                                   | Description                                                                               |
 | ---------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `args`           | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`.                                                         |
+| `go_test_args`   | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`.                                                         |
 | `dap_go_enabled` | `false`                                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests. |
-| `dap_go_args`    | `{}`                                            | Arguments to pass into `require("dap-go").setup()`.                                       |
+| `dap_go_opts`    | `{}`                                            | Options to pass into `require("dap-go").setup()`.                                         |
 
 ### Example configuration: custom gotestsum arguments
 
