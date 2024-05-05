@@ -144,13 +144,8 @@ return {
         end,
         desc = "Debug nearest test",
       },
-    }
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config), -- Apply configuration
-      }
-    })
-  end
+    },
+  },
 }
 ```
 
