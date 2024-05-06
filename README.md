@@ -92,7 +92,7 @@ return {
 | `dap_go_enabled` | `false`                                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests. |
 | `dap_go_opts`    | `{}`                                            | Options to pass into `require("dap-go").setup()`.                                         |
 
-### Example configuration: custom gotestsum arguments
+### Example configuration: custom `go test` arguments
 
 ```lua
 local config = { -- Specify configuration
@@ -110,6 +110,9 @@ require("neotest").setup({
   },
 })
 ```
+
+Note that the example above writes a coverage file.
+You can use [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) to show the coverage in Neovim.
 
 ### Example configuration: debugging
 
