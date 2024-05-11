@@ -1,0 +1,31 @@
+name: test
+on: [pull_request, workflow_dispatch]
+jobs:
+  lua:
+    strategy:
+      matrix:
+        version: [stable, nightly]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Neovim setup
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.version }}
+      - name: Set up pkgx with LuaJIT and LuaRocks
+        uses: pkgxdev/setup@v1
+        with:
+          +: luajit.org@2 luarocks.org
+
+      # Install into LuaRocks (not Neovim)
+      - name: Install neotest
+        run: luarocks --lua-dir=$HOME/.pkgx/luajit.org/v2 --lua-version=5.1 install neotest
+      - name: Install nvim-treesitter
+        run: luarocks --lua-dir=$HOME/.pkgx/luajit.org/v2 --lua-version=5.1 install nvim-treesitter
+      - name: Install busted
+        run: luarocks --lua-dir=$HOME/.pkgx/luajit.org/v2 --lua-version=5.1 install busted
+      
+      - name: Run tests
+        run: make unit-test

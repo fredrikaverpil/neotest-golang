@@ -1,0 +1,17 @@
+return {
+  _all = {
+    coverage = false,
+    lua = "./test/nvim-shim",
+  },
+  default = {
+    verbose = true,
+  },
+  unit = {
+    ROOT = { "./test/unit/" },
+    verbose = true,
+  },
+  -- e2e = {
+  -- 	ROOT = {'./test/e2e/'},
+  -- 	pattern = '',  -- No fancy names for E2E tests
+  -- },
+}
