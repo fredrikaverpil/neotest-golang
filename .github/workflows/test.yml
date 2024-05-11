@@ -14,18 +14,12 @@ jobs:
         with:
           neovim: true
           version: ${{ matrix.version }}
-      - name: Set up pkgx with LuaJIT and LuaRocks
-        uses: pkgxdev/setup@v1
-        with:
-          +: luajit.org@2 luarocks.org
-
-      # Install into LuaRocks (not Neovim)
-      - name: Install neotest
-        run: luarocks --lua-dir=$HOME/.pkgx/luajit.org/v2 --lua-version=5.1 install neotest
-      - name: Install nvim-treesitter
-        run: luarocks --lua-dir=$HOME/.pkgx/luajit.org/v2 --lua-version=5.1 install nvim-treesitter
-      - name: Install busted
-        run: luarocks --lua-dir=$HOME/.pkgx/luajit.org/v2 --lua-version=5.1 install busted
-      
+      - name: Neovim version
+        run: nvim --version
+      - name: Bootstrap plenary for CI
+        run: |
+          mkdir -p ~/.local/share/nvim/site/pack/vendor/start
+          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
+          ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
       - name: Run tests
-        run: make unit-test
+        run: nvim --headless -c "PlenaryBustedDirectory test {minimal_init = 'test/minimal_init.lua', sequential = true}"
