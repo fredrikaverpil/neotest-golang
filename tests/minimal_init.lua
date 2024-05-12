@@ -29,6 +29,6 @@ function M.init()
 end
 
 -- Ensure the required Neovim plugins are installed/cloned
-os.execute("test/install.sh")
+os.execute("tests/install.sh")
 
 M.init()

@@ -22,4 +22,4 @@ jobs:
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
           ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
       - name: Run tests
-        run: nvim --headless -c "PlenaryBustedDirectory test {minimal_init = 'test/minimal_init.lua', sequential = true}"
+        run: nvim --headless -c "PlenaryBustedDirectory test {minimal_init = 'tests/minimal_init.lua', sequential = true}"
