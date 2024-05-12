@@ -86,11 +86,12 @@ return {
 
 ## ⚙️ Configuration
 
-| Argument         | Default value                                   | Description                                                                               |
-| ---------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `go_test_args`   | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`.                                                         |
-| `dap_go_enabled` | `false`                                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests. |
-| `dap_go_opts`    | `{}`                                            | Options to pass into `require("dap-go").setup()`.                                         |
+| Argument         | Default value                                   | Description                                                                                                                            |
+| ---------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `go_test_args`   | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`.                                                                                                      |
+| `dap_go_enabled` | `false`                                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                              |
+| `dap_go_opts`    | `{}`                                            | Options to pass into `require("dap-go").setup()`.                                                                                      |
+| `search_depth`   | `32`                                            | Search depth used when searching for `go.mod` and `go.sum` in monorepos. Increase this value if you don't see your tests in monorepos. |
 
 ### Example configuration: custom `go test` arguments
 
@@ -111,8 +112,9 @@ require("neotest").setup({
 })
 ```
 
-Note that the example above writes a coverage file.
-You can use [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) to show the coverage in Neovim.
+Note that the example above writes a coverage file. You can use
+[andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) to
+show the coverage in Neovim.
 
 ### Example configuration: debugging
 

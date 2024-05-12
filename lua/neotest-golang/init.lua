@@ -12,11 +12,86 @@ M.Adapter = { name = "neotest-golang" }
 ---@param dir string @Directory to treat as cwd
 ---@return string | nil @Absolute root dir of test suite
 function M.Adapter.root(dir)
-  ---@type string | nil
-  local cwd = lib.files.match_root_pattern("go.mod", "go.sum")(dir)
-  if cwd == nil then
-    return
+  -- if M.find_go_files(vim.fn.getcwd(), M.Adapter._search_depth) then
+  --   return dir
+  -- end
+
+  print("Got this dir:")
+  print(dir)
+  return dir
+
+  -- print("ROOT LOOKING")
+  -- local common_dir = M.find_common_path(dir, M.Adapter._search_depth)
+  --
+  -- print("ultimately:")
+  -- print(common_dir)
+  -- return common_dir
+end
+
+--- Find the directory which contains all the go.mod files of the project.
+---@param dir string @Project directory to start scan from.
+---@param max_depth number @Maximum depth to search for go.mod files.
+---@return string | nil @Absolute path to the directory under which all go.mod files are found.
+function M.find_common_path(dir, max_depth)
+  local scan = require("plenary.scandir")
+  local scan_opts = {
+    hidden = false,
+    depth = max_depth,
+    search_pattern = "go.mod",
+  }
+  local paths = scan.scan_dir(dir, scan_opts)
+  print(vim.inspect(paths))
+
+  -- if multiple paths are found, find the common directory
+  local common_path = M.common_path(paths)
+
+  print("ok back here agaiin")
+
+  -- if path is file, return parent directory
+  local Path = require("plenary.path")
+  local p = Path:new(common_path)
+
+  print("does this break or something?")
+  print(vim.inspect(p))
+
+  local final = nil
+
+  if p:is_file() then
+    print("is file")
+    final = p:parent():absolute()
+  elseif p:is_dir() then
+    print("is dir")
+    final = p:absolute()
   end
+
+  -- remove last character if it is an os separator
+  local lastchar = final:sub(-1)
+  if lastchar == "/" or lastchar == "\\" then
+    final = final:sub(1, -2)
+  end
+
+  return final
+end
+
+function M.common_path(paths)
+  if #paths == 0 then
+    return ""
+  end
+  table.sort(paths)
+  local first_path = paths[1]
+  local last_path = paths[#paths]
+  local i = 1
+  while
+    i <= #first_path
+    and i <= #last_path
+    and first_path:sub(i, i) == last_path:sub(i, i)
+  do
+    i = i + 1
+  end
+  local p = first_path:sub(1, i - 1)
+  print("COMMON!!")
+  print(p)
+  return p
 end
 
 ---Filter directories when searching for test files
@@ -26,6 +101,7 @@ end
 ---@param root string Root directory of project
 ---@return boolean
 function M.Adapter.filter_dir(name, rel_path, root)
+  print("FILTER")
   local ignore_dirs = { ".git", "node_modules", ".venv", "venv" }
   for _, ignore in ipairs(ignore_dirs) do
     if name == ignore then
@@ -322,6 +398,34 @@ function M.Adapter.results(spec, result, tree)
   return results
 end
 
+---Find the project root directory given a current directory to work from
+---@param root_path string @Root path of project
+---@param search_depth number @Maximum depth to search for go.mod or go.sum
+---@return boolean @True if go.mod or go.sum is found, false otherwise
+function M.find_go_files(root_path, search_depth)
+  local stack = { { root_path, 0 } }
+  while #stack > 0 do
+    local top = table.remove(stack)
+    local dir = top[1]
+    local level = top[2]
+    if level > search_depth then
+      return false
+    end
+    local files = vim.fn.globpath(dir, "*", true, true)
+    for _, file in ipairs(files) do
+      if vim.fn.isdirectory(file) == 1 then
+        table.insert(stack, { file, level + 1 })
+      elseif
+        vim.fn.fnamemodify(file, ":t") == "go.mod"
+        or vim.fn.fnamemodify(file, ":t") == "go.sum"
+      then
+        return true
+      end
+    end
+  end
+  return false
+end
+
 --- Build runspec for a single test
 ---@param pos neotest.Position
 ---@param strategy string
@@ -446,6 +550,7 @@ function M.process_json(raw_output)
   return jsonlines
 end
 
+-- Adapter options
 ---@type List
 M.Adapter._go_test_args = {
   "-v",
@@ -453,10 +558,9 @@ M.Adapter._go_test_args = {
   "-count=1",
   "-timeout=60s",
 }
-
--- nvim-dap-go config
 M.Adapter._dap_go_enabled = false
 M.Adapter._dap_go_opts = {}
+M.Adapter._search_depth = 4
 
 setmetatable(M.Adapter, {
   __call = function(_, opts)
@@ -464,6 +568,9 @@ setmetatable(M.Adapter, {
   end,
 })
 
+--- Setup the adapter
+---@param opts table
+---@return table
 M.Adapter.setup = function(opts)
   opts = opts or {}
   if opts.args or opts.dap_go_args then
@@ -474,15 +581,16 @@ M.Adapter.setup = function(opts)
     )
   end
   if opts.go_test_args then
-    if opts.go_test_args then
-      M.Adapter._go_test_args = opts.go_test_args
+    M.Adapter._go_test_args = opts.go_test_args
+  end
+  if opts.dap_go_enabled then
+    M.Adapter._dap_go_enabled = opts.dap_go_enabled
+    if opts.dap_go_opts then
+      M.Adapter._dap_go_opts = opts.dap_go_opts
     end
-    if opts.dap_go_enabled then
-      M.Adapter._dap_go_enabled = opts.dap_go_enabled
-      if opts.dap_go_opts then
-        M.Adapter._dap_go_opts = opts.dap_go_opts
-      end
-    end
+  end
+  if opts.search_depth then
+    M.Adapter._search_depth = opts.search_depth
   end
 
   return M.Adapter
