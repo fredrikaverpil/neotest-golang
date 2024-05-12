@@ -12,11 +12,9 @@ M.Adapter = { name = "neotest-golang" }
 ---@param dir string @Directory to treat as cwd
 ---@return string | nil @Absolute root dir of test suite
 function M.Adapter.root(dir)
-  ---@type string | nil
-  local cwd = lib.files.match_root_pattern("go.mod", "go.sum")(dir)
-  if cwd == nil then
-    return
-  end
+  -- Since neotest-golang is setting the cwd prior to running tests or debugging
+  -- we can use the cwd as-is and treat it as the root.
+  return dir
 end
 
 ---Filter directories when searching for test files
