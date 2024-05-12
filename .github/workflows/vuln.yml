@@ -1,17 +1,11 @@
 name: vuln
-on: [pull_request, workflow_dispatch]
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
 jobs:
-  lua:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Check formatting
-        uses: JohnnyMorganz/stylua-action@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          version: latest
-          args: --check .
   go:
     runs-on: ubuntu-latest
     steps:
