@@ -23,3 +23,15 @@ jobs:
           ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
       - name: Run tests
         run: nvim --headless -c "PlenaryBustedDirectory test {minimal_init = 'tests/minimal_init.lua', sequential = true}"
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.22
+      - name: Check tests
+        run: go test ./...
+        working-directory: ./tests/go
