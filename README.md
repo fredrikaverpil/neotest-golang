@@ -14,7 +14,7 @@ My next focus areas:
 
 - [ ] Refactoring, polish and tests.
   - [ ] Make use of `pcall` to handle potential errors gracefully.
-- [ ] Set up CI for linting, testing, require changes via PR.
+- [x] Set up CI for linting, testing, require changes via PR.
 - [ ] Versioning and releases via release-please.
 - [x] Ability to debug test from sub-project (see
       [nvim-dap-go#80](https://github.com/leoluz/nvim-dap-go/issues/80)).
