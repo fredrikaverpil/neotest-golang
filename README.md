@@ -42,7 +42,7 @@ neotest-go. I do not aim in any way to diminish their needs or efforts.
 However, I would like to see if, by building a Go adapter for Neotest from
 scratch, if I can mitigate the issues I have found with neotest-go.
 
-## ⛑️ Neotest-go issues mitigated in neotest-golang
+### Neotest-go issues mitigated in neotest-golang
 
 - Test Output in JSON, making it difficult to read:
   [neotest-go#52](https://github.com/nvim-neotest/neotest-go/issues/52)
@@ -57,7 +57,7 @@ scratch, if I can mitigate the issues I have found with neotest-go.
 - DAP support:
   [neotest-go#12](https://github.com/nvim-neotest/neotest-go/issues/12)
 
-## 🪲 Upstream/dependency issues found during development
+### Upstream/dependency issues found during development
 
 - Test output is printed undesirably:
   [neotest#391](https://github.com/nvim-neotest/neotest/issues/391). This is
