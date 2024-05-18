@@ -9,11 +9,16 @@ A Neotest adapter for running Go tests.
 - Supports all [Neotest usage](https://github.com/nvim-neotest/neotest#usage).
 - Integrates with [nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for
   debugging of tests.
-- Monorepo support (detect, run and debug tests in sub-projects).
 - Inline diagnostics.
 - Works great with
   [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) for
   displaying coverage in the sign column (per-test basis).
+
+Go specific:
+
+- Monorepo support (detect, run and debug tests in sub-projects).
+- Supports table tests (detected by treesitter AST).
+- Supports nested test functions.
 
 ## 🚧 Pre-release
 
