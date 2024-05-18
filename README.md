@@ -4,6 +4,17 @@ A Neotest adapter for running Go tests.
 
 <img width="1995" alt="neotest-golang" src="https://github.com/fredrikaverpil/neotest-golang/assets/994357/6f13689c-f1fd-4058-b814-fd940ee62544">
 
+## ⭐️ Features
+
+- Supports all [Neotest usage](https://github.com/nvim-neotest/neotest#usage).
+- Integrates with [nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for
+  debugging of tests.
+- Monorepo support (detect, run and debug tests in sub-projects).
+- Inline diagnostics.
+- Works great with
+  [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) for
+  displaying coverage in the sign column (per-test basis).
+
 ## 🚧 Pre-release
 
 This Neotest adapter is under heavy development and considered beta. I'm,
@@ -12,18 +23,12 @@ Go developer.
 
 My next focus areas:
 
-- [ ] Refactoring, polish and tests.
-  - [ ] Make use of `pcall` to handle potential errors gracefully.
-- [x] Set up CI for linting, testing, require changes via PR.
+- [ ] Refactoring, polish and the addition of tests.
 - [ ] Versioning and releases via release-please.
-- [x] Ability to debug test from sub-project (see
-      [nvim-dap-go#80](https://github.com/leoluz/nvim-dap-go/issues/80)).
-- [x] Get rid of the `gotestsum` dependency in favour for native `go test`
-      tooling.
-- [ ] Investigate ways to speed up test execution when running dir/file.
 - [ ] Documentation around expanding new syntax support for table tests via AST
       parsing.
 - [ ] Add debug logging, set up bug report form.
+- [ ] Investigate ways to speed up test execution when running dir/file.
 
 ## 🏓 Background
 
@@ -111,8 +116,9 @@ require("neotest").setup({
 })
 ```
 
-Note that the example above writes a coverage file.
-You can use [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) to show the coverage in Neovim.
+Note that the example above writes a coverage file. You can use
+[andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) to
+show the coverage in Neovim.
 
 ### Example configuration: debugging
 
