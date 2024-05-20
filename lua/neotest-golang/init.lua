@@ -411,9 +411,8 @@ function M.test_name_from_pos_id(pos_id)
   test_name = test_name:match("::(.*)$")
   -- Replace :: with /
   test_name = test_name:gsub("::", "/")
-  -- Remove any quotes
+  -- Remove double quotes (single quotes are supported)
   test_name = test_name:gsub('"', "")
-  test_name = test_name:gsub("'", "")
   -- Replace any special characters with . so to avoid breaking regexp
   test_name = test_name:gsub("%[", ".")
   test_name = test_name:gsub("%]", ".")
