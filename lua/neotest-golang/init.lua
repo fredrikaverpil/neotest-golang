@@ -270,12 +270,7 @@ function M.Adapter.results(spec, result, tree)
       local matched_line_number =
         string.match(line.Output, test_filename .. ":(%d+)")
 
-      if matched_line_number == nil or panic_detected then
-        -- log the error without a line number
-        ---@type neotest.Error
-        local error = { message = line.Output }
-        table.insert(errors, error)
-      else
+      if matched_line_number ~= nil then
         -- attempt to parse the line number...
         ---@type number | nil
         local line_number = tonumber(matched_line_number)
