@@ -25,6 +25,7 @@ describe("Discovery of test positions", function()
     }
 
     -- Act
+    ---@type neotest.Tree
     local tree =
       nio.tests.with_async_context(adapter.discover_positions, test_filepath)
 
