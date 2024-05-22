@@ -1,5 +1,8 @@
 local lib = require("neotest.lib")
 local async = require("neotest.async")
+
+local convert = require("neotest-golang.convert")
+
 local M = {}
 
 ---@class neotest.Adapter
@@ -326,7 +329,7 @@ end
 ---@return neotest.RunSpec
 function M.build_single_test_runspec(pos, strategy)
   ---@type string
-  local test_name = M.test_name_from_pos_id(pos.id)
+  local test_name = convert.to_gotest_test_name(pos.id)
   ---@type string
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
 
@@ -400,28 +403,6 @@ end
 
 function M.table_is_empty(t)
   return next(t) == nil
-end
-
----@param pos_id string
----@return string
-function M.test_name_from_pos_id(pos_id)
-  -- construct the test name
-  local test_name = pos_id
-  -- Remove the path before ::
-  test_name = test_name:match("::(.*)$")
-  -- Replace :: with /
-  test_name = test_name:gsub("::", "/")
-  -- Remove double quotes (single quotes are supported)
-  test_name = test_name:gsub('"', "")
-  -- Replace any special characters with . so to avoid breaking regexp
-  test_name = test_name:gsub("%[", ".")
-  test_name = test_name:gsub("%]", ".")
-  test_name = test_name:gsub("%(", ".")
-  test_name = test_name:gsub("%)", ".")
-  -- Replace any spaces with _
-  test_name = test_name:gsub(" ", "_")
-
-  return test_name
 end
 
 --- Process JSON and return objects of interest
