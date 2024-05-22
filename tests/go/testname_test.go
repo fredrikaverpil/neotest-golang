@@ -15,4 +15,10 @@ func TestNames(t *testing.T) {
 			t.Fail()
 		}
 	})
+
+	t.Run("Brackets [1] (2) {3} are ok", func(t *testing.T) {
+		if Add(1, 2) != 3 {
+			t.Fail()
+		}
+	})
 }

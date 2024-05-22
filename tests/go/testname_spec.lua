@@ -43,4 +43,21 @@ describe("Subtest name conversion", function()
       vim.inspect(actual_go_test_name)
     )
   end)
+
+  it("Brackets", function()
+    local expected_subtest_name = '"Brackets [1] (2) {3} are ok"'
+    local expected_gotest_name = "TestNames/Brackets_[1]_(2)_{3}_are_ok"
+
+    -- Act
+    local pos = tree:node(5):data()
+    local actual_go_test_name = convert.to_gotest_test_name(pos.id)
+
+    -- Assert
+    local actual_name = pos.name
+    assert.are.same(expected_subtest_name, actual_name)
+    assert.are.same(
+      vim.inspect(expected_gotest_name),
+      vim.inspect(actual_go_test_name)
+    )
+  end)
 end)

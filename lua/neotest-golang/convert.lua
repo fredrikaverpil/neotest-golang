@@ -12,11 +12,6 @@ function M.to_gotest_test_name(pos_id)
   test_name = test_name:gsub("::", "/")
   -- Remove double quotes (single quotes are supported)
   test_name = test_name:gsub('"', "")
-  -- Replace any special characters with . so to avoid breaking regexp
-  test_name = test_name:gsub("%[", ".")
-  test_name = test_name:gsub("%]", ".")
-  test_name = test_name:gsub("%(", ".")
-  test_name = test_name:gsub("%)", ".")
   -- Replace any spaces with _
   test_name = test_name:gsub(" ", "_")
 
