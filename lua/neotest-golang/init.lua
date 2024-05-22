@@ -250,18 +250,10 @@ function M.Adapter.results(spec, result, tree)
   ---@type List<table>
   local jsonlines = M.process_json(raw_output)
 
-  local panic_detected = false
-
   for _, line in ipairs(jsonlines) do
     if line.Action == "output" and line.Output ~= nil then
       -- record output, prints to output panel
       table.insert(test_result, line.Output)
-
-      -- register panic found
-      local panic_match = string.match(line.Output, "panic:")
-      if panic_match ~= nil then
-        panic_detected = true
-      end
     end
 
     if result.code ~= 0 and line.Output ~= nil then
@@ -286,16 +278,6 @@ function M.Adapter.results(spec, result, tree)
         end
       end
     end
-  end
-
-  if panic_detected then
-    -- remove all line numbers, as neotest diagnostics will crash if they are present
-    local new_errors = {}
-    for _, error in ipairs(errors) do
-      local new_error = { message = error.message }
-      table.insert(new_errors, new_error)
-    end
-    errors = new_errors
   end
 
   -- write json_decoded to file
