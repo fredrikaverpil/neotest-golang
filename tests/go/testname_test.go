@@ -10,13 +10,19 @@ func TestNames(t *testing.T) {
 		}
 	})
 
-	t.Run("Comma , and ' are ok to use", func(t *testing.T) {
+	t.Run("Comma , and apostrophy ' are ok to use", func(t *testing.T) {
 		if Add(1, 2) != 3 {
 			t.Fail()
 		}
 	})
 
 	t.Run("Brackets [1] (2) {3} are ok", func(t *testing.T) {
+		if Add(1, 2) != 3 {
+			t.Fail()
+		}
+	})
+
+	t.Run("Percentage sign like 50% is ok", func(t *testing.T) {
 		if Add(1, 2) != 3 {
 			t.Fail()
 		}

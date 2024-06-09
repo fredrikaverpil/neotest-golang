@@ -1,6 +1,10 @@
+local _ = require("neotest")
+
 local options = require("neotest-golang.options")
 local discover_positions = require("neotest-golang.discover_positions")
+local runspec_dir = require("neotest-golang.runspec_dir")
 local runspec_test = require("neotest-golang.runspec_test")
+local results_dir = require("neotest-golang.results_dir")
 local results_test = require("neotest-golang.results_test")
 local utils = require("neotest-golang.utils")
 
@@ -74,12 +78,10 @@ function M.Adapter.build_spec(args)
 
   if pos.type == "dir" and pos.path == vim.fn.getcwd() then
     -- Test suite
-
-    return -- delegate test execution to per-test execution
+    return runspec_dir.build(pos)
   elseif pos.type == "dir" then
     -- Sub-directory
-
-    return -- delegate test execution to per-test execution
+    return runspec_dir.build(pos)
   elseif pos.type == "file" then
     -- Single file
 
@@ -102,6 +104,8 @@ function M.Adapter.build_spec(args)
       -- to compile. This approach is too brittle, and therefore this mode is not
       -- supported. Instead, the tests of a file are run as if pos.typ == "test".
 
+      vim.notify("Would've executed a file: " .. pos.path)
+
       return -- delegate test execution to per-test execution
     end
   elseif pos.type == "test" then
@@ -121,7 +125,14 @@ end
 ---@param tree neotest.Tree
 ---@return table<string, neotest.Result>
 function M.Adapter.results(spec, result, tree)
-  return results_test.results_test(spec, result, tree)
+  if spec.context.test_type == "dir" then
+    return results_dir.results(spec, result, tree)
+  elseif spec.context.test_type == "test" then
+    return results_test.results(spec, result, tree)
+  end
+
+  vim.notify("Error: [results] unknown test type: " .. spec.context.test_type)
+  return {}
 end
 
 setmetatable(M.Adapter, {

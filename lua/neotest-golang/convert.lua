@@ -22,6 +22,8 @@ end
 -- Converts the `go test` command test name into Neotest node test name format.
 -- Note that a pattern can returned, not the exact test name, so to support
 -- escaped quotes etc.
+-- NOTE: double quotes must be removed from the string matching against.
+
 ---@param go_test_name string
 ---@return string
 function M.to_neotest_test_name_pattern(go_test_name)
@@ -32,13 +34,20 @@ function M.to_neotest_test_name_pattern(go_test_name)
   -- Replace / with ::
   test_name = test_name:gsub("/", "::")
 
-  -- NOTE: double quotes are removed from the string we match against.
-
   -- Replace _ with space
   test_name = test_name:gsub("_", " ")
 
   -- Mark the end of the test name pattern
   test_name = test_name .. "$"
+
+  -- Percentage sign must be escaped
+  test_name = test_name:gsub("%%", "%%%%")
+
+  -- Literal brackets and parantheses must be escaped
+  test_name = test_name:gsub("%[", "%%[")
+  test_name = test_name:gsub("%]", "%%]")
+  test_name = test_name:gsub("%(", "%%(")
+  test_name = test_name:gsub("%)", "%%)")
 
   return test_name
 end

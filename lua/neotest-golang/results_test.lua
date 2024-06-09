@@ -7,7 +7,7 @@ local M = {}
 ---@param result neotest.StrategyResult
 ---@param tree neotest.Tree
 ---@return table<string, neotest.Result>
-function M.results_test(spec, result, tree)
+function M.results(spec, result, tree)
   if spec.context.skip then
     ---@type table<string, neotest.Result>
     local results = {}
