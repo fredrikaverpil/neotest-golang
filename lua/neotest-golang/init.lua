@@ -260,7 +260,7 @@ function M.Adapter.results(spec, result, tree)
       -- record an error
       ---@type string
       local matched_line_number =
-        string.match(line.Output, test_filename .. ":(%d+)")
+        string.match(line.Output, test_filename .. ":(%d+):")
 
       if matched_line_number ~= nil then
         -- attempt to parse the line number...
@@ -269,9 +269,13 @@ function M.Adapter.results(spec, result, tree)
 
         if line_number ~= nil then
           -- log the error along with its line number (for diagnostics)
+
+          ---@type string
+          local message = string.match(line.Output, ":%d+: (.*)")
+
           ---@type neotest.Error
           local error = {
-            message = line.Output,
+            message = message,
             line = line_number - 1, -- neovim lines are 0-indexed
           }
           table.insert(errors, error)
