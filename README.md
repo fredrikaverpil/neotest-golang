@@ -2,7 +2,7 @@
 
 A Neotest adapter for running Go tests.
 
-<img width="1995" alt="neotest-golang" src="https://github.com/fredrikaverpil/neotest-golang/assets/994357/6f13689c-f1fd-4058-b814-fd940ee62544">
+<img width="1528" alt="neotest-golang" src="https://github.com/fredrikaverpil/neotest-golang/assets/994357/4f6e1fa6-2274-42e6-ba94-9a205061e5de">
 
 ## ⭐️ Features
 
