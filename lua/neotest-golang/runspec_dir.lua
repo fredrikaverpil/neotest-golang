@@ -6,14 +6,21 @@ local M = {}
 
 --- Build runspec for a directory.
 ---@param pos neotest.Position
----@return neotest.RunSpec
+---@return neotest.RunSpec | nil
 function M.build(pos)
   -- Strategy:
   -- 1. Find the go.mod file from pos.path.
   -- 2. Run `go test` from the directory containing the go.mod file.
   -- 3. Use the relative path from the go.mod file to pos.path as the test pattern.
-
   local go_mod_filepath = M.find_file_upwards("go.mod", pos.path)
+  if go_mod_filepath == nil then
+    vim.notify(
+      "The selected folder is not a Go project, attempting different strategy.",
+      vim.log.levels.WARN
+    )
+    return nil -- Deletgates away from the dir strategy
+  end
+
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
   local cwd = go_mod_folderpath
 

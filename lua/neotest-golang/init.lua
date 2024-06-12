@@ -104,8 +104,6 @@ function M.Adapter.build_spec(args)
       -- to compile. This approach is too brittle, and therefore this mode is not
       -- supported. Instead, the tests of a file are run as if pos.typ == "test".
 
-      vim.notify("Would've executed a file: " .. pos.path)
-
       return -- delegate test execution to per-test execution
     end
   elseif pos.type == "test" then
