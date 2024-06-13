@@ -1,6 +1,7 @@
 local nio = require("nio")
 local adapter = require("neotest-golang")
 local convert = require("neotest-golang.convert")
+local _ = require("plenary") -- for plenary keywords
 
 describe("Subtest name conversion", function()
   -- Arrange
@@ -28,8 +29,9 @@ describe("Subtest name conversion", function()
   end)
 
   it("Special characters", function()
-    local expected_subtest_name = '"Comma , and \' are ok to use"'
-    local expected_gotest_name = "TestNames/Comma_,_and_'_are_ok_to_use"
+    local expected_subtest_name = '"Comma , and apostrophy \' are ok to use"'
+    local expected_gotest_name =
+      "TestNames/Comma_,_and_apostrophy_'_are_ok_to_use"
 
     -- Act
     local pos = tree:node(4):data()
