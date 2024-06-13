@@ -47,27 +47,6 @@ function M.results(spec, result, tree)
     end
   end
 
-  -- record error output
-  for _, line in ipairs(jsonlines) do
-    if line.Action == "output" and line.Output ~= nil and line.Test ~= nil then
-      -- append line.Output to output field
-      internal_results[line.Test].output =
-        vim.list_extend(internal_results[line.Test].output, { line.Output })
-      -- search for error message and line number
-      local matched_line_number = string.match(line.Output, "_test%.go:(%d+):")
-      if matched_line_number ~= nil then
-        local line_number = tonumber(matched_line_number)
-        local message = string.match(line.Output, "_test%.go:%d+: (.*)")
-        if line_number ~= nil and message ~= nil then
-          table.insert(internal_results[line.Test].errors, {
-            line = line_number - 1, -- neovim lines are 0-indexed
-            message = message,
-          })
-        end
-      end
-    end
-  end
-
   -- associate internal results with neotest node data
   for test_name, test_properties in pairs(internal_results) do
     local test_name_pattern = convert.to_neotest_test_name_pattern(test_name)
@@ -82,7 +61,73 @@ function M.results(spec, result, tree)
         string.find(node_data.path, spec.context.id, 1, true)
         and string.find(tweaked_node_data_id, test_name_pattern, 1, false)
       then
+        if internal_results[test_name].node_data ~= nil then
+          vim.notify(
+            "Multiple tests with name: " .. test_name,
+            vim.log.levels.WARN
+          )
+        end
         internal_results[test_name].node_data = node_data
+        -- FIXME: likely add a break here so to avoid iterating further...
+        -- break
+      end
+    end
+  end
+
+  -- warn if node data is missing for the test
+  local missing_node_data = {}
+  for test_name, test_properties in pairs(internal_results) do
+    if internal_results[test_name].node_data == nil then
+      missing_node_data[test_name] = true
+    end
+  end
+  -- debug log if missing node data
+  if vim.tbl_count(missing_node_data) > 0 then
+    vim.notify(
+      "Missing node data was found for test(s)."
+        .. "When node data is missing, this indicates that the test wast not "
+        .. "successfully detected by the AST/treesitter parsing. As a result "
+        .. "inaccurate error messages may be displayed (or not displayed at all). "
+        .. "Another, more severe problem, is that the test status might not be "
+        .. "performed, resulting in false failures.",
+      vim.log.levels.DEBUG
+    )
+    for test_name, _ in pairs(missing_node_data) do
+      vim.notify(
+        "Missing node data for test: " .. test_name,
+        vim.log.levels.DEBUG
+      )
+    end
+  end
+
+  -- record error output (requires neotest node data)
+  local node_data_not_found = {}
+  for _, line in ipairs(jsonlines) do
+    if line.Action == "output" and line.Output ~= nil and line.Test ~= nil then
+      -- append line.Output to output field
+      internal_results[line.Test].output =
+        vim.list_extend(internal_results[line.Test].output, { line.Output })
+
+      -- determine test filename
+      local test_filename = "_test.go" -- approximate test filename
+      if node_data_not_found[line.Test] ~= nil then
+        -- node data is available, get the exact test filename
+        local test_filepath = internal_results[line.Test].node_data.path
+        test_filename = vim.fn.fnamemodify(test_filepath, ":t")
+      end
+
+      -- search for error message and line number
+      local matched_line_number =
+        string.match(line.Output, test_filename .. ":(%d+):")
+      if matched_line_number ~= nil then
+        local line_number = tonumber(matched_line_number)
+        local message = string.match(line.Output, test_filename .. ":%d+: (.*)")
+        if line_number ~= nil and message ~= nil then
+          table.insert(internal_results[line.Test].errors, {
+            line = line_number - 1, -- neovim lines are 0-indexed
+            message = message,
+          })
+        end
       end
     end
   end
@@ -127,6 +172,9 @@ function M.results(spec, result, tree)
   -- output panel. This is a workaround for now, only because of
   -- https://github.com/nvim-neotest/neotest/issues/391
   vim.fn.writefile({ "" }, result.output)
+
+  -- DEBUG: enable the following to see the collected data
+  -- vim.notify(vim.inspect(internal_results), vim.log.levels.INFO)
 
   return neotest_results
 end
