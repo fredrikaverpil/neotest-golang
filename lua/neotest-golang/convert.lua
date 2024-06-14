@@ -52,4 +52,45 @@ function M.to_neotest_test_name_pattern(go_test_name)
   return test_name
 end
 
+function M.to_lua_pattern(str)
+  -- Escape characters, for usage of string as pattern.
+  -- - `.` (matches any character)
+  -- - `%` (used to escape special characters)
+  -- - `+` (matches 1 or more of the previous character or class)
+  -- - `*` (matches 0 or more of the previous character or class)
+  -- - `-` (matches 0 or more of the previous character or class, in the shortest sequence)
+  -- - `?` (makes the previous character or class optional)
+  -- - `^` (at the start of a pattern, matches the start of the string; in a character class `[]`, negates the class)
+  -- - `$` (matches the end of the string)
+  -- - `[]` (defines a character class)
+  -- - `()` (defines a capture)
+  -- - `:` (used in certain pattern items like `%b()`)
+  -- - `=` (used in certain pattern items like `%b()`)
+  -- - `<` (used in certain pattern items like `%b<>`)
+  -- - `>` (used in certain pattern items like `%b<>`)
+
+  local special_characters = {
+    ".",
+    "%",
+    "+",
+    "*",
+    "-",
+    "?",
+    "^",
+    "$",
+    "[",
+    "]",
+    "(",
+    ")",
+    ":",
+    "=",
+    "<",
+    ">",
+  }
+  for _, character in ipairs(special_characters) do
+    str = str:gsub("%" .. character, "%%%" .. character)
+  end
+  return str
+end
+
 return M

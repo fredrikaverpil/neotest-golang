@@ -5,6 +5,22 @@ local json = require("neotest-golang.json")
 
 local M = {}
 
+-- Find the common path of two folderpaths.
+function M.find_common_path(path1, path2)
+  local common = {}
+  local path1_parts = vim.split(path1, "/")
+  local path2_parts = vim.split(path2, "/")
+  for i = #path1_parts, 1, -1 do
+    if path1_parts[i] == path2_parts[#path2_parts] then
+      table.insert(common, 1, path1_parts[i])
+      table.remove(path2_parts)
+    else
+      break
+    end
+  end
+  return table.concat(common, "/")
+end
+
 ---@param spec neotest.RunSpec
 ---@param result neotest.StrategyResult
 ---@param tree neotest.Tree
@@ -29,7 +45,6 @@ function M.results(spec, result, tree)
   -- record neotest node data
   for idx, node in tree:iter_nodes() do
     local node_data = node:data()
-    local partial_path = "" -- will contain path common to go package and test folderpath
 
     if idx == 1 then
       -- Example node:
@@ -67,87 +82,46 @@ function M.results(spec, result, tree)
     end
   end
 
-  local function common_parts(path1, path2)
-    local common = {}
-    local path1_parts = vim.split(path1, "/")
-    local path2_parts = vim.split(path2, "/")
-    for i = #path1_parts, 1, -1 do
-      -- vim.notify(path1_parts[i] .. " <> " .. path2_parts[#path2_parts])
-      if path1_parts[i] == path2_parts[#path2_parts] then
-        table.insert(common, 1, path1_parts[i])
-        table.remove(path2_parts)
-      else
-        break
-      end
-    end
-    return table.concat(common, "/")
-  end
-
   -- associate neotest node data with go test package and test name
-  for _, line in ipairs(jsonlines) do
-    -- Example line:
-    -- {
-    --   Action = "pass",
-    --   Elapsed = 0,
-    --   Package = "github.com/fredrikaverpil/neotest-golang/internal/core/model",
-    --   Test = "TestSomething/a_sub_test",
-    --   Time = "2024-06-13T22:33:28.302953+02:00"
-    -- }
+  for neotest_node_id in pairs(internal_results) do
+    for _, line in ipairs(jsonlines) do
+      -- Example line:
+      -- {
+      --   Action = "pass",
+      --   Elapsed = 0,
+      --   Package = "github.com/fredrikaverpil/neotest-golang/internal/core/model",
+      --   Test = "TestSomething/a_sub_test",
+      --   Time = "2024-06-13T22:33:28.302953+02:00"
+      -- }
 
-    if line.Action == "run" and line.Test ~= nil then
-      for neotest_node_id in pairs(internal_results) do
+      if line.Action == "run" and line.Test ~= nil then
         -- remove filename from path
         local folderpath = vim.fn.fnamemodify(
           internal_results[neotest_node_id].neotest_node_data.path,
           ":h"
         ) -- TODO: would be nicer if this was handled by the common_parts function
 
-        local partial_path = common_parts(line.Package, folderpath)
+        local match = nil
+        local partial_path = M.find_common_path(line.Package, folderpath)
 
-        local tweaked_neotest_node_id = neotest_node_id:gsub(" ", "_")
-        tweaked_neotest_node_id = tweaked_neotest_node_id:gsub('"', "")
-        tweaked_neotest_node_id = tweaked_neotest_node_id:gsub("::", "/")
+        if partial_path ~= "" then
+          local tweaked_neotest_node_id = neotest_node_id:gsub(" ", "_")
+          tweaked_neotest_node_id = tweaked_neotest_node_id:gsub('"', "")
+          tweaked_neotest_node_id = tweaked_neotest_node_id:gsub("::", "/")
 
-        -- FIXME: need to properly handle these characters in path as well as test name
-        -- - `.` (matches any character)
-        -- - `%` (used to escape special characters)
-        -- - `+` (matches 1 or more of the previous character or class)
-        -- - `*` (matches 0 or more of the previous character or class)
-        -- - `-` (matches 0 or more of the previous character or class, in the shortest sequence)
-        -- - `?` (makes the previous character or class optional)
-        -- - `^` (at the start of a pattern, matches the start of the string; in a character class `[]`, negates the class)
-        -- - `$` (matches the end of the string)
-        -- - `[]` (defines a character class)
-        -- - `()` (defines a capture)
-        -- - `:` (used in certain pattern items like `%b()`)
-        -- - `=` (used in certain pattern items like `%b()`)
-        -- - `<` (used in certain pattern items like `%b<>`)
-        -- - `>` (used in certain pattern items like `%b<>`)
+          local combined_pattern = convert.to_lua_pattern(partial_path)
+            .. "/(.-)/"
+            .. convert.to_lua_pattern(line.Test)
+            .. "$"
 
-        local combind_pattern = partial_path:gsub("%-", "%%%-") -- TODO: better escaping of special characters
-          .. "/(.-)/"
-          .. line.Test:gsub("%-", "%%%-") -- TODO: better escaping of special characters, including +
-          .. "$"
+          -- TODO: how to handle root level of package, when there is no common path
 
-        -- TODO: how to handle root level of package, when there is no common path
-
-        -- vim.notify(tweaked_item .. " <> " .. combind_pattern)
-
-        local match = tweaked_neotest_node_id:match(combind_pattern)
+          match = tweaked_neotest_node_id:match(combined_pattern)
+        end
         if match ~= nil then
-          -- vim.notify("MATCH: " .. match)
-
-          -- if line.Action == "pass" then
-          --   internal_results[item].status = "passed"
-          -- elseif line.Action == "fail" then
-          --   internal_results[item].status = "failed"
-          -- end
           internal_results[neotest_node_id].go_package = line.Package
           internal_results[neotest_node_id].go_test_name = line.Test
-          -- internal_results[item].filename = match
-          -- internal_results[item].pattern = combind_pattern
 
-          -- vim.notify("MATCH:" .. neotest_node_id .. " <> " .. combind_pattern)
           break
         end
       end
@@ -200,10 +174,42 @@ function M.results(spec, result, tree)
     end
   end
 
-  -- TODO: warn if Go package/test is missing from tree node.
-  -- TODO: warn if the same Go test exists more than once in the same Go package.
+  -- warn if Go package/test is missing from tree node.
+  -- TODO: make configurable to skip this or use different log level?
+  for neotest_node_id in pairs(internal_results) do
+    if internal_results[neotest_node_id].go_test_name == "" then
+      vim.notify(
+        "Go package/test not found in tree node: " .. neotest_node_id,
+        vim.log.levels.WARN
+      )
+    end
+  end
+
   -- TODO: warn (or debug log) if Go test was detected, but is not found in the AST/treesitter tree.
 
+  -- warn if the same Go test exists more than once in the same Go package.
+  -- TODO: make configurable to skip this
+  local duplicates = {}
+  for _, line in ipairs(jsonlines) do
+    if line.Action == "run" then
+      local t = line.Package .. "/" .. line.Test
+      if duplicates[t] == nil then
+        duplicates[t] = 1
+      else
+        duplicates[t] = duplicates[t] + 1
+      end
+    end
+    for duplicate, count in pairs(duplicates) do
+      if count > 1 then
+        vim.notify(
+          "Duplicate test name detected: " .. duplicate,
+          vim.log.levels.WARN
+        )
+      end
+    end
+  end
+
+  -- convert internal results to neotest results
   for neotest_node_id in pairs(internal_results) do
     local test_properties = internal_results[neotest_node_id]
     local test_output_path = vim.fs.normalize(async.fn.tempname())
@@ -245,7 +251,7 @@ function M.results(spec, result, tree)
   vim.fn.writefile({ "" }, result.output)
 
   -- DEBUG: enable the following to see the collected data
-  vim.notify(vim.inspect(internal_results), vim.log.levels.DEBUG)
+  -- vim.notify(vim.inspect(internal_results), vim.log.levels.DEBUG)
 
   return neotest_results
 end

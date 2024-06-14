@@ -11,10 +11,7 @@ function M.process_json(raw_output)
       if status then
         table.insert(jsonlines, json_data)
       else
-        vim.notify(
-          "Warning, failed to decode JSON: " .. line,
-          vim.log.levels.WARN
-        )
+        vim.notify("Failed to decode JSON: " .. line, vim.log.levels.WARN)
       end
     else
       vim.notify("Warning, not a json line: " .. line, vim.log.levels.DEBUG)
