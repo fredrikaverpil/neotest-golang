@@ -26,123 +26,193 @@ function M.results(spec, result, tree)
   ---@type table<string, table>
   local internal_results = {}
 
-  -- record test names
-  for _, line in ipairs(jsonlines) do
-    if line.Action == "run" and line.Test ~= nil then
-      internal_results[line.Test] = {
+  -- record neotest node data
+  for idx, node in tree:iter_nodes() do
+    local node_data = node:data()
+    local partial_path = "" -- will contain path common to go package and test folderpath
+
+    if idx == 1 then
+      -- Example node:
+      -- {
+      --   id = "/Users/fredrik/code/public/neotest-golang/backend/internal/core/model",
+      --   name = "model",
+      --   path = "/Users/fredrik/code/public/neotest-golang/backend/internal/core/model",
+      --   type = "dir"
+      -- }
+
+      -- vim.notify(vim.inspect(node_data))
+    end
+
+    if node_data.type == "test" then
+      -- Example node:
+      -- {
+      --   id = "/Users/fredrik/code/public/neotest-golang/backend/internal/core/model/something_test.go::TestSomething:"a sub test",
+      --   name = "a sub test",
+      --   path = "/Users/fredrik/code/public/neotest-golang/backend/internal/core/model/something_test.go",
+      --   range = { 12, 0, 164, 1 },
+      --   type = "test"
+      -- },
+
+      internal_results[node_data.id] = {
         status = "skipped",
         output = {},
         errors = {},
-        node_data = nil,
+        -- go_test_name = convert.to_gotest_test_name(node_data.id),
+        neotest_node_data = node_data,
+        go_package = "",
+        go_test_name = "",
+        -- filename = "",
+        -- pattern = "",
       }
     end
   end
 
-  -- record test status
+  local function common_parts(path1, path2)
+    local common = {}
+    local path1_parts = vim.split(path1, "/")
+    local path2_parts = vim.split(path2, "/")
+    for i = #path1_parts, 1, -1 do
+      -- vim.notify(path1_parts[i] .. " <> " .. path2_parts[#path2_parts])
+      if path1_parts[i] == path2_parts[#path2_parts] then
+        table.insert(common, 1, path1_parts[i])
+        table.remove(path2_parts)
+      else
+        break
+      end
+    end
+    return table.concat(common, "/")
+  end
+
+  -- associate neotest node data with go test package and test name
   for _, line in ipairs(jsonlines) do
-    if line.Action == "pass" and line.Test ~= nil then
-      internal_results[line.Test].status = "passed"
-    elseif line.Action == "fail" and line.Test ~= nil then
-      internal_results[line.Test].status = "failed"
+    -- Example line:
+    -- {
+    --   Action = "pass",
+    --   Elapsed = 0,
+    --   Package = "github.com/fredrikaverpil/neotest-golang/internal/core/model",
+    --   Test = "TestSomething/a_sub_test",
+    --   Time = "2024-06-13T22:33:28.302953+02:00"
+    -- }
+
+    if line.Action == "run" and line.Test ~= nil then
+      for neotest_node_id in pairs(internal_results) do
+        -- remove filename from path
+        local folderpath = vim.fn.fnamemodify(
+          internal_results[neotest_node_id].neotest_node_data.path,
+          ":h"
+        ) -- TODO: would be nicer if this was handled by the common_parts function
+
+        local partial_path = common_parts(line.Package, folderpath)
+
+        local tweaked_neotest_node_id = neotest_node_id:gsub(" ", "_")
+        tweaked_neotest_node_id = tweaked_neotest_node_id:gsub('"', "")
+        tweaked_neotest_node_id = tweaked_neotest_node_id:gsub("::", "/")
+
+        -- FIXME: need to properly handle these characters in path as well as test name
+        -- - `.` (matches any character)
+        -- - `%` (used to escape special characters)
+        -- - `+` (matches 1 or more of the previous character or class)
+        -- - `*` (matches 0 or more of the previous character or class)
+        -- - `-` (matches 0 or more of the previous character or class, in the shortest sequence)
+        -- - `?` (makes the previous character or class optional)
+        -- - `^` (at the start of a pattern, matches the start of the string; in a character class `[]`, negates the class)
+        -- - `$` (matches the end of the string)
+        -- - `[]` (defines a character class)
+        -- - `()` (defines a capture)
+        -- - `:` (used in certain pattern items like `%b()`)
+        -- - `=` (used in certain pattern items like `%b()`)
+        -- - `<` (used in certain pattern items like `%b<>`)
+        -- - `>` (used in certain pattern items like `%b<>`)
+
+        local combind_pattern = partial_path:gsub("%-", "%%%-") -- TODO: better escaping of special characters
+          .. "/(.-)/"
+          .. line.Test:gsub("%-", "%%%-") -- TODO: better escaping of special characters, including +
+          .. "$"
+
+        -- TODO: how to handle root level of package, when there is no common path
+
+        -- vim.notify(tweaked_item .. " <> " .. combind_pattern)
+
+        local match = tweaked_neotest_node_id:match(combind_pattern)
+        if match ~= nil then
+          -- vim.notify("MATCH: " .. match)
+
+          -- if line.Action == "pass" then
+          --   internal_results[item].status = "passed"
+          -- elseif line.Action == "fail" then
+          --   internal_results[item].status = "failed"
+          -- end
+          internal_results[neotest_node_id].go_package = line.Package
+          internal_results[neotest_node_id].go_test_name = line.Test
+          -- internal_results[item].filename = match
+          -- internal_results[item].pattern = combind_pattern
+
+          -- vim.notify("MATCH:" .. neotest_node_id .. " <> " .. combind_pattern)
+          break
+        end
+      end
     end
   end
 
-  -- associate internal results with neotest node data
-  for test_name, test_properties in pairs(internal_results) do
-    local test_name_pattern = convert.to_neotest_test_name_pattern(test_name)
-    for _, node in tree:iter_nodes() do
-      local node_data = node:data()
-
-      -- WARNING: workarounds
-      local tweaked_node_data_id = node_data.id:gsub('"', "") -- workaround, since we cannot know where double quotes might appear
-      local tweaked_node_data_id = tweaked_node_data_id:gsub("_", " ") -- NOTE: look into making this more clear...
-
+  for neotest_node_id in pairs(internal_results) do
+    for _, line in ipairs(jsonlines) do
       if
-        string.find(node_data.path, spec.context.id, 1, true)
-        and string.find(tweaked_node_data_id, test_name_pattern, 1, false)
+        internal_results[neotest_node_id].go_package == line.Package
+        and internal_results[neotest_node_id].go_test_name == line.Test
       then
-        if internal_results[test_name].node_data ~= nil then
-          vim.notify(
-            "Multiple tests with name: " .. test_name,
-            vim.log.levels.WARN
+        -- record test status
+        if line.Action == "pass" then
+          internal_results[neotest_node_id].status = "passed"
+        elseif line.Action == "fail" then
+          internal_results[neotest_node_id].status = "failed"
+        elseif line.Action == "output" then
+          -- append line.Output to output field
+          internal_results[neotest_node_id].output = vim.list_extend(
+            internal_results[neotest_node_id].output,
+            { line.Output }
           )
-        end
-        internal_results[test_name].node_data = node_data
-        -- FIXME: likely add a break here so to avoid iterating further...
-        -- break
-      end
-    end
-  end
 
-  -- warn if node data is missing for the test
-  local missing_node_data = {}
-  for test_name, test_properties in pairs(internal_results) do
-    if internal_results[test_name].node_data == nil then
-      missing_node_data[test_name] = true
-    end
-  end
-  -- debug log if missing node data
-  if vim.tbl_count(missing_node_data) > 0 then
-    vim.notify(
-      "Missing node data was found for test(s)."
-        .. "When node data is missing, this indicates that the test wast not "
-        .. "successfully detected by the AST/treesitter parsing. As a result "
-        .. "inaccurate error messages may be displayed (or not displayed at all). "
-        .. "Another, more severe problem, is that the test status might not be "
-        .. "performed, resulting in false failures.",
-      vim.log.levels.DEBUG
-    )
-    for test_name, _ in pairs(missing_node_data) do
-      vim.notify(
-        "Missing node data for test: " .. test_name,
-        vim.log.levels.DEBUG
-      )
-    end
-  end
+          -- determine test filename
+          local test_filename = "_test.go" -- approximate test filename
+          if internal_results[neotest_node_id].neotest_node_data ~= nil then
+            -- node data is available, get the exact test filename
+            local test_filepath =
+              internal_results[neotest_node_id].neotest_node_data.path
+            test_filename = vim.fn.fnamemodify(test_filepath, ":t")
+          end
 
-  -- record error output (requires neotest node data)
-  local node_data_not_found = {}
-  for _, line in ipairs(jsonlines) do
-    if line.Action == "output" and line.Output ~= nil and line.Test ~= nil then
-      -- append line.Output to output field
-      internal_results[line.Test].output =
-        vim.list_extend(internal_results[line.Test].output, { line.Output })
-
-      -- determine test filename
-      local test_filename = "_test.go" -- approximate test filename
-      if node_data_not_found[line.Test] ~= nil then
-        -- node data is available, get the exact test filename
-        local test_filepath = internal_results[line.Test].node_data.path
-        test_filename = vim.fn.fnamemodify(test_filepath, ":t")
-      end
-
-      -- search for error message and line number
-      local matched_line_number =
-        string.match(line.Output, test_filename .. ":(%d+):")
-      if matched_line_number ~= nil then
-        local line_number = tonumber(matched_line_number)
-        local message = string.match(line.Output, test_filename .. ":%d+: (.*)")
-        if line_number ~= nil and message ~= nil then
-          table.insert(internal_results[line.Test].errors, {
-            line = line_number - 1, -- neovim lines are 0-indexed
-            message = message,
-          })
+          -- search for error message and line number
+          local matched_line_number =
+            string.match(line.Output, test_filename .. ":(%d+):")
+          if matched_line_number ~= nil then
+            local line_number = tonumber(matched_line_number)
+            local message =
+              string.match(line.Output, test_filename .. ":%d+: (.*)")
+            if line_number ~= nil and message ~= nil then
+              table.insert(internal_results[neotest_node_id].errors, {
+                line = line_number - 1, -- neovim lines are 0-indexed
+                message = message,
+              })
+            end
+          end
         end
       end
     end
   end
 
-  -- populate neotest results
-  for test_name, test_properties in pairs(internal_results) do
-    if test_properties.node_data ~= nil then
-      local test_output_path = vim.fs.normalize(async.fn.tempname())
-      async.fn.writefile(test_properties.output, test_output_path)
-      neotest_results[test_properties.node_data.id] = {
-        status = test_properties.status,
-        output = test_output_path, -- NOTE: could be slow when running many tests?
-        errors = test_properties.errors,
-      }
-    end
+  -- TODO: warn if Go package/test is missing from tree node.
+  -- TODO: warn if the same Go test exists more than once in the same Go package.
+  -- TODO: warn (or debug log) if Go test was detected, but is not found in the AST/treesitter tree.
+
+  for neotest_node_id in pairs(internal_results) do
+    local test_properties = internal_results[neotest_node_id]
+    local test_output_path = vim.fs.normalize(async.fn.tempname())
+    async.fn.writefile(test_properties.output, test_output_path)
+    neotest_results[neotest_node_id] = {
+      status = test_properties.status,
+      errors = test_properties.errors,
+      output = test_output_path, -- NOTE: could be slow when running many tests?
+    }
   end
 
   ---@type neotest.ResultStatus
@@ -156,6 +226,7 @@ function M.results(spec, result, tree)
   -- write full test command output
   local parsed_output_path = vim.fs.normalize(async.fn.tempname())
   for _, line in ipairs(jsonlines) do
+    -- vim.notify(vim.inspect(line))
     if line.Action == "output" then
       table.insert(full_test_output, line.Output)
     end
@@ -174,7 +245,7 @@ function M.results(spec, result, tree)
   vim.fn.writefile({ "" }, result.output)
 
   -- DEBUG: enable the following to see the collected data
-  -- vim.notify(vim.inspect(internal_results), vim.log.levels.INFO)
+  vim.notify(vim.inspect(internal_results), vim.log.levels.DEBUG)
 
   return neotest_results
 end
