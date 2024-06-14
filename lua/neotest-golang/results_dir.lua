@@ -72,12 +72,8 @@ function M.results(spec, result, tree)
         status = "skipped",
         output = {},
         errors = {},
-        -- go_test_name = convert.to_gotest_test_name(node_data.id),
         neotest_node_data = node_data,
-        go_package = "",
-        go_test_name = "",
-        -- filename = "",
-        -- pattern = "",
+        go_test_data = {},
       }
     end
   end
@@ -119,8 +115,10 @@ function M.results(spec, result, tree)
           match = tweaked_neotest_node_id:match(combined_pattern)
         end
         if match ~= nil then
-          internal_results[neotest_node_id].go_package = line.Package
-          internal_results[neotest_node_id].go_test_name = line.Test
+          internal_results[neotest_node_id].go_test_data = {
+            package = line.Package,
+            test_name = line.Test,
+          }
 
           break
         end
@@ -131,8 +129,9 @@ function M.results(spec, result, tree)
   for neotest_node_id in pairs(internal_results) do
     for _, line in ipairs(jsonlines) do
       if
-        internal_results[neotest_node_id].go_package == line.Package
-        and internal_results[neotest_node_id].go_test_name == line.Test
+        internal_results[neotest_node_id].go_test_data.package == line.Package
+        and internal_results[neotest_node_id].go_test_data.test_name
+          == line.Test
       then
         -- record test status
         if line.Action == "pass" then
@@ -177,7 +176,7 @@ function M.results(spec, result, tree)
   -- warn if Go package/test is missing from tree node.
   -- TODO: make configurable to skip this or use different log level?
   for neotest_node_id in pairs(internal_results) do
-    if internal_results[neotest_node_id].go_test_name == "" then
+    if internal_results[neotest_node_id].go_test_data.test_name == "" then
       vim.notify(
         "Go package/test not found in tree node: " .. neotest_node_id,
         vim.log.levels.WARN
