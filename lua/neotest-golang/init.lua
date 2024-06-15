@@ -8,7 +8,6 @@ local runspec_file = require("neotest-golang.runspec_file")
 local runspec_test = require("neotest-golang.runspec_test")
 local results_dir = require("neotest-golang.results_dir")
 local results_test = require("neotest-golang.results_test")
-local utils = require("neotest-golang.utils")
 
 local M = {}
 
