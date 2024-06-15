@@ -6,7 +6,6 @@ local utils = require("neotest-golang.utils")
 
 --- @class TestData
 --- @field status neotest.ResultStatus
---- @field output? string[] Go test output.
 --- @field short? string Shortened output string
 --- @field errors? neotest.Error[]
 --- @field neotest_node_data neotest.Position
@@ -14,8 +13,9 @@ local utils = require("neotest-golang.utils")
 --- @field duplicate_test_detected boolean
 
 --- @class GoTestData
---- @field name string
---- @field package string
+--- @field name string Go test name.
+--- @field pkg string Go package.
+--- @field output? string[] Go test output.
 
 local M = {}
 
@@ -84,12 +84,12 @@ function M.gather_neotest_data_and_set_defaults(tree)
     if pos.type == "test" then
       res[pos.id] = {
         status = "skipped",
-        output = {},
         errors = {},
         neotest_node_data = pos,
         gotest_data = {
           name = "",
-          package = "",
+          pkg = "",
+          output = {},
         },
         duplicate_test_detected = false,
       }
@@ -134,10 +134,8 @@ function M.decorate_with_go_package_and_test_name(res, gotest_output)
           match = tweaked_pos_od:match(combined_pattern)
         end
         if match ~= nil then
-          test_data.gotest_data = {
-            package = line.Package,
-            name = line.Test,
-          }
+          test_data.gotest_data.pkg = line.Package
+          test_data.gotest_data.name = line.Test
           break -- avoid iterating over the rest of the 'go test' output  lines
         end
       end
@@ -155,7 +153,7 @@ function M.decorate_with_go_test_results(res, gotest_output)
   for pos_id, test_data in pairs(res) do
     for _, line in ipairs(gotest_output) do
       if
-        test_data.gotest_data.package == line.Package
+        test_data.gotest_data.pkg == line.Package
         and test_data.gotest_data.name == line.Test
       then
         -- record test status
@@ -165,7 +163,8 @@ function M.decorate_with_go_test_results(res, gotest_output)
           test_data.status = "failed"
         elseif line.Action == "output" then
           -- append line.Output to output field
-          test_data.output = vim.list_extend(test_data.output, { line.Output })
+          test_data.gotest_data.output =
+            vim.list_extend(test_data.gotest_data.output, { line.Output })
 
           -- determine test filename
           local test_filename = "_test.go" -- approximate test filename
@@ -203,10 +202,7 @@ function M.show_warnings(d)
   -- warn if Go package/test is missing from tree node.
   -- TODO: make configurable to skip this or use different log level?
   for pos_id, test_data in pairs(d) do
-    if
-      test_data.gotest_data.package == ""
-      or test_data.gotest_data.name == ""
-    then
+    if test_data.gotest_data.pkg == "" or test_data.gotest_data.name == "" then
       vim.notify(
         "Unable to associate go package/test with neotest tree node: " .. pos_id,
         vim.log.levels.WARN
@@ -220,7 +216,7 @@ function M.show_warnings(d)
     if test_data.duplicate_test_detected == true then
       vim.notify(
         "Duplicate test name detected: "
-          .. test_data.gotest_data.package
+          .. test_data.gotest_data.pkg
           .. "/"
           .. test_data.gotest_data.name,
         vim.log.levels.WARN
@@ -243,7 +239,7 @@ function M.to_neotest_results(spec, result, res, gotest_output)
   -- populate all test results onto the Neotest format.
   for pos_id, test_data in pairs(res) do
     local test_output_path = vim.fs.normalize(async.fn.tempname())
-    async.fn.writefile(test_data.output, test_output_path)
+    async.fn.writefile(test_data.gotest_data.output, test_output_path)
     neotest_results[pos_id] = {
       status = test_data.status,
       errors = test_data.errors,
