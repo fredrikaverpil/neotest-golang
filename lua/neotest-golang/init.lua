@@ -1,5 +1,8 @@
+-- This is the main entry point for the neotest-golang adapter. It follows the
+-- Neotest interface: https://github.com/nvim-neotest/neotest/blob/master/lua/neotest/adapters/interface.lua
+
 local options = require("neotest-golang.options")
-local discover_positions = require("neotest-golang.discover_positions")
+local ast = require("neotest-golang.ast")
 local runspec_dir = require("neotest-golang.runspec_dir")
 local runspec_test = require("neotest-golang.runspec_test")
 local results_dir = require("neotest-golang.results_dir")
@@ -54,7 +57,7 @@ end
 ---@param file_path string Absolute file path
 ---@return neotest.Tree | nil
 function M.Adapter.discover_positions(file_path)
-  return discover_positions.discover_positions(file_path)
+  return ast.detect_tests(file_path)
 end
 
 ---Build the runspec, which describes how to execute the test(s).

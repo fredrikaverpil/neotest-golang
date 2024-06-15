@@ -2,7 +2,9 @@ local lib = require("neotest.lib")
 
 local M = {}
 
-function M.discover_positions(file_path)
+--- Detect test names in Go *._test.go files.
+--- @param file_path string
+function M.detect_tests(file_path)
   local functions_and_methods = [[
     ;;query
     ((function_declaration
