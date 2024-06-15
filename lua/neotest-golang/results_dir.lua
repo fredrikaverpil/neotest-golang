@@ -24,6 +24,7 @@ local M = {}
 --- @param spec neotest.RunSpec
 --- @param result neotest.StrategyResult
 --- @param tree neotest.Tree
+--- @return table<string, neotest.Result>
 function M.results(spec, result, tree)
   --- The raw output from the 'go test -json' command.
   --- @type table
@@ -39,15 +40,18 @@ function M.results(spec, result, tree)
 
   M.show_warnings(res)
 
+  -- DEBUG: enable the following to see the internal test result data.
+  -- vim.notify(vim.inspect(res), vim.log.levels.DEBUG)
+
   local neotest_results = M.to_neotest_results(spec, result, res, gotest_output)
+
+  -- DEBUG: enable the following to see the final Neotest result.
+  -- vim.notify(vim.inspect(neotest_results), vim.log.levels.DEBUG)
 
   -- FIXME: once output is parsed, erase file contents, so to avoid JSON in
   -- output panel. This is a workaround for now, only because of
   -- https://github.com/nvim-neotest/neotest/issues/391
   vim.fn.writefile({ "" }, result.output)
-
-  -- DEBUG: enable the following to see the collected data
-  -- vim.notify(vim.inspect(internal_results), vim.log.levels.DEBUG)
 
   return neotest_results
 end
@@ -63,8 +67,8 @@ function M.aggregate_data(tree, gotest_output)
   return res
 end
 
---- Generate the internal data which will be used by neotest-golang before.
---- handing over the final results onto Neotest.
+--- Generate the internal test result data which will be used by neotest-golang
+--- before handing over the final results onto Neotest.
 --- @param tree neotest.Tree
 --- @return table<string, TestData>
 function M.gather_neotest_data_and_set_defaults(tree)
@@ -106,7 +110,7 @@ function M.gather_neotest_data_and_set_defaults(tree)
   return res
 end
 
---- Decorate the internal results with go package and test name.
+--- Decorate the internal test result data with go package and test name.
 --- This is an important step to associate the test results with the tree nodes
 --- as the 'go test' JSON output contains keys 'Package' and 'Test'.
 --- @param res table<string, TestData>
@@ -145,7 +149,7 @@ function M.decorate_with_go_package_and_test_name(res, gotest_output)
   return res
 end
 
---- Decorate the internal results with data from the 'go test' output.
+--- Decorate the internal test result data with data from the 'go test' output.
 --- @param res table<string, TestData>
 --- @param gotest_output table
 --- @return table<string, TestData>
@@ -225,7 +229,7 @@ function M.show_warnings(d)
   end
 end
 
---- Convert internal results to Neotest results.
+--- Convert internal test result data to final Neotest results.
 --- @param spec neotest.RunSpec
 --- @param result neotest.StrategyResult
 --- @param res table<string, TestData>
