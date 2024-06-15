@@ -39,7 +39,6 @@ format-go:
 	cd tests/go && \
 		gci write --skip-generated --skip-vendor -s standard -s default . && \
 		golines --base-formatter=gofumpt --ignore-generated --tab-len=1 --max-len=120 --write-output . && \
-		git diff --exit-code
 
 .PHONY: lint-go
 lint-go:
@@ -52,6 +51,9 @@ vuln-go:
 		go vet ./... && \
 		gosec ./...
 
+.PHONY: git-diff
+git-diff:
+	git diff --exit-code
 
 # --- Installation of tooling ---
 
