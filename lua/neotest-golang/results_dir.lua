@@ -4,130 +4,174 @@ local convert = require("neotest-golang.convert")
 local json = require("neotest-golang.json")
 local utils = require("neotest-golang.utils")
 
+--- @class InternalResult
+--- @field status neotest.ResultStatus
+--- @field output? string[] Go test output.
+--- @field short? string Shortened output string
+--- @field errors? neotest.Error[]
+--- @field neotest_node_data neotest.Position
+--- @field go_test_data GoTestData
+--- @field duplicate_test_detected boolean
+
+--- @class GoTestData
+--- @field name string
+--- @field package string
+
 local M = {}
 
+--- Process the results from the test command executing all tests in a
+--- directory.
 --- @param spec neotest.RunSpec
 --- @param result neotest.StrategyResult
 --- @param tree neotest.Tree
 function M.results(spec, result, tree)
-  --- The raw output from the 'go test' command.
+  --- The raw output from the 'go test -json' command.
   --- @type table
   local raw_output = async.fn.readfile(result.output)
 
-  --- The 'go test -json' output.
+  --- The 'go test' JSON output, converted into a lua table.
   --- @type table
-  local jsonlines = json.process_json(raw_output)
+  local gotest_output = json.process_json(raw_output)
 
-  --- Internal table to hold all test result data.
-  --- @type table<string|table<string, string>, table>
-  local internal_results = {}
+  --- Internal data structure to store test results.
+  --- @type table<string, InternalResult>
+  local d = M.aggregate_data(tree, gotest_output)
 
-  -- record neotest node data
-  local duplicates = {}
-  for idx, node in tree:iter_nodes() do
-    local node_data = node:data()
+  M.show_warnings(d)
 
-    if node_data.type == "test" then
-      -- Example node:
-      -- {
-      --   id = "/Users/fredrik/code/public/neotest-golang/backend/internal/core/model/something_test.go::TestSomething:"a sub test",
-      --   name = "a sub test",
-      --   path = "/Users/fredrik/code/public/neotest-golang/backend/internal/core/model/something_test.go",
-      --   range = { 12, 0, 164, 1 },
-      --   type = "test"
-      -- },
+  local neotest_results = M.to_neotest_results(spec, result, d, gotest_output)
 
-      internal_results[node_data.id] = {
-        status = "skipped",
-        output = {},
-        errors = {},
-        neotest_node_data = node_data,
-        go_test_data = {},
-        duplicate_test_detected = false,
+  -- FIXME: once output is parsed, erase file contents, so to avoid JSON in
+  -- output panel. This is a workaround for now, only because of
+  -- https://github.com/nvim-neotest/neotest/issues/391
+  vim.fn.writefile({ "" }, result.output)
+
+  -- DEBUG: enable the following to see the collected data
+  -- vim.notify(vim.inspect(internal_results), vim.log.levels.DEBUG)
+
+  return neotest_results
+end
+
+--- Aggregate neotest data and 'go test' output data.
+--- @param tree neotest.Tree
+--- @param gotest_output table
+--- @return table<string, InternalResult>
+function M.aggregate_data(tree, gotest_output)
+  local d = M.gather_neotest_data_and_set_defaults(tree)
+  d = M.decorate_with_go_package_and_test_name(d, gotest_output)
+  d = M.decorate_with_go_test_results(d, gotest_output)
+  return d
+end
+
+--- Generate the internal data which will be used by neotest-golang before.
+--- handing over the final results onto Neotest.
+--- @param tree neotest.Tree
+--- @return table<string, InternalResult>
+function M.gather_neotest_data_and_set_defaults(tree)
+  --- Internal data structure to store test results.
+  --- @type table<string, InternalResult>
+  local d = {}
+
+  --- Table storing the name of the test (position.id) and the number of times
+  --- it was found in the tree.
+  --- @type table<string, number>
+  local dupes = {}
+
+  for _, node in tree:iter_nodes() do
+    --- @type neotest.Position
+    local pos = node:data()
+
+    if pos.type == "test" then
+      d[pos.id] = {
+        status = "skipped", -- default
+        output = {}, -- default -- TODO: move into go_test_data
+        errors = {}, -- default -- TODO: move into go_test_data
+        neotest_node_data = pos, -- TODO: rename to neotest_position_data
+        go_test_data = {
+          name = "", -- default
+          package = "", -- default
+        }, -- default
+        duplicate_test_detected = false, -- default
       }
 
-      -- detect duplicates
-      if duplicates[node_data.id] == nil then
-        duplicates[node_data.id] = 1
+      -- detect duplicate test names
+      if dupes[pos.id] == nil then
+        dupes[pos.id] = 1
       else
-        duplicates[node_data.id] = duplicates[node_data.id] + 1
-        internal_results[node_data.id].duplicate_test_detected = true
+        dupes[pos.id] = dupes[pos.id] + 1
+        d[pos.id].duplicate_test_detected = true
       end
     end
   end
+  return d
+end
 
-  -- associate neotest node data with go test package and test name
-  for neotest_node_id in pairs(internal_results) do
-    for _, line in ipairs(jsonlines) do
-      -- Example line:
-      -- {
-      --   Action = "pass",
-      --   Elapsed = 0,
-      --   Package = "github.com/fredrikaverpil/neotest-golang/internal/core/model",
-      --   Test = "TestSomething/a_sub_test",
-      --   Time = "2024-06-13T22:33:28.302953+02:00"
-      -- }
-
+--- Decorate the internal results with go package and test name.
+--- This is an important step to associate the test results with the tree nodes
+--- as the 'go test' JSON output contains keys 'Package' and 'Test'.
+--- @param d table<string, InternalResult>
+--- @param gotest_output table
+--- @return table<string, InternalResult>
+function M.decorate_with_go_package_and_test_name(d, gotest_output)
+  for pos_id in pairs(d) do
+    for _, line in ipairs(gotest_output) do
       if line.Action == "run" and line.Test ~= nil then
-        -- remove filename from path
-        local folderpath = vim.fn.fnamemodify(
-          internal_results[neotest_node_id].neotest_node_data.path,
-          ":h"
-        ) -- TODO: would be nicer if this was handled by the common_parts function
-
+        local folderpath =
+          vim.fn.fnamemodify(d[pos_id].neotest_node_data.path, ":h")
         local match = nil
-        local partial_path = utils.find_common_path(line.Package, folderpath)
+        local common_path = utils.find_common_path(line.Package, folderpath)
 
-        if partial_path ~= "" then
-          local tweaked_neotest_node_id = neotest_node_id:gsub(" ", "_")
+        if common_path ~= "" then
+          local tweaked_neotest_node_id = pos_id:gsub(" ", "_")
           tweaked_neotest_node_id = tweaked_neotest_node_id:gsub('"', "")
           tweaked_neotest_node_id = tweaked_neotest_node_id:gsub("::", "/")
 
-          local combined_pattern = convert.to_lua_pattern(partial_path)
+          local combined_pattern = convert.to_lua_pattern(common_path)
             .. "/(.-)/"
             .. convert.to_lua_pattern(line.Test)
             .. "$"
 
-          -- TODO: how to handle root level of package, when there is no common path
-
           match = tweaked_neotest_node_id:match(combined_pattern)
         end
         if match ~= nil then
-          internal_results[neotest_node_id].go_test_data = {
+          d[pos_id].go_test_data = {
             package = line.Package,
             name = line.Test,
           }
-
-          break
+          break -- avoid iterating over the rest of the 'go test' output  lines
         end
       end
     end
   end
 
-  for neotest_node_id in pairs(internal_results) do
-    for _, line in ipairs(jsonlines) do
+  return d
+end
+
+--- Decorate the internal results with data from the 'go test' output.
+--- @param d table<string, InternalResult>
+--- @param gotest_output table
+--- @return table<string, InternalResult>
+function M.decorate_with_go_test_results(d, gotest_output)
+  for pos_id in pairs(d) do
+    for _, line in ipairs(gotest_output) do
       if
-        internal_results[neotest_node_id].go_test_data.package == line.Package
-        and internal_results[neotest_node_id].go_test_data.name == line.Test
+        d[pos_id].go_test_data.package == line.Package
+        and d[pos_id].go_test_data.name == line.Test
       then
         -- record test status
         if line.Action == "pass" then
-          internal_results[neotest_node_id].status = "passed"
+          d[pos_id].status = "passed"
         elseif line.Action == "fail" then
-          internal_results[neotest_node_id].status = "failed"
+          d[pos_id].status = "failed"
         elseif line.Action == "output" then
           -- append line.Output to output field
-          internal_results[neotest_node_id].output = vim.list_extend(
-            internal_results[neotest_node_id].output,
-            { line.Output }
-          )
+          d[pos_id].output = vim.list_extend(d[pos_id].output, { line.Output })
 
           -- determine test filename
           local test_filename = "_test.go" -- approximate test filename
-          if internal_results[neotest_node_id].neotest_node_data ~= nil then
+          if d[pos_id].neotest_node_data ~= nil then
             -- node data is available, get the exact test filename
-            local test_filepath =
-              internal_results[neotest_node_id].neotest_node_data.path
+            local test_filepath = d[pos_id].neotest_node_data.path
             test_filename = vim.fn.fnamemodify(test_filepath, ":t")
           end
 
@@ -139,7 +183,7 @@ function M.results(spec, result, tree)
             local message =
               string.match(line.Output, test_filename .. ":%d+: (.*)")
             if line_number ~= nil and message ~= nil then
-              table.insert(internal_results[neotest_node_id].errors, {
+              table.insert(d[pos_id].errors, {
                 line = line_number - 1, -- neovim lines are 0-indexed
                 message = message,
               })
@@ -149,14 +193,19 @@ function M.results(spec, result, tree)
       end
     end
   end
+  return d
+end
 
+--- Show warnings.
+--- @param d table<string, InternalResult>
+--- @return nil
+function M.show_warnings(d)
   -- warn if Go package/test is missing from tree node.
   -- TODO: make configurable to skip this or use different log level?
-  for neotest_node_id in pairs(internal_results) do
-    if internal_results[neotest_node_id].go_test_data.name == "" then
+  for pos_id in pairs(d) do
+    if d[pos_id].go_test_data.name == "" then
       vim.notify(
-        "Unable to associate go package/test with neotest tree node: "
-          .. neotest_node_id,
+        "Unable to associate go package/test with neotest tree node: " .. pos_id,
         vim.log.levels.WARN
       )
     end
@@ -166,30 +215,39 @@ function M.results(spec, result, tree)
 
   -- warn about duplicate tests
   -- TODO: make debug level configurable
-  for neotest_node_id in pairs(internal_results) do
-    local test_properties = internal_results[neotest_node_id]
-    if test_properties.duplicate_test_detected == true then
+  for pos_id in pairs(d) do
+    local test_data = d[pos_id]
+    if test_data.duplicate_test_detected == true then
       vim.notify(
         "Duplicate test name detected: "
-          .. test_properties.go_test_data.package
+          .. test_data.go_test_data.package
           .. "/"
-          .. test_properties.go_test_data.name,
+          .. test_data.go_test_data.name,
         vim.log.levels.WARN
       )
     end
   end
+end
 
-  -- convert internal results to neotest results
+--- Convert internal results to Neotest results.
+--- @param spec neotest.RunSpec
+--- @param result neotest.StrategyResult
+--- @param d table<string, InternalResult>
+--- @param gotest_output table
+--- @return table<string, neotest.Result>
+function M.to_neotest_results(spec, result, d, gotest_output)
   --- Neotest results.
   --- @type table<string, neotest.Result>
   local neotest_results = {}
-  for neotest_node_id in pairs(internal_results) do
-    local test_properties = internal_results[neotest_node_id]
+
+  -- populate all test results onto the Neotest format.
+  for pos_id in pairs(d) do
+    local test_data = d[pos_id]
     local test_output_path = vim.fs.normalize(async.fn.tempname())
-    async.fn.writefile(test_properties.output, test_output_path)
-    neotest_results[neotest_node_id] = {
-      status = test_properties.status,
-      errors = test_properties.errors,
+    async.fn.writefile(test_data.output, test_output_path)
+    neotest_results[pos_id] = {
+      status = test_data.status,
+      errors = test_data.errors,
       output = test_output_path, -- NOTE: could be slow when running many tests?
     }
   end
@@ -203,32 +261,22 @@ function M.results(spec, result, tree)
     test_command_status = "failed"
   end
 
-  -- write full test command output
   --- Full 'go test' output (parsed from JSON).
   --- @type table
-  local full_test_output = {}
-  local parsed_output_path = vim.fs.normalize(async.fn.tempname())
-  for _, line in ipairs(jsonlines) do
-    -- vim.notify(vim.inspect(line))
+  local full_output = {}
+  local test_command_output_path = vim.fs.normalize(async.fn.tempname())
+  for _, line in ipairs(gotest_output) do
     if line.Action == "output" then
-      table.insert(full_test_output, line.Output)
+      table.insert(full_output, line.Output)
     end
   end
-  async.fn.writefile(full_test_output, parsed_output_path)
+  async.fn.writefile(full_output, test_command_output_path)
 
   -- register properties on the directory node that was run
   neotest_results[spec.context.id] = {
     status = test_command_status,
-    output = parsed_output_path,
+    output = test_command_output_path,
   }
-
-  -- FIXME: once output is parsed, erase file contents, so to avoid JSON in
-  -- output panel. This is a workaround for now, only because of
-  -- https://github.com/nvim-neotest/neotest/issues/391
-  vim.fn.writefile({ "" }, result.output)
-
-  -- DEBUG: enable the following to see the collected data
-  -- vim.notify(vim.inspect(internal_results), vim.log.levels.DEBUG)
 
   return neotest_results
 end

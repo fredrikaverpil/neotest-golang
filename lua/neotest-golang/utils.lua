@@ -7,7 +7,10 @@ function M.table_is_empty(t)
   return next(t) == nil
 end
 
--- Find the common path of two folderpaths.
+--- Find the common path of two folderpaths.
+--- @param path1 string
+--- @param path2 string
+--- @return string
 function M.find_common_path(path1, path2)
   local common = {}
   local path1_parts = vim.split(path1, "/")
