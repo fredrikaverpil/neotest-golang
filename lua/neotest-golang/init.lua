@@ -1,5 +1,3 @@
-local _ = require("neotest")
-
 local options = require("neotest-golang.options")
 local discover_positions = require("neotest-golang.discover_positions")
 local runspec_dir = require("neotest-golang.runspec_dir")

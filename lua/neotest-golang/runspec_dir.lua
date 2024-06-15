@@ -1,5 +1,3 @@
-local _ = require("neotest") -- fix LSP errors
-
 local options = require("neotest-golang.options")
 
 local M = {}
