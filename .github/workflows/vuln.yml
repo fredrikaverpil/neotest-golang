@@ -15,11 +15,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.22
-      - name: Go vet (vulnerabilities)
-        run: go vet ./...
-        working-directory: ./tests/go
-      - name: Run gosec (security)
-        run: |
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
-          gosec ./...
-        working-directory: ./tests/go
+      - name: Install gosec
+        run: make install-vuln-go
+      - name: Run vulnerability check
+        run: make vuln-go

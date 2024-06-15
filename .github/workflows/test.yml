@@ -27,7 +27,7 @@ jobs:
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
           ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
       - name: Run tests
-        run: nvim --headless -c "PlenaryBustedDirectory tests {minimal_init = 'tests/minimal_init.lua', sequential = true}"
+        run: make test-lua
   go:
     runs-on: ubuntu-latest
     steps:
@@ -37,6 +37,5 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.22
-      - name: Check tests
-        run: go test ./...
-        working-directory: ./tests/go
+      - name: Run tests
+        run: make test-go
