@@ -43,6 +43,7 @@ function M.results(spec, result, tree)
   local internal_results = {}
 
   -- record neotest node data
+  local duplicates = {}
   for idx, node in tree:iter_nodes() do
     local node_data = node:data()
 
@@ -74,7 +75,16 @@ function M.results(spec, result, tree)
         errors = {},
         neotest_node_data = node_data,
         go_test_data = {},
+        duplicate_test_detected = false,
       }
+
+      -- detect duplicates
+      if duplicates[node_data.id] == nil then
+        duplicates[node_data.id] = 1
+      else
+        duplicates[node_data.id] = duplicates[node_data.id] + 1
+        internal_results[node_data.id].duplicate_test_detected = true
+      end
     end
   end
 
@@ -117,7 +127,7 @@ function M.results(spec, result, tree)
         if match ~= nil then
           internal_results[neotest_node_id].go_test_data = {
             package = line.Package,
-            test_name = line.Test,
+            name = line.Test,
           }
 
           break
@@ -130,8 +140,7 @@ function M.results(spec, result, tree)
     for _, line in ipairs(jsonlines) do
       if
         internal_results[neotest_node_id].go_test_data.package == line.Package
-        and internal_results[neotest_node_id].go_test_data.test_name
-          == line.Test
+        and internal_results[neotest_node_id].go_test_data.name == line.Test
       then
         -- record test status
         if line.Action == "pass" then
@@ -176,9 +185,10 @@ function M.results(spec, result, tree)
   -- warn if Go package/test is missing from tree node.
   -- TODO: make configurable to skip this or use different log level?
   for neotest_node_id in pairs(internal_results) do
-    if internal_results[neotest_node_id].go_test_data.test_name == "" then
+    if internal_results[neotest_node_id].go_test_data.name == "" then
       vim.notify(
-        "Go package/test not found in tree node: " .. neotest_node_id,
+        "Unable to associate go package/test with neotest tree node: "
+          .. neotest_node_id,
         vim.log.levels.WARN
       )
     end
@@ -186,25 +196,18 @@ function M.results(spec, result, tree)
 
   -- TODO: warn (or debug log) if Go test was detected, but is not found in the AST/treesitter tree.
 
-  -- warn if the same Go test exists more than once in the same Go package.
-  -- TODO: make configurable to skip this
-  local duplicates = {}
-  for _, line in ipairs(jsonlines) do
-    if line.Action == "run" then
-      local t = line.Package .. "/" .. line.Test
-      if duplicates[t] == nil then
-        duplicates[t] = 1
-      else
-        duplicates[t] = duplicates[t] + 1
-      end
-    end
-    for duplicate, count in pairs(duplicates) do
-      if count > 1 then
-        vim.notify(
-          "Duplicate test name detected: " .. duplicate,
-          vim.log.levels.WARN
-        )
-      end
+  -- warn about duplicate tests
+  -- TODO: make debug level configurable
+  for neotest_node_id in pairs(internal_results) do
+    local test_properties = internal_results[neotest_node_id]
+    if test_properties.duplicate_test_detected == true then
+      vim.notify(
+        "Duplicate test name detected: "
+          .. test_properties.go_test_data.package
+          .. "/"
+          .. test_properties.go_test_data.name,
+        vim.log.levels.WARN
+      )
     end
   end
 
