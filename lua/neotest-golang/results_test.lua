@@ -2,11 +2,11 @@ local async = require("neotest.async")
 
 local M = {}
 
----@async
----@param spec neotest.RunSpec
----@param result neotest.StrategyResult
----@param tree neotest.Tree
----@return table<string, neotest.Result>
+--- @async
+--- @param spec neotest.RunSpec
+--- @param result neotest.StrategyResult
+--- @param tree neotest.Tree
+--- @return table<string, neotest.Result>
 function M.results(spec, result, tree)
   if spec.context.skip then
     ---@type table<string, neotest.Result>
@@ -18,7 +18,7 @@ function M.results(spec, result, tree)
     return results
   end
 
-  ---@type neotest.ResultStatus
+  --- @type neotest.ResultStatus
   local result_status = "skipped"
   if result.code == 0 then
     result_status = "passed"
@@ -26,17 +26,17 @@ function M.results(spec, result, tree)
     result_status = "failed"
   end
 
-  ---@type table
+  --- @type table
   local raw_output = async.fn.readfile(result.output)
 
-  ---@type string
+  --- @type string
   local test_filepath = spec.context.test_filepath
   local test_filename = vim.fn.fnamemodify(test_filepath, ":t")
-  ---@type List
+  --- @type table
   local test_result = {}
-  ---@type neotest.Error[]
+  --- @type neotest.Error[]
   local errors = {}
-  ---@type List<table>
+  --- @type table
   local jsonlines = require("neotest-golang.json").process_json(raw_output)
 
   for _, line in ipairs(jsonlines) do

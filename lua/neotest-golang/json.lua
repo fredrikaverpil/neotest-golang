@@ -1,8 +1,8 @@
 local M = {}
 
 --- Process JSON and return objects of interest.
----@param raw_output table
----@return table
+--- @param raw_output table
+--- @return table
 function M.process_json(raw_output)
   local jsonlines = {}
   for _, line in ipairs(raw_output) do

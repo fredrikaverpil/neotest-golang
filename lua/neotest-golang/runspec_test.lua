@@ -4,13 +4,13 @@ local options = require("neotest-golang.options")
 local M = {}
 
 --- Build runspec for a single test
----@param pos neotest.Position
----@param strategy string
----@return neotest.RunSpec
+--- @param pos neotest.Position
+--- @param strategy string
+--- @return neotest.RunSpec
 function M.build(pos, strategy)
-  ---@type string
+  --- @type string
   local test_name = convert.to_gotest_test_name(pos.id)
-  ---@type string
+  --- @type string
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
 
   local gotest = {
@@ -19,7 +19,7 @@ function M.build(pos, strategy)
     "-json",
   }
 
-  ---@type table
+  --- @type table
   local go_test_args = {
     test_folder_absolute_path,
     "-run",
@@ -30,7 +30,7 @@ function M.build(pos, strategy)
     vim.list_extend(vim.deepcopy(options._go_test_args), go_test_args)
   local gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
 
-  ---@type neotest.RunSpec
+  --- @type neotest.RunSpec
   local run_spec = {
     command = gotest_command,
     cwd = test_folder_absolute_path,
@@ -66,8 +66,8 @@ function M.build(pos, strategy)
   return run_spec
 end
 
----@param test_name string
----@return table | nil
+--- @param test_name string
+--- @return table | nil
 function M.get_dap_config(test_name)
   -- :help dap-configuration
   local dap_config = {

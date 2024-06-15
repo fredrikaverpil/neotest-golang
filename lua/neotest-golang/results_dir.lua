@@ -2,46 +2,30 @@ local async = require("neotest.async")
 
 local convert = require("neotest-golang.convert")
 local json = require("neotest-golang.json")
+local utils = require("neotest-golang.utils")
 
 local M = {}
 
----@param spec neotest.RunSpec
----@param result neotest.StrategyResult
----@param tree neotest.Tree
+--- @param spec neotest.RunSpec
+--- @param result neotest.StrategyResult
+--- @param tree neotest.Tree
 function M.results(spec, result, tree)
-  ---@type table
+  --- The raw output from the 'go test' command.
+  --- @type table
   local raw_output = async.fn.readfile(result.output)
 
-  ---@type List<table>
+  --- The 'go test -json' output.
+  --- @type table
   local jsonlines = json.process_json(raw_output)
 
-  ---@type List
-  local full_test_output = {}
-
-  --- neotest results
-  ---@type table<string, neotest.Result>
-  local neotest_results = {}
-
-  --- internal results struct
-  ---@type table<string, table>
+  --- Internal table to hold all test result data.
+  --- @type table<string|table<string, string>, table>
   local internal_results = {}
 
   -- record neotest node data
   local duplicates = {}
   for idx, node in tree:iter_nodes() do
     local node_data = node:data()
-
-    if idx == 1 then
-      -- Example node:
-      -- {
-      --   id = "/Users/fredrik/code/public/neotest-golang/backend/internal/core/model",
-      --   name = "model",
-      --   path = "/Users/fredrik/code/public/neotest-golang/backend/internal/core/model",
-      --   type = "dir"
-      -- }
-
-      -- vim.notify(vim.inspect(node_data))
-    end
 
     if node_data.type == "test" then
       -- Example node:
@@ -92,7 +76,7 @@ function M.results(spec, result, tree)
         ) -- TODO: would be nicer if this was handled by the common_parts function
 
         local match = nil
-        local partial_path = M.find_common_path(line.Package, folderpath)
+        local partial_path = utils.find_common_path(line.Package, folderpath)
 
         if partial_path ~= "" then
           local tweaked_neotest_node_id = neotest_node_id:gsub(" ", "_")
@@ -196,6 +180,9 @@ function M.results(spec, result, tree)
   end
 
   -- convert internal results to neotest results
+  --- Neotest results.
+  --- @type table<string, neotest.Result>
+  local neotest_results = {}
   for neotest_node_id in pairs(internal_results) do
     local test_properties = internal_results[neotest_node_id]
     local test_output_path = vim.fs.normalize(async.fn.tempname())
@@ -207,7 +194,8 @@ function M.results(spec, result, tree)
     }
   end
 
-  ---@type neotest.ResultStatus
+  --- Test command (e.g. 'go test') status.
+  --- @type neotest.ResultStatus
   local test_command_status = "skipped"
   if result.code == 0 then
     test_command_status = "passed"
@@ -216,6 +204,9 @@ function M.results(spec, result, tree)
   end
 
   -- write full test command output
+  --- Full 'go test' output (parsed from JSON).
+  --- @type table
+  local full_test_output = {}
   local parsed_output_path = vim.fs.normalize(async.fn.tempname())
   for _, line in ipairs(jsonlines) do
     -- vim.notify(vim.inspect(line))

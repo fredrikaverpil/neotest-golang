@@ -3,8 +3,8 @@ local options = require("neotest-golang.options")
 local M = {}
 
 --- Build runspec for a directory.
----@param pos neotest.Position
----@return neotest.RunSpec | nil
+--- @param pos neotest.Position
+--- @return neotest.RunSpec | nil
 function M.build(pos)
   -- Strategy:
   -- 1. Find the go.mod file from pos.path.
@@ -56,10 +56,10 @@ function M.remove_base_path(base_path, target_path)
 end
 
 --- Build runspec for a directory of tests
----@param pos neotest.Position
----@param cwd string
----@param test_pattern string
----@return neotest.RunSpec
+--- @param pos neotest.Position
+--- @param cwd string
+--- @param test_pattern string
+--- @return neotest.RunSpec
 function M.build_dir_test_runspec(pos, cwd, test_pattern)
   local gotest = {
     "go",
@@ -67,7 +67,7 @@ function M.build_dir_test_runspec(pos, cwd, test_pattern)
     "-json",
   }
 
-  ---@type table
+  --- @type table
   local go_test_args = {
     test_pattern,
   }
@@ -76,7 +76,7 @@ function M.build_dir_test_runspec(pos, cwd, test_pattern)
     vim.list_extend(vim.deepcopy(options._go_test_args), go_test_args)
   local gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
 
-  ---@type neotest.RunSpec
+  --- @type neotest.RunSpec
   local run_spec = {
     command = gotest_command,
     cwd = cwd,

@@ -6,7 +6,7 @@ local M = {}
 
 --- Arguments to pass into `go test`. Will be combined with arguments required
 --- for neotest-golang to work and execute the expected test(s).
----@type table
+--- @type table
 M._go_test_args = {
   "-v",
   "-race",
@@ -15,11 +15,11 @@ M._go_test_args = {
 }
 
 --- Whether to enable nvim-dap-go.
----@type boolean
+--- @type boolean
 M._dap_go_enabled = false
 
 --- Options to pass into dap-go.setup.
----@type table
+--- @type table
 M._dap_go_opts = {}
 
 return M
