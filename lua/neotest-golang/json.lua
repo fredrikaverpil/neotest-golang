@@ -11,10 +11,11 @@ function M.process_json(raw_output)
       if status then
         table.insert(jsonlines, json_data)
       else
-        vim.notify("Failed to decode JSON: " .. line, vim.log.levels.WARN)
+        -- NOTE: this is often hit because of "Vim:E474: Unidentified byte: ..."
+        vim.notify("Failed to decode JSON line: " .. line, vim.log.levels.WARN)
       end
     else
-      vim.notify("Warning, not a json line: " .. line, vim.log.levels.DEBUG)
+      -- vim.notify("Not valid JSON: " .. line, vim.log.levels.DEBUG)
     end
   end
   return jsonlines
