@@ -93,12 +93,13 @@ function M.Adapter.build_spec(args)
 
   if pos.type == "dir" and pos.path == vim.fn.getcwd() then
     -- A runspec is to be created, based on running all tests in the given
-    -- directory. In this case, the directory is also the $CWD, and likely, the
-    -- project root.
+    -- directory. In this case, the directory is also the current working
+    -- directory.
     return runspec_dir.build(pos)
   elseif pos.type == "dir" then
     -- A runspec is to be created, based on running all tests in the given
-    -- directory. In this case, the directory is a sub-directory of the $CWD.
+    -- directory. In this case, the directory is a sub-directory of the current
+    -- working directory.
     return runspec_dir.build(pos)
   elseif pos.type == "file" then
     -- A runspec is to be created, based on on running all tests in the given
@@ -130,11 +131,15 @@ function M.Adapter.results(spec, result, tree)
   if spec.context.test_type == "dir" then
     -- A test command executed a directory of tests and the output/status must
     -- now be processed.
-    return results_dir.results(spec, result, tree)
+    local results = results_dir.results(spec, result, tree)
+    M.workaround_neotest_issue_391(result)
+    return results
   elseif spec.context.test_type == "test" then
     -- A test command executed a single test and the output/status must now be
     -- processed.
-    return results_test.results(spec, result, tree)
+    local results = results_test.results(spec, result, tree)
+    M.workaround_neotest_issue_391(result)
+    return results
   end
 
   vim.notify(
@@ -142,6 +147,15 @@ function M.Adapter.results(spec, result, tree)
       .. spec.context.test_type,
     vim.log.levels.ERROR
   )
+end
+
+--- Workaround, to avoid JSON in output panel, erase contents of output.
+--- @param result neotest.StrategyResult
+function M.workaround_neotest_issue_391(result)
+  -- FIXME: once output is parsed, erase file contents, so to avoid JSON in
+  -- output panel. This is a workaround for now, only because of
+  -- https://github.com/nvim-neotest/neotest/issues/391
+  vim.fn.writefile({ "" }, result.output)
 end
 
 --- Adapter options.

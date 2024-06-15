@@ -48,11 +48,6 @@ function M.results(spec, result, tree)
   -- DEBUG: enable the following to see the final Neotest result.
   -- vim.notify(vim.inspect(neotest_results), vim.log.levels.DEBUG)
 
-  -- FIXME: once output is parsed, erase file contents, so to avoid JSON in
-  -- output panel. This is a workaround for now, only because of
-  -- https://github.com/nvim-neotest/neotest/issues/391
-  vim.fn.writefile({ "" }, result.output)
-
   return neotest_results
 end
 
