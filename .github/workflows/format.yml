@@ -26,18 +26,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.22
-      - name: Run gci
-        run: |
-          go install github.com/daixiang0/gci@latest
-          gci write --skip-generated --skip-vendor -s standard -s default .
-        working-directory: ./tests/go
-      - name: Run golines
-        run: |
-          go install mvdan.cc/gofumpt@latest
-          go install github.com/segmentio/golines@latest
-          golines --base-formatter=gofumpt --ignore-generated --tab-len=1 --max-len=120 --write-output .
-        working-directory: ./tests/go
-      - name: Check git diff
-        run: |
-          git diff --exit-code
-        working-directory: ./tests/go
+      - name: Install Go formatting tooling
+        run: make install-format-go
+      - name: Formating check
+        run: make format-go

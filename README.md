@@ -318,4 +318,10 @@ return {
 ## 🙏 PRs are welcome
 
 Improvement suggestion PRs to this repo are very much welcome, and I encourage
-you to begin in the discussions in case the change is not trivial.
+you to begin in the [discussions](discussions) in case the change is not
+trivial.
+
+You can run tests, formatting and linting locally with `make all`. Install
+dependencies with `make install`. Have a look at the [Makefile](Makefile) for
+more details. You can also use the neotest-plenary and neotest-golang adapters
+to run the tests of this repo within Neovim.
