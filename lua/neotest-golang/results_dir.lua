@@ -224,7 +224,7 @@ function M.show_warnings(d)
   end
 end
 
---- Convert internal test result data to final Neotest results.
+--- Populate final Neotest results based on internal test result data.
 --- @param spec neotest.RunSpec
 --- @param result neotest.StrategyResult
 --- @param res table<string, TestData>
@@ -246,6 +246,25 @@ function M.to_neotest_results(spec, result, res, gotest_output)
     }
   end
 
+  neotest_results =
+    M.decorate_with_command_data(spec, result, gotest_output, neotest_results)
+
+  return neotest_results
+end
+
+--- Decorate the final Neotest results with the data from the test command that
+--- was executed.
+--- @param spec neotest.RunSpec
+--- @param result neotest.StrategyResult
+--- @param gotest_output table
+--- @param neotest_results table<string, neotest.Result>
+--- @return table<string, neotest.Result>
+function M.decorate_with_command_data(
+  spec,
+  result,
+  gotest_output,
+  neotest_results
+)
   --- Test command (e.g. 'go test') status.
   --- @type neotest.ResultStatus
   local test_command_status = "skipped"
