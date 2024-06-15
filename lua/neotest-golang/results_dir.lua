@@ -8,7 +8,7 @@ local utils = require("neotest-golang.utils")
 --- @field status neotest.ResultStatus
 --- @field short? string Shortened output string
 --- @field errors? neotest.Error[]
---- @field neotest_node_data neotest.Position
+--- @field neotest_data neotest.Position
 --- @field gotest_data GoTestData
 --- @field duplicate_test_detected boolean
 
@@ -84,7 +84,7 @@ function M.gather_neotest_data_and_set_defaults(tree)
       res[pos.id] = {
         status = "skipped",
         errors = {},
-        neotest_node_data = pos,
+        neotest_data = pos,
         gotest_data = {
           name = "",
           pkg = "",
@@ -115,8 +115,7 @@ function M.decorate_with_go_package_and_test_name(res, gotest_output)
   for pos_id, test_data in pairs(res) do
     for _, line in ipairs(gotest_output) do
       if line.Action == "run" and line.Test ~= nil then
-        local folderpath =
-          vim.fn.fnamemodify(test_data.neotest_node_data.path, ":h")
+        local folderpath = vim.fn.fnamemodify(test_data.neotest_data.path, ":h")
         local match = nil
         local common_path = utils.find_common_path(line.Package, folderpath)
 
@@ -166,9 +165,9 @@ function M.decorate_with_go_test_results(res, gotest_output)
 
           -- determine test filename
           local test_filename = "_test.go" -- approximate test filename
-          if test_data.neotest_node_data ~= nil then
+          if test_data.neotest_data ~= nil then
             -- node data is available, get the exact test filename
-            local test_filepath = test_data.neotest_node_data.path
+            local test_filepath = test_data.neotest_data.path
             test_filename = vim.fn.fnamemodify(test_filepath, ":t")
           end
 
