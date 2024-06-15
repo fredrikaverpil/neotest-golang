@@ -1,5 +1,7 @@
 local async = require("neotest.async")
 
+local json = require("neotest-golang.json")
+
 local M = {}
 
 --- @async
@@ -37,9 +39,9 @@ function M.results(spec, result, tree)
   --- @type neotest.Error[]
   local errors = {}
   --- @type table
-  local jsonlines = require("neotest-golang.json").process_json(raw_output)
+  local gotest_output = json.process_json(raw_output)
 
-  for _, line in ipairs(jsonlines) do
+  for _, line in ipairs(gotest_output) do
     if line.Action == "output" and line.Output ~= nil then
       -- record output, prints to output panel
       table.insert(test_result, line.Output)

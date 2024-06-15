@@ -161,7 +161,6 @@ function M.decorate_with_go_test_results(res, gotest_output)
         elseif line.Action == "fail" then
           test_data.status = "failed"
         elseif line.Action == "output" then
-          -- append line.Output to output field
           test_data.gotest_data.output =
             vim.list_extend(test_data.gotest_data.output, { line.Output })
 
