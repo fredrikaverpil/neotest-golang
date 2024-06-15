@@ -318,8 +318,9 @@ return {
 ## 🙏 PRs are welcome
 
 Improvement suggestion PRs to this repo are very much welcome, and I encourage
-you to begin in the [discussions](discussions) in case the change is not
-trivial.
+you to begin in the
+[discussions](https://github.com/fredrikaverpil/neotest-golang/discussions) in
+case the change is not trivial.
 
 You can run tests, formatting and linting locally with `make all`. Install
 dependencies with `make install`. Have a look at the [Makefile](Makefile) for
