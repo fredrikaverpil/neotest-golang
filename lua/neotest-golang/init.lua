@@ -145,34 +145,11 @@ function M.Adapter.results(spec, result, tree)
   )
 end
 
+--- Adapter options.
 setmetatable(M.Adapter, {
   __call = function(_, opts)
-    return M.Adapter.setup(opts)
+    return options.setup(opts)
   end,
 })
-
-M.Adapter.setup = function(opts)
-  opts = opts or {}
-  if opts.args or opts.dap_go_args then
-    -- temporary warning
-    vim.notify(
-      "Please update your config, the arguments/opts have changed for neotest-golang.",
-      vim.log.levels.WARN
-    )
-  end
-  if opts.go_test_args then
-    if opts.go_test_args then
-      options._go_test_args = opts.go_test_args
-    end
-    if opts.dap_go_enabled then
-      options._dap_go_enabled = opts.dap_go_enabled
-      if opts.dap_go_opts then
-        options._dap_go_opts = opts.dap_go_opts
-      end
-    end
-  end
-
-  return M.Adapter
-end
 
 return M.Adapter
