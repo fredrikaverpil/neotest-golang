@@ -38,7 +38,7 @@ test-go:
 format-go:
 	cd tests/go && \
 		gci write --skip-generated --skip-vendor -s standard -s default . && \
-		golines --base-formatter=gofumpt --ignore-generated --tab-len=1 --max-len=120 --write-output . && \
+		golines --base-formatter=gofumpt --ignore-generated --tab-len=1 --max-len=120 --write-output .
 
 .PHONY: lint-go
 lint-go:
