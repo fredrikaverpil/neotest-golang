@@ -39,7 +39,7 @@ function M.results(spec, result, tree)
   --- @type neotest.Error[]
   local errors = {}
   --- @type table
-  local gotest_output = json.process_json(raw_output)
+  local gotest_output = json.process_gotest_output(raw_output)
 
   for _, line in ipairs(gotest_output) do
     if line.Action == "output" and line.Output ~= nil then

@@ -5,7 +5,7 @@ local M = {}
 --- Build runspec for a directory.
 --- @param pos neotest.Position
 --- @param tree neotest.Tree
---- @return neotest.RunSpec | nil
+--- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos, tree)
   if utils.table_is_empty(tree:children()) then
     --- Runspec designed for files that contain no tests.
@@ -15,7 +15,7 @@ function M.build(pos, tree)
       context = {
         id = pos.id,
         skip = true,
-        test_type = "test", -- TODO: to be implemented as "file" later
+        pos_type = "test", -- TODO: to be implemented as "file" later
       },
     }
     return run_spec

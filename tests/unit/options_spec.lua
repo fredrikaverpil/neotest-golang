@@ -11,6 +11,7 @@ describe("Options are set up", function()
         "-count=1",
         "-timeout=60s",
       },
+      warn_test_name_dupes = true,
     }
     options.setup()
     assert.are_same(expected_options, options.get())
@@ -27,6 +28,7 @@ describe("Options are set up", function()
         "-parallel=1",
         "-timeout=60s",
       },
+      warn_test_name_dupes = true,
     }
     options.setup(expected_options)
     assert.are_same(expected_options, options.get())
