@@ -1,6 +1,7 @@
 local M = {}
 
--- Converts the AST-detected test name into the 'go test' command test name format.
+-- Converts the AST-detected Neotest node test name into the 'go test' command
+-- test name format.
 ---@param pos_id string
 ---@return string
 function M.to_gotest_test_name(pos_id)

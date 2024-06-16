@@ -1,31 +1,38 @@
-local lib = require("neotest.lib")
-local async = require("neotest.async")
+--- This is the main entry point for the neotest-golang adapter. It follows the
+--- Neotest interface: https://github.com/nvim-neotest/neotest/blob/master/lua/neotest/adapters/interface.lua
 
-local convert = require("neotest-golang.convert")
+local options = require("neotest-golang.options")
+local ast = require("neotest-golang.ast")
+local runspec_file = require("neotest-golang.runspec_file")
+local runspec_test = require("neotest-golang.runspec_test")
+local results_test = require("neotest-golang.results_test")
 
 local M = {}
 
----@class neotest.Adapter
----@field name string
-M.Adapter = { name = "neotest-golang" }
+--- See neotest.Adapter for the full interface.
+--- @class Adapter : neotest.Adapter
+--- @field name string
+M.Adapter = {
+  name = "neotest-golang",
+}
 
----Find the project root directory given a current directory to work from.
----Should no root be found, the adapter can still be used in a non-project context if a test file matches.
----@async
----@param dir string @Directory to treat as cwd
----@return string | nil @Absolute root dir of test suite
+--- Find the project root directory given a current directory to work from.
+--- Should no root be found, the adapter can still be used in a non-project context if a test file matches.
+--- @async
+--- @param dir string @Directory to treat as cwd
+--- @return string | nil @Absolute root dir of test suite
 function M.Adapter.root(dir)
   -- Since neotest-golang is setting the cwd prior to running tests or debugging
   -- we can use the cwd as-is and treat it as the root.
   return dir
 end
 
----Filter directories when searching for test files
----@async
----@param name string Name of directory
----@param rel_path string Path to directory, relative to root
----@param root string Root directory of project
----@return boolean
+--- Filter directories when searching for test files
+--- @async
+--- @param name string Name of directory
+--- @param rel_path string Path to directory, relative to root
+--- @param root string Root directory of project
+--- @return boolean
 function M.Adapter.filter_dir(name, rel_path, root)
   local ignore_dirs = { ".git", "node_modules", ".venv", "venv" }
   for _, ignore in ipairs(ignore_dirs) do
@@ -36,415 +43,119 @@ function M.Adapter.filter_dir(name, rel_path, root)
   return true
 end
 
----@async
----@param file_path string
----@return boolean
+--- @async
+--- @param file_path string
+--- @return boolean
 function M.Adapter.is_test_file(file_path)
-  ---@type boolean
   return vim.endswith(file_path, "_test.go")
 end
 
----Given a file path, parse all the tests within it.
----@async
----@param file_path string Absolute file path
----@return neotest.Tree | nil
+--- Given a file path, parse all the tests within it.
+--- @async
+--- @param file_path string Absolute file path
+--- @return neotest.Tree | nil
 function M.Adapter.discover_positions(file_path)
-  local functions_and_methods = [[
-    ;;query
-    ((function_declaration
-      name: (identifier) @test.name)
-      (#match? @test.name "^(Test|Example)"))
-      @test.definition
-
-    (method_declaration
-      name: (field_identifier) @test.name
-      (#match? @test.name "^(Test|Example)")) @test.definition
-
-    (call_expression
-      function: (selector_expression
-        field: (field_identifier) @test.method)
-        (#match? @test.method "^Run$")
-      arguments: (argument_list . (interpreted_string_literal) @test.name))
-      @test.definition
-  ]]
-
-  local table_tests = [[
-    ;; query for list table tests
-        (block
-          (short_var_declaration
-            left: (expression_list
-              (identifier) @test.cases)
-            right: (expression_list
-              (composite_literal
-                (literal_value
-                  (literal_element
-                    (literal_value
-                      (keyed_element
-                        (literal_element
-                          (identifier) @test.field.name)
-                        (literal_element
-                          (interpreted_string_literal) @test.name)))) @test.definition))))
-          (for_statement
-            (range_clause
-              left: (expression_list
-                (identifier) @test.case)
-              right: (identifier) @test.cases1
-                (#eq? @test.cases @test.cases1))
-            body: (block
-             (expression_statement
-              (call_expression
-                function: (selector_expression
-                  field: (field_identifier) @test.method)
-                  (#match? @test.method "^Run$")
-                arguments: (argument_list
-                  (selector_expression
-                    operand: (identifier) @test.case1
-                    (#eq? @test.case @test.case1)
-                    field: (field_identifier) @test.field.name1
-                    (#eq? @test.field.name @test.field.name1))))))))
-
-    ;; query for map table tests 
-      (block
-          (short_var_declaration
-            left: (expression_list
-              (identifier) @test.cases)
-            right: (expression_list
-              (composite_literal
-                (literal_value
-                  (keyed_element
-                  (literal_element
-                      (interpreted_string_literal)  @test.name)
-                    (literal_element
-                      (literal_value)  @test.definition))))))
-        (for_statement
-           (range_clause
-              left: (expression_list
-                ((identifier) @test.key.name)
-                ((identifier) @test.case))
-              right: (identifier) @test.cases1
-                (#eq? @test.cases @test.cases1))
-            body: (block
-               (expression_statement
-                (call_expression
-                  function: (selector_expression
-                    field: (field_identifier) @test.method)
-                    (#match? @test.method "^Run$")
-                    arguments: (argument_list
-                    ((identifier) @test.key.name1
-                    (#eq? @test.key.name @test.key.name1))))))))
-  ]]
-
-  local query = functions_and_methods .. table_tests
-  local opts = { nested_tests = true }
-
-  ---@type neotest.Tree
-  local positions = lib.treesitter.parse_positions(file_path, query, opts)
-
-  return positions
+  return ast.detect_tests(file_path)
 end
 
----@param args neotest.RunArgs
----@return nil | neotest.RunSpec | neotest.RunSpec[]
+--- Build the runspec, which describes what command(s) are to be executed.
+--- @param args neotest.RunArgs
+--- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.Adapter.build_spec(args)
-  ---@type neotest.Tree
+  --- The tree object, describing the AST-detected tests and their positions.
+  --- @type neotest.Tree
   local tree = args.tree
-  ---@type neotest.Position
+
+  --- The position object, describing the current directory, file or test.
+  --- @type neotest.Position
   local pos = args.tree:data()
 
   if not tree then
-    vim.notify("NOT A TREE!")
+    vim.notify(
+      "Unexpectedly did not receive a neotest.Tree.",
+      vim.log.levels.ERROR
+    )
     return
   end
+
+  -- Below is the main logic of figuring out how to execute test commands.
+  -- In short, a command can be constructed (also referred to as a "runspec",
+  -- based on whether the command runs all tests in a dir, file or if it runs
+  -- only a single test.
+  --
+  -- If e.g. a directory of tests ('dir') is to be executed, but the function
+  -- returns nil, Neotest will try to instead use the 'file' strategy. If that
+  -- also returns nil, Neotest will finally try the 'test' strategy.
+  -- This means that if it is decided that e.g. the 'file' strategy won't work,
+  -- a fallback can be done, to instead rely on the 'test' strategy.
 
   if pos.type == "dir" and pos.path == vim.fn.getcwd() then
-    -- Test suite
-
-    return -- delegate test execution to per-test execution
-
-    -- NOTE: could potentially run 'go test' on the whole directory, to make
-    -- tests go a lot faster, but would come with the added complexity of
-    -- having to traverse the node tree manually and set statuses accordingly.
-    -- I'm not sure it's worth it...
+    -- A runspec is to be created, based on running all tests in the given
+    -- directory. In this case, the directory is also the current working
+    -- directory.
+    return -- TODO: to implement, delegate on to next strategy
   elseif pos.type == "dir" then
-    -- Sub-directory
-
-    return -- delegate test execution to per-test execution
-
-    -- NOTE: could potentially run 'go test' on the whole file, to make
-    -- tests go a lot faster, but would come with the added complexity of
-    -- having to traverse the node tree manually and set statuses accordingly.
-    -- I'm not sure it's worth it...
-    --
-    -- ---@type string
-    -- local relative_test_folderpath = vim.fn.fnamemodify(pos.path, ":~:.")
-    -- ---@type string
-    -- local relative_test_folderpath_go = "./"
-    --   .. relative_test_folderpath
-    --   .. "/..."
+    -- A runspec is to be created, based on running all tests in the given
+    -- directory. In this case, the directory is a sub-directory of the current
+    -- working directory.
+    return -- TODO: to implement, delegate on to next strategy
   elseif pos.type == "file" then
-    -- Single file
-
-    if M.table_is_empty(tree:children()) then
-      -- No tests present in file
-      ---@type neotest.RunSpec
-      local run_spec = {
-        command = { "echo", "No tests found in file" },
-        context = {
-          id = pos.id,
-          skip = true,
-        },
-      }
-      return run_spec
-    else
-      -- Go does not run tests based on files, but on the package name. If Go
-      -- is given a filepath, in which tests resides, it also needs to have all
-      -- other filepaths that might be related passed as arguments to be able
-      -- to compile. This approach is too brittle, and therefore this mode is not
-      -- supported. Instead, the tests of a file are run as if pos.typ == "test".
-
-      return -- delegate test execution to per-test execution
-    end
+    -- A runspec is to be created, based on on running all tests in the given
+    -- file.
+    return runspec_file.build(pos, tree)
   elseif pos.type == "test" then
-    -- Single test
-    return M.build_single_test_runspec(pos, args.strategy)
-  else
-    vim.notify("ERROR: WHAT IS THIS ???: " .. pos.type)
-    return
+    -- A runspec is to be created, based on on running the given test.
+    return runspec_test.build(pos, args.strategy)
   end
+
+  vim.notify(
+    "Unknown Neotest execution strategy, cannot build runspec with: "
+      .. pos.type,
+    vim.log.levels.ERROR
+  )
 end
 
----@async
----@param spec neotest.RunSpec
----@param result neotest.StrategyResult
----@param tree neotest.Tree
----@return table<string, neotest.Result>
+--- Process the test command output and result. Populate test outcome into the
+--- Neotest internal tree structure.
+---
+--- TODO: implement parsing of 'dir' strategy results.
+--- TODO: implement parsing of 'file' strategy results.
+---
+--- @async
+--- @param spec neotest.RunSpec
+--- @param result neotest.StrategyResult
+--- @param tree neotest.Tree
+--- @return table<string, neotest.Result> | nil
 function M.Adapter.results(spec, result, tree)
-  if spec.context.skip then
-    ---@type table<string, neotest.Result>
-    local results = {}
-    results[spec.context.id] = {
-      ---@type neotest.ResultStatus
-      status = "skipped",
-    }
+  if spec.context.test_type == "test" then
+    -- A test command executed a single test and the output/status must now be
+    -- processed.
+    local results = results_test.results(spec, result, tree)
+    M.workaround_neotest_issue_391(result)
     return results
   end
 
-  ---@type neotest.ResultStatus
-  local result_status = "skipped"
-  if result.code == 0 then
-    result_status = "passed"
-  else
-    result_status = "failed"
-  end
+  vim.notify(
+    "Cannot process test results due to unknown test strategy:"
+      .. spec.context.test_type,
+    vim.log.levels.ERROR
+  )
+end
 
-  ---@type table
-  local raw_output = async.fn.readfile(result.output)
-
-  ---@type string
-  local test_filepath = spec.context.test_filepath
-  local test_filename = vim.fn.fnamemodify(test_filepath, ":t")
-  ---@type List
-  local test_result = {}
-  ---@type neotest.Error[]
-  local errors = {}
-  ---@type List<table>
-  local jsonlines = M.process_json(raw_output)
-
-  for _, line in ipairs(jsonlines) do
-    if line.Action == "output" and line.Output ~= nil then
-      -- record output, prints to output panel
-      table.insert(test_result, line.Output)
-    end
-
-    if result.code ~= 0 and line.Output ~= nil then
-      -- record an error
-      ---@type string
-      local matched_line_number =
-        string.match(line.Output, test_filename .. ":(%d+):")
-
-      if matched_line_number ~= nil then
-        -- attempt to parse the line number...
-        ---@type number | nil
-        local line_number = tonumber(matched_line_number)
-
-        if line_number ~= nil then
-          -- log the error along with its line number (for diagnostics)
-
-          ---@type string
-          local message = string.match(line.Output, ":%d+: (.*)")
-
-          ---@type neotest.Error
-          local error = {
-            message = message,
-            line = line_number - 1, -- neovim lines are 0-indexed
-          }
-          table.insert(errors, error)
-        end
-      end
-    end
-  end
-
-  -- write json_decoded to file
-  local parsed_output_path = vim.fs.normalize(async.fn.tempname())
-  async.fn.writefile(test_result, parsed_output_path)
-
-  ---@type table<string, neotest.Result>
-  local results = {}
-  results[spec.context.id] = {
-    status = result_status,
-    output = parsed_output_path,
-    errors = errors,
-  }
-
+--- Workaround, to avoid JSON in output panel, erase contents of output.
+--- @param result neotest.StrategyResult
+function M.workaround_neotest_issue_391(result)
   -- FIXME: once output is parsed, erase file contents, so to avoid JSON in
   -- output panel. This is a workaround for now, only because of
   -- https://github.com/nvim-neotest/neotest/issues/391
   vim.fn.writefile({ "" }, result.output)
-
-  return results
 end
 
---- Build runspec for a single test
----@param pos neotest.Position
----@param strategy string
----@return neotest.RunSpec
-function M.build_single_test_runspec(pos, strategy)
-  ---@type string
-  local test_name = convert.to_gotest_test_name(pos.id)
-  ---@type string
-  local test_folder_absolute_path = string.match(pos.path, "(.+)/")
-
-  local gotest = {
-    "go",
-    "test",
-    "-json",
-  }
-
-  ---@type table
-  local go_test_args = {
-    test_folder_absolute_path,
-    "-run",
-    "^" .. test_name .. "$",
-  }
-
-  local combined_args =
-    vim.list_extend(vim.deepcopy(M.Adapter._go_test_args), go_test_args)
-  local gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
-
-  ---@type neotest.RunSpec
-  local run_spec = {
-    command = gotest_command,
-    cwd = test_folder_absolute_path,
-    context = {
-      id = pos.id,
-      test_filepath = pos.path,
-    },
-  }
-
-  -- set up for debugging of test
-  if strategy == "dap" then
-    run_spec.strategy = M.get_dap_config(test_name)
-    run_spec.context.skip = true -- do not attempt to parse test output
-
-    -- nvim-dap and nvim-dap-go cwd
-    if M.Adapter._dap_go_enabled then
-      local dap_go_opts = M.Adapter._dap_go_opts or {}
-      local dap_go_opts_original = vim.deepcopy(dap_go_opts)
-      if dap_go_opts.delve == nil then
-        dap_go_opts.delve = {}
-      end
-      dap_go_opts.delve.cwd = test_folder_absolute_path
-      require("dap-go").setup(dap_go_opts)
-
-      -- reset nvim-dap-go (and cwd) after debugging with nvim-dap
-      require("dap").listeners.after.event_terminated["neotest-golang-debug"] = function()
-        require("dap-go").setup(dap_go_opts_original)
-      end
-    end
-  end
-
-  return run_spec
-end
-
----@param test_name string
----@return table | nil
-function M.get_dap_config(test_name)
-  -- :help dap-configuration
-  local dap_config = {
-    type = "go",
-    name = "Neotest-golang",
-    request = "launch",
-    mode = "test",
-    program = "${fileDirname}",
-    args = { "-test.run", "^" .. test_name .. "$" },
-  }
-
-  return dap_config
-end
-
-function M.table_is_empty(t)
-  return next(t) == nil
-end
-
---- Process JSON and return objects of interest
----@param raw_output table
----@return table
-function M.process_json(raw_output)
-  ---@type table
-  local jsonlines = {}
-
-  for _, line in ipairs(raw_output) do
-    if string.match(line, "^%s*{") then
-      local json_data = vim.fn.json_decode(line)
-      table.insert(jsonlines, json_data)
-    else
-      -- TODO: log these to file instead...
-      -- vim.notify("Warning, not a json line: " .. line)
-    end
-  end
-  return jsonlines
-end
-
----@type List
-M.Adapter._go_test_args = {
-  "-v",
-  "-race",
-  "-count=1",
-  "-timeout=60s",
-}
-
--- nvim-dap-go config
-M.Adapter._dap_go_enabled = false
-M.Adapter._dap_go_opts = {}
-
+--- Adapter options.
 setmetatable(M.Adapter, {
   __call = function(_, opts)
-    return M.Adapter.setup(opts)
+    return options.setup(opts)
   end,
 })
-
-M.Adapter.setup = function(opts)
-  opts = opts or {}
-  if opts.args or opts.dap_go_args then
-    -- temporary warning
-    vim.notify(
-      "Please update your config, the arguments/opts have changed for neotest-golang.",
-      vim.log.levels.WARN
-    )
-  end
-  if opts.go_test_args then
-    if opts.go_test_args then
-      M.Adapter._go_test_args = opts.go_test_args
-    end
-    if opts.dap_go_enabled then
-      M.Adapter._dap_go_enabled = opts.dap_go_enabled
-      if opts.dap_go_opts then
-        M.Adapter._dap_go_opts = opts.dap_go_opts
-      end
-    end
-  end
-
-  return M.Adapter
-end
 
 return M.Adapter
