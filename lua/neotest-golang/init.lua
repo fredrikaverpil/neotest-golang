@@ -3,8 +3,10 @@
 
 local options = require("neotest-golang.options")
 local ast = require("neotest-golang.ast")
+local runspec_dir = require("neotest-golang.runspec_dir")
 local runspec_file = require("neotest-golang.runspec_file")
 local runspec_test = require("neotest-golang.runspec_test")
+local results_dir = require("neotest-golang.results_dir")
 local results_test = require("neotest-golang.results_test")
 
 local M = {}
@@ -78,27 +80,43 @@ function M.Adapter.build_spec(args)
     return
   end
 
-  -- Below is the main logic of figuring out how to execute test commands.
-  -- In short, a command can be constructed (also referred to as a "runspec",
-  -- based on whether the command runs all tests in a dir, file or if it runs
-  -- only a single test.
+  -- Below is the main logic of figuring out how to execute tests. In short,
+  -- a "runspec" is defined for each command to execute.
+  -- Neotest also distinguishes between different "position types":
+  -- - "dir": A directory of tests
+  -- - "file": A single test file
+  -- - "test": A single test
+  -- - "namespace": ? (unclear to me at this point what this is)
+  -- Depending on the current position type, different ways to build the
+  -- runspec are used.
   --
-  -- If e.g. a directory of tests ('dir') is to be executed, but the function
-  -- returns nil, Neotest will try to instead use the 'file' strategy. If that
-  -- also returns nil, Neotest will finally try the 'test' strategy.
-  -- This means that if it is decided that e.g. the 'file' strategy won't work,
-  -- a fallback can be done, to instead rely on the 'test' strategy.
+  -- If a valid runspec is built and returned from this function, it will be
+  -- executed by Neotest. But if, for some reason, this function returns nil,
+  -- Neotest will call this function again, but using the next position type
+  -- (in this order: dir, file, test). This gives the ability to have fallbacks.
+  -- For example, if a runspec cannot be built for a file of tests, we can
+  -- instead try to build a runspec for each individual test file. The end
+  -- result would in this case produce multiple commands to execute (for each
+  -- test) rather than one command for the file.
+  -- The idea here is not to have such fallbacks take place in the future, but
+  -- while this adapter is being developed, it can be useful to have such
+  -- functionality.
+  --
+  -- NOTE: Right now the adapter is not yet complete, and cannot
+  -- handle the 'file' position type. The goal is to try to support this,
+  -- as it is not efficient to run all tests in a file individually, when you
+  -- might want to run all tests in the file using one 'go test' command.
 
   if pos.type == "dir" and pos.path == vim.fn.getcwd() then
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is also the current working
     -- directory.
-    return -- TODO: to implement, delegate on to next strategy
+    return runspec_dir.build(pos)
   elseif pos.type == "dir" then
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is a sub-directory of the current
     -- working directory.
-    return -- TODO: to implement, delegate on to next strategy
+    return runspec_dir.build(pos)
   elseif pos.type == "file" then
     -- A runspec is to be created, based on on running all tests in the given
     -- file.
@@ -109,7 +127,8 @@ function M.Adapter.build_spec(args)
   end
 
   vim.notify(
-    "Unknown Neotest execution strategy, cannot build runspec with: "
+    "Unknown Neotest test position type, "
+      .. "cannot build runspec with position type: "
       .. pos.type,
     vim.log.levels.ERROR
   )
@@ -118,8 +137,7 @@ end
 --- Process the test command output and result. Populate test outcome into the
 --- Neotest internal tree structure.
 ---
---- TODO: implement parsing of 'dir' strategy results.
---- TODO: implement parsing of 'file' strategy results.
+--- TODO: implement parsing of 'file' position type results.
 ---
 --- @async
 --- @param spec neotest.RunSpec
@@ -127,7 +145,13 @@ end
 --- @param tree neotest.Tree
 --- @return table<string, neotest.Result> | nil
 function M.Adapter.results(spec, result, tree)
-  if spec.context.test_type == "test" then
+  if spec.context.pos_type == "dir" then
+    -- A test command executed a directory of tests and the output/status must
+    -- now be processed.
+    local results = results_dir.results(spec, result, tree)
+    M.workaround_neotest_issue_391(result)
+    return results
+  elseif spec.context.pos_type == "test" then
     -- A test command executed a single test and the output/status must now be
     -- processed.
     local results = results_test.results(spec, result, tree)
@@ -136,8 +160,8 @@ function M.Adapter.results(spec, result, tree)
   end
 
   vim.notify(
-    "Cannot process test results due to unknown test strategy:"
-      .. spec.context.test_type,
+    "Cannot process test results due to unknown Neotest position type:"
+      .. spec.context.pos_type,
     vim.log.levels.ERROR
   )
 end

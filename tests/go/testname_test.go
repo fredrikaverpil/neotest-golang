@@ -10,7 +10,7 @@ func TestNames(t *testing.T) {
 		}
 	})
 
-	t.Run("Comma , and apostrophy ' are ok to use", func(t *testing.T) {
+	t.Run("Period . comma , and apostrophy ' are ok to use", func(t *testing.T) {
 		if Add(1, 2) != 3 {
 			t.Fail()
 		}

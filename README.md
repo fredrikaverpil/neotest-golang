@@ -12,7 +12,7 @@ A Neotest adapter for running Go tests.
 - Inline diagnostics.
 - Works great with
   [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) for
-  displaying coverage in the sign column (per-test basis).
+  displaying coverage in the sign column (per-Go package, or per-test basis).
 - Monorepo support (detect, run and debug tests in sub-projects).
 - Supports table tests (relies on treesitter AST detection).
 - Supports nested test functions.
@@ -30,7 +30,9 @@ My next focus areas:
 - [ ] Documentation around expanding new syntax support for table tests via AST
       parsing.
 - [ ] Add debug logging, set up bug report form.
-- [ ] Investigate ways to speed up test execution when running dir/file.
+- [ ] Investigate ways to speed up test execution when executing tests in...
+  - [x] dir
+  - [ ] file
 
 ## 🏓 Background
 
@@ -93,11 +95,12 @@ return {
 
 ## ⚙️ Configuration
 
-| Argument         | Default value                                   | Description                                                                               |
-| ---------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `go_test_args`   | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`.                                                         |
-| `dap_go_enabled` | `false`                                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests. |
-| `dap_go_opts`    | `{}`                                            | Options to pass into `require("dap-go").setup()`.                                         |
+| Argument               | Default value                                   | Description                                                                               |
+| ---------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `go_test_args`         | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`.                                                         |
+| `dap_go_enabled`       | `false`                                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests. |
+| `dap_go_opts`          | `{}`                                            | Options to pass into `require("dap-go").setup()`.                                         |
+| `warn_test_name_dupes` | `true`                                          | Warn about duplicate test names within the same Go package.                               |
 
 ### Example configuration: custom `go test` arguments
 
