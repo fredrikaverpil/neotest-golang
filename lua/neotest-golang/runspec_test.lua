@@ -27,7 +27,7 @@ function M.build(pos, strategy)
   }
 
   local combined_args =
-    vim.list_extend(vim.deepcopy(options._go_test_args), go_test_args)
+    vim.list_extend(vim.deepcopy(options.get().go_test_args), go_test_args)
   local gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
 
   --- @type neotest.RunSpec
@@ -47,8 +47,8 @@ function M.build(pos, strategy)
     run_spec.context.skip = true -- do not attempt to parse test output
 
     -- nvim-dap and nvim-dap-go cwd
-    if options._dap_go_enabled then
-      local dap_go_opts = options._dap_go_opts or {}
+    if options.get().dap_go_enabled then
+      local dap_go_opts = options.get().dap_go_opts or {}
       local dap_go_opts_original = vim.deepcopy(dap_go_opts)
       if dap_go_opts.delve == nil then
         dap_go_opts.delve = {}
