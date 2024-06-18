@@ -48,6 +48,7 @@ lint-go:
 .PHONY: vuln-go
 vuln-go:
 	cd tests/go && \
+		govulncheck ./... && \
 		go vet ./... && \
 		gosec ./...
 
@@ -69,5 +70,6 @@ install-lint-go:
 
 .PHONY: install-vuln-go
 install-vuln-go:
+	go install golang.org/x/vuln/cmd/govulncheck@latest
 	go install github.com/securego/gosec/v2/cmd/gosec@latest
 

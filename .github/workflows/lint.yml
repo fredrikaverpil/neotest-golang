@@ -15,7 +15,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.22
-      - name: Install golangci-lint
+      - name: Install tools
         run: make install-lint-go
       - name: Run golangci-lint
         run: make lint-go

@@ -26,7 +26,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.22
-      - name: Install Go formatting tooling
+      - name: Install tools
         run: make install-format-go
       - name: Formatting check
         run: make format-go
