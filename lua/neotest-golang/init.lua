@@ -154,7 +154,7 @@ end
 --- Adapter options.
 setmetatable(M.Adapter, {
   __call = function(_, opts)
-    return options.setup(opts)
+    M.Adapter.options = options.setup(opts)
   end,
 })
 

@@ -2,50 +2,42 @@
 --- providing them as arguments to the Adapter function. See the README for mode
 --- details and examples.
 
+local Opts = {}
+
+--- Create a new options object.
+function Opts:new(opts)
+  self.go_test_args = opts.go_test_args
+    or {
+      "-v",
+      "-race",
+      "-count=1",
+      "-timeout=60s",
+    }
+  self.dap_go_enabled = opts.dap_go_enabled or false
+  self.dap_go_opts = opts.dap_go_opts or {}
+end
+
+--- A convenience function to get the current options.
+function Opts:get()
+  return {
+    go_test_args = self.go_test_args,
+    dap_go_enabled = self.dap_go_enabled,
+    dap_go_opts = self.dap_go_opts,
+  }
+end
+
 local M = {}
 
---- Arguments to pass into `go test`. Will be combined with arguments required
---- for neotest-golang to work and execute the expected test(s).
---- @type table
-M._go_test_args = {
-  "-v",
-  "-race",
-  "-count=1",
-  "-timeout=60s",
-}
-
---- Whether to enable nvim-dap-go.
---- @type boolean
-M._dap_go_enabled = false
-
---- Options to pass into dap-go.setup.
---- @type table
-M._dap_go_opts = {}
-
---- Option setup function. This is what you call when setting up the adapter.
---- @param opts table
+--- Set up the adapter.
 function M.setup(opts)
   opts = opts or {}
-  if opts.args or opts.dap_go_args then
-    -- temporary warning
-    vim.notify(
-      "Please update your config, the arguments/opts have changed for neotest-golang.",
-      vim.log.levels.WARN
-    )
-  end
-  if opts.go_test_args then
-    if opts.go_test_args then
-      M._go_test_args = opts.go_test_args
-    end
-    if opts.dap_go_enabled then
-      M._dap_go_enabled = opts.dap_go_enabled
-      if opts.dap_go_opts then
-        M._dap_go_opts = opts.dap_go_opts
-      end
-    end
-  end
+  Opts:new(opts)
+  return Opts:get()
+end
 
-  return M.Adapter
+--- Get the adapter configuration.
+function M.get()
+  return Opts:get()
 end
 
 return M
