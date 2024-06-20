@@ -27,4 +27,10 @@ func TestNames(t *testing.T) {
 			t.Fail()
 		}
 	})
+
+	t.Run("Test(success)", func(t *testing.T) {
+		if Add(1, 2) != 3 {
+			t.Fail()
+		}
+	})
 }

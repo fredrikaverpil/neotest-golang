@@ -1,5 +1,20 @@
 local M = {}
 
+-- Converts the test name into a regexp-friendly pattern, for usage in
+-- 'go test'.
+---@param test_name string
+---@return string
+function M.to_gotest_regex_pattern(test_name)
+  local special_characters = {
+    "(",
+    ")",
+  }
+  for _, character in ipairs(special_characters) do
+    test_name = test_name:gsub("%" .. character, "\\" .. character)
+  end
+  return "^" .. test_name .. "$"
+end
+
 -- Converts the AST-detected Neotest node test name into the 'go test' command
 -- test name format.
 ---@param pos_id string

@@ -2,7 +2,7 @@ local nio = require("nio")
 local adapter = require("neotest-golang")
 local convert = require("neotest-golang.convert")
 
-describe("Subtest name conversion", function()
+describe("Neotest position to Go test name", function()
   -- Arrange
   local test_filepath = vim.loop.cwd() .. "/tests/go/testname_test.go"
 
@@ -10,7 +10,7 @@ describe("Subtest name conversion", function()
   local tree =
     nio.tests.with_async_context(adapter.discover_positions, test_filepath)
 
-  it("Mixed case with space", function()
+  it("supports mixed case with space", function()
     local expected_subtest_name = '"Mixed case with space"'
     local expected_gotest_name = "TestNames/Mixed_case_with_space"
 
@@ -27,7 +27,7 @@ describe("Subtest name conversion", function()
     )
   end)
 
-  it("Special characters", function()
+  it("supports special characters", function()
     local expected_subtest_name =
       '"Period . comma , and apostrophy \' are ok to use"'
     local expected_gotest_name =
@@ -46,7 +46,7 @@ describe("Subtest name conversion", function()
     )
   end)
 
-  it("Brackets", function()
+  it("supports brackets", function()
     local expected_subtest_name = '"Brackets [1] (2) {3} are ok"'
     local expected_gotest_name = "TestNames/Brackets_[1]_(2)_{3}_are_ok"
 
@@ -61,5 +61,29 @@ describe("Subtest name conversion", function()
       vim.inspect(expected_gotest_name),
       vim.inspect(actual_go_test_name)
     )
+  end)
+end)
+
+describe("Full Go test name conversion", function()
+  -- Arrange
+  local test_filepath = vim.loop.cwd() .. "/tests/go/testname_test.go"
+
+  ---@type neotest.Tree
+  local tree =
+    nio.tests.with_async_context(adapter.discover_positions, test_filepath)
+
+  it("escapes parenthesis", function()
+    local expected_subtest_name = '"Test(success)"'
+    local expected_gotest_name = "^TestNames/Test\\(success\\)$"
+
+    -- Act
+    local pos = tree:node(7):data()
+    local test_name = convert.to_gotest_test_name(pos.id)
+    test_name = convert.to_gotest_regex_pattern(test_name)
+
+    -- Assert
+    local actual_name = pos.name
+    assert.are.same(expected_subtest_name, actual_name)
+    assert.are.same(vim.inspect(expected_gotest_name), vim.inspect(test_name))
   end)
 end)

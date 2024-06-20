@@ -10,6 +10,8 @@ local M = {}
 function M.build(pos, strategy)
   --- @type string
   local test_name = convert.to_gotest_test_name(pos.id)
+  test_name = convert.to_gotest_regex_pattern(test_name)
+
   --- @type string
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
 
@@ -20,11 +22,7 @@ function M.build(pos, strategy)
   }
 
   --- @type table
-  local required_go_test_args = {
-    test_folder_absolute_path,
-    "-run",
-    "^" .. test_name .. "$",
-  }
+  local required_go_test_args = { test_folder_absolute_path, "-run", test_name }
 
   local combined_args = vim.list_extend(
     vim.deepcopy(options.get().go_test_args),
