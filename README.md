@@ -77,9 +77,10 @@ return {
   {
     "nvim-neotest/neotest",
     dependencies = {
+      "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
-      "nvim-treesitter/nvim-treesitter",
       "antoinemadec/FixCursorHold.nvim",
+      "nvim-treesitter/nvim-treesitter",
       "fredrikaverpil/neotest-golang", -- Installation
     },
     config = function()
@@ -175,14 +176,13 @@ return {
     "nvim-neotest/neotest",
     event = "VeryLazy",
     dependencies = {
+      "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
       "antoinemadec/FixCursorHold.nvim",
       "nvim-treesitter/nvim-treesitter",
 
       "nvim-neotest/neotest-plenary",
       "nvim-neotest/neotest-vim-test",
-
-      "nvim-neotest/nvim-nio",
 
       {
         "fredrikaverpil/neotest-golang",
