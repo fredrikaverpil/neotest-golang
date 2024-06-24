@@ -280,11 +280,13 @@ function M.show_warnings(d)
         table.insert(position_ids, pos_id)
       end
     end
-    vim.notify(
-      "Test(s) not associated (not found/executed):\n"
-        .. table.concat(position_ids, "\n"),
-      vim.log.levels.DEBUG
-    )
+    if #position_ids > 0 then
+      vim.notify(
+        "Test(s) not associated (not found/executed):\n"
+          .. table.concat(position_ids, "\n"),
+        vim.log.levels.DEBUG
+      )
+    end
   end
 
   if options.get().warn_test_name_dupes == true then
@@ -298,10 +300,12 @@ function M.show_warnings(d)
         )
       end
     end
-    vim.notify(
-      "Duplicate test name(s) detected:\n" .. table.concat(test_dupes, "\n"),
-      vim.log.levels.WARN
-    )
+    if #test_dupes > 0 then
+      vim.notify(
+        "Duplicate test name(s) detected:\n" .. table.concat(test_dupes, "\n"),
+        vim.log.levels.WARN
+      )
+    end
   end
 end
 
