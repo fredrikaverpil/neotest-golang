@@ -1,0 +1,39 @@
+name: pr
+on:
+  pull_request:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+permissions:
+  pull-requests: read
+jobs:
+  main:
+    name: name
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          requireScope: true
+          subjectPattern: ^(?![A-Z]).+$
+          scopes: |
+            .+
+          types: |
+            build
+            chore
+            ci
+            docs
+            feat
+            fix
+            merge
+            perf
+            refactor
+            revert
+            style
+            test
+            wip
+          ignoreLabels: |
+            autorelease: pending
