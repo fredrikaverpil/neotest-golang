@@ -28,7 +28,7 @@ My next focus areas:
 - [x] Versioning and releases via release-please.
 - [ ] Documentation around expanding new syntax support for table tests via AST
       parsing.
-- [ ] Add debug logging.
+- [ ] Add debug logging: [neotest#422](https://github.com/nvim-neotest/neotest/discussions/422)
 - [x] Set up bug report form.
 - [ ] Investigate ways to speed up test execution when executing tests in...
   - [x] dir
