@@ -163,6 +163,9 @@ end
 --- The strategy here is to loop over the Neotest position data, and figure out
 --- which position belongs to a specific Go package (using the output from
 --- 'go list -json').
+---
+--- If a test cannot be decorated with Go package/test name data, an association
+--- warning will be shown (see show_warnings).
 --- @param res table<string, TestData>
 --- @param gotest_output table
 --- @param golist_output table
@@ -266,14 +269,22 @@ end
 --- @param d table<string, TestData>
 --- @return nil
 function M.show_warnings(d)
-  -- warn if Go package/test is missing from tree node.
-  for pos_id, test_data in pairs(d) do
-    if test_data.gotest_data.pkg == "" or test_data.gotest_data.name == "" then
-      vim.notify(
-        "Unable to associate go package/test with neotest tree node: " .. pos_id,
-        vim.log.levels.WARN
-      )
+  if options.get().dev_notifications == true then
+    -- warn if Go package/test is missing for given Neotest position id (Neotest tree node).
+    --- @type table<string>
+    local position_ids = {}
+    for pos_id, test_data in pairs(d) do
+      if
+        test_data.gotest_data.pkg == "" or test_data.gotest_data.name == ""
+      then
+        table.insert(position_ids, pos_id)
+      end
     end
+    vim.notify(
+      "Test(s) not associated (not found/executed):\n"
+        .. table.concat(position_ids, "\n"),
+      vim.log.levels.DEBUG
+    )
   end
 
   if options.get().warn_test_name_dupes == true then
