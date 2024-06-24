@@ -28,7 +28,8 @@ My next focus areas:
 - [x] Versioning and releases via release-please.
 - [ ] Documentation around expanding new syntax support for table tests via AST
       parsing.
-- [ ] Add debug logging, set up bug report form.
+- [ ] Add debug logging.
+- [x] Set up bug report form.
 - [ ] Investigate ways to speed up test execution when executing tests in...
   - [x] dir
   - [ ] file
