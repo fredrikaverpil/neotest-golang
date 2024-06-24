@@ -43,13 +43,13 @@ format-go:
 .PHONY: lint-go
 lint-go:
 	cd tests/go && \
-		golangci-lint run --verbose ./...
+		golangci-lint run --verbose ./... && \
+		go vet ./...
 
 .PHONY: vuln-go
 vuln-go:
 	cd tests/go && \
 		govulncheck ./... && \
-		go vet ./... && \
 		gosec ./...
 
 .PHONY: git-diff
