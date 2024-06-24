@@ -276,19 +276,21 @@ function M.show_warnings(d)
     end
   end
 
-  -- warn about duplicate tests
   if options.get().warn_test_name_dupes == true then
+    -- warn about duplicate tests
+    local test_dupes = {}
     for pos_id, test_data in pairs(d) do
       if test_data.duplicate_test_detected == true then
-        vim.notify(
-          "Duplicate test name detected: "
-            .. test_data.gotest_data.pkg
-            .. "/"
-            .. test_data.gotest_data.name,
-          vim.log.levels.WARN
+        table.insert(
+          test_dupes,
+          test_data.gotest_data.pkg .. "/" .. test_data.gotest_data.name
         )
       end
     end
+    vim.notify(
+      "Duplicate test name(s) detected:\n" .. table.concat(test_dupes, "\n"),
+      vim.log.levels.WARN
+    )
   end
 end
 
