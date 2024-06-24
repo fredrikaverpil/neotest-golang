@@ -17,6 +17,7 @@ function Opts:new(opts)
   self.dap_go_opts = opts.dap_go_opts or {}
   self.warn_test_name_dupes = opts.warn_test_name_dupes or true
   self.warn_test_not_executed = opts.warn_test_not_executed or true
+  self.dev_notifications = opts.dev_notifications or false
 end
 
 --- A convenience function to get the current options.
@@ -27,6 +28,7 @@ function Opts:get()
     dap_go_opts = self.dap_go_opts,
     warn_test_name_dupes = self.warn_test_name_dupes,
     warn_test_not_executed = self.warn_test_not_executed,
+    dev_notifications = self.dev_notifications,
   }
 end
 
