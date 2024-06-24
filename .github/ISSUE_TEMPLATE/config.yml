@@ -2,4 +2,4 @@ blank_issues_enabled: false
 contact_links:
   - name: Ask a question or start a discussion
     url: https://github.com/fredrikaverpil/neotest-golang/discussions
-    about: Use Github discussions instead
+    about: Use Github discussions instead.

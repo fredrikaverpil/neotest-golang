@@ -1,5 +1,5 @@
 name: Bug Report
-description: File a bug/issue
+description: File a bug/issue.
 title: "bug: "
 labels: [bug]
 body:
@@ -7,10 +7,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report and help improve neotest-golang! :heart:
-  - type: markdown
-    attributes:
-      value: |
-        Please note: usage questions such as "How do I...?" belong in [Discussions](https://github.com/fredrikaverpil/neotest-golang/discussions) and will be closed.
+        Please note: usage questions such as "How do I...?" belong in [discussions](https://github.com/fredrikaverpil/neotest-golang/discussions) and will be moved there (or closed).
   - type: checkboxes
     attributes:
       label: Did you check docs and existing issues?
