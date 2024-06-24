@@ -19,14 +19,13 @@ A Neotest adapter for running Go tests.
 
 ## 🚧 Pre-release
 
-This Neotest adapter is under heavy development and considered beta. I'm,
-however, dogfooding myself with this project, as I use it daily as a full-time
-Go developer.
+This Neotest adapter is under heavy development and considered beta. However,
+I'm dogfooding myself with this project daily, as full-time Go developer.
 
 My next focus areas:
 
 - [ ] Refactoring, polish and the addition of tests.
-- [ ] Versioning and releases via release-please.
+- [x] Versioning and releases via release-please.
 - [ ] Documentation around expanding new syntax support for table tests via AST
       parsing.
 - [ ] Add debug logging, set up bug report form.
