@@ -12,6 +12,7 @@ describe("Options are set up", function()
         "-timeout=60s",
       },
       warn_test_name_dupes = true,
+      warn_test_not_executed = true,
     }
     options.setup()
     assert.are_same(expected_options, options.get())
@@ -25,10 +26,11 @@ describe("Options are set up", function()
         "-v",
         "-race",
         "-count=1",
-        "-parallel=1",
+        "-parallel=1", -- non-default
         "-timeout=60s",
       },
       warn_test_name_dupes = true,
+      warn_test_not_executed = true,
     }
     options.setup(expected_options)
     assert.are_same(expected_options, options.get())

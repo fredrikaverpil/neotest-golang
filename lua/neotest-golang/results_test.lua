@@ -1,5 +1,7 @@
 local async = require("neotest.async")
 
+local options = require("neotest-golang.options")
+local convert = require("neotest-golang.convert")
 local json = require("neotest-golang.json")
 
 local M = {}
@@ -10,23 +12,19 @@ local M = {}
 --- @param tree neotest.Tree
 --- @return table<string, neotest.Result>
 function M.results(spec, result, tree)
+  ---@type table<string, neotest.Result>
+  local results = {}
+  results[spec.context.id] = {
+    ---@type neotest.ResultStatus
+    status = "skipped", -- default value
+  }
+
   if spec.context.skip then
-    ---@type table<string, neotest.Result>
-    local results = {}
-    results[spec.context.id] = {
-      ---@type neotest.ResultStatus
-      status = "skipped",
-    }
     return results
   end
 
-  --- @type neotest.ResultStatus
-  local result_status = "skipped"
-  if result.code == 0 then
-    result_status = "passed"
-  else
-    result_status = "failed"
-  end
+  --- @type boolean
+  local no_tests_to_run = false
 
   --- @type table
   local raw_output = async.fn.readfile(result.output)
@@ -45,10 +43,17 @@ function M.results(spec, result, tree)
     if line.Action == "output" and line.Output ~= nil then
       -- record output, prints to output panel
       table.insert(test_result, line.Output)
+
+      -- if test was not run, mark it as skipped
+
+      -- if line contains "no test files" or "no tests to run", mark as skipped
+      if string.match(line.Output, "no tests to run") then
+        no_tests_to_run = true
+      end
     end
 
+    -- record an error
     if result.code ~= 0 and line.Output ~= nil then
-      -- record an error
       ---@type string
       local matched_line_number =
         string.match(line.Output, test_filename .. ":(%d+):")
@@ -75,17 +80,30 @@ function M.results(spec, result, tree)
     end
   end
 
+  if no_tests_to_run then
+    if options.get().warn_test_not_executed == true then
+      vim.notify(
+        "Could not execute test: "
+          .. convert.to_gotest_test_name(spec.context.id),
+        vim.log.levels.WARN
+      )
+    end
+  else
+    -- assign status code, as long as the test was found
+    if result.code == 0 then
+      results[spec.context.id].status = "passed"
+    else
+      results[spec.context.id].status = "failed"
+    end
+  end
+
   -- write json_decoded to file
   local parsed_output_path = vim.fs.normalize(async.fn.tempname())
   async.fn.writefile(test_result, parsed_output_path)
 
   ---@type table<string, neotest.Result>
-  local results = {}
-  results[spec.context.id] = {
-    status = result_status,
-    output = parsed_output_path,
-    errors = errors,
-  }
+  results[spec.context.id].output = parsed_output_path
+  results[spec.context.id].errors = errors
 
   return results
 end
