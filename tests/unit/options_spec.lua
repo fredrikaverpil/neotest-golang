@@ -9,7 +9,6 @@ describe("Options are set up", function()
         "-v",
         "-race",
         "-count=1",
-        "-timeout=60s",
       },
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
@@ -28,7 +27,6 @@ describe("Options are set up", function()
         "-race",
         "-count=1",
         "-parallel=1", -- non-default
-        "-timeout=60s",
       },
       warn_test_name_dupes = true,
       warn_test_not_executed = true,

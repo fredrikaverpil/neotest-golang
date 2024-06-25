@@ -11,7 +11,6 @@ function Opts:new(opts)
       "-v",
       "-race",
       "-count=1",
-      "-timeout=60s",
     }
   self.dap_go_enabled = opts.dap_go_enabled or false
   self.dap_go_opts = opts.dap_go_opts or {}

@@ -94,13 +94,13 @@ return {
 
 ## ⚙️ Configuration
 
-| Argument                 | Default value                                   | Description                                                                               |
-| ------------------------ | ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `go_test_args`           | `{ "-v", "-race", "-count=1", "-timeout=60s" }` | Arguments to pass into `go test`.                                                         |
-| `dap_go_enabled`         | `false`                                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests. |
-| `dap_go_opts`            | `{}`                                            | Options to pass into `require("dap-go").setup()`.                                         |
-| `warn_test_name_dupes`   | `true`                                          | Warn about duplicate test names within the same Go package.                               |
-| `warn_test_not_executed` | `true`                                          | Warn if test was not executed.                                                            |
+| Argument                 | Default value                   | Description                                                                               |
+| ------------------------ | ------------------------------- | ----------------------------------------------------------------------------------------- |
+| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                         |
+| `dap_go_enabled`         | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests. |
+| `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                         |
+| `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                               |
+| `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                            |
 
 ### Example configuration: custom `go test` arguments
 
@@ -111,6 +111,8 @@ local config = { -- Specify configuration
     "-race",
     "-count=1",
     "-timeout=60s",
+    "-parallel=1",
+    "-p=2",
     "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
   },
 }
@@ -124,6 +126,8 @@ require("neotest").setup({
 Note that the example above writes a coverage file. You can use
 [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) to
 show the coverage in Neovim.
+
+See `go help test` for possible arguments.
 
 ### Example configuration: debugging
 
