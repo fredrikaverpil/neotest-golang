@@ -332,3 +332,22 @@ You can run tests, formatting and linting locally with `make all`. Install
 dependencies with `make install`. Have a look at the [Makefile](Makefile) for
 more details. You can also use the neotest-plenary and neotest-golang adapters
 to run the tests of this repo within Neovim.
+
+### AST and tree-sitter
+
+To figure out new tree-sitter queries (for detecting tests), the following
+commands are available in Neovim to aid you:
+
+- `:Inspect` to show the highlight groups under the cursor.
+- `:InspectTree` to show the parsed syntax tree (formerly known as
+  "TSPlayground").
+- `:EditQuery` to open the Live Query Editor (Nvim 0.10+).
+
+For example, open up a Go test file and then open up a new window side-by side
+in which you execute `:InspectTree`. Here you can now see what the tree-sitter
+query syntax representation looks like for the Go test file.
+
+Also open up the editor with `:EditQuery`, so that you can have all three
+windows opened side-by-side. In the editor, you can now start creating your
+syntax query and play around. You can paste in queries from `ast.lua` in the
+editor, to see how the query behaves and highlights parts of your Go test file.
