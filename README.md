@@ -343,11 +343,11 @@ commands are available in Neovim to aid you:
   "TSPlayground").
 - `:EditQuery` to open the Live Query Editor (Nvim 0.10+).
 
-For example, open up a Go test file and then open up a new window side-by side
-in which you execute `:InspectTree`. Here you can now see what the tree-sitter
-query syntax representation looks like for the Go test file.
+For example, open up a Go test file and then execute `:InspectTree`. A new
+window will appear which shows what the tree-sitter query syntax representation
+looks like for the Go test file.
 
-Also open up the editor with `:EditQuery`, so that you can have all three
-windows opened side-by-side. In the editor, you can now start creating your
-syntax query and play around. You can paste in queries from `ast.lua` in the
-editor, to see how the query behaves and highlights parts of your Go test file.
+Again, from the Go test file, execute `:EditQuery` to open up the query editor
+in a separate window. In the editor, you can now start creating your syntax
+query and play around. You can paste in queries from `ast.lua` in the editor, to
+see how the query behaves and highlights parts of your Go test file.
