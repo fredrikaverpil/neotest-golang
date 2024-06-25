@@ -17,28 +17,26 @@ A Neotest adapter for running Go tests.
 - Supports table tests (relies on treesitter AST detection).
 - Supports nested test functions.
 
-## 🚧 Pre-release
+## 🚧 Work in progress
 
-This Neotest adapter is under heavy development and considered beta. However,
-I'm dogfooding myself with this project daily, as full-time Go developer.
+This Neotest adapter is under heavy development and I'm dogfooding myself with
+this project on a daily basis, as full-time Go developer.
 
 My next focus areas:
 
 - [ ] Refactoring, polish and the addition of tests.
-- [x] Versioning and releases via release-please.
 - [ ] Documentation around expanding new syntax support for table tests via AST
       parsing.
-- [ ] Add debug logging: [neotest#422](https://github.com/nvim-neotest/neotest/discussions/422)
-- [x] Set up bug report form.
-- [ ] Investigate ways to speed up test execution when executing tests in...
-  - [x] dir
-  - [ ] file
+- [ ] Add debug logging:
+      [neotest#422](https://github.com/nvim-neotest/neotest/discussions/422)
+- [ ] Investigate ways to speed up test execution when executing tests in a
+      file.
 
 ## 🏓 Background
 
 I've been using Neovim and Neotest with
 [neotest-go](https://github.com/nvim-neotest/neotest-go) but I have stumbled
-upon many problems which seems difficult to solve in the neotest-go codebase.
+upon many problems which seem difficult to solve in the neotest-go codebase.
 
 I have full respect for the time and efforts put in by the developer(s) of
 neotest-go. I do not aim in any way to diminish their needs or efforts.
