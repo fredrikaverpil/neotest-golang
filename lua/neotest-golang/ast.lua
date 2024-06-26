@@ -32,7 +32,7 @@ function M.detect_tests(file_path)
       (parameter_declaration
         ; name: (identifier)
         type: (pointer_type
-          (type_identifier) @namespace.name (#match? @namespace.name "(Test|Example|Suite)") )))) @namespace.definition
+          (type_identifier) @namespace.name )))) @namespace.definition
   ]]
 
   local table_tests = [[
@@ -106,6 +106,22 @@ function M.detect_tests(file_path)
 
   ---@type neotest.Tree
   local positions = lib.treesitter.parse_positions(file_path, query, opts)
+
+  -- vim.notify(vim.inspect(positions), vim.log.levels.DEBUG) -- FIXME: remove after finishing debugging/implementation
+
+  -- TODO: Create (opt-in) adapter-global receiver/namespace lookup by AST-parsing filepaths.
+  -- Example:
+  -- lookup = {"ExampleTestSuite": "TestExampleTestSuite"}
+  -- based on
+  --   func TestExampleTestSuite(t *testing.T) {
+  --     suite.Run(t, new(ExampleTestSuite))
+  --   }
+  -- which should then cause tests to be executed as TestExampleTestSuite/TestExample1
+  -- when the receiver name is ExampleTestSuite:
+  -- func (suite *ExampleTestSuite) TestExample1() {
+  --   t := suite.T()
+  --   assert.Equal(suite.T(), 5, suite.VariableThatShouldStartAtFive)
+  -- }
 
   return positions
 end
