@@ -179,6 +179,7 @@ end
 setmetatable(M.Adapter, {
   __call = function(_, opts)
     M.Adapter.options = options.setup(opts)
+    return M.Adapter
   end,
 })
 
