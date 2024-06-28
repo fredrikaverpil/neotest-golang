@@ -51,3 +51,10 @@ body:
       description: A concise description of what you expected to happen.
     validations:
       required: true
+  - type: textarea
+    attributes:
+      label: Your Lua setup
+      description: Please provide valid Lua code, describing how you load and configure the neotest-golang adapter.
+      render: Lua
+    validations:
+      required: false
