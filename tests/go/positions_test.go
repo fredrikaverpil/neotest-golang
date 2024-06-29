@@ -112,6 +112,46 @@ func TestSubTestTableTestInlineStruct(t *testing.T) {
 	})
 }
 
+// Table test defined as anonymous struct in loop.
+func TestTableTestInlineStructLoop(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		x        int
+		y        int
+		expected int
+	}{
+		{name: "TableTest1", x: 1, y: 2, expected: 3},
+		{name: "TableTest2", x: 3, y: 4, expected: 7},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if Add(tc.x, tc.y) != tc.expected {
+				t.Fail()
+			}
+		})
+	}
+}
+
+// Table test defined as anonymous struct in loop (in sub-test).
+func TestSubTestTableTestInlineStructLoop(t *testing.T) {
+	t.Run("SubTest", func(t *testing.T) {
+		for _, tc := range []struct {
+			name     string
+			x        int
+			y        int
+			expected int
+		}{
+			{name: "TableTest1", x: 1, y: 2, expected: 3},
+			{name: "TableTest2", x: 3, y: 4, expected: 7},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				if Add(tc.x, tc.y) != tc.expected {
+					t.Fail()
+				}
+			})
+		}
+	})
+}
+
 // Table test defined as map.
 func TestTableTestMap(t *testing.T) {
 	tt := map[string]struct {
@@ -119,9 +159,8 @@ func TestTableTestMap(t *testing.T) {
 		b    int
 		want int
 	}{
-		"add 1+1": {a: 1, b: 1, want: 2},
-		"add 2+2": {a: 2, b: 2, want: 4},
-		"add 5+5": {a: 5, b: 5, want: 10},
+		"TableTest1": {a: 1, b: 1, want: 2},
+		"TableTest2": {a: 2, b: 2, want: 4},
 	}
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
