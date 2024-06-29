@@ -1,5 +1,3 @@
-local utils = require("neotest-golang.utils")
-
 local M = {}
 
 --- Build runspec for a directory.
@@ -7,7 +5,7 @@ local M = {}
 --- @param tree neotest.Tree
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos, tree)
-  if utils.table_is_empty(tree:children()) then
+  if vim.tbl_isempty(tree:children()) then
     --- Runspec designed for files that contain no tests.
     --- @type neotest.RunSpec
     local run_spec = {

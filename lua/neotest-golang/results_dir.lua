@@ -3,7 +3,6 @@ local async = require("neotest.async")
 local options = require("neotest-golang.options")
 local convert = require("neotest-golang.convert")
 local json = require("neotest-golang.json")
-local utils = require("neotest-golang.utils")
 
 --- @class TestData
 --- @field status neotest.ResultStatus
