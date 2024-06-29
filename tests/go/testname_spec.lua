@@ -1,6 +1,7 @@
 local nio = require("nio")
 local adapter = require("neotest-golang")
 local convert = require("neotest-golang.convert")
+local _ = require("plenary")
 
 describe("Neotest position to Go test name", function()
   -- Arrange
@@ -52,6 +53,25 @@ describe("Neotest position to Go test name", function()
 
     -- Act
     local pos = tree:node(5):data()
+    local actual_go_test_name = convert.to_gotest_test_name(pos.id)
+
+    -- Assert
+    local actual_name = pos.name
+    assert.are.same(expected_subtest_name, actual_name)
+    assert.are.same(
+      vim.inspect(expected_gotest_name),
+      vim.inspect(actual_go_test_name)
+    )
+  end)
+
+  it("supports regexp characters", function()
+    local expected_subtest_name =
+      '"Regexp characters like ( ) [ ] { } - | ? + * ^ $ are ok"'
+    local expected_gotest_name =
+      "TestNames/Regexp_characters_like_(_)_[_]_{_}_-_|_?_+_*_^_$_are_ok"
+
+    -- Act
+    local pos = tree:node(8):data()
     local actual_go_test_name = convert.to_gotest_test_name(pos.id)
 
     -- Assert

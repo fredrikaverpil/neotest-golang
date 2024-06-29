@@ -12,6 +12,13 @@ function M.to_gotest_regex_pattern(test_name)
     "]",
     "{",
     "}",
+    "-",
+    "|",
+    "?",
+    "+",
+    "*",
+    "^",
+    "$",
   }
   for _, character in ipairs(special_characters) do
     test_name = test_name:gsub("%" .. character, "\\" .. character)
@@ -38,7 +45,7 @@ function M.to_gotest_test_name(pos_id)
   return test_name
 end
 
---- Escape characters, for usage of string as pattern in Lua..
+--- Escape characters, for usage of string as pattern in Lua.
 --- - `.` (matches any character)
 --- - `%` (used to escape special characters)
 --- - `+` (matches 1 or more of the previous character or class)
