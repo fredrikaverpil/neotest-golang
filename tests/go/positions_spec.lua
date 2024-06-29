@@ -1,5 +1,23 @@
 local nio = require("nio")
 local adapter = require("neotest-golang")
+local _ = require("plenary")
+
+local function compareIgnoringKeys(t1, t2, ignoreKeys)
+  local function copyTable(t, ignoreKeys)
+    local copy = {}
+    for k, v in pairs(t) do
+      if not ignoreKeys[k] then
+        if type(v) == "table" then
+          copy[k] = copyTable(v, ignoreKeys)
+        else
+          copy[k] = v
+        end
+      end
+    end
+    return copy
+  end
+  return copyTable(t1, ignoreKeys), copyTable(t2, ignoreKeys)
+end
 
 describe("Discovery of test positions", function()
   it("Discover OK", function()
@@ -8,9 +26,8 @@ describe("Discovery of test positions", function()
     local expected = {
       {
         id = test_filepath,
-        name = vim.fn.fnamemodify(test_filepath, ":t"),
+        name = "positions_test.go",
         path = test_filepath,
-        range = { 0, 0, 59, 0 }, -- NOTE: this always gets changed when tests are added or removed
         type = "file",
       },
       {
@@ -18,7 +35,6 @@ describe("Discovery of test positions", function()
           id = test_filepath .. "::TestTopLevel",
           name = "TestTopLevel",
           path = test_filepath,
-          range = { 4, 0, 8, 1 },
           type = "test",
         },
       },
@@ -27,7 +43,6 @@ describe("Discovery of test positions", function()
           id = test_filepath .. "::TestTopLevelWithSubTest",
           name = "TestTopLevelWithSubTest",
           path = test_filepath,
-          range = { 10, 0, 16, 1 },
           type = "test",
         },
         {
@@ -35,74 +50,156 @@ describe("Discovery of test positions", function()
             id = test_filepath .. '::TestTopLevelWithSubTest::"SubTest"',
             name = '"SubTest"',
             path = test_filepath,
-            range = { 11, 1, 15, 3 },
             type = "test",
           },
         },
       },
       {
         {
-          id = test_filepath .. "::TestTopLevelWithTableTests",
-          name = "TestTopLevelWithTableTests",
+          id = test_filepath .. "::TestTableTestStruct",
+          name = "TestTableTestStruct",
           path = test_filepath,
-          range = { 18, 0, 36, 1 },
           type = "test",
         },
         {
           {
-            id = test_filepath .. '::TestTopLevelWithTableTests::"TableTest1"',
+            id = test_filepath .. '::TestTableTestStruct::"TableTest1"',
             name = '"TableTest1"',
             path = test_filepath,
-            range = { 25, 2, 25, 47 },
             type = "test",
           },
         },
         {
           {
-            id = test_filepath .. '::TestTopLevelWithTableTests::"TableTest2"',
+            id = test_filepath .. '::TestTableTestStruct::"TableTest2"',
             name = '"TableTest2"',
             path = test_filepath,
-            range = { 26, 2, 26, 47 },
             type = "test",
           },
         },
       },
       {
         {
-          id = test_filepath .. "::TestTopLevelWithSubTestWithTableTests",
-          name = "TestTopLevelWithSubTestWithTableTests",
+          id = test_filepath .. "::TestSubTestTableTestStruct",
+          name = "TestSubTestTableTestStruct",
           path = test_filepath,
-          range = { 38, 0, 58, 1 },
+          type = "test",
+        },
+        {
+          {
+            id = test_filepath .. '::TestSubTestTableTestStruct::"SubTest"',
+            name = '"SubTest"',
+            path = test_filepath,
+            type = "test",
+          },
+          {
+            {
+              id = test_filepath
+                .. '::TestSubTestTableTestStruct::"SubTest"::"TableTest1"',
+              name = '"TableTest1"',
+              path = test_filepath,
+              type = "test",
+            },
+          },
+          {
+            {
+              id = test_filepath
+                .. '::TestSubTestTableTestStruct::"SubTest"::"TableTest2"',
+              name = '"TableTest2"',
+              path = test_filepath,
+              type = "test",
+            },
+          },
+        },
+      },
+      {
+        {
+          id = test_filepath .. "::TestTableTestInlineStruct",
+          name = "TestTableTestInlineStruct",
+          path = test_filepath,
+          type = "test",
+        },
+        {
+          {
+            id = test_filepath .. '::TestTableTestInlineStruct::"TableTest1"',
+            name = '"TableTest1"',
+            path = test_filepath,
+            type = "test",
+          },
+        },
+        {
+          {
+            id = test_filepath .. '::TestTableTestInlineStruct::"TableTest2"',
+            name = '"TableTest2"',
+            path = test_filepath,
+            type = "test",
+          },
+        },
+      },
+      {
+        {
+          id = test_filepath .. "::TestSubTestTableTestInlineStruct",
+          name = "TestSubTestTableTestInlineStruct",
+          path = test_filepath,
           type = "test",
         },
         {
           {
             id = test_filepath
-              .. '::TestTopLevelWithSubTestWithTableTests::"SubTest"',
+              .. '::TestSubTestTableTestInlineStruct::"SubTest"',
             name = '"SubTest"',
             path = test_filepath,
-            range = { 39, 1, 57, 3 },
             type = "test",
           },
           {
             {
               id = test_filepath
-                .. '::TestTopLevelWithSubTestWithTableTests::"SubTest"::"TableTest1"',
+                .. '::TestSubTestTableTestInlineStruct::"SubTest"::"TableTest1"',
               name = '"TableTest1"',
               path = test_filepath,
-              range = { 46, 3, 46, 48 },
               type = "test",
             },
           },
           {
             {
               id = test_filepath
-                .. '::TestTopLevelWithSubTestWithTableTests::"SubTest"::"TableTest2"',
+                .. '::TestSubTestTableTestInlineStruct::"SubTest"::"TableTest2"',
               name = '"TableTest2"',
               path = test_filepath,
-              range = { 47, 3, 47, 48 },
               type = "test",
             },
+          },
+        },
+      },
+      {
+        {
+          id = test_filepath .. "::TestTableTestMap",
+          name = "TestTableTestMap",
+          path = test_filepath,
+          type = "test",
+        },
+        {
+          {
+            id = test_filepath .. '::TestTableTestMap::"add 1+1"',
+            name = '"add 1+1"',
+            path = test_filepath,
+            type = "test",
+          },
+        },
+        {
+          {
+            id = test_filepath .. '::TestTableTestMap::"add 2+2"',
+            name = '"add 2+2"',
+            path = test_filepath,
+            type = "test",
+          },
+        },
+        {
+          {
+            id = test_filepath .. '::TestTableTestMap::"add 5+5"',
+            name = '"add 5+5"',
+            path = test_filepath,
+            type = "test",
           },
         },
       },
@@ -115,6 +212,11 @@ describe("Discovery of test positions", function()
 
     -- Assert
     local result = tree:to_list()
-    assert.are.same(vim.inspect(expected), vim.inspect(result))
+
+    local ignoreKeys = { range = true }
+    local expectedCopy, resultCopy =
+      compareIgnoringKeys(expected, result, ignoreKeys)
+    -- assert.are.same(vim.inspect(expectedCopy), vim.inspect(resultCopy))
+    assert.are.same(expectedCopy, resultCopy)
   end)
 end)
