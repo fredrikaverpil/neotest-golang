@@ -31,14 +31,15 @@ I wanted to see if I could fix these issues by diving into the 🕳️🐇 of Ne
 and building my own adapter. Below is a list of neotest-go issues which are not
 present in neotest-golang (this project):
 
-| Neotest-go issue                                   | URL                                                                   |
-| -------------------------------------------------- | --------------------------------------------------------------------- |
-| Test Output in JSON, making it difficult to read   | [neotest-go#52](https://github.com/nvim-neotest/neotest-go/issues/52) |
-| "Run nearest" runs all tests                       | [neotest-go#83](https://github.com/nvim-neotest/neotest-go/issues/83) |
-| Running test suite doesn't work                    | [neotest-go#89](https://github.com/nvim-neotest/neotest-go/issues/89) |
-| Diagnostics for table tests on the line of failure | [neotest-go#75](https://github.com/nvim-neotest/neotest-go/issues/75) |
-| Support for Nested Subtests                        | [neotest-go#74](https://github.com/nvim-neotest/neotest-go/issues/74) |
-| DAP support                                        | [neotest-go#12](https://github.com/nvim-neotest/neotest-go/issues/12) |
+| Neotest-go issue                                        | URL                                                                   |
+| ------------------------------------------------------- | --------------------------------------------------------------------- |
+| DAP support                                             | [neotest-go#12](https://github.com/nvim-neotest/neotest-go/issues/12) |
+| Test Output in JSON, making it difficult to read        | [neotest-go#52](https://github.com/nvim-neotest/neotest-go/issues/52) |
+| Support for Nested Subtests                             | [neotest-go#74](https://github.com/nvim-neotest/neotest-go/issues/74) |
+| Diagnostics for table tests on the line of failure      | [neotest-go#75](https://github.com/nvim-neotest/neotest-go/issues/75) |
+| "Run nearest" runs all tests                            | [neotest-go#83](https://github.com/nvim-neotest/neotest-go/issues/83) |
+| Table tests not recognized when defined inside for-loop | [neotest-go#86](https://github.com/nvim-neotest/neotest-go/issues/86) |
+| Running test suite doesn't work                         | [neotest-go#89](https://github.com/nvim-neotest/neotest-go/issues/89) |
 
 </details>
 
