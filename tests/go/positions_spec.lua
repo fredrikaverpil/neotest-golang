@@ -173,6 +173,67 @@ describe("Discovery of test positions", function()
       },
       {
         {
+          id = test_filepath .. "::TestTableTestInlineStructLoop",
+          name = "TestTableTestInlineStructLoop",
+          path = test_filepath,
+          type = "test",
+        },
+        {
+          {
+            id = test_filepath
+              .. '::TestTableTestInlineStructLoop::"TableTest1"',
+            name = '"TableTest1"',
+            path = test_filepath,
+            type = "test",
+          },
+        },
+        {
+          {
+            id = test_filepath
+              .. '::TestTableTestInlineStructLoop::"TableTest2"',
+            name = '"TableTest2"',
+            path = test_filepath,
+            type = "test",
+          },
+        },
+      },
+      {
+        {
+          id = test_filepath .. "::TestSubTestTableTestInlineStructLoop",
+          name = "TestSubTestTableTestInlineStructLoop",
+          path = test_filepath,
+          type = "test",
+        },
+        {
+          {
+            id = test_filepath
+              .. '::TestSubTestTableTestInlineStructLoop::"SubTest"',
+            name = '"SubTest"',
+            path = test_filepath,
+            type = "test",
+          },
+          {
+            {
+              id = test_filepath
+                .. '::TestSubTestTableTestInlineStructLoop::"SubTest"::"TableTest1"',
+              name = '"TableTest1"',
+              path = test_filepath,
+              type = "test",
+            },
+          },
+          {
+            {
+              id = test_filepath
+                .. '::TestSubTestTableTestInlineStructLoop::"SubTest"::"TableTest2"',
+              name = '"TableTest2"',
+              path = test_filepath,
+              type = "test",
+            },
+          },
+        },
+      },
+      {
+        {
           id = test_filepath .. "::TestTableTestMap",
           name = "TestTableTestMap",
           path = test_filepath,
@@ -180,24 +241,16 @@ describe("Discovery of test positions", function()
         },
         {
           {
-            id = test_filepath .. '::TestTableTestMap::"add 1+1"',
-            name = '"add 1+1"',
+            id = test_filepath .. '::TestTableTestMap::"TableTest1"',
+            name = '"TableTest1"',
             path = test_filepath,
             type = "test",
           },
         },
         {
           {
-            id = test_filepath .. '::TestTableTestMap::"add 2+2"',
-            name = '"add 2+2"',
-            path = test_filepath,
-            type = "test",
-          },
-        },
-        {
-          {
-            id = test_filepath .. '::TestTableTestMap::"add 5+5"',
-            name = '"add 5+5"',
+            id = test_filepath .. '::TestTableTestMap::"TableTest2"',
+            name = '"TableTest2"',
             path = test_filepath,
             type = "test",
           },
@@ -216,7 +269,7 @@ describe("Discovery of test positions", function()
     local ignoreKeys = { range = true }
     local expectedCopy, resultCopy =
       compareIgnoringKeys(expected, result, ignoreKeys)
-    -- assert.are.same(vim.inspect(expectedCopy), vim.inspect(resultCopy))
+    assert.are.same(vim.inspect(expectedCopy), vim.inspect(resultCopy))
     assert.are.same(expectedCopy, resultCopy)
   end)
 end)
