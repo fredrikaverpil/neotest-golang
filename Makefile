@@ -31,8 +31,9 @@ test-lua:
 
 .PHONY: test-go
 test-go:
+	# Do not allow tests to be skipped
 	cd tests/go && \
-		go test -v ./...
+	go test -v ./... | tee /dev/fd/2 | grep -q "SKIP" && exit 1 || exit 0
 
 .PHONY: format-go
 format-go:
