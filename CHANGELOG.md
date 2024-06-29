@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.1.2...v0.2.0) (2024-06-29)
+
+
+### Features
+
+* support table tests defined in for loop ([#71](https://github.com/fredrikaverpil/neotest-golang/issues/71)) ([5d13357](https://github.com/fredrikaverpil/neotest-golang/commit/5d1335746d8975f736ce3ca9a9eec72a1412c39d))
+
+
+### Bug Fixes
+
+* do not allow test skipping ([#72](https://github.com/fredrikaverpil/neotest-golang/issues/72)) ([8973d54](https://github.com/fredrikaverpil/neotest-golang/commit/8973d5449fbcfa32fd2b786cded748450b188844))
+* regexp character escaping ([#70](https://github.com/fredrikaverpil/neotest-golang/issues/70)) ([37f8877](https://github.com/fredrikaverpil/neotest-golang/commit/37f887739ace41810dcd1a10cb2d650c5524831f))
+
 ## [0.1.2](https://github.com/fredrikaverpil/neotest-golang/compare/v0.1.1...v0.1.2) (2024-06-28)
 
 
