@@ -316,12 +316,6 @@ for [lazy.nvim](https://github.com/folke/lazy.nvim) to show what I mean:
 return {
   {
     "nvim-neotest/neotest",
-    dependencies = {
-      "nvim-neotest/nvim-nio",
-      "nvim-lua/plenary.nvim",
-      "antoinemadec/FixCursorHold.nvim",
-      "nvim-treesitter/nvim-treesitter",
-    },
     opts = {
       -- See all config options with :h neotest.Config
       discovery = {
