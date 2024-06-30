@@ -316,7 +316,6 @@ for [lazy.nvim](https://github.com/folke/lazy.nvim) to show what I mean:
 return {
   {
     "nvim-neotest/neotest",
-    event = "VeryLazy",
     dependencies = {
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
