@@ -340,7 +340,7 @@ return {
 }
 ```
 
-See `:h neotest.Config` for more information
+See `:h neotest.Config` for more information.
 
 [Here](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/plugins/neotest.lua)
 is my personal Neotest configuration, for inspiration. Please note that I am
