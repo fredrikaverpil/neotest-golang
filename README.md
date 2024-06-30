@@ -88,8 +88,6 @@ local config = { -- Specify configuration
     "-race",
     "-count=1",
     "-timeout=60s",
-    "-parallel=1",
-    "-p=2",
     "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
   },
 }
@@ -297,6 +295,73 @@ return {
 ```
 
 </details>
+
+## ⛑️ Tips & troubleshooting
+
+### Neotest is slowing down Neovim
+
+Neotest, out of the box with default settings, can appear very slow in large
+projects (here, I'm referring to
+[this kind of large](https://github.com/kubernetes/kubernetes)). There are a few
+things you can do to speed up the Neotest appearance and experience in such
+cases, by tweaking the Neotest settings.
+
+You can for example limit the AST-parsing (to detect tests) to the currently
+opened file, which in my opinion makes Neotest a joy to work with, even in
+ginormous projects. Second, you can tweak the concurrency settings, again for
+AST-parsing but also for concurrent test execution. Here is a simplistic example
+for [lazy.nvim](https://github.com/folke/lazy.nvim) to show what I mean:
+
+```lua
+return {
+  {
+    "nvim-neotest/neotest",
+    event = "VeryLazy",
+    dependencies = {
+      "nvim-neotest/nvim-nio",
+      "nvim-lua/plenary.nvim",
+      "antoinemadec/FixCursorHold.nvim",
+      "nvim-treesitter/nvim-treesitter",
+    },
+    opts = {
+      -- See all config options with :h neotest.Config
+      discovery = {
+        -- Drastically improve performance in ginormous projects by
+        -- only AST-parsing the currently opened buffer.
+        enabled = false,
+        -- Number of workers to parse files concurrently.
+        -- A value of 0 automatically assigns number based on CPU.
+        -- Set to 1 if experiencing lag.
+        concurrent = 1,
+      },
+      running = {
+        -- Run tests concurrently when an adapter provides multiple commands to run.
+        concurrent = false,
+      },
+      summary = {
+        -- Enable/disable animation of icons.
+        animated = false,
+      },
+    },
+  },
+}
+```
+
+See `:h neotest.Config` for more information
+
+[Here](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/plugins/neotest.lua)
+is my personal Neotest configuration, for inspiration. Please note that I am
+configuring Go and the neotest-golang adapter in a separate file
+[here](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/lang/go.lua).
+
+### Go test execution and parallelism
+
+You can set the optional neotest-go `go_test_args` to control the number of test
+binaries and number of tests to run in parallel using the `-p` and `-parallel`
+flags, respectively. Execute `go help test` for more information on this and
+perhaps have a look at
+[my own configuration](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/lang/go.lua).
+for inspiration.
 
 ## 🙏 PRs are welcome
 
