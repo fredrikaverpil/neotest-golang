@@ -329,7 +329,7 @@ return {
       },
       running = {
         -- Run tests concurrently when an adapter provides multiple commands to run.
-        concurrent = false,
+        concurrent = true,
       },
       summary = {
         -- Enable/disable animation of icons.
