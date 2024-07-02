@@ -7,7 +7,6 @@ local runspec_dir = require("neotest-golang.runspec_dir")
 local runspec_file = require("neotest-golang.runspec_file")
 local runspec_test = require("neotest-golang.runspec_test")
 local results_dir = require("neotest-golang.results_dir")
-local results_test = require("neotest-golang.results_test")
 
 local M = {}
 
@@ -154,7 +153,7 @@ function M.Adapter.results(spec, result, tree)
   elseif spec.context.pos_type == "test" then
     -- A test command executed a single test and the output/status must now be
     -- processed.
-    local results = results_test.results(spec, result, tree)
+    local results = results_dir.results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   end

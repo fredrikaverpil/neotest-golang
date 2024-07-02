@@ -1,5 +1,6 @@
 local convert = require("neotest-golang.convert")
 local options = require("neotest-golang.options")
+local json = require("neotest-golang.json")
 
 local M = {}
 
@@ -9,11 +10,26 @@ local M = {}
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos, strategy)
   --- @type string
-  local test_name = convert.to_gotest_test_name(pos.id)
-  test_name = convert.to_gotest_regex_pattern(test_name)
+  local test_folder_absolute_path = string.match(pos.path, "(.+)/")
+
+  -- call 'go list -json ./...' to get test file data
+  local go_list_command = {
+    "go",
+    "list",
+    "-json",
+    "./...",
+  }
+  local go_list_command_result = vim.fn.system(
+    "cd "
+      .. test_folder_absolute_path
+      .. " && "
+      .. table.concat(go_list_command, " ")
+  )
+  local golist_output = json.process_golist_output(go_list_command_result)
 
   --- @type string
-  local test_folder_absolute_path = string.match(pos.path, "(.+)/")
+  local test_name = convert.to_gotest_test_name(pos.id)
+  test_name = convert.to_gotest_regex_pattern(test_name)
 
   local gotest = {
     "go",
@@ -37,6 +53,7 @@ function M.build(pos, strategy)
     context = {
       id = pos.id,
       test_filepath = pos.path,
+      golist_output = golist_output,
       pos_type = "test",
     },
   }
