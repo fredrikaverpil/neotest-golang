@@ -3,6 +3,7 @@
 local convert = require("neotest-golang.convert")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.json")
+local async = require("neotest.async")
 
 local M = {}
 
@@ -33,20 +34,43 @@ function M.build(pos, strategy)
   local test_name = convert.to_gotest_test_name(pos.id)
   test_name = convert.to_gotest_regex_pattern(test_name)
 
-  local gotest = {
-    "go",
-    "test",
-    "-json",
-  }
-
   --- @type table
   local required_go_test_args = { test_folder_absolute_path, "-run", test_name }
 
-  local combined_args = vim.list_extend(
-    vim.deepcopy(options.get().go_test_args),
-    required_go_test_args
-  )
-  local gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
+  local gotest_command = {}
+  local jsonfile = ""
+
+  if options.get().runner == "go" then
+    local gotest = {
+      "go",
+      "test",
+      "-json",
+    }
+
+    local combined_args = vim.list_extend(
+      vim.deepcopy(options.get().go_test_args),
+      required_go_test_args
+    )
+    gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
+  elseif options.get().runner == "gotestsum" then
+    jsonfile = vim.fs.normalize(async.fn.tempname())
+    local gotest = { "gotestsum" }
+    local gotestsum_json = {
+      "--jsonfile=" .. jsonfile,
+      "--",
+    }
+    local gotest_args = vim.list_extend(
+      vim.deepcopy(options.get().go_test_args),
+      required_go_test_args
+    )
+
+    local cmd =
+      vim.list_extend(vim.deepcopy(gotest), options.get().gotestsum_args)
+    cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_json)
+    cmd = vim.list_extend(vim.deepcopy(cmd), gotest_args)
+
+    gotest_command = cmd
+  end
 
   --- @type neotest.RunSpec
   local run_spec = {
@@ -59,6 +83,10 @@ function M.build(pos, strategy)
       pos_type = "test",
     },
   }
+
+  if jsonfile ~= nil then
+    run_spec.context.jsonfile = jsonfile
+  end
 
   -- set up for debugging of test
   if strategy == "dap" then

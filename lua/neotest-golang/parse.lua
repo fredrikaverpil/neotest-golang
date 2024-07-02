@@ -43,9 +43,14 @@ function M.results(spec, result, tree)
   --- @type neotest.Position
   local pos = tree:data()
 
-  --- The raw output from the 'go test -json' command.
+  --- The raw output from the test command.
   --- @type table
-  local raw_output = async.fn.readfile(result.output)
+  local raw_output = {}
+  if options.get().runner == "go" then
+    raw_output = async.fn.readfile(result.output)
+  elseif options.get().runner == "gotestsum" then
+    raw_output = async.fn.readfile(spec.context.jsonfile)
+  end
 
   --- The 'go test' JSON output, converted into a lua table.
   --- @type table

@@ -5,11 +5,9 @@
 local M = {}
 
 local opts = {
-  go_test_args = {
-    "-v",
-    "-race",
-    "-count=1",
-  },
+  runner = "go", -- or "gotestsum"
+  go_test_args = { "-v", "-race", "-count=1" },
+  gotestsum_args = { "--format=standard-verbose" },
   dap_go_enabled = false,
   dap_go_opts = {},
   warn_test_name_dupes = true,

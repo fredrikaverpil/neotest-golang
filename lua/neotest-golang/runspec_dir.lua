@@ -3,6 +3,7 @@
 
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.json")
+local async = require("neotest.async")
 
 local M = {}
 
@@ -114,22 +115,45 @@ end
 --- @param module_name string
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build_dir_test_runspec(pos, cwd, golist_output, module_name)
-  local gotest = {
-    "go",
-    "test",
-    "-json",
-  }
-
   --- @type table
   local required_go_test_args = {
     module_name,
   }
 
-  local combined_args = vim.list_extend(
-    vim.deepcopy(options.get().go_test_args),
-    required_go_test_args
-  )
-  local gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
+  local gotest_command = {}
+  local jsonfile = ""
+
+  if options.get().runner == "go" then
+    local gotest = {
+      "go",
+      "test",
+      "-json",
+    }
+
+    local combined_args = vim.list_extend(
+      vim.deepcopy(options.get().go_test_args),
+      required_go_test_args
+    )
+    gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
+  elseif options.get().runner == "gotestsum" then
+    jsonfile = vim.fs.normalize(async.fn.tempname())
+    local gotest = { "gotestsum" }
+    local gotestsum_json = {
+      "--jsonfile=" .. jsonfile,
+      "--",
+    }
+    local gotest_args = vim.list_extend(
+      vim.deepcopy(options.get().go_test_args),
+      required_go_test_args
+    )
+
+    local cmd =
+      vim.list_extend(vim.deepcopy(gotest), options.get().gotestsum_args)
+    cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_json)
+    cmd = vim.list_extend(vim.deepcopy(cmd), gotest_args)
+
+    gotest_command = cmd
+  end
 
   --- @type neotest.RunSpec
   local run_spec = {
@@ -142,6 +166,10 @@ function M.build_dir_test_runspec(pos, cwd, golist_output, module_name)
       pos_type = "dir",
     },
   }
+
+  if jsonfile ~= nil then
+    run_spec.context.jsonfile = jsonfile
+  end
 
   return run_spec
 end
