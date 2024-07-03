@@ -62,7 +62,7 @@ function M.build(pos)
   }
 
   if json_filepath ~= nil then
-    run_spec.context.jsonfile = json_filepath
+    run_spec.context.json_filepath = json_filepath
   end
 
   return run_spec

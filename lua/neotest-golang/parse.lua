@@ -53,7 +53,7 @@ function M.results(spec, result, tree)
   if runner == "go" then
     raw_output = async.fn.readfile(result.output)
   elseif runner == "gotestsum" then
-    raw_output = async.fn.readfile(spec.context.jsonfile)
+    raw_output = async.fn.readfile(spec.context.json_filepath)
   end
 
   --- The 'go test' JSON output, converted into a lua table.

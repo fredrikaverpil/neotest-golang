@@ -50,7 +50,7 @@ function M.build(pos, strategy)
   }
 
   if json_filepath ~= nil then
-    run_spec.context.jsonfile = json_filepath
+    run_spec.context.json_filepath = json_filepath
   end
 
   if runspec_strategy ~= nil then
