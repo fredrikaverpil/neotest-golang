@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/fredrikaverpil/neotest-golang/compare/v0.3.0...v0.3.1) (2024-07-03)
+
+
+### Bug Fixes
+
+* remove test suite AST-detection (still in POC) ([#85](https://github.com/fredrikaverpil/neotest-golang/issues/85)) ([3766f89](https://github.com/fredrikaverpil/neotest-golang/commit/3766f899de542195ac1d8d0299f6979a15457d20))
+
 ## [0.3.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.2.0...v0.3.0) (2024-07-03)
 
 
