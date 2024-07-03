@@ -1,3 +1,5 @@
+--- Converts one form of data to another.
+
 local M = {}
 
 -- Converts the test name into a regexp-friendly pattern, for usage in

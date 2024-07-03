@@ -1,3 +1,5 @@
+--- Helpers to build the command and context around running all tests of a file.
+
 local M = {}
 
 --- Build runspec for a directory.

@@ -1,3 +1,5 @@
+--- JSON processing helpers.
+
 local M = {}
 
 --- Process output from 'go test -json' and return an iterable table.
