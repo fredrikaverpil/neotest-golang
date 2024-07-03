@@ -49,14 +49,21 @@ function M.build(pos, strategy)
     )
   end
 
+  local runspec_strategy = nil
+  if strategy == "dap" then
+    if options.get().dap_go_enabled then
+      runspec_strategy = M.get_dap_config(test_name)
+      M.setup_debugging(test_folder_absolute_path)
+    end
+  end
+
   return M.build_runspec(
     pos,
     test_folder_absolute_path,
     test_cmd,
     golist_output,
     json_filepath,
-    strategy,
-    test_name
+    runspec_strategy
   )
 end
 
@@ -66,8 +73,7 @@ end
 --- @param test_cmd table<string>
 --- @param golist_output table
 --- @param json_filepath string | nil
---- @param strategy string
---- @param test_name string
+--- @param runspec_strategy table | nil
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build_runspec(
   pos,
@@ -75,8 +81,7 @@ function M.build_runspec(
   test_cmd,
   golist_output,
   json_filepath,
-  strategy,
-  test_name
+  runspec_strategy
 )
   --- @type neotest.RunSpec
   local run_spec = {
@@ -94,29 +99,27 @@ function M.build_runspec(
     run_spec.context.jsonfile = json_filepath
   end
 
-  -- set up for debugging of test
-  if strategy == "dap" then
-    run_spec.strategy = M.get_dap_config(test_name)
-    run_spec.context.skip = true -- do not attempt to parse test output
-
-    -- nvim-dap and nvim-dap-go cwd
-    if options.get().dap_go_enabled then
-      local dap_go_opts = options.get().dap_go_opts or {}
-      local dap_go_opts_original = vim.deepcopy(dap_go_opts)
-      if dap_go_opts.delve == nil then
-        dap_go_opts.delve = {}
-      end
-      dap_go_opts.delve.cwd = cwd
-      require("dap-go").setup(dap_go_opts)
-
-      -- reset nvim-dap-go (and cwd) after debugging with nvim-dap
-      require("dap").listeners.after.event_terminated["neotest-golang-debug"] = function()
-        require("dap-go").setup(dap_go_opts_original)
-      end
-    end
+  if runspec_strategy ~= nil then
+    run_spec.strategy = runspec_strategy
+    run_spec.context.skip = true
   end
 
   return run_spec
+end
+
+function M.setup_debugging(cwd)
+  local dap_go_opts = options.get().dap_go_opts or {}
+  local dap_go_opts_original = vim.deepcopy(dap_go_opts)
+  if dap_go_opts.delve == nil then
+    dap_go_opts.delve = {}
+  end
+  dap_go_opts.delve.cwd = cwd
+  require("dap-go").setup(dap_go_opts)
+
+  -- reset nvim-dap-go (and cwd) after debugging with nvim-dap
+  require("dap").listeners.after.event_terminated["neotest-golang-debug"] = function()
+    require("dap-go").setup(dap_go_opts_original)
+  end
 end
 
 --- @param test_name string
