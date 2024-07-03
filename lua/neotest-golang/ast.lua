@@ -1,3 +1,5 @@
+--- Detect test names in Go *._test.go files.
+
 local lib = require("neotest.lib")
 
 local M = {}

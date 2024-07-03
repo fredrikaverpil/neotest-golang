@@ -1,3 +1,5 @@
+--- Parse the output from the go test command.
+
 local async = require("neotest.async")
 
 local options = require("neotest-golang.options")

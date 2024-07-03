@@ -1,3 +1,6 @@
+--- Helpers to build the command and context around running all tests of
+--- a Go module.
+
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.json")
 
