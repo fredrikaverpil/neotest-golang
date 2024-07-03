@@ -1,9 +1,11 @@
 --- Helpers to build the command and context around running all tests of
 --- a Go module.
 
+local async = require("neotest.async")
+
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.json")
-local async = require("neotest.async")
+local cmd = require("neotest-golang.cmd")
 
 local M = {}
 
@@ -17,10 +19,6 @@ local M = {}
 --- @return neotest.RunSpec | nil
 function M.build(pos)
   local go_mod_filepath = M.find_file_upwards("go.mod", pos.path)
-
-  -- if go_mod_filepath == nil then
-  --   go_mod_filepath = M.find_file_upwards("go.work", pos.path)
-  -- end
 
   -- if no go.mod file was found up the directory tree, until reaching $CWD,
   -- then we cannot determine the Go project root.
@@ -40,19 +38,8 @@ function M.build(pos)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local cwd = go_mod_folderpath
-
-  -- call 'go list -json ./...' to get test file data
-  local go_list_command = {
-    "go",
-    "list",
-    "-json",
-    "./...",
-  }
-  local go_list_command_result = vim.fn.system(
-    "cd " .. go_mod_folderpath .. " && " .. table.concat(go_list_command, " ")
-  )
-  local golist_output = json.process_golist_output(go_list_command_result)
+  local go_list_command = cmd.build_golist_cmd(go_mod_folderpath)
+  local golist_output = json.process_golist_output(go_list_command)
 
   -- find the go module that corresponds to the go_mod_folderpath
   local module_name = "./..." -- if no go module, run all tests at the $CWD
@@ -63,7 +50,34 @@ function M.build(pos)
     end
   end
 
-  return M.build_dir_test_runspec(pos, cwd, golist_output, module_name)
+  --- The runner to use for running tests.
+  --- @type string
+  local runner = options.get().runner
+
+  -- TODO: if gotestsum, check if it is on $PATH, or fall back onto `go test`
+
+  --- The filepath to write test output JSON to, if using `gotestsum`.
+  --- @type string | nil
+  local json_filepath = nil
+
+  --- The final test command to execute.
+  --- @type table<string>
+  local test_cmd = {}
+
+  if runner == "go" then
+    test_cmd = cmd.build_gotest_cmd_for_dir(module_name)
+  elseif runner == "gotestsum" then
+    json_filepath = vim.fs.normalize(async.fn.tempname())
+    test_cmd = cmd.build_gotestsum_cmd_for_dir(module_name, json_filepath)
+  end
+
+  return M.build_runspec(
+    pos,
+    go_mod_folderpath,
+    test_cmd,
+    golist_output,
+    json_filepath
+  )
 end
 
 --- Find a file upwards in the directory tree and return its path, if found.
@@ -111,53 +125,13 @@ end
 --- Build runspec for a directory of tests
 --- @param pos neotest.Position
 --- @param cwd string
+--- @param test_cmd table<string>
 --- @param golist_output table
---- @param module_name string
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build_dir_test_runspec(pos, cwd, golist_output, module_name)
-  --- @type table
-  local required_go_test_args = {
-    module_name,
-  }
-
-  local gotest_command = {}
-  local jsonfile = ""
-
-  if options.get().runner == "go" then
-    local gotest = {
-      "go",
-      "test",
-      "-json",
-    }
-
-    local combined_args = vim.list_extend(
-      vim.deepcopy(options.get().go_test_args),
-      required_go_test_args
-    )
-    gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
-  elseif options.get().runner == "gotestsum" then
-    jsonfile = vim.fs.normalize(async.fn.tempname())
-    local gotest = { "gotestsum" }
-    local gotestsum_json = {
-      "--jsonfile=" .. jsonfile,
-      "--",
-    }
-    local gotest_args = vim.list_extend(
-      vim.deepcopy(options.get().go_test_args),
-      required_go_test_args
-    )
-
-    local cmd =
-      vim.list_extend(vim.deepcopy(gotest), options.get().gotestsum_args)
-    cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_json)
-    cmd = vim.list_extend(vim.deepcopy(cmd), gotest_args)
-
-    gotest_command = cmd
-  end
-
+function M.build_runspec(pos, cwd, test_cmd, golist_output, json_filepath)
   --- @type neotest.RunSpec
   local run_spec = {
-    command = gotest_command,
+    command = test_cmd,
     cwd = cwd,
     context = {
       id = pos.id,
@@ -167,8 +141,8 @@ function M.build_dir_test_runspec(pos, cwd, golist_output, module_name)
     },
   }
 
-  if jsonfile ~= nil then
-    run_spec.context.jsonfile = jsonfile
+  if json_filepath ~= nil then
+    run_spec.context.jsonfile = json_filepath
   end
 
   return run_spec

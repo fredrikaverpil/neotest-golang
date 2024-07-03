@@ -1,9 +1,11 @@
 --- Helpers to build the command and context around running a single test.
 
+local async = require("neotest.async")
+
 local convert = require("neotest-golang.convert")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.json")
-local async = require("neotest.async")
+local cmd = require("neotest-golang.cmd")
 
 local M = {}
 
@@ -14,68 +16,72 @@ local M = {}
 function M.build(pos, strategy)
   --- @type string
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
-
-  -- call 'go list -json ./...' to get test file data
-  local go_list_command = {
-    "go",
-    "list",
-    "-json",
-    "./...",
-  }
-  local go_list_command_result = vim.fn.system(
-    "cd "
-      .. test_folder_absolute_path
-      .. " && "
-      .. table.concat(go_list_command, " ")
-  )
-  local golist_output = json.process_golist_output(go_list_command_result)
+  local go_list_command = cmd.build_golist_cmd(test_folder_absolute_path)
+  local golist_output = json.process_golist_output(go_list_command)
 
   --- @type string
   local test_name = convert.to_gotest_test_name(pos.id)
   test_name = convert.to_gotest_regex_pattern(test_name)
 
-  --- @type table
-  local required_go_test_args = { test_folder_absolute_path, "-run", test_name }
+  --- The runner to use for running tests.
+  --- @type string
+  local runner = options.get().runner
 
-  local gotest_command = {}
-  local jsonfile = ""
+  -- TODO: if gotestsum, check if it is on $PATH, or fall back onto `go test`
 
-  if options.get().runner == "go" then
-    local gotest = {
-      "go",
-      "test",
-      "-json",
-    }
+  --- The filepath to write test output JSON to, if using `gotestsum`.
+  --- @type string | nil
+  local json_filepath = nil
 
-    local combined_args = vim.list_extend(
-      vim.deepcopy(options.get().go_test_args),
-      required_go_test_args
+  --- The final test command to execute.
+  --- @type table<string>
+  local test_cmd = {}
+
+  if runner == "go" then
+    test_cmd =
+      cmd.build_gotest_cmd_for_test(test_folder_absolute_path, test_name)
+  elseif runner == "gotestsum" then
+    json_filepath = vim.fs.normalize(async.fn.tempname())
+    test_cmd = cmd.build_gotestsum_cmd_for_test(
+      test_folder_absolute_path,
+      test_name,
+      json_filepath
     )
-    gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
-  elseif options.get().runner == "gotestsum" then
-    jsonfile = vim.fs.normalize(async.fn.tempname())
-    local gotest = { "gotestsum" }
-    local gotestsum_json = {
-      "--jsonfile=" .. jsonfile,
-      "--",
-    }
-    local gotest_args = vim.list_extend(
-      vim.deepcopy(options.get().go_test_args),
-      required_go_test_args
-    )
-
-    local cmd =
-      vim.list_extend(vim.deepcopy(gotest), options.get().gotestsum_args)
-    cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_json)
-    cmd = vim.list_extend(vim.deepcopy(cmd), gotest_args)
-
-    gotest_command = cmd
   end
 
+  return M.build_runspec(
+    pos,
+    test_folder_absolute_path,
+    test_cmd,
+    golist_output,
+    json_filepath,
+    strategy,
+    test_name
+  )
+end
+
+--- Build runspec for a directory of tests
+--- @param pos neotest.Position
+--- @param cwd string
+--- @param test_cmd table<string>
+--- @param golist_output table
+--- @param json_filepath string | nil
+--- @param strategy string
+--- @param test_name string
+--- @return neotest.RunSpec | neotest.RunSpec[] | nil
+function M.build_runspec(
+  pos,
+  cwd,
+  test_cmd,
+  golist_output,
+  json_filepath,
+  strategy,
+  test_name
+)
   --- @type neotest.RunSpec
   local run_spec = {
-    command = gotest_command,
-    cwd = test_folder_absolute_path,
+    command = test_cmd,
+    cwd = cwd,
     context = {
       id = pos.id,
       test_filepath = pos.path,
@@ -84,8 +90,8 @@ function M.build(pos, strategy)
     },
   }
 
-  if jsonfile ~= nil then
-    run_spec.context.jsonfile = jsonfile
+  if json_filepath ~= nil then
+    run_spec.context.jsonfile = json_filepath
   end
 
   -- set up for debugging of test
@@ -100,7 +106,7 @@ function M.build(pos, strategy)
       if dap_go_opts.delve == nil then
         dap_go_opts.delve = {}
       end
-      dap_go_opts.delve.cwd = test_folder_absolute_path
+      dap_go_opts.delve.cwd = cwd
       require("dap-go").setup(dap_go_opts)
 
       -- reset nvim-dap-go (and cwd) after debugging with nvim-dap
