@@ -50,26 +50,7 @@ function M.build(pos)
     end
   end
 
-  --- The runner to use for running tests.
-  --- @type string
-  local runner = options.get().runner
-
-  -- TODO: if gotestsum, check if it is on $PATH, or fall back onto `go test`
-
-  --- The filepath to write test output JSON to, if using `gotestsum`.
-  --- @type string | nil
-  local json_filepath = nil
-
-  --- The final test command to execute.
-  --- @type table<string>
-  local test_cmd = {}
-
-  if runner == "go" then
-    test_cmd = cmd.build_gotest_cmd_for_dir(module_name)
-  elseif runner == "gotestsum" then
-    json_filepath = vim.fs.normalize(async.fn.tempname())
-    test_cmd = cmd.build_gotestsum_cmd_for_dir(module_name, json_filepath)
-  end
+  local test_cmd, json_filepath = cmd.build_test_command_for_dir(module_name)
 
   return M.build_runspec(
     pos,
@@ -127,6 +108,7 @@ end
 --- @param cwd string
 --- @param test_cmd table<string>
 --- @param golist_output table
+--- @param json_filepath string | nil
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build_runspec(pos, cwd, test_cmd, golist_output, json_filepath)
   --- @type neotest.RunSpec

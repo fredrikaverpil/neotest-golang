@@ -43,12 +43,16 @@ function M.results(spec, result, tree)
   --- @type neotest.Position
   local pos = tree:data()
 
+  --- The runner to use for running tests.
+  --- @type string
+  local runner = options.get().runner
+
   --- The raw output from the test command.
   --- @type table
   local raw_output = {}
-  if options.get().runner == "go" then
+  if runner == "go" then
     raw_output = async.fn.readfile(result.output)
-  elseif options.get().runner == "gotestsum" then
+  elseif runner == "gotestsum" then
     raw_output = async.fn.readfile(spec.context.jsonfile)
   end
 

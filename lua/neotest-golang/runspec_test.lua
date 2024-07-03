@@ -23,31 +23,10 @@ function M.build(pos, strategy)
   local test_name = convert.to_gotest_test_name(pos.id)
   test_name = convert.to_gotest_regex_pattern(test_name)
 
-  --- The runner to use for running tests.
-  --- @type string
-  local runner = options.get().runner
-
-  -- TODO: if gotestsum, check if it is on $PATH, or fall back onto `go test`
-
-  --- The filepath to write test output JSON to, if using `gotestsum`.
-  --- @type string | nil
-  local json_filepath = nil
-
-  --- The final test command to execute.
-  --- @type table<string>
-  local test_cmd = {}
-
-  if runner == "go" then
-    test_cmd =
-      cmd.build_gotest_cmd_for_test(test_folder_absolute_path, test_name)
-  elseif runner == "gotestsum" then
-    json_filepath = vim.fs.normalize(async.fn.tempname())
-    test_cmd = cmd.build_gotestsum_cmd_for_test(
-      test_folder_absolute_path,
-      test_name,
-      json_filepath
-    )
-  end
+  local test_cmd, json_filepath = cmd.build_test_command_for_individual_test(
+    test_folder_absolute_path,
+    test_name
+  )
 
   local runspec_strategy = nil
   if strategy == "dap" then
