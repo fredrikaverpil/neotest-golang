@@ -35,8 +35,7 @@ function M.build(pos)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local go_list_command = cmd.golist_cmd(go_mod_folderpath)
-  local golist_output = json.process_golist_output(go_list_command)
+  local golist_output = cmd.golist_output(go_mod_folderpath)
 
   -- find the go module that corresponds to the go_mod_folderpath
   local module_name = "./..." -- if no go module, run all tests at the $CWD

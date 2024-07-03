@@ -15,8 +15,7 @@ local M = {}
 function M.build(pos, strategy)
   --- @type string
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
-  local go_list_command = cmd.golist_cmd(test_folder_absolute_path)
-  local golist_output = json.process_golist_output(go_list_command)
+  local golist_output = cmd.golist_output(test_folder_absolute_path)
 
   --- @type string
   local test_name = convert.to_gotest_test_name(pos.id)
