@@ -1,7 +1,6 @@
 --- Helpers to build the command and context around running all tests of
 --- a Go module.
 
-local json = require("neotest-golang.json")
 local cmd = require("neotest-golang.cmd")
 
 local M = {}
