@@ -27,15 +27,14 @@ local M = {}
 --- @param result neotest.StrategyResult
 --- @param tree neotest.Tree
 --- @return table<string, neotest.Result>
-function M.results(spec, result, tree)
-  if spec.context.skip == true then
+function M.test_results(spec, result, tree)
+  if spec.context.debug_and_skip == true then
     ---@type table<string, neotest.Result>
     local results = {}
     results[spec.context.id] = {
       ---@type neotest.ResultStatus
       status = "skipped", -- default value
     }
-
     return results
   end
 
@@ -43,12 +42,19 @@ function M.results(spec, result, tree)
   --- @type neotest.Position
   local pos = tree:data()
 
-  --- The raw output from the 'go test -json' command.
-  --- @type table
-  local raw_output = async.fn.readfile(result.output)
+  --- The runner to use for running tests.
+  --- @type string
+  local runner = options.get().runner
 
-  --- The 'go test' JSON output, converted into a lua table.
+  --- The raw output from the test command.
   --- @type table
+  local raw_output = {}
+  if runner == "go" then
+    raw_output = async.fn.readfile(result.output)
+  elseif runner == "gotestsum" then
+    raw_output = async.fn.readfile(spec.context.json_filepath)
+  end
+
   local gotest_output = json.process_gotest_output(raw_output)
 
   --- The 'go list -json' output, converted into a lua table.
@@ -86,7 +92,7 @@ function M.results(spec, result, tree)
   }
 
   -- if the test execution was skipped, return early
-  if spec.context.skip == true then
+  if spec.context.test_execution_skipped == true then
     return neotest_result
   end
 

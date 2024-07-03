@@ -3,6 +3,8 @@
 local convert = require("neotest-golang.convert")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.json")
+local cmd = require("neotest-golang.cmd")
+local dap = require("neotest-golang.dap")
 
 local M = {}
 
@@ -13,44 +15,26 @@ local M = {}
 function M.build(pos, strategy)
   --- @type string
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
-
-  -- call 'go list -json ./...' to get test file data
-  local go_list_command = {
-    "go",
-    "list",
-    "-json",
-    "./...",
-  }
-  local go_list_command_result = vim.fn.system(
-    "cd "
-      .. test_folder_absolute_path
-      .. " && "
-      .. table.concat(go_list_command, " ")
-  )
-  local golist_output = json.process_golist_output(go_list_command_result)
+  local golist_output = cmd.golist_output(test_folder_absolute_path)
 
   --- @type string
   local test_name = convert.to_gotest_test_name(pos.id)
   test_name = convert.to_gotest_regex_pattern(test_name)
 
-  local gotest = {
-    "go",
-    "test",
-    "-json",
-  }
+  local test_cmd, json_filepath =
+    cmd.test_command_for_individual_test(test_folder_absolute_path, test_name)
 
-  --- @type table
-  local required_go_test_args = { test_folder_absolute_path, "-run", test_name }
-
-  local combined_args = vim.list_extend(
-    vim.deepcopy(options.get().go_test_args),
-    required_go_test_args
-  )
-  local gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
+  local runspec_strategy = nil
+  if strategy == "dap" then
+    if options.get().dap_go_enabled then
+      runspec_strategy = dap.get_dap_config(test_name)
+      dap.setup_debugging(test_folder_absolute_path)
+    end
+  end
 
   --- @type neotest.RunSpec
   local run_spec = {
-    command = gotest_command,
+    command = test_cmd,
     cwd = test_folder_absolute_path,
     context = {
       id = pos.id,
@@ -60,45 +44,16 @@ function M.build(pos, strategy)
     },
   }
 
-  -- set up for debugging of test
-  if strategy == "dap" then
-    run_spec.strategy = M.get_dap_config(test_name)
-    run_spec.context.skip = true -- do not attempt to parse test output
+  if json_filepath ~= nil then
+    run_spec.context.json_filepath = json_filepath
+  end
 
-    -- nvim-dap and nvim-dap-go cwd
-    if options.get().dap_go_enabled then
-      local dap_go_opts = options.get().dap_go_opts or {}
-      local dap_go_opts_original = vim.deepcopy(dap_go_opts)
-      if dap_go_opts.delve == nil then
-        dap_go_opts.delve = {}
-      end
-      dap_go_opts.delve.cwd = test_folder_absolute_path
-      require("dap-go").setup(dap_go_opts)
-
-      -- reset nvim-dap-go (and cwd) after debugging with nvim-dap
-      require("dap").listeners.after.event_terminated["neotest-golang-debug"] = function()
-        require("dap-go").setup(dap_go_opts_original)
-      end
-    end
+  if runspec_strategy ~= nil then
+    run_spec.strategy = runspec_strategy
+    run_spec.context.debug_and_skip = true
   end
 
   return run_spec
-end
-
---- @param test_name string
---- @return table | nil
-function M.get_dap_config(test_name)
-  -- :help dap-configuration
-  local dap_config = {
-    type = "go",
-    name = "Neotest-golang",
-    request = "launch",
-    mode = "test",
-    program = "${fileDirname}",
-    args = { "-test.run", "^" .. test_name .. "$" },
-  }
-
-  return dap_config
 end
 
 return M

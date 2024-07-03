@@ -1,8 +1,7 @@
 --- Helpers to build the command and context around running all tests of
 --- a Go module.
 
-local options = require("neotest-golang.options")
-local json = require("neotest-golang.json")
+local cmd = require("neotest-golang.cmd")
 
 local M = {}
 
@@ -17,10 +16,6 @@ local M = {}
 function M.build(pos)
   local go_mod_filepath = M.find_file_upwards("go.mod", pos.path)
 
-  -- if go_mod_filepath == nil then
-  --   go_mod_filepath = M.find_file_upwards("go.work", pos.path)
-  -- end
-
   -- if no go.mod file was found up the directory tree, until reaching $CWD,
   -- then we cannot determine the Go project root.
   if go_mod_filepath == nil then
@@ -31,7 +26,7 @@ function M.build(pos)
       command = { "echo", msg },
       context = {
         id = pos.id,
-        skip = true,
+        test_execution_skipped = true,
         pos_type = "dir",
       },
     }
@@ -39,19 +34,7 @@ function M.build(pos)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local cwd = go_mod_folderpath
-
-  -- call 'go list -json ./...' to get test file data
-  local go_list_command = {
-    "go",
-    "list",
-    "-json",
-    "./...",
-  }
-  local go_list_command_result = vim.fn.system(
-    "cd " .. go_mod_folderpath .. " && " .. table.concat(go_list_command, " ")
-  )
-  local golist_output = json.process_golist_output(go_list_command_result)
+  local golist_output = cmd.golist_output(go_mod_folderpath)
 
   -- find the go module that corresponds to the go_mod_folderpath
   local module_name = "./..." -- if no go module, run all tests at the $CWD
@@ -62,7 +45,25 @@ function M.build(pos)
     end
   end
 
-  return M.build_dir_test_runspec(pos, cwd, golist_output, module_name)
+  local test_cmd, json_filepath = cmd.test_command_for_dir(module_name)
+
+  --- @type neotest.RunSpec
+  local run_spec = {
+    command = test_cmd,
+    cwd = go_mod_folderpath,
+    context = {
+      id = pos.id,
+      test_filepath = pos.path,
+      golist_output = golist_output,
+      pos_type = "dir",
+    },
+  }
+
+  if json_filepath ~= nil then
+    run_spec.context.json_filepath = json_filepath
+  end
+
+  return run_spec
 end
 
 --- Find a file upwards in the directory tree and return its path, if found.
@@ -105,45 +106,6 @@ function M.remove_base_path(base_path, target_path)
   end
 
   return target_path
-end
-
---- Build runspec for a directory of tests
---- @param pos neotest.Position
---- @param cwd string
---- @param golist_output table
---- @param module_name string
---- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build_dir_test_runspec(pos, cwd, golist_output, module_name)
-  local gotest = {
-    "go",
-    "test",
-    "-json",
-  }
-
-  --- @type table
-  local required_go_test_args = {
-    module_name,
-  }
-
-  local combined_args = vim.list_extend(
-    vim.deepcopy(options.get().go_test_args),
-    required_go_test_args
-  )
-  local gotest_command = vim.list_extend(vim.deepcopy(gotest), combined_args)
-
-  --- @type neotest.RunSpec
-  local run_spec = {
-    command = gotest_command,
-    cwd = cwd,
-    context = {
-      id = pos.id,
-      test_filepath = pos.path,
-      golist_output = golist_output,
-      pos_type = "dir",
-    },
-  }
-
-  return run_spec
 end
 
 return M
