@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.3.1...v0.4.0) (2024-07-03)
+
+
+### Features
+
+* experimental gotestsum support and larger refactoring ([#81](https://github.com/fredrikaverpil/neotest-golang/issues/81)) ([8672472](https://github.com/fredrikaverpil/neotest-golang/commit/8672472905cee881a376344ca065ee9628639403))
+
+
+### Bug Fixes
+
+* dap error ([#88](https://github.com/fredrikaverpil/neotest-golang/issues/88)) ([d9b0bb2](https://github.com/fredrikaverpil/neotest-golang/commit/d9b0bb2e974294d3f016ba1b4ed62bdd618974ce))
+
 ## [0.3.1](https://github.com/fredrikaverpil/neotest-golang/compare/v0.3.0...v0.3.1) (2024-07-03)
 
 
