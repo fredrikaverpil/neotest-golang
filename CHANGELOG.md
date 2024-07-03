@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.2.0...v0.3.0) (2024-07-03)
+
+
+### Features
+
+* core test output parsing ([#82](https://github.com/fredrikaverpil/neotest-golang/issues/82)) ([e4d8020](https://github.com/fredrikaverpil/neotest-golang/commit/e4d8020a9df2883f0cf417d37aaf79a0759a4473)), closes [#4](https://github.com/fredrikaverpil/neotest-golang/issues/4)
+
 ## [0.2.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.1.2...v0.2.0) (2024-06-29)
 
 
