@@ -35,7 +35,6 @@ function M.test_results(spec, result, tree)
       ---@type neotest.ResultStatus
       status = "skipped", -- default value
     }
-
     return results
   end
 
@@ -56,8 +55,6 @@ function M.test_results(spec, result, tree)
     raw_output = async.fn.readfile(spec.context.json_filepath)
   end
 
-  --- The 'go test' JSON output, converted into a lua table.
-  --- @type table
   local gotest_output = json.process_gotest_output(raw_output)
 
   --- The 'go list -json' output, converted into a lua table.
