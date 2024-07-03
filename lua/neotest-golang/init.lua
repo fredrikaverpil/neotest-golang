@@ -147,13 +147,13 @@ function M.Adapter.results(spec, result, tree)
   if spec.context.pos_type == "dir" then
     -- A test command executed a directory of tests and the output/status must
     -- now be processed.
-    local results = parse.results(spec, result, tree)
+    local results = parse.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif spec.context.pos_type == "test" then
     -- A test command executed a single test and the output/status must now be
     -- processed.
-    local results = parse.results(spec, result, tree)
+    local results = parse.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   end
