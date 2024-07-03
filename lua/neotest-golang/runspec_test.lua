@@ -53,7 +53,7 @@ function M.build(pos, strategy)
 
   if runspec_strategy ~= nil then
     run_spec.strategy = runspec_strategy
-    run_spec.context.skip = true
+    run_spec.context.debug_and_skip = true
   end
 
   return run_spec

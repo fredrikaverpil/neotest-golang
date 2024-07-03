@@ -14,7 +14,7 @@ function M.build(pos, tree)
       command = { "echo", "No tests found in file" },
       context = {
         id = pos.id,
-        skip = true,
+        test_execution_skipped = true,
         pos_type = "test", -- TODO: to be implemented as "file" later
       },
     }

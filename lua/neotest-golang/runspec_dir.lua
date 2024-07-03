@@ -27,7 +27,7 @@ function M.build(pos)
       command = { "echo", msg },
       context = {
         id = pos.id,
-        skip = true,
+        test_execution_skipped = true,
         pos_type = "dir",
       },
     }

@@ -28,7 +28,7 @@ local M = {}
 --- @param tree neotest.Tree
 --- @return table<string, neotest.Result>
 function M.results(spec, result, tree)
-  if spec.context.skip == true then
+  if spec.context.debug_and_skip == true then
     ---@type table<string, neotest.Result>
     local results = {}
     results[spec.context.id] = {
@@ -95,7 +95,7 @@ function M.results(spec, result, tree)
   }
 
   -- if the test execution was skipped, return early
-  if spec.context.skip == true then
+  if spec.context.test_execution_skipped == true then
     return neotest_result
   end
 

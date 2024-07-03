@@ -171,7 +171,9 @@ function M.workaround_neotest_issue_391(result)
   -- FIXME: once output is parsed, erase file contents, so to avoid JSON in
   -- output panel. This is a workaround for now, only because of
   -- https://github.com/nvim-neotest/neotest/issues/391
-  vim.fn.writefile({ "" }, result.output)
+  if result.output ~= nil then
+    vim.fn.writefile({ "" }, result.output)
+  end
 end
 
 --- Adapter options.
