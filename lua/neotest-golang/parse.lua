@@ -28,6 +28,17 @@ local M = {}
 --- @param tree neotest.Tree
 --- @return table<string, neotest.Result>
 function M.results(spec, result, tree)
+  if spec.context.skip == true then
+    ---@type table<string, neotest.Result>
+    local results = {}
+    results[spec.context.id] = {
+      ---@type neotest.ResultStatus
+      status = "skipped", -- default value
+    }
+
+    return results
+  end
+
   --- The Neotest position tree node for this execution.
   --- @type neotest.Position
   local pos = tree:data()
