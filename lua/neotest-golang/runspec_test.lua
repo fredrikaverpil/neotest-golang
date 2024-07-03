@@ -15,17 +15,15 @@ local M = {}
 function M.build(pos, strategy)
   --- @type string
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
-  local go_list_command = cmd.build_golist_cmd(test_folder_absolute_path)
+  local go_list_command = cmd.golist_cmd(test_folder_absolute_path)
   local golist_output = json.process_golist_output(go_list_command)
 
   --- @type string
   local test_name = convert.to_gotest_test_name(pos.id)
   test_name = convert.to_gotest_regex_pattern(test_name)
 
-  local test_cmd, json_filepath = cmd.build_test_command_for_individual_test(
-    test_folder_absolute_path,
-    test_name
-  )
+  local test_cmd, json_filepath =
+    cmd.test_command_for_individual_test(test_folder_absolute_path, test_name)
 
   local runspec_strategy = nil
   if strategy == "dap" then

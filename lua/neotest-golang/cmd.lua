@@ -6,7 +6,7 @@ local options = require("neotest-golang.options")
 
 local M = {}
 
-function M.build_golist_cmd(cwd)
+function M.golist_cmd(cwd)
   -- call 'go list -json ./...' to get test file data
   local go_list_command = {
     "go",
@@ -19,12 +19,22 @@ function M.build_golist_cmd(cwd)
   return go_list_command_result
 end
 
-function M.build_test_command_for_individual_test(cwd, test_name)
+function M.fallback_to_go_test(executable)
+  if vim.fn.executable(executable) == 0 then
+    vim.notify(
+      "Runner " .. executable .. " not found. Falling back to 'go'.",
+      vim.log.levels.WARN
+    )
+    options.set({ runner = "go" })
+    return options.get().runner
+  end
+  return options.get().runner
+end
+
+function M.test_command_for_individual_test(cwd, test_name)
   --- The runner to use for running tests.
   --- @type string
-  local runner = options.get().runner
-
-  -- TODO: if gotestsum, check if it is on $PATH, or fall back onto `go test`
+  local runner = M.fallback_to_go_test(options.get().runner)
 
   --- The filepath to write test output JSON to, if using `gotestsum`.
   --- @type string | nil
@@ -35,21 +45,20 @@ function M.build_test_command_for_individual_test(cwd, test_name)
   local test_cmd = {}
 
   if runner == "go" then
-    test_cmd = M.build_gotest_cmd_for_test(cwd, test_name)
+    test_cmd = M.gotest_with_args_for_individual_test(cwd, test_name)
   elseif runner == "gotestsum" then
     json_filepath = vim.fs.normalize(async.fn.tempname())
-    test_cmd = M.build_gotestsum_cmd_for_test(cwd, test_name, json_filepath)
+    test_cmd =
+      M.gotestsum_with_args_for_individual_test(cwd, test_name, json_filepath)
   end
 
   return test_cmd, json_filepath
 end
 
-function M.build_test_command_for_dir(module_name)
+function M.test_command_for_dir(module_name)
   --- The runner to use for running tests.
   --- @type string
-  local runner = options.get().runner
-
-  -- TODO: if gotestsum, check if it is on $PATH, or fall back onto `go test`
+  local runner = M.fallback_to_go_test(options.get().runner)
 
   --- The filepath to write test output JSON to, if using `gotestsum`.
   --- @type string | nil
@@ -60,16 +69,16 @@ function M.build_test_command_for_dir(module_name)
   local test_cmd = {}
 
   if runner == "go" then
-    test_cmd = M.build_gotest_cmd_for_dir(module_name)
+    test_cmd = M.gotest_with_args_for_dir(module_name)
   elseif runner == "gotestsum" then
     json_filepath = vim.fs.normalize(async.fn.tempname())
-    test_cmd = M.build_gotestsum_cmd_for_dir(module_name, json_filepath)
+    test_cmd = M.gotestsum_with_args_cmd_for_dir(module_name, json_filepath)
   end
 
   return test_cmd, json_filepath
 end
 
-function M.build_gotest_cmd_for_dir(module_name)
+function M.gotest_with_args_for_dir(module_name)
   local gotest = {
     "go",
     "test",
@@ -89,7 +98,7 @@ function M.build_gotest_cmd_for_dir(module_name)
   return cmd
 end
 
-function M.build_gotestsum_cmd_for_dir(module_name, json_filepath)
+function M.gotestsum_with_args_cmd_for_dir(module_name, json_filepath)
   local gotest = { "gotestsum" }
   local gotestsum_json = {
     "--jsonfile=" .. json_filepath,
@@ -113,7 +122,10 @@ function M.build_gotestsum_cmd_for_dir(module_name, json_filepath)
   return cmd
 end
 
-function M.build_gotest_cmd_for_test(test_folder_absolute_path, test_name)
+function M.gotest_with_args_for_individual_test(
+  test_folder_absolute_path,
+  test_name
+)
   --- @type table
   local required_go_test_args = { test_folder_absolute_path, "-run", test_name }
 
@@ -131,7 +143,7 @@ function M.build_gotest_cmd_for_test(test_folder_absolute_path, test_name)
   return cmd
 end
 
-function M.build_gotestsum_cmd_for_test(
+function M.gotestsum_with_args_for_individual_test(
   test_folder_absolute_path,
   test_name,
   json_filepath

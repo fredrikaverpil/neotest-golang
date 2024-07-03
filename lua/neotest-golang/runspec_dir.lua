@@ -35,7 +35,7 @@ function M.build(pos)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local go_list_command = cmd.build_golist_cmd(go_mod_folderpath)
+  local go_list_command = cmd.golist_cmd(go_mod_folderpath)
   local golist_output = json.process_golist_output(go_list_command)
 
   -- find the go module that corresponds to the go_mod_folderpath
@@ -47,7 +47,7 @@ function M.build(pos)
     end
   end
 
-  local test_cmd, json_filepath = cmd.build_test_command_for_dir(module_name)
+  local test_cmd, json_filepath = cmd.test_command_for_dir(module_name)
 
   --- @type neotest.RunSpec
   local run_spec = {

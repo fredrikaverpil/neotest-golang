@@ -28,4 +28,11 @@ function M.get()
   return opts
 end
 
+function M.set(updated_opts)
+  for k, v in pairs(updated_opts) do
+    opts[k] = v
+  end
+  return opts
+end
+
 return M
