@@ -5,6 +5,7 @@ local options = require("neotest-golang.options")
 local ast = require("neotest-golang.ast")
 local runspec_dir = require("neotest-golang.runspec_dir")
 local runspec_file = require("neotest-golang.runspec_file")
+local runspec_namespace = require("neotest-golang.runspec_namespace")
 local runspec_test = require("neotest-golang.runspec_test")
 local parse = require("neotest-golang.parse")
 
@@ -115,6 +116,12 @@ function M.Adapter.build_spec(args)
     -- A runspec is to be created, based on on running all tests in the given
     -- file.
     return runspec_file.build(pos, tree)
+  elseif pos.type == "namespace" then
+    -- A runspec is to be created, based on running all tests in the given
+    -- namespace.
+
+    -- return runspec_namespace.build(pos)
+    return -- delegate to type 'test'
   elseif pos.type == "test" then
     -- A runspec is to be created, based on on running the given test.
     return runspec_test.build(pos, args.strategy)
