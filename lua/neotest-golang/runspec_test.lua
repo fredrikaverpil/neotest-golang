@@ -37,36 +37,10 @@ function M.build(pos, strategy)
     end
   end
 
-  return M.build_runspec(
-    pos,
-    test_folder_absolute_path,
-    test_cmd,
-    golist_output,
-    json_filepath,
-    runspec_strategy
-  )
-end
-
---- Build runspec for a directory of tests
---- @param pos neotest.Position
---- @param cwd string
---- @param test_cmd table<string>
---- @param golist_output table
---- @param json_filepath string | nil
---- @param runspec_strategy table | nil
---- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build_runspec(
-  pos,
-  cwd,
-  test_cmd,
-  golist_output,
-  json_filepath,
-  runspec_strategy
-)
   --- @type neotest.RunSpec
   local run_spec = {
     command = test_cmd,
-    cwd = cwd,
+    cwd = test_folder_absolute_path,
     context = {
       id = pos.id,
       test_filepath = pos.path,

@@ -1,9 +1,6 @@
 --- Helpers to build the command and context around running all tests of
 --- a Go module.
 
-local async = require("neotest.async")
-
-local options = require("neotest-golang.options")
 local json = require("neotest-golang.json")
 local cmd = require("neotest-golang.cmd")
 
@@ -52,13 +49,23 @@ function M.build(pos)
 
   local test_cmd, json_filepath = cmd.build_test_command_for_dir(module_name)
 
-  return M.build_runspec(
-    pos,
-    go_mod_folderpath,
-    test_cmd,
-    golist_output,
-    json_filepath
-  )
+  --- @type neotest.RunSpec
+  local run_spec = {
+    command = test_cmd,
+    cwd = go_mod_folderpath,
+    context = {
+      id = pos.id,
+      test_filepath = pos.path,
+      golist_output = golist_output,
+      pos_type = "dir",
+    },
+  }
+
+  if json_filepath ~= nil then
+    run_spec.context.jsonfile = json_filepath
+  end
+
+  return run_spec
 end
 
 --- Find a file upwards in the directory tree and return its path, if found.
@@ -101,33 +108,6 @@ function M.remove_base_path(base_path, target_path)
   end
 
   return target_path
-end
-
---- Build runspec for a directory of tests
---- @param pos neotest.Position
---- @param cwd string
---- @param test_cmd table<string>
---- @param golist_output table
---- @param json_filepath string | nil
---- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build_runspec(pos, cwd, test_cmd, golist_output, json_filepath)
-  --- @type neotest.RunSpec
-  local run_spec = {
-    command = test_cmd,
-    cwd = cwd,
-    context = {
-      id = pos.id,
-      test_filepath = pos.path,
-      golist_output = golist_output,
-      pos_type = "dir",
-    },
-  }
-
-  if json_filepath ~= nil then
-    run_spec.context.jsonfile = json_filepath
-  end
-
-  return run_spec
 end
 
 return M
