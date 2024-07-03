@@ -1,7 +1,5 @@
 --- Helpers to build the command and context around running a single test.
 
-local async = require("neotest.async")
-
 local convert = require("neotest-golang.convert")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.json")
