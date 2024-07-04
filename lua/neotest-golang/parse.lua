@@ -15,7 +15,7 @@ local json = require("neotest-golang.json")
 --- @field golist_output table<string, string> Filepath to 'go list' JSON data (lua table). -- TODO: rename to golist_data
 --- @field parse_test_results boolean If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
---- @field test_execution_skipped? boolean If true, parsing of test output should be skipped.
+--- @field dummy_test? boolean Temporary workaround before supporting position type 'test'.
 
 --- @class TestData
 --- @field status neotest.ResultStatus
@@ -90,7 +90,7 @@ function M.test_results(spec, result, tree)
   --- Test command (e.g. 'go test') status.
   --- @type neotest.ResultStatus
   local test_command_status = "skipped"
-  if context.test_execution_skipped == true then
+  if context.dummy_test == true then
     test_command_status = "skipped"
   elseif result.code == 0 then
     test_command_status = "passed"
@@ -116,7 +116,7 @@ function M.test_results(spec, result, tree)
   }
 
   -- if the test execution was skipped, return early
-  if context.test_execution_skipped == true then
+  if context.dummy_test == true then
     return neotest_result
   end
 

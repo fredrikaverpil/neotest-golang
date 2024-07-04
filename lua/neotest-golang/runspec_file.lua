@@ -14,7 +14,7 @@ function M.build(pos, tree)
       pos_type = "test", -- TODO: to be implemented as "file" later
       golist_output = {}, -- no golist output
       parse_test_results = true,
-      test_execution_skipped = true,
+      dummy_test = true,
     }
 
     --- Runspec designed for files that contain no tests.
