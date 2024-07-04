@@ -15,30 +15,18 @@ local M = {}
 --- @return neotest.RunSpec | nil
 function M.build(pos)
   local go_mod_filepath = M.find_file_upwards("go.mod", pos.path)
-
-  -- if no go.mod file was found up the directory tree, until reaching $CWD,
-  -- then we cannot determine the Go project root.
   if go_mod_filepath == nil then
-    local msg = "The selected folder must contain a go.mod file "
-      .. "or be a subdirectory of a Go module."
-    vim.notify(msg, vim.log.levels.ERROR)
-    local run_spec = {
-      command = { "echo", msg },
-      context = {
-        id = pos.id,
-        test_execution_skipped = true,
-        pos_type = "dir",
-      },
-    }
-    return run_spec
+    -- if no go.mod file was found up the directory tree, until reaching $CWD,
+    -- then we cannot determine the Go project root.
+    return M.fail_fast(pos)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local golist_output = cmd.golist_output(go_mod_folderpath)
+  local golist_data = cmd.golist_data(go_mod_folderpath)
 
   -- find the go module that corresponds to the go_mod_folderpath
   local module_name = "./..." -- if no go module, run all tests at the $CWD
-  for _, golist_item in ipairs(golist_output) do
+  for _, golist_item in ipairs(golist_data) do
     if pos.path == golist_item.Dir then
       module_name = golist_item.ImportPath
       break
@@ -47,22 +35,43 @@ function M.build(pos)
 
   local test_cmd, json_filepath = cmd.test_command_for_dir(module_name)
 
+  --- @type RunspecContext
+  local context = {
+    pos_id = pos.id,
+    pos_type = "dir",
+    golist_data = golist_data,
+    parse_test_results = true,
+    test_output_json_filepath = json_filepath,
+  }
+
   --- @type neotest.RunSpec
   local run_spec = {
     command = test_cmd,
     cwd = go_mod_folderpath,
-    context = {
-      id = pos.id,
-      test_filepath = pos.path,
-      golist_output = golist_output,
-      pos_type = "dir",
-    },
+    context = context,
   }
 
-  if json_filepath ~= nil then
-    run_spec.context.json_filepath = json_filepath
-  end
+  return run_spec
+end
 
+function M.fail_fast(pos)
+  local msg = "The selected folder must contain a go.mod file "
+    .. "or be a subdirectory of a Go module."
+  vim.notify(msg, vim.log.levels.ERROR)
+
+  --- @type RunspecContext
+  local context = {
+    pos_id = pos.id,
+    pos_type = "dir",
+    golist_data = {}, -- no golist output
+    parse_test_results = false,
+  }
+
+  --- @type neotest.RunSpec
+  local run_spec = {
+    command = { "echo", msg },
+    context = context,
+  }
   return run_spec
 end
 

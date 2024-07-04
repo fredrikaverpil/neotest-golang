@@ -6,6 +6,17 @@ local options = require("neotest-golang.options")
 local convert = require("neotest-golang.convert")
 local json = require("neotest-golang.json")
 
+-- TODO: remove pos_type when properly supporting all position types.
+-- and instead get this from the pos.type field.
+
+--- @class RunspecContext
+--- @field pos_id string Neotest tree position id.
+--- @field pos_type neotest.PositionType Neotest tree position type.
+--- @field golist_data table<string, string> Filepath to 'go list' JSON data (lua table). -- TODO: rename to golist_data
+--- @field parse_test_results boolean If true, parsing of test output will occur.
+--- @field test_output_json_filepath? string Gotestsum JSON filepath.
+--- @field dummy_test? boolean Temporary workaround before supporting position type 'test'.
+
 --- @class TestData
 --- @field status neotest.ResultStatus
 --- @field short? string Shortened output string
@@ -28,19 +39,32 @@ local M = {}
 --- @param tree neotest.Tree
 --- @return table<string, neotest.Result>
 function M.test_results(spec, result, tree)
-  if spec.context.debug_and_skip == true then
+  --- @type RunspecContext
+  local context = spec.context
+
+  if context.parse_test_results == false then
     ---@type table<string, neotest.Result>
     local results = {}
-    results[spec.context.id] = {
+    results[context.pos_id] = {
       ---@type neotest.ResultStatus
-      status = "skipped", -- default value
+      status = "skipped",
     }
-    return results
+    return results -- return early, fail fast
   end
 
   --- The Neotest position tree node for this execution.
   --- @type neotest.Position
   local pos = tree:data()
+
+  -- Sanity check
+  if options.get().dev_notifications == true then
+    if pos.id ~= context.pos_id then
+      vim.notify(
+        "Neotest position id mismatch: " .. pos.id .. " vs " .. context.pos_id,
+        vim.log.levels.ERROR
+      )
+    end
+  end
 
   --- The runner to use for running tests.
   --- @type string
@@ -52,13 +76,13 @@ function M.test_results(spec, result, tree)
   if runner == "go" then
     raw_output = async.fn.readfile(result.output)
   elseif runner == "gotestsum" then
-    raw_output = async.fn.readfile(spec.context.json_filepath)
+    raw_output = async.fn.readfile(context.test_output_json_filepath)
   end
 
   local gotest_output = json.process_gotest_output(raw_output)
 
   --- The 'go list -json' output, converted into a lua table.
-  local golist_output = spec.context.golist_output
+  local golist_output = context.golist_data
 
   --- @type table<string, neotest.Result>
   local neotest_result = {}
@@ -66,7 +90,7 @@ function M.test_results(spec, result, tree)
   --- Test command (e.g. 'go test') status.
   --- @type neotest.ResultStatus
   local test_command_status = "skipped"
-  if spec.context.skip == true then
+  if context.dummy_test == true then
     test_command_status = "skipped"
   elseif result.code == 0 then
     test_command_status = "passed"
@@ -92,7 +116,7 @@ function M.test_results(spec, result, tree)
   }
 
   -- if the test execution was skipped, return early
-  if spec.context.test_execution_skipped == true then
+  if context.dummy_test == true then
     return neotest_result
   end
 

@@ -8,15 +8,20 @@ local M = {}
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos, tree)
   if vim.tbl_isempty(tree:children()) then
+    --- @type RunspecContext
+    local context = {
+      pos_id = pos.id,
+      pos_type = "test", -- TODO: to be implemented as "file" later
+      golist_data = {}, -- no golist output
+      parse_test_results = true,
+      dummy_test = true,
+    }
+
     --- Runspec designed for files that contain no tests.
     --- @type neotest.RunSpec
     local run_spec = {
       command = { "echo", "No tests found in file" },
-      context = {
-        id = pos.id,
-        test_execution_skipped = true,
-        pos_type = "test", -- TODO: to be implemented as "file" later
-      },
+      context = context,
     }
     return run_spec
   else
