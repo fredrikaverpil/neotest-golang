@@ -36,6 +36,7 @@ function M.build(pos, strategy)
     pos_id = pos.id,
     pos_type = "test",
     golist_output = golist_output,
+    parse_test_results = true,
     test_output_json_filepath = json_filepath,
   }
 
