@@ -11,7 +11,7 @@ local M = {}
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos, tree)
   if vim.tbl_isempty(tree:children()) then
-    M.fail_fast(pos)
+    return M.fail_fast(pos)
   end
 
   local go_mod_filepath = runspec_dir.find_file_upwards("go.mod", pos.path)
@@ -24,13 +24,29 @@ function M.build(pos, tree)
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
   local golist_data = cmd.golist_data(go_mod_folderpath)
 
-  -- find the go module that corresponds to the go_mod_folderpath
-  local module_name = "./..." -- if no go module, run all tests at the $CWD
+  -- find the go package that corresponds to the pos.path
+  local package_name = "./..."
+  local pos_path_filename = vim.fn.fnamemodify(pos.path, ":t")
+  for _, golist_item in ipairs(golist_data) do
+    if golist_item.TestGoFiles ~= nil then
+      if vim.tbl_contains(golist_item.TestGoFiles, pos_path_filename) then
+        package_name = golist_item.ImportPath
+        break
+      end
+    end
+  end
 
-  local test_names_regexp =
-    M.find_tests_in_file(pos, golist_data, go_mod_folderpath, module_name)
-  local test_cmd, json_filepath =
-    cmd.test_command_for_file(module_name, test_names_regexp)
+  -- use sed to find all top-level tests in pos.path
+  local test_cmd = nil
+  local json_filepath = nil
+  local regexp = cmd.sed_regexp(pos.path)
+  if regexp ~= nil then
+    test_cmd, json_filepath =
+      cmd.test_command_in_package_with_regexp(package_name, regexp)
+  else
+    -- fallback: run all tests in the package
+    test_cmd, json_filepath = cmd.test_command_in_package(package_name)
+  end
 
   --- @type RunspecContext
   local context = {
@@ -57,8 +73,7 @@ function M.fail_fast(pos)
     pos_id = pos.id,
     pos_type = "file",
     golist_data = {}, -- no golist output
-    parse_test_results = true,
-    dummy_test = true,
+    parse_test_results = false,
   }
 
   --- Runspec designed for files that contain no tests.
@@ -68,25 +83,6 @@ function M.fail_fast(pos)
     context = context,
   }
   return run_spec
-end
-
-function M.find_tests_in_file(pos, golist_data, go_mod_folderpath, module_name)
-  local pos_path_filename = vim.fn.fnamemodify(pos.path, ":t")
-
-  for _, golist_item in ipairs(golist_data) do
-    if golist_item.TestGoFiles ~= nil then
-      if vim.tbl_contains(golist_item.TestGoFiles, pos_path_filename) then
-        module_name = golist_item.ImportPath
-        break
-      end
-    end
-  end
-
-  -- FIXME: this grabs all test files from the package. We only want the one in the file.
-  local test_names = cmd.gotest_list_data(go_mod_folderpath, module_name)
-  local test_names_regexp = "^(" .. table.concat(test_names, "|") .. ")$"
-
-  return test_names_regexp
 end
 
 return M

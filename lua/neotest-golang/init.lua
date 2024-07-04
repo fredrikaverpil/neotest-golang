@@ -69,7 +69,7 @@ function M.Adapter.build_spec(args)
 
   --- The position object, describing the current directory, file or test.
   --- @type neotest.Position
-  local pos = args.tree:data()
+  local pos = args.tree:data() -- NOTE: causes <file> is not accessible by the current user!
 
   if not tree then
     vim.notify(
@@ -100,11 +100,6 @@ function M.Adapter.build_spec(args)
   -- The idea here is not to have such fallbacks take place in the future, but
   -- while this adapter is being developed, it can be useful to have such
   -- functionality.
-  --
-  -- NOTE: Right now the adapter is not yet complete, and cannot
-  -- handle the 'file' position type. The goal is to try to support this,
-  -- as it is not efficient to run all tests in a file individually, when you
-  -- might want to run all tests in the file using one 'go test' command.
 
   if pos.type == "dir" and pos.path == vim.fn.getcwd() then
     -- A runspec is to be created, based on running all tests in the given
@@ -126,7 +121,7 @@ function M.Adapter.build_spec(args)
   end
 
   vim.notify(
-    "Unknown Neotest test position type, "
+    "Unknown Neotest position type, "
       .. "cannot build runspec with position type: "
       .. pos.type,
     vim.log.levels.ERROR
@@ -135,9 +130,6 @@ end
 
 --- Process the test command output and result. Populate test outcome into the
 --- Neotest internal tree structure.
----
---- TODO: implement parsing of 'file' position type results.
----
 --- @async
 --- @param spec neotest.RunSpec
 --- @param result neotest.StrategyResult

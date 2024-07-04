@@ -2,7 +2,6 @@
 
 local async = require("neotest.async")
 
-local convert = require("neotest-golang.convert")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.json")
 
@@ -21,51 +20,36 @@ function M.golist_data(cwd)
   return json.process_golist_output(output)
 end
 
-function M.gotest_list_data(go_mod_folderpath, module_name)
-  local cmd = { "go", "test", "-v", "-json", "-list", "^Test", module_name }
-  local output = vim.fn.system(
-    "cd " .. go_mod_folderpath .. " && " .. table.concat(cmd, " ")
-  )
-
-  -- FIXME: weird... would've expected to call process_gotest_output
-  local json_output = json.process_golist_output(output)
-
-  --- @type string[]
-  local test_names = {}
-  for _, v in ipairs(json_output) do
-    if v.Action == "output" then
-      --- @type string
-      local test_name = string.gsub(v.Output, "\n", "")
-      if string.match(test_name, "^Test") then
-        test_names = vim.list_extend(
-          test_names,
-          { convert.to_gotest_regex_pattern(test_name) }
-        )
-      end
-    end
+function M.sed_regexp(filepath)
+  if M.system_has("sed") == false then
+    return nil
   end
-
-  return test_names
+  local sed_command =
+    string.format("sed -n '/func Test/p' %s", vim.fn.shellescape(filepath))
+  local handle = io.popen(sed_command)
+  local result = nil
+  if handle ~= nil then
+    result = handle:read("*a")
+    handle:close()
+  end
+  local lines = {}
+  for line in string.gmatch(result, "([^\n]*)\n") do
+    line = string.gsub(line, "func ", "")
+    line = string.gsub(line, "%(.*", "")
+    table.insert(lines, line)
+  end
+  local regexp = "^(" .. table.concat(lines, "|") .. ")$"
+  return regexp
 end
 
-function M.test_command_for_dir(module_name)
-  local go_test_required_args = { module_name }
+function M.test_command_in_package(package_or_path)
+  local go_test_required_args = { package_or_path }
   local cmd, json_filepath = M.test_command(go_test_required_args)
   return cmd, json_filepath
 end
 
-function M.test_command_for_file(module_name, test_names_regexp)
-  local go_test_required_args = { "-run", test_names_regexp, module_name }
-  local cmd, json_filepath = M.test_command(go_test_required_args)
-
-  return cmd, json_filepath
-end
-
-function M.test_command_for_individual_test(
-  test_folder_absolute_path,
-  test_name
-)
-  local go_test_required_args = { test_folder_absolute_path, "-run", test_name }
+function M.test_command_in_package_with_regexp(package_or_path, regexp)
+  local go_test_required_args = { package_or_path, "-run", regexp }
   local cmd, json_filepath = M.test_command(go_test_required_args)
   return cmd, json_filepath
 end
@@ -73,7 +57,7 @@ end
 function M.test_command(go_test_required_args)
   --- The runner to use for running tests.
   --- @type string
-  local runner = M.fallback_to_go_test(options.get().runner)
+  local runner = M.runner_fallback(options.get().runner)
 
   --- The filepath to write test output JSON to, if using `gotestsum`.
   --- @type string | nil
@@ -109,16 +93,20 @@ function M.gotestsum(go_test_required_args, json_filepath)
   return cmd
 end
 
-function M.fallback_to_go_test(executable)
-  if vim.fn.executable(executable) == 0 then
-    vim.notify(
-      "Runner " .. executable .. " not found. Falling back to 'go'.",
-      vim.log.levels.WARN
-    )
+function M.runner_fallback(executable)
+  if M.system_has(executable) == false then
     options.set({ runner = "go" })
     return options.get().runner
   end
   return options.get().runner
+end
+
+function M.system_has(executable)
+  if vim.fn.executable(executable) == 0 then
+    vim.notify("Executable not found: " .. executable, vim.log.levels.WARN)
+    return false
+  end
+  return true
 end
 
 return M

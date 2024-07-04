@@ -1,5 +1,5 @@
 --- Helpers to build the command and context around running all tests of
---- a Go module.
+--- a Go package.
 
 local cmd = require("neotest-golang.cmd")
 
@@ -24,16 +24,16 @@ function M.build(pos)
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
   local golist_data = cmd.golist_data(go_mod_folderpath)
 
-  -- find the go module that corresponds to the go_mod_folderpath
-  local module_name = "./..." -- if no go module, run all tests at the $CWD
+  -- find the go package that corresponds to the go_mod_folderpath
+  local package_name = "./..."
   for _, golist_item in ipairs(golist_data) do
     if pos.path == golist_item.Dir then
-      module_name = golist_item.ImportPath
+      package_name = golist_item.ImportPath
       break
     end
   end
 
-  local test_cmd, json_filepath = cmd.test_command_for_dir(module_name)
+  local test_cmd, json_filepath = cmd.test_command_in_package(package_name)
 
   --- @type RunspecContext
   local context = {
@@ -56,7 +56,7 @@ end
 
 function M.fail_fast(pos)
   local msg = "The selected folder must contain a go.mod file "
-    .. "or be a subdirectory of a Go module."
+    .. "or be a subdirectory of a Go package."
   vim.notify(msg, vim.log.levels.ERROR)
 
   --- @type RunspecContext
