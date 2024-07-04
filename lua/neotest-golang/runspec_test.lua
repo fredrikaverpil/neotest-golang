@@ -14,7 +14,7 @@ local M = {}
 function M.build(pos, strategy)
   --- @type string
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
-  local golist_output = cmd.golist_output(test_folder_absolute_path)
+  local golist_data = cmd.golist_data(test_folder_absolute_path)
 
   --- @type string
   local test_name = convert.to_gotest_test_name(pos.id)
@@ -35,7 +35,7 @@ function M.build(pos, strategy)
   local context = {
     pos_id = pos.id,
     pos_type = "test",
-    golist_output = golist_output,
+    golist_data = golist_data,
     parse_test_results = true,
     test_output_json_filepath = json_filepath,
   }

@@ -7,7 +7,7 @@ local json = require("neotest-golang.json")
 
 local M = {}
 
-function M.golist_output(cwd)
+function M.golist_data(cwd)
   -- call 'go list -json ./...' to get test file data
   local go_list_command = {
     "go",

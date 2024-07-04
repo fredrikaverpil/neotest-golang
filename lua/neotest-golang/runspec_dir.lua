@@ -22,11 +22,11 @@ function M.build(pos)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local golist_output = cmd.golist_output(go_mod_folderpath)
+  local golist_data = cmd.golist_data(go_mod_folderpath)
 
   -- find the go module that corresponds to the go_mod_folderpath
   local module_name = "./..." -- if no go module, run all tests at the $CWD
-  for _, golist_item in ipairs(golist_output) do
+  for _, golist_item in ipairs(golist_data) do
     if pos.path == golist_item.Dir then
       module_name = golist_item.ImportPath
       break
@@ -39,7 +39,7 @@ function M.build(pos)
   local context = {
     pos_id = pos.id,
     pos_type = "dir",
-    golist_output = golist_output,
+    golist_data = golist_data,
     parse_test_results = true,
     test_output_json_filepath = json_filepath,
   }
@@ -63,7 +63,7 @@ function M.fail_fast(pos)
   local context = {
     pos_id = pos.id,
     pos_type = "dir",
-    golist_output = {}, -- no golist output
+    golist_data = {}, -- no golist output
     parse_test_results = false,
   }
 

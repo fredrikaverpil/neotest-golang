@@ -12,7 +12,7 @@ local json = require("neotest-golang.json")
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
 --- @field pos_type neotest.PositionType Neotest tree position type.
---- @field golist_output table<string, string> Filepath to 'go list' JSON data (lua table). -- TODO: rename to golist_data
+--- @field golist_data table<string, string> Filepath to 'go list' JSON data (lua table). -- TODO: rename to golist_data
 --- @field parse_test_results boolean If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 --- @field dummy_test? boolean Temporary workaround before supporting position type 'test'.
@@ -82,7 +82,7 @@ function M.test_results(spec, result, tree)
   local gotest_output = json.process_gotest_output(raw_output)
 
   --- The 'go list -json' output, converted into a lua table.
-  local golist_output = context.golist_output
+  local golist_output = context.golist_data
 
   --- @type table<string, neotest.Result>
   local neotest_result = {}
