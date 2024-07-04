@@ -45,14 +45,15 @@ function M.build(pos)
     end
   end
 
-  local test_cmd, json_filepath = cmd.test_command_for_dir(module_name)
+  local test_cmd, gotestsum_json_filepath =
+    cmd.test_command_for_dir(module_name)
 
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
     pos_type = "dir",
     golist_output = golist_output,
-    json_filepath = json_filepath,
+    gotestsum_json_filepath = gotestsum_json_filepath,
   }
 
   --- @type neotest.RunSpec

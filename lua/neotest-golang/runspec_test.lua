@@ -2,7 +2,6 @@
 
 local convert = require("neotest-golang.convert")
 local options = require("neotest-golang.options")
-local json = require("neotest-golang.json")
 local cmd = require("neotest-golang.cmd")
 local dap = require("neotest-golang.dap")
 
@@ -21,7 +20,7 @@ function M.build(pos, strategy)
   local test_name = convert.to_gotest_test_name(pos.id)
   test_name = convert.to_gotest_regex_pattern(test_name)
 
-  local test_cmd, json_filepath =
+  local test_cmd, gotestsum_json_filepath =
     cmd.test_command_for_individual_test(test_folder_absolute_path, test_name)
 
   local runspec_strategy = nil
@@ -37,6 +36,7 @@ function M.build(pos, strategy)
     pos_id = pos.id,
     pos_type = "test",
     golist_output = golist_output,
+    gotestsum_json_filepath = gotestsum_json_filepath,
   }
 
   --- @type neotest.RunSpec
@@ -45,10 +45,6 @@ function M.build(pos, strategy)
     cwd = test_folder_absolute_path,
     context = context,
   }
-
-  if json_filepath ~= nil then
-    run_spec.context.json_filepath = json_filepath
-  end
 
   if runspec_strategy ~= nil then
     run_spec.strategy = runspec_strategy
