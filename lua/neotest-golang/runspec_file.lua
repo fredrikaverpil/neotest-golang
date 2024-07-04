@@ -10,7 +10,7 @@ function M.build(pos, tree)
   if vim.tbl_isempty(tree:children()) then
     --- @type RunspecContext
     local context = {
-      id = pos.id,
+      pos_id = pos.id,
       pos_type = "test", -- TODO: to be implemented as "file" later
       test_execution_skipped = true,
     }

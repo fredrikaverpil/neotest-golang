@@ -34,9 +34,8 @@ function M.build(pos, strategy)
 
   --- @type RunspecContext
   local context = {
-    id = pos.id,
+    pos_id = pos.id,
     pos_type = "test",
-    test_filepath = pos.path,
     golist_output = golist_output,
   }
 

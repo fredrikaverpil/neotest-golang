@@ -49,9 +49,8 @@ function M.build(pos)
 
   --- @type RunspecContext
   local context = {
-    id = pos.id,
+    pos_id = pos.id,
     pos_type = "dir",
-    test_filepath = pos.path,
     golist_output = golist_output,
     json_filepath = json_filepath,
   }
