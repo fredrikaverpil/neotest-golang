@@ -2,6 +2,7 @@
 
 local async = require("neotest.async")
 
+local convert = require("neotest-golang.convert")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.json")
 
@@ -20,17 +21,51 @@ function M.golist_data(cwd)
   return json.process_golist_output(output)
 end
 
+function M.gotest_list_data(go_mod_folderpath, module_name)
+  local cmd = { "go", "test", "-v", "-json", "-list", "^Test", module_name }
+  local output = vim.fn.system(
+    "cd " .. go_mod_folderpath .. " && " .. table.concat(cmd, " ")
+  )
+
+  -- FIXME: weird... would've expected to call process_gotest_output
+  local json_output = json.process_golist_output(output)
+
+  --- @type string[]
+  local test_names = {}
+  for _, v in ipairs(json_output) do
+    if v.Action == "output" then
+      --- @type string
+      local test_name = string.gsub(v.Output, "\n", "")
+      if string.match(test_name, "^Test") then
+        test_names = vim.list_extend(
+          test_names,
+          { convert.to_gotest_regex_pattern(test_name) }
+        )
+      end
+    end
+  end
+
+  return test_names
+end
+
+function M.test_command_for_dir(module_name)
+  local go_test_required_args = { module_name }
+  local cmd, json_filepath = M.test_command(go_test_required_args)
+  return cmd, json_filepath
+end
+
+function M.test_command_for_file(module_name, test_names_regexp)
+  local go_test_required_args = { "-run", test_names_regexp, module_name }
+  local cmd, json_filepath = M.test_command(go_test_required_args)
+
+  return cmd, json_filepath
+end
+
 function M.test_command_for_individual_test(
   test_folder_absolute_path,
   test_name
 )
   local go_test_required_args = { test_folder_absolute_path, "-run", test_name }
-  local cmd, json_filepath = M.test_command(go_test_required_args)
-  return cmd, json_filepath
-end
-
-function M.test_command_for_dir(module_name)
-  local go_test_required_args = { module_name }
   local cmd, json_filepath = M.test_command(go_test_required_args)
   return cmd, json_filepath
 end

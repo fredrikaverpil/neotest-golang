@@ -150,6 +150,12 @@ function M.Adapter.results(spec, result, tree)
     local results = parse.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
+  elseif spec.context.pos_type == "file" then
+    -- A test command executed a file of tests and the output/status must
+    -- now be processed.
+    local results = parse.test_results(spec, result, tree)
+    M.workaround_neotest_issue_391(result)
+    return results
   elseif spec.context.pos_type == "test" then
     -- A test command executed a single test and the output/status must now be
     -- processed.
@@ -171,8 +177,18 @@ function M.workaround_neotest_issue_391(result)
   -- FIXME: once output is parsed, erase file contents, so to avoid JSON in
   -- output panel. This is a workaround for now, only because of
   -- https://github.com/nvim-neotest/neotest/issues/391
-  if result.output ~= nil then
-    vim.fn.writefile({ "" }, result.output)
+
+  -- NOTE: when emptying the file with vim.fn.writefil, this error was hit
+  -- when debugging:
+  -- E5560: Vimscript function must not be called in a lua loop callback
+  -- vim.fn.writefile({ "" }, result.output)
+
+  if result.output ~= nil then -- and vim.fn.filereadable(result.output) == 1 then
+    local file = io.open(result.output, "w")
+    if file ~= nil then
+      file:write("")
+      file:close()
+    end
   end
 end
 
