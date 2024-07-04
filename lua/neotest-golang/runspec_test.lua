@@ -32,16 +32,19 @@ function M.build(pos, strategy)
     end
   end
 
+  --- @type RunspecContext
+  local context = {
+    id = pos.id,
+    pos_type = "test",
+    test_filepath = pos.path,
+    golist_output = golist_output,
+  }
+
   --- @type neotest.RunSpec
   local run_spec = {
     command = test_cmd,
     cwd = test_folder_absolute_path,
-    context = {
-      id = pos.id,
-      test_filepath = pos.path,
-      golist_output = golist_output,
-      pos_type = "test",
-    },
+    context = context,
   }
 
   if json_filepath ~= nil then

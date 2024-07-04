@@ -47,21 +47,21 @@ function M.build(pos)
 
   local test_cmd, json_filepath = cmd.test_command_for_dir(module_name)
 
+  --- @type RunspecContext
+  local context = {
+    id = pos.id,
+    pos_type = "dir",
+    test_filepath = pos.path,
+    golist_output = golist_output,
+    json_filepath = json_filepath,
+  }
+
   --- @type neotest.RunSpec
   local run_spec = {
     command = test_cmd,
     cwd = go_mod_folderpath,
-    context = {
-      id = pos.id,
-      test_filepath = pos.path,
-      golist_output = golist_output,
-      pos_type = "dir",
-    },
+    context = context,
   }
-
-  if json_filepath ~= nil then
-    run_spec.context.json_filepath = json_filepath
-  end
 
   return run_spec
 end

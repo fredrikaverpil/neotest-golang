@@ -6,6 +6,15 @@ local options = require("neotest-golang.options")
 local convert = require("neotest-golang.convert")
 local json = require("neotest-golang.json")
 
+--- @class RunspecContext
+--- @field id string Neotest tree position id.
+--- @field pos_type neotest.PositionType Neotest tree position type.
+--- @field test_filepath string Filepath to test output.
+--- @field golist_output table<string, string> Filepath to 'go list' JSON data (lua table). -- TODO: rename to golist_data
+--- @field json_filepath? string Gotestsum JSON filepath.
+--- @field test_execution_skipped? boolean If true, parsing of test output should be skipped.
+--- @field debug_and_skip? boolean If true, parsing of test output should be skipped.
+
 --- @class TestData
 --- @field status neotest.ResultStatus
 --- @field short? string Shortened output string
