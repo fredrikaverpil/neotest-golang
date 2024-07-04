@@ -12,6 +12,7 @@ function M.build(pos, tree)
     local context = {
       pos_id = pos.id,
       pos_type = "test", -- TODO: to be implemented as "file" later
+      parse_test_results = true,
       test_execution_skipped = true,
     }
 

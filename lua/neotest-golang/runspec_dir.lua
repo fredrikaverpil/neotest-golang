@@ -22,13 +22,18 @@ function M.build(pos)
     local msg = "The selected folder must contain a go.mod file "
       .. "or be a subdirectory of a Go module."
     vim.notify(msg, vim.log.levels.ERROR)
+
+    --- @type RunspecContext
+    local context = {
+      pos_id = pos.id,
+      pos_type = "dir",
+      parse_test_results = false,
+    }
+
+    --- @type neotest.RunSpec
     local run_spec = {
       command = { "echo", msg },
-      context = {
-        id = pos.id,
-        test_execution_skipped = true,
-        pos_type = "dir",
-      },
+      context = context,
     }
     return run_spec
   end
@@ -45,15 +50,14 @@ function M.build(pos)
     end
   end
 
-  local test_cmd, gotestsum_json_filepath =
-    cmd.test_command_for_dir(module_name)
+  local test_cmd, json_filepath = cmd.test_command_for_dir(module_name)
 
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
     pos_type = "dir",
     golist_output = golist_output,
-    gotestsum_json_filepath = gotestsum_json_filepath,
+    test_output_json_filepath = json_filepath,
   }
 
   --- @type neotest.RunSpec

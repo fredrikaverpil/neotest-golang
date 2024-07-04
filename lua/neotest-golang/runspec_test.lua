@@ -20,7 +20,7 @@ function M.build(pos, strategy)
   local test_name = convert.to_gotest_test_name(pos.id)
   test_name = convert.to_gotest_regex_pattern(test_name)
 
-  local test_cmd, gotestsum_json_filepath =
+  local test_cmd, json_filepath =
     cmd.test_command_for_individual_test(test_folder_absolute_path, test_name)
 
   local runspec_strategy = nil
@@ -36,7 +36,7 @@ function M.build(pos, strategy)
     pos_id = pos.id,
     pos_type = "test",
     golist_output = golist_output,
-    gotestsum_json_filepath = gotestsum_json_filepath,
+    test_output_json_filepath = json_filepath,
   }
 
   --- @type neotest.RunSpec
@@ -48,7 +48,7 @@ function M.build(pos, strategy)
 
   if runspec_strategy ~= nil then
     run_spec.strategy = runspec_strategy
-    run_spec.context.debug_and_skip = true
+    run_spec.context.parse_test_results = false
   end
 
   return run_spec

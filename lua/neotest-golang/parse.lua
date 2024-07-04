@@ -6,13 +6,16 @@ local options = require("neotest-golang.options")
 local convert = require("neotest-golang.convert")
 local json = require("neotest-golang.json")
 
+-- TODO: remove pos_type when properly supporting all position types.
+-- and instead get this from the pos.type field.
+
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
 --- @field pos_type neotest.PositionType Neotest tree position type.
 --- @field golist_output table<string, string> Filepath to 'go list' JSON data (lua table). -- TODO: rename to golist_data
---- @field gotestsum_json_filepath? string Gotestsum JSON filepath.
+--- @field parse_test_results boolean If true, parsing of test output will occur.
+--- @field test_output_json_filepath? string Gotestsum JSON filepath.
 --- @field test_execution_skipped? boolean If true, parsing of test output should be skipped.
---- @field debug_and_skip? boolean If true, parsing of test output should be skipped.
 
 --- @class TestData
 --- @field status neotest.ResultStatus
@@ -39,14 +42,14 @@ function M.test_results(spec, result, tree)
   --- @type RunspecContext
   local context = spec.context
 
-  if context.debug_and_skip == true then
+  if context.parse_test_results == false then
     ---@type table<string, neotest.Result>
     local results = {}
     results[context.pos_id] = {
       ---@type neotest.ResultStatus
-      status = "skipped", -- default value
+      status = "skipped",
     }
-    return results
+    return results -- return early, fail fast
   end
 
   --- The Neotest position tree node for this execution.
@@ -73,7 +76,7 @@ function M.test_results(spec, result, tree)
   if runner == "go" then
     raw_output = async.fn.readfile(result.output)
   elseif runner == "gotestsum" then
-    raw_output = async.fn.readfile(context.gotestsum_json_filepath)
+    raw_output = async.fn.readfile(context.test_output_json_filepath)
   end
 
   local gotest_output = json.process_gotest_output(raw_output)
