@@ -5,13 +5,15 @@
 local M = {}
 
 local opts = {
-  runner = "go", -- or "gotestsum"
   go_test_args = { "-v", "-race", "-count=1" },
-  gotestsum_args = { "--format=standard-verbose" },
   dap_go_enabled = false,
   dap_go_opts = {},
   warn_test_name_dupes = true,
   warn_test_not_executed = true,
+
+  -- experimental, for now undocumented, options
+  runner = "go", -- or "gotestsum"
+  gotestsum_args = { "--format=standard-verbose" },
   dev_notifications = false,
 }
 
