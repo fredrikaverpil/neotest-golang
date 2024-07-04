@@ -27,6 +27,7 @@ function M.build(pos)
     local context = {
       pos_id = pos.id,
       pos_type = "dir",
+      golist_output = {}, -- no golist output
       parse_test_results = false,
     }
 
