@@ -349,12 +349,10 @@ configuring Go and the neotest-golang adapter in a separate file
 
 ### Go test execution and parallelism
 
-You can set the optional neotest-go `go_test_args` to control the number of test
-binaries and number of tests to run in parallel using the `-p` and `-parallel`
-flags, respectively. Execute `go help test` and `go help testflag` for more
-information on this and perhaps have a look at
-[my own configuration](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/lang/go.lua)
-for inspiration.
+You can set the optional `go_test_args` to control the number of test binaries
+and number of tests to run in parallel using the `-p` and `-parallel` flags,
+respectively. Execute `go help test` and `go help testflag` for more information
+on this.
 
 ## 🙏 PRs are welcome
 
