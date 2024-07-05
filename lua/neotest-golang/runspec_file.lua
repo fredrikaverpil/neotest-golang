@@ -36,16 +36,17 @@ function M.build(pos, tree)
     end
   end
 
-  -- use sed to find all top-level tests in pos.path
+  -- find all top-level tests in pos.path
   local test_cmd = nil
   local json_filepath = nil
-  local regexp = cmd.sed_regexp(pos.path)
+  local regexp = cmd.get_regexp(pos.path)
   if regexp ~= nil then
     test_cmd, json_filepath =
       cmd.test_command_in_package_with_regexp(package_name, regexp)
   else
     -- fallback: run all tests in the package
     test_cmd, json_filepath = cmd.test_command_in_package(package_name)
+    -- NOTE: could also fall back to running on a per-test basis by using a bare return
   end
 
   --- @type RunspecContext

@@ -20,25 +20,19 @@ function M.golist_data(cwd)
   return json.process_golist_output(output)
 end
 
-function M.sed_regexp(filepath)
-  if M.system_has("sed") == false then
-    return nil
-  end
-  local sed_command =
-    string.format("sed -n '/func Test/p' %s", vim.fn.shellescape(filepath))
-  local handle = io.popen(sed_command)
-  local result = nil
-  if handle ~= nil then
-    result = handle:read("*a")
-    handle:close()
-  end
+function M.get_regexp(filepath)
+  local regexp = nil
   local lines = {}
-  for line in string.gmatch(result, "([^\n]*)\n") do
-    line = string.gsub(line, "func ", "")
-    line = string.gsub(line, "%(.*", "")
-    table.insert(lines, line)
+  for line in io.lines(filepath) do
+    if line:match("func Test") then
+      line = line:gsub("func ", "")
+      line = line:gsub("%(.*", "")
+      table.insert(lines, line)
+    end
   end
-  local regexp = "^(" .. table.concat(lines, "|") .. ")$"
+  if #lines > 0 then
+    regexp = "^(" .. table.concat(lines, "|") .. ")$"
+  end
   return regexp
 end
 
