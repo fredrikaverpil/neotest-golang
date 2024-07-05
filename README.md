@@ -17,7 +17,7 @@ Reliable Neotest adapter for running Go tests in Neovim.
 - Custom `go test` argument support.
 - Works great with
   [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) for
-  displaying coverage in the sign column (per-Go package, or per-test basis).
+  displaying coverage in the sign column.
 
 <details>
 <summary>Why a second Neotest adapter for Go? 🤔</summary>
