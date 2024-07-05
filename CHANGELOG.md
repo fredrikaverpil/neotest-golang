@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/fredrikaverpil/neotest-golang/compare/v0.5.0...v0.5.1) (2024-07-05)
+
+
+### Bug Fixes
+
+* escape regex characters in test name ([#96](https://github.com/fredrikaverpil/neotest-golang/issues/96)) ([a9042b6](https://github.com/fredrikaverpil/neotest-golang/commit/a9042b6a601c4123c9f84de5df113cd46735dac3))
+
 ## [0.5.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.4.0...v0.5.0) (2024-07-05)
 
 
