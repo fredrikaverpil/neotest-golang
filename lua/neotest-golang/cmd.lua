@@ -20,22 +20,6 @@ function M.golist_data(cwd)
   return json.process_golist_output(output)
 end
 
-function M.get_regexp(filepath)
-  local regexp = nil
-  local lines = {}
-  for line in io.lines(filepath) do
-    if line:match("func Test") then
-      line = line:gsub("func ", "")
-      line = line:gsub("%(.*", "")
-      table.insert(lines, line)
-    end
-  end
-  if #lines > 0 then
-    regexp = "^(" .. table.concat(lines, "|") .. ")$"
-  end
-  return regexp
-end
-
 function M.test_command_in_package(package_or_path)
   local go_test_required_args = { package_or_path }
   local cmd, json_filepath = M.test_command(go_test_required_args)
