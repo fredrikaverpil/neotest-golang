@@ -1,6 +1,7 @@
 --- Helpers to build the command and context around running all tests of a file.
 
 local cmd = require("neotest-golang.cmd")
+local convert = require("neotest-golang.convert")
 local runspec_dir = require("neotest-golang.runspec_dir")
 
 local M = {}
@@ -93,7 +94,7 @@ function M.get_regexp(filepath)
     if line:match("func Test") then
       line = line:gsub("func ", "")
       line = line:gsub("%(.*", "")
-      table.insert(lines, line)
+      table.insert(lines, convert.to_gotest_regex_pattern(line))
     end
   end
   if #lines > 0 then
