@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.4.0...v0.5.0) (2024-07-05)
+
+
+### Features
+
+* run all tests in file with one 'go test' command ([#92](https://github.com/fredrikaverpil/neotest-golang/issues/92)) ([535d695](https://github.com/fredrikaverpil/neotest-golang/commit/535d695657d445624b0d139291af649972fc7c21))
+
 ## [0.4.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.3.1...v0.4.0) (2024-07-03)
 
 
