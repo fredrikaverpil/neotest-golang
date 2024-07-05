@@ -109,12 +109,4 @@ function M.find_file_upwards(filename, start_path)
   return found_filepath
 end
 
-function M.remove_base_path(base_path, target_path)
-  if string.find(target_path, base_path, 1, true) == 1 then
-    return string.sub(target_path, string.len(base_path) + 2)
-  end
-
-  return target_path
-end
-
 return M
