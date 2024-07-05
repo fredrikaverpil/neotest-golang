@@ -39,7 +39,7 @@ function M.build(pos, tree)
   -- find all top-level tests in pos.path
   local test_cmd = nil
   local json_filepath = nil
-  local regexp = cmd.get_regexp(pos.path)
+  local regexp = M.get_regexp(pos.path)
   if regexp ~= nil then
     test_cmd, json_filepath =
       cmd.test_command_in_package_with_regexp(package_name, regexp)
@@ -84,6 +84,22 @@ function M.fail_fast(pos)
     context = context,
   }
   return run_spec
+end
+
+function M.get_regexp(filepath)
+  local regexp = nil
+  local lines = {}
+  for line in io.lines(filepath) do
+    if line:match("func Test") then
+      line = line:gsub("func ", "")
+      line = line:gsub("%(.*", "")
+      table.insert(lines, line)
+    end
+  end
+  if #lines > 0 then
+    regexp = "^(" .. table.concat(lines, "|") .. ")$"
+  end
+  return regexp
 end
 
 return M
