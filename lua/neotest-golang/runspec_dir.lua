@@ -2,6 +2,7 @@
 --- a Go package.
 
 local cmd = require("neotest-golang.cmd")
+local path = require("neotest-golang.path")
 
 local M = {}
 
@@ -14,7 +15,7 @@ local M = {}
 --- @param pos neotest.Position
 --- @return neotest.RunSpec | nil
 function M.build(pos)
-  local go_mod_filepath = M.find_file_upwards("go.mod", pos.path)
+  local go_mod_filepath = path.find_file_upwards("go.mod", pos.path)
   if go_mod_filepath == nil then
     -- if no go.mod file was found up the directory tree, until reaching $CWD,
     -- then we cannot determine the Go project root.
@@ -73,48 +74,6 @@ function M.fail_fast(pos)
     context = context,
   }
   return run_spec
-end
-
---- Find a file upwards in the directory tree and return its path, if found.
---- @param filename string
---- @param start_path string
---- @return string | nil
-function M.find_file_upwards(filename, start_path)
-  local scan = require("plenary.scandir")
-  local cwd = vim.fn.getcwd()
-  local found_filepath = nil
-  while start_path ~= cwd do
-    local files = scan.scan_dir(
-      start_path,
-      { search_pattern = filename, hidden = true, depth = 1 }
-    )
-    if #files > 0 then
-      found_filepath = files[1]
-      break
-    end
-    start_path = vim.fn.fnamemodify(start_path, ":h") -- go up one directory
-  end
-
-  if found_filepath == nil then
-    -- check if filename exists in the current directory
-    local files = scan.scan_dir(
-      start_path,
-      { search_pattern = filename, hidden = true, depth = 1 }
-    )
-    if #files > 0 then
-      found_filepath = files[1]
-    end
-  end
-
-  return found_filepath
-end
-
-function M.remove_base_path(base_path, target_path)
-  if string.find(target_path, base_path, 1, true) == 1 then
-    return string.sub(target_path, string.len(base_path) + 2)
-  end
-
-  return target_path
 end
 
 return M
