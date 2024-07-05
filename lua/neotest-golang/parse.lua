@@ -79,7 +79,7 @@ function M.test_results(spec, result, tree)
     raw_output = async.fn.readfile(context.test_output_json_filepath)
   end
 
-  local gotest_output = json.process_gotest_output(raw_output)
+  local gotest_output = json.process_gotest_json_output(raw_output)
 
   --- The 'go list -json' output, converted into a lua table.
   local golist_output = context.golist_data
@@ -90,9 +90,7 @@ function M.test_results(spec, result, tree)
   --- Test command (e.g. 'go test') status.
   --- @type neotest.ResultStatus
   local test_command_status = "skipped"
-  if context.dummy_test == true then
-    test_command_status = "skipped"
-  elseif result.code == 0 then
+  if result.code == 0 then
     test_command_status = "passed"
   else
     test_command_status = "failed"
@@ -114,11 +112,6 @@ function M.test_results(spec, result, tree)
     status = test_command_status,
     output = test_command_output_path,
   }
-
-  -- if the test execution was skipped, return early
-  if context.dummy_test == true then
-    return neotest_result
-  end
 
   --- Internal data structure to store test result data.
   --- @type table<string, TestData>

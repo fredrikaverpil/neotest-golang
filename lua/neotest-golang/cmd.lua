@@ -20,17 +20,30 @@ function M.golist_data(cwd)
   return json.process_golist_output(output)
 end
 
-function M.test_command_for_individual_test(
-  test_folder_absolute_path,
-  test_name
-)
-  local go_test_required_args = { test_folder_absolute_path, "-run", test_name }
+function M.get_regexp(filepath)
+  local regexp = nil
+  local lines = {}
+  for line in io.lines(filepath) do
+    if line:match("func Test") then
+      line = line:gsub("func ", "")
+      line = line:gsub("%(.*", "")
+      table.insert(lines, line)
+    end
+  end
+  if #lines > 0 then
+    regexp = "^(" .. table.concat(lines, "|") .. ")$"
+  end
+  return regexp
+end
+
+function M.test_command_in_package(package_or_path)
+  local go_test_required_args = { package_or_path }
   local cmd, json_filepath = M.test_command(go_test_required_args)
   return cmd, json_filepath
 end
 
-function M.test_command_for_dir(module_name)
-  local go_test_required_args = { module_name }
+function M.test_command_in_package_with_regexp(package_or_path, regexp)
+  local go_test_required_args = { package_or_path, "-run", regexp }
   local cmd, json_filepath = M.test_command(go_test_required_args)
   return cmd, json_filepath
 end
@@ -38,7 +51,7 @@ end
 function M.test_command(go_test_required_args)
   --- The runner to use for running tests.
   --- @type string
-  local runner = M.fallback_to_go_test(options.get().runner)
+  local runner = M.runner_fallback(options.get().runner)
 
   --- The filepath to write test output JSON to, if using `gotestsum`.
   --- @type string | nil
@@ -74,16 +87,20 @@ function M.gotestsum(go_test_required_args, json_filepath)
   return cmd
 end
 
-function M.fallback_to_go_test(executable)
-  if vim.fn.executable(executable) == 0 then
-    vim.notify(
-      "Runner " .. executable .. " not found. Falling back to 'go'.",
-      vim.log.levels.WARN
-    )
+function M.runner_fallback(executable)
+  if M.system_has(executable) == false then
     options.set({ runner = "go" })
     return options.get().runner
   end
   return options.get().runner
+end
+
+function M.system_has(executable)
+  if vim.fn.executable(executable) == 0 then
+    vim.notify("Executable not found: " .. executable, vim.log.levels.WARN)
+    return false
+  end
+  return true
 end
 
 return M

@@ -20,8 +20,10 @@ function M.build(pos, strategy)
   local test_name = convert.to_gotest_test_name(pos.id)
   test_name = convert.to_gotest_regex_pattern(test_name)
 
-  local test_cmd, json_filepath =
-    cmd.test_command_for_individual_test(test_folder_absolute_path, test_name)
+  local test_cmd, json_filepath = cmd.test_command_in_package_with_regexp(
+    test_folder_absolute_path,
+    test_name
+  )
 
   local runspec_strategy = nil
   if strategy == "dap" then

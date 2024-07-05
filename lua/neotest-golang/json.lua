@@ -5,7 +5,7 @@ local M = {}
 --- Process output from 'go test -json' and return an iterable table.
 --- @param raw_output table
 --- @return table
-function M.process_gotest_output(raw_output)
+function M.process_gotest_json_output(raw_output)
   local jsonlines = {}
   for _, line in ipairs(raw_output) do
     if string.match(line, "^%s*{") then -- must start with the `{` character
