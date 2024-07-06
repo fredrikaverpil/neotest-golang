@@ -192,4 +192,7 @@ setmetatable(M.Adapter, {
   end,
 })
 
+--- Adapter setup function.
+M.Adapter.setup = options.setup
+
 return M.Adapter
