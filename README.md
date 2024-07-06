@@ -87,7 +87,6 @@ local config = { -- Specify configuration
     "-v",
     "-race",
     "-count=1",
-    "-timeout=60s",
     "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
   },
 }
@@ -102,7 +101,7 @@ Note that the example above writes a coverage file. You can use
 [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) to
 show the coverage in Neovim.
 
-See `go help test` for possible arguments.
+See `go help test`, `go help testflag`, `go help build` for possible arguments.
 
 ### Example configuration: debugging
 
@@ -179,8 +178,6 @@ return {
         go_test_args = {
           "-v",
           "-race",
-          "-count=1",
-          "-timeout=60s",
           "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
         },
         dap_go_enabled = true,
@@ -201,6 +198,9 @@ return {
               local meta = getmetatable(adapter)
               if adapter.setup then
                 adapter.setup(config)
+              elseif adapter.adapter then
+                adapter.adapter(config)
+                adapter = adapter.adapter
               elseif meta and meta.__call then
                 adapter(config)
               else
