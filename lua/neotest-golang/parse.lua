@@ -6,7 +6,6 @@ local async = require("neotest.async")
 local options = require("neotest-golang.options")
 local convert = require("neotest-golang.convert")
 local json = require("neotest-golang.json")
-local testify = require("neotest-golang.testify")
 
 -- TODO: remove pos_type when properly supporting all position types.
 -- and instead get this from the pos.type field.
@@ -193,22 +192,6 @@ function M.gather_neotest_data_and_set_defaults(tree)
   return res
 end
 
-local function hack(test_name)
-  -- HACK: replace receiver with suite for testify.
-  -- TODO: place this under opt-in option.
-  -- TODO: could make more efficient by matching on filename first?
-  for filename, data in pairs(testify.get()) do
-    for _, entry in ipairs(data) do
-      -- TODO: better, more reliable matching needed
-      if string.match(test_name, "^" .. entry.suite .. "/") then
-        test_name = string.gsub(test_name, entry.suite, entry.receiver)
-        return test_name
-      end
-    end
-  end
-  return test_name
-end
-
 --- Decorate the internal test result data with go package and test name.
 --- This is an important step, in which we figure out exactly which test output
 --- belongs to which test in the Neotest position tree.
@@ -242,7 +225,7 @@ function M.decorate_with_go_package_and_test_name(
             if gotestline.Package == golistline.ImportPath then
               local pattern = convert.to_lua_pattern(folderpath)
                 .. "/(.-)/"
-                .. convert.to_lua_pattern(hack(gotestline.Test))
+                .. convert.to_lua_pattern(gotestline.Test)
                 .. "$"
               match = tweaked_pos_id:find(pattern, 1, false)
               if match ~= nil then
@@ -250,8 +233,6 @@ function M.decorate_with_go_package_and_test_name(
                 test_data.gotest_data.name = gotestline.Test
                 break
               end
-
-              -- HACK: testify suites
             end
             if match ~= nil then
               break

@@ -1,54 +1,334 @@
-local ts = require("nvim-treesitter.ts_utils")
 local parsers = require("nvim-treesitter.parsers")
 
 local M = {}
-
-local testify_query = [[
-  ; query
-  (function_declaration ; [38, 0] - [40, 1]
-    name: (identifier) @testify.function_name ; [38, 5] - [38, 14]
-    ;parameters: (parameter_list ; [38, 14] - [38, 28]
-    ;  (parameter_declaration ; [38, 15] - [38, 27]
-    ;    name: (identifier) ; [38, 15] - [38, 16]
-    ;    type: (pointer_type ; [38, 17] - [38, 27]
-    ;      (qualified_type ; [38, 18] - [38, 27]
-    ;        package: (package_identifier) ; [38, 18] - [38, 25]
-    ;        name: (type_identifier))))) ; [38, 26] - [38, 27]
-    body: (block ; [38, 29] - [40, 1]
-      (expression_statement ; [39, 1] - [39, 34]
-        (call_expression ; [39, 1] - [39, 34]
-          function: (selector_expression ; [39, 1] - [39, 10]
-            operand: (identifier) @testify.module ; [39, 1] - [39, 6]
-            field: (field_identifier) @testify.run ) @testify.call ; [39, 7] - [39, 10]
-          arguments: (argument_list ; [39, 10] - [39, 34]
-            (identifier) @testify.t ; [39, 11] - [39, 12]
-            (call_expression ; [39, 14] - [39, 33]
-              function: (identifier) ; [39, 14] - [39, 17]
-              arguments: (argument_list ; [39, 17] - [39, 33]
-                (type_identifier) @testify.receiver ))))))) @testify.definition
-  ]]
-
---- A lookup map between receiver method name and suite name.
---- Example:
-
 local lookup_map = {}
 
-function M.get()
+M.testify_query = [[
+  ; query
+  (package_clause
+    (package_identifier) @package)
+  (type_declaration
+    (type_spec
+      name: (type_identifier) @struct_name
+      type: (struct_type)))
+  (method_declaration
+    receiver: (parameter_list
+      (parameter_declaration
+        type: (pointer_type
+          (type_identifier) @receiver_type)))
+    name: (field_identifier) @method_name)
+  (function_declaration
+    name: (identifier) @function_name)
+  (call_expression
+    function: (selector_expression
+      operand: (identifier) @module
+      field: (field_identifier) @run (#eq? @run "Run"))
+    arguments: (argument_list
+      (identifier)
+      (call_expression
+        arguments: (argument_list
+          (type_identifier) @suite_receiver))))
+  ]]
+
+---@param file_path string
+---@param tree neotest.Tree
+function M.modify_neotest_tree(file_path, tree)
+  local lookup = M.get_lookup_map()
+  local file_lookup = lookup[file_path]
+
+  if file_lookup then
+    M.replace_receiver_with_suite(tree, file_lookup)
+  end
+
+  -- Now merge the namespaces after applying the name changes
+  local tree_with_merged_namespaces = M.merge_duplicate_namespaces(tree:root())
+  return tree_with_merged_namespaces
+end
+
+function M.get_lookup_map()
+  -- FIXME: this is what the map looks like now.
+  local wrong = {
+    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify1_test.go"] = {
+      {
+        receiver = "receiverStruct",
+        suite = "TestSuite",
+      },
+    },
+    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify2_test.go"] = {
+      {
+        receiver = "receiverStruct2",
+        suite = "TestSuite2",
+      },
+    },
+  }
+  -- but we want this:
+  local right = {
+    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify1_test.go"] = {
+      {
+        receiver = "receiverStruct",
+        suite = "TestSuite",
+      },
+      {
+        receiver = "receiverStruct2",
+        suite = "TestSuite2",
+      },
+    },
+    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify2_test.go"] = {
+      {
+        receiver = "receiverStruct",
+        suite = "TestSuite",
+      },
+      {
+        receiver = "receiverStruct2",
+        suite = "TestSuite2",
+      },
+    },
+    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify_test.go"] = {
+      {
+        receiver = "ExampleTestSuite",
+        suite = "TestExampleTestSuite",
+      },
+    },
+  }
+  local current = {
+    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify1_test.go"] = {
+      {
+        package = "main",
+        receiver = "receiverStruct",
+        suite = "TestSuite",
+      },
+    },
+    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify2_test.go"] = {
+      {
+        package = "main",
+        receiver = "receiverStruct2",
+        suite = "TestSuite2",
+      },
+    },
+  }
+
+  -- local lookup_map = {
+  --   ["/Users/fredrik/code/public/neotest-golang/tests/go/testify1_test.go"] = {
+  --     package = "main",
+  --     receivers = { "receiverStruct", "receiverStruct2" },
+  --     suites = {
+  --       receiverStruct = "TestSuite",
+  --       receiverStruct2 = "TestSuite2",
+  --     },
+  --   },
+  --   ["/Users/fredrik/code/public/neotest-golang/tests/go/testify2_test.go"] = {
+  --     package = "main",
+  --     receivers = { "receiverStruct", "receiverStruct2" },
+  --     suites = {
+  --       receiverStruct = "TestSuite",
+  --       receiverStruct2 = "TestSuite2",
+  --     },
+  --   },
+  --   ["/Users/fredrik/code/public/neotest-golang/tests/go/testify_test.go"] = {
+  --     package = "main",
+  --     receivers = { "ExampleTestSuite" },
+  --     suites = {
+  --       ExampleTestSuite = "TestExampleTestSuite",
+  --     },
+  --   },
+  -- }
+
+  if vim.tbl_isempty(lookup_map) then
+    lookup_map = M.generate_lookup_map()
+  end
   return lookup_map
 end
 
-function M.add(file_name, suite_name, receiver_name)
+function M.add_to_lookup_map(file_name, package_name, suite_name, receiver_name)
   if not lookup_map[file_name] then
     lookup_map[file_name] = {}
   end
-  table.insert(
-    lookup_map[file_name],
-    { suite = suite_name, receiver = receiver_name }
-  )
+  local new_entry = {
+    package = package_name,
+    suite = suite_name,
+    receiver = receiver_name,
+  }
+  -- Check if entry already exists
+  for _, entry in ipairs(lookup_map[file_name]) do
+    if
+      entry.package == new_entry.package
+      and entry.suite == new_entry.suite
+      and entry.receiver == new_entry.receiver
+    then
+      return
+    end
+  end
+  table.insert(lookup_map[file_name], new_entry)
 end
 
-function M.clear()
+function M.clear_lookup_map()
   lookup_map = {}
+end
+
+function M.generate_lookup_map()
+  local cwd = vim.fn.getcwd()
+  local go_files = M.get_go_files(cwd)
+  local lookup = {}
+  local all_receivers = {}
+  local all_suites = {}
+
+  -- First pass: collect all receivers and suites
+  for _, filepath in ipairs(go_files) do
+    local matches = M.run_query_on_file(filepath, M.testify_query)
+    local package_name = matches.package
+        and matches.package[1]
+        and matches.package[1].text
+      or "unknown"
+
+    lookup[filepath] = {
+      package = package_name,
+      receivers = {},
+      suites = {},
+    }
+
+    -- Collect all receivers
+    for _, struct in ipairs(matches.struct_name or {}) do
+      lookup[filepath].receivers[struct.text] = true
+      all_receivers[struct.text] = true
+    end
+
+    -- Collect all test suite functions and their receivers
+    for _, func in ipairs(matches.function_name or {}) do
+      if func.text:match("^Test") then
+        for _, node in ipairs(matches.suite_receiver or {}) do
+          lookup[filepath].suites[node.text] = func.text
+          all_suites[node.text] = func.text
+        end
+      end
+    end
+  end
+
+  -- Second pass: ensure all files have all receivers and suites
+  for filepath, file_data in pairs(lookup) do
+    for receiver, _ in pairs(all_receivers) do
+      if not file_data.receivers[receiver] then
+        file_data.receivers[receiver] = true
+      end
+    end
+    for receiver, suite in pairs(all_suites) do
+      if not file_data.suites[receiver] then
+        file_data.suites[receiver] = suite
+      end
+    end
+  end
+
+  return lookup
+end
+
+-- Function to get all .go files in a directory recursively
+function M.get_go_files(directory)
+  local files = {}
+  local function scan_dir(dir)
+    local p = io.popen('find "' .. dir .. '" -type f -name "*_test.go"')
+    for file in p:lines() do
+      table.insert(files, file)
+    end
+  end
+  scan_dir(directory)
+  return files
+end
+
+function M.run_query_on_file(filepath, query_string)
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  local content = vim.fn.readfile(filepath)
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
+
+  vim.api.nvim_set_option_value("filetype", "go", { buf = bufnr })
+
+  if not parsers.has_parser("go") then
+    error("Go parser is not available. Please ensure it's installed.")
+  end
+
+  local parser = parsers.get_parser(bufnr, "go")
+  local tree = parser:parse()[1]
+  local root = tree:root()
+
+  local query = vim.treesitter.query.parse("go", query_string)
+
+  local matches = {}
+
+  local function add_match(name, node)
+    if not matches[name] then
+      matches[name] = {}
+    end
+    table.insert(
+      matches[name],
+      { name = name, node = node, text = M.get_node_text(node, bufnr) }
+    )
+  end
+
+  for pattern, match, metadata in query:iter_matches(root, bufnr, 0, -1) do
+    for id, node in pairs(match) do
+      local name = query.captures[id]
+      add_match(name, node)
+    end
+  end
+
+  vim.api.nvim_buf_delete(bufnr, { force = true })
+
+  return matches
+end
+
+function M.get_node_text(node, bufnr)
+  local text = vim.treesitter.get_node_text(node, bufnr) -- NOTE: uses vim.treesitter
+  if type(text) == "table" then
+    return table.concat(text, "\n")
+  end
+  return text
+end
+
+function M.replace_receiver_with_suite(node, file_lookup)
+  local function replace_in_string(str, old, new)
+    return str
+      :gsub("::" .. old .. "::", "::" .. new .. "::")
+      :gsub("::" .. old .. "$", "::" .. new)
+  end
+
+  local function update_node(n, replacements)
+    for old, new in pairs(replacements) do
+      if n._data.name == old then
+        n._data.name = new
+      end
+      n._data.id = replace_in_string(n._data.id, old, new)
+    end
+  end
+
+  local function update_nodes_table(nodes, replacements)
+    local new_nodes = {}
+    for key, value in pairs(nodes) do
+      local new_key = key
+      for old, new in pairs(replacements) do
+        new_key = replace_in_string(new_key, old, new)
+      end
+      new_nodes[new_key] = value
+    end
+    return new_nodes
+  end
+
+  local function recursive_update(n, replacements)
+    update_node(n, replacements)
+    n._nodes = update_nodes_table(n._nodes, replacements)
+    for _, child in ipairs(n:children()) do
+      recursive_update(child, replacements)
+    end
+  end
+
+  recursive_update(node, file_lookup.suites)
+
+  -- After updating all nodes, ensure parent-child relationships are correct
+  local function fix_relationships(n)
+    for _, child in ipairs(n:children()) do
+      child._parent = n
+      fix_relationships(child)
+    end
+  end
+
+  fix_relationships(node)
 end
 
 function M.merge_duplicate_namespaces(node)
@@ -84,64 +364,6 @@ function M.merge_duplicate_namespaces(node)
 
   node._children = new_children
   return node
-end
-
-function M.get_node_text(node, bufnr)
-  local text = vim.treesitter.get_node_text(node, bufnr) -- NOTE: uses vim.treesitter
-  if type(text) == "table" then
-    return table.concat(text, "\n")
-  end
-  return text
-end
-
-function M.run_query_on_file(filepath, query_string)
-  -- Create a new buffer and set its content
-  local bufnr = vim.api.nvim_create_buf(false, true)
-  local content = vim.fn.readfile(filepath)
-  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
-
-  -- Set the buffer's filetype to Go
-  vim.api.nvim_set_option_value("filetype", "go", { buf = bufnr })
-
-  -- Ensure the Go parser is available
-  if not parsers.has_parser("go") then
-    error("Go parser is not available. Please ensure it's installed.")
-  end
-
-  -- Parse the buffer
-  local parser = parsers.get_parser(bufnr, "go")
-  local tree = parser:parse()[1]
-  local root = tree:root()
-
-  -- Create a query
-  local query = vim.treesitter.query.parse("go", query_string)
-
-  local matches = {}
-
-  for pattern, match, metadata in query:iter_matches(root, bufnr, 0, -1) do
-    local function_name = nil
-    local current_function = {}
-
-    for id, node in pairs(match) do
-      local name = query.captures[id]
-      local text = M.get_node_text(node, bufnr)
-
-      if name == "testify.function_name" then
-        function_name = text
-      end
-
-      table.insert(current_function, { name = name, node = node, text = text })
-    end
-
-    if function_name then
-      matches[function_name] = current_function
-    end
-  end
-
-  -- Clean up: delete the temporary buffer
-  vim.api.nvim_buf_delete(bufnr, { force = true })
-
-  return matches
 end
 
 return M

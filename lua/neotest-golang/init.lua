@@ -5,9 +5,9 @@ local options = require("neotest-golang.options")
 local ast = require("neotest-golang.ast")
 local runspec_dir = require("neotest-golang.runspec_dir")
 local runspec_file = require("neotest-golang.runspec_file")
-local runspec_namespace = require("neotest-golang.runspec_namespace")
 local runspec_test = require("neotest-golang.runspec_test")
 local parse = require("neotest-golang.parse")
+local testify = require("neotest-golang.testify")
 
 local M = {}
 
@@ -195,6 +195,12 @@ end
 setmetatable(M.Adapter, {
   __call = function(_, opts)
     M.Adapter.options = options.setup(opts)
+
+    -- FIXME: not the best place to put this. Does Neotest provide a callback?
+    if options.get().testify == true then
+      testify.generate_lookup_map()
+    end
+
     return M.Adapter
   end,
 })

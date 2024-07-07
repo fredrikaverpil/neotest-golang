@@ -10,6 +10,7 @@ local opts = {
   dap_go_opts = {},
   warn_test_name_dupes = true,
   warn_test_not_executed = true,
+  testify = false,
 
   -- experimental, for now undocumented, options
   runner = "go", -- or "gotestsum"

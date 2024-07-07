@@ -5,15 +5,18 @@ describe("Options are set up", function()
     local expected_options = {
       dap_go_enabled = false,
       dap_go_opts = {},
-      runner = "go",
       go_test_args = {
         "-v",
         "-race",
         "-count=1",
       },
-      gotestsum_args = { "--format=standard-verbose" },
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
+      testify = false,
+
+      -- experimental
+      runner = "go",
+      gotestsum_args = { "--format=standard-verbose" },
       dev_notifications = false,
     }
     options.setup()
@@ -24,16 +27,19 @@ describe("Options are set up", function()
     local expected_options = {
       dap_go_enabled = false,
       dap_go_opts = {},
-      runner = "go",
       go_test_args = {
         "-v",
         "-race",
         "-count=1",
         "-parallel=1", -- non-default
       },
-      gotestsum_args = { "--format=standard-verbose" },
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
+      testify = false,
+
+      -- experimental
+      runner = "go",
+      gotestsum_args = { "--format=standard-verbose" },
       dev_notifications = false,
     }
     options.setup(expected_options)

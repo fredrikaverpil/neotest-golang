@@ -4,7 +4,6 @@ local convert = require("neotest-golang.convert")
 local options = require("neotest-golang.options")
 local cmd = require("neotest-golang.cmd")
 local dap = require("neotest-golang.dap")
-local testify = require("neotest-golang.testify")
 
 local M = {}
 
@@ -17,20 +16,8 @@ function M.build(pos, strategy)
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
   local golist_data = cmd.golist_data(test_folder_absolute_path)
 
-  local pos_id = pos.id
-
-  -- HACK: replace receiver with suite for testify.
-  -- TODO: place this under opt-in option.
-  for filename, data in pairs(testify.get()) do
-    for _, entry in ipairs(data) do
-      if string.match(pos_id, "::" .. entry.receiver .. "::") then
-        pos_id = string.gsub(pos_id, entry.receiver, entry.suite)
-      end
-    end
-  end
-
   --- @type string
-  local test_name = convert.to_gotest_test_name(pos_id)
+  local test_name = convert.to_gotest_test_name(pos.id)
   test_name = convert.to_gotest_regex_pattern(test_name)
 
   local test_cmd, json_filepath = cmd.test_command_in_package_with_regexp(
