@@ -119,9 +119,7 @@ function M.Adapter.build_spec(args)
   elseif pos.type == "namespace" then
     -- A runspec is to be created, based on running all tests in the given
     -- namespace.
-
-    -- return runspec_namespace.build(pos)
-    return -- delegate to type 'test'
+    return -- delegate to type 'test' as it requires the same logic
   elseif pos.type == "test" then
     -- A runspec is to be created, based on on running the given test.
     return runspec_test.build(pos, args.strategy)

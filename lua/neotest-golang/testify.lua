@@ -1,3 +1,6 @@
+--- Opt-in functionality to support testify suites.
+--- See https://github.com/stretchr/testify for more info.
+
 local parsers = require("nvim-treesitter.parsers")
 
 local M = {}
@@ -34,105 +37,17 @@ M.testify_query = [[
 ---@param tree neotest.Tree
 function M.modify_neotest_tree(file_path, tree)
   local lookup = M.get_lookup_map()
-  local file_lookup = lookup[file_path]
 
-  if file_lookup then
-    M.replace_receiver_with_suite(tree, file_lookup)
+  if not lookup then
+    return tree
   end
 
-  -- Now merge the namespaces after applying the name changes
+  local modified_tree = M.replace_receiver_with_suite(tree:root(), lookup)
   local tree_with_merged_namespaces = M.merge_duplicate_namespaces(tree:root())
   return tree_with_merged_namespaces
 end
 
 function M.get_lookup_map()
-  -- FIXME: this is what the map looks like now.
-  local wrong = {
-    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify1_test.go"] = {
-      {
-        receiver = "receiverStruct",
-        suite = "TestSuite",
-      },
-    },
-    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify2_test.go"] = {
-      {
-        receiver = "receiverStruct2",
-        suite = "TestSuite2",
-      },
-    },
-  }
-  -- but we want this:
-  local right = {
-    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify1_test.go"] = {
-      {
-        receiver = "receiverStruct",
-        suite = "TestSuite",
-      },
-      {
-        receiver = "receiverStruct2",
-        suite = "TestSuite2",
-      },
-    },
-    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify2_test.go"] = {
-      {
-        receiver = "receiverStruct",
-        suite = "TestSuite",
-      },
-      {
-        receiver = "receiverStruct2",
-        suite = "TestSuite2",
-      },
-    },
-    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify_test.go"] = {
-      {
-        receiver = "ExampleTestSuite",
-        suite = "TestExampleTestSuite",
-      },
-    },
-  }
-  local current = {
-    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify1_test.go"] = {
-      {
-        package = "main",
-        receiver = "receiverStruct",
-        suite = "TestSuite",
-      },
-    },
-    ["/Users/fredrik/code/public/neotest-golang/tests/go/testify2_test.go"] = {
-      {
-        package = "main",
-        receiver = "receiverStruct2",
-        suite = "TestSuite2",
-      },
-    },
-  }
-
-  -- local lookup_map = {
-  --   ["/Users/fredrik/code/public/neotest-golang/tests/go/testify1_test.go"] = {
-  --     package = "main",
-  --     receivers = { "receiverStruct", "receiverStruct2" },
-  --     suites = {
-  --       receiverStruct = "TestSuite",
-  --       receiverStruct2 = "TestSuite2",
-  --     },
-  --   },
-  --   ["/Users/fredrik/code/public/neotest-golang/tests/go/testify2_test.go"] = {
-  --     package = "main",
-  --     receivers = { "receiverStruct", "receiverStruct2" },
-  --     suites = {
-  --       receiverStruct = "TestSuite",
-  --       receiverStruct2 = "TestSuite2",
-  --     },
-  --   },
-  --   ["/Users/fredrik/code/public/neotest-golang/tests/go/testify_test.go"] = {
-  --     package = "main",
-  --     receivers = { "ExampleTestSuite" },
-  --     suites = {
-  --       ExampleTestSuite = "TestExampleTestSuite",
-  --     },
-  --   },
-  -- }
-
   if vim.tbl_isempty(lookup_map) then
     lookup_map = M.generate_lookup_map()
   end
@@ -166,11 +81,29 @@ function M.clear_lookup_map()
 end
 
 function M.generate_lookup_map()
+  -- local example = {
+  --   ["/path/to/file1_test.go"] = {
+  --     package = "main",
+  --     receivers = { receiverStruct = true, receiverStruct2 = true },
+  --     suites = {
+  --       receiverStruct = "TestSuite",
+  --       receiverStruct2 = "TestSuite2",
+  --     },
+  --   },
+  --   ["/path/to/file2_test.go"] = {
+  --     package = "main",
+  --     receivers = { receiverStruct3 = true },
+  --     suites = {
+  --       receiverStruct3 = "TestSuite3",
+  --     },
+  --   },
+  --   -- ... other files ...
+  -- }
+
   local cwd = vim.fn.getcwd()
   local go_files = M.get_go_files(cwd)
   local lookup = {}
-  local all_receivers = {}
-  local all_suites = {}
+  local global_suites = {}
 
   -- First pass: collect all receivers and suites
   for _, filepath in ipairs(go_files) do
@@ -189,7 +122,6 @@ function M.generate_lookup_map()
     -- Collect all receivers
     for _, struct in ipairs(matches.struct_name or {}) do
       lookup[filepath].receivers[struct.text] = true
-      all_receivers[struct.text] = true
     end
 
     -- Collect all test suite functions and their receivers
@@ -197,7 +129,7 @@ function M.generate_lookup_map()
       if func.text:match("^Test") then
         for _, node in ipairs(matches.suite_receiver or {}) do
           lookup[filepath].suites[node.text] = func.text
-          all_suites[node.text] = func.text
+          global_suites[node.text] = func.text
         end
       end
     end
@@ -205,14 +137,9 @@ function M.generate_lookup_map()
 
   -- Second pass: ensure all files have all receivers and suites
   for filepath, file_data in pairs(lookup) do
-    for receiver, _ in pairs(all_receivers) do
-      if not file_data.receivers[receiver] then
+    for receiver, suite in pairs(global_suites) do
+      if not file_data.receivers[receiver] and file_data.suites[receiver] then
         file_data.receivers[receiver] = true
-      end
-    end
-    for receiver, suite in pairs(all_suites) do
-      if not file_data.suites[receiver] then
-        file_data.suites[receiver] = suite
       end
     end
   end
@@ -283,16 +210,23 @@ function M.get_node_text(node, bufnr)
 end
 
 function M.replace_receiver_with_suite(node, file_lookup)
+  if not file_lookup then
+    return node
+  end
+
   local function replace_in_string(str, old, new)
     return str
       :gsub("::" .. old .. "::", "::" .. new .. "::")
       :gsub("::" .. old .. "$", "::" .. new)
   end
 
-  local function update_node(n, replacements)
+  local function update_node(n, replacements, suite_names)
     for old, new in pairs(replacements) do
       if n._data.name == old then
         n._data.name = new
+        n._data.type = "namespace"
+      elseif suite_names[n._data.name] then
+        n._data.type = "namespace"
       end
       n._data.id = replace_in_string(n._data.id, old, new)
     end
@@ -310,15 +244,34 @@ function M.replace_receiver_with_suite(node, file_lookup)
     return new_nodes
   end
 
-  local function recursive_update(n, replacements)
-    update_node(n, replacements)
+  local function recursive_update(n, replacements, suite_names)
+    update_node(n, replacements, suite_names)
     n._nodes = update_nodes_table(n._nodes, replacements)
     for _, child in ipairs(n:children()) do
-      recursive_update(child, replacements)
+      recursive_update(child, replacements, suite_names)
     end
   end
 
-  recursive_update(node, file_lookup.suites)
+  -- Create a global replacements table and suite names set
+  local global_replacements = {}
+  local suite_names = {}
+  for file_path, file_data in pairs(file_lookup) do
+    if file_data.suites then
+      for receiver, suite in pairs(file_data.suites) do
+        global_replacements[receiver] = suite
+        suite_names[suite] = true
+      end
+    else
+      -- no suites found for file
+    end
+  end
+
+  if vim.tbl_isempty(global_replacements) then
+    -- no replacements found
+    return node
+  end
+
+  recursive_update(node, global_replacements, suite_names)
 
   -- After updating all nodes, ensure parent-child relationships are correct
   local function fix_relationships(n)
@@ -329,6 +282,8 @@ function M.replace_receiver_with_suite(node, file_lookup)
   end
 
   fix_relationships(node)
+
+  return node
 end
 
 function M.merge_duplicate_namespaces(node)
