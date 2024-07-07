@@ -4,9 +4,6 @@ local lib = require("neotest.lib")
 
 local testify = require("neotest-golang.testify")
 
-local ts = require("nvim-treesitter.ts_utils")
-local parsers = require("nvim-treesitter.parsers")
-
 local M = {}
 
 --- Detect test names in Go *._test.go files.
@@ -179,7 +176,7 @@ function M.detect_tests(file_path)
 
   local testify_nodes = testify.run_query_on_file(file_path, testify_query)
 
-  for test_function, data in pairs(testify_nodes) do
+  for test_fun, data in pairs(testify_nodes) do
     local function_name = nil
     local receiver = nil
     for _, node in ipairs(data) do

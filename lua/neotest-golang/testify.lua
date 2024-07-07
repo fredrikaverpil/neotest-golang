@@ -1,4 +1,32 @@
+local ts = require("nvim-treesitter.ts_utils")
+local parsers = require("nvim-treesitter.parsers")
+
 local M = {}
+
+local testify_query = [[
+  ; query
+  (function_declaration ; [38, 0] - [40, 1]
+    name: (identifier) @testify.function_name ; [38, 5] - [38, 14]
+    ;parameters: (parameter_list ; [38, 14] - [38, 28]
+    ;  (parameter_declaration ; [38, 15] - [38, 27]
+    ;    name: (identifier) ; [38, 15] - [38, 16]
+    ;    type: (pointer_type ; [38, 17] - [38, 27]
+    ;      (qualified_type ; [38, 18] - [38, 27]
+    ;        package: (package_identifier) ; [38, 18] - [38, 25]
+    ;        name: (type_identifier))))) ; [38, 26] - [38, 27]
+    body: (block ; [38, 29] - [40, 1]
+      (expression_statement ; [39, 1] - [39, 34]
+        (call_expression ; [39, 1] - [39, 34]
+          function: (selector_expression ; [39, 1] - [39, 10]
+            operand: (identifier) @testify.module ; [39, 1] - [39, 6]
+            field: (field_identifier) @testify.run ) @testify.call ; [39, 7] - [39, 10]
+          arguments: (argument_list ; [39, 10] - [39, 34]
+            (identifier) @testify.t ; [39, 11] - [39, 12]
+            (call_expression ; [39, 14] - [39, 33]
+              function: (identifier) ; [39, 14] - [39, 17]
+              arguments: (argument_list ; [39, 17] - [39, 33]
+                (type_identifier) @testify.receiver ))))))) @testify.definition
+  ]]
 
 --- A lookup map between receiver method name and suite name.
 --- Example:
@@ -58,62 +86,60 @@ function M.merge_duplicate_namespaces(node)
   return node
 end
 
-function M.find_parent_function(node)
-  while node do
-    if node:type() == "function_declaration" then
-      return node
-    end
-    node = node:parent()
+function M.get_node_text(node, bufnr)
+  local text = vim.treesitter.get_node_text(node, bufnr) -- NOTE: uses vim.treesitter
+  if type(text) == "table" then
+    return table.concat(text, "\n")
   end
-  return nil
-end
-
-function M.get_function_name(func_node, content)
-  for child in func_node:iter_children() do
-    if child:type() == "identifier" then
-      return vim.treesitter.get_node_text(child, content)
-    end
-  end
-  return "anonymous"
+  return text
 end
 
 function M.run_query_on_file(filepath, query_string)
-  local file = io.open(filepath, "r")
-  if not file then
-    error("Could not open file: " .. filepath)
-  end
-  local content = file:read("*all")
-  file:close()
+  -- Create a new buffer and set its content
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  local content = vim.fn.readfile(filepath)
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
 
-  local lang = "go"
-  local parser = vim.treesitter.get_string_parser(content, lang)
+  -- Set the buffer's filetype to Go
+  vim.api.nvim_set_option_value("filetype", "go", { buf = bufnr })
+
+  -- Ensure the Go parser is available
+  if not parsers.has_parser("go") then
+    error("Go parser is not available. Please ensure it's installed.")
+  end
+
+  -- Parse the buffer
+  local parser = parsers.get_parser(bufnr, "go")
   local tree = parser:parse()[1]
   local root = tree:root()
 
-  local query = vim.treesitter.query.parse(lang, query_string)
+  -- Create a query
+  local query = vim.treesitter.query.parse("go", query_string)
+
   local matches = {}
 
-  for id, node, metadata in query:iter_captures(root, content, 0, -1) do
-    local name = query.captures[id]
-    local text = vim.treesitter.get_node_text(node, content)
+  for pattern, match, metadata in query:iter_matches(root, bufnr, 0, -1) do
+    local function_name = nil
+    local current_function = {}
 
-    local func_node = M.find_parent_function(node)
-    if func_node then
-      local func_name = M.get_function_name(func_node, content)
-      if not matches[func_name] then
-        matches[func_name] = {}
+    for id, node in pairs(match) do
+      local name = query.captures[id]
+      local text = M.get_node_text(node, bufnr)
+
+      if name == "testify.function_name" then
+        function_name = text
       end
-      table.insert(
-        matches[func_name],
-        { name = name, node = node, text = text }
-      )
-    else
-      if not matches["global"] then
-        matches["global"] = {}
-      end
-      table.insert(matches["global"], { name = name, node = node, text = text })
+
+      table.insert(current_function, { name = name, node = node, text = text })
+    end
+
+    if function_name then
+      matches[function_name] = current_function
     end
   end
+
+  -- Clean up: delete the temporary buffer
+  vim.api.nvim_buf_delete(bufnr, { force = true })
 
   return matches
 end
