@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/fredrikaverpil/neotest-golang/compare/v0.5.1...v0.5.2) (2024-07-08)
+
+
+### Bug Fixes
+
+* search for go.mod up until home folder ([#104](https://github.com/fredrikaverpil/neotest-golang/issues/104)) ([7ec910c](https://github.com/fredrikaverpil/neotest-golang/commit/7ec910c0f2a1a1a2294d700ad81e70fcd2e97739))
+
 ## [0.5.1](https://github.com/fredrikaverpil/neotest-golang/compare/v0.5.0...v0.5.1) (2024-07-05)
 
 
