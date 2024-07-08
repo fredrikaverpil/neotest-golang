@@ -31,6 +31,23 @@ M.lookup_query = [[
       (call_expression
         arguments: (argument_list
           (type_identifier) @suite_receiver))))
+
+; capture variable declarations
+(short_var_declaration
+  left: (expression_list
+    (identifier) @var_name)
+  right: (expression_list
+    (unary_expression
+      operand: (composite_literal
+        type: (type_identifier) @struct_type))))
+
+(assignment_statement
+  left: (expression_list
+    (identifier) @var_name)
+  right: (expression_list
+    (unary_expression
+      operand: (composite_literal
+        type: (type_identifier) @struct_type))))
   ]]
 
 M.receiver_method_query = [[
@@ -53,7 +70,8 @@ function M.modify_neotest_tree(file_path, tree)
   end
 
   local modified_tree = M.replace_receiver_with_suite(tree:root(), lookup)
-  local tree_with_merged_namespaces = M.merge_duplicate_namespaces(tree:root())
+  local tree_with_merged_namespaces =
+    M.merge_duplicate_namespaces(modified_tree)
   return tree_with_merged_namespaces
 end
 
@@ -143,6 +161,26 @@ function M.generate_lookup_map()
         end
       end
     end
+
+    -- Handle var_name and struct_type matches
+    if matches.var_name and matches.struct_type then
+      for i, var in ipairs(matches.var_name) do
+        local struct_type = matches.struct_type[i]
+        if struct_type then
+          -- Add the struct_type as a receiver
+          lookup[filepath].receivers[struct_type.text] = true
+
+          -- Find the corresponding function_name (test suite)
+          for _, func in ipairs(matches.function_name or {}) do
+            if func.text:match("^Test") then
+              lookup[filepath].suites[struct_type.text] = func.text
+              global_suites[struct_type.text] = func.text
+              break
+            end
+          end
+        end
+      end
+    end
   end
 
   -- Second pass: ensure all files have all receivers and suites
@@ -207,6 +245,8 @@ function M.run_query_on_file(filepath, query_string)
   end
 
   vim.api.nvim_buf_delete(bufnr, { force = true })
+
+  vim.notify(vim.inspect(matches))
 
   return matches
 end
