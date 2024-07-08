@@ -16,6 +16,11 @@ local M = {}
 --- @field name string
 M.Adapter = {
   name = "neotest-golang",
+  init = function()
+    if options.get().testify == true then
+      testify.generate_lookup_map()
+    end
+  end,
 }
 
 --- Find the project root directory given a current directory to work from.
@@ -193,12 +198,6 @@ end
 setmetatable(M.Adapter, {
   __call = function(_, opts)
     M.Adapter.options = options.setup(opts)
-
-    -- FIXME: not the best place to put this. Does Neotest provide a callback?
-    if options.get().testify == true then
-      testify.generate_lookup_map()
-    end
-
     return M.Adapter
   end,
 })
