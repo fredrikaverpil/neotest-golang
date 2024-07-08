@@ -10,7 +10,7 @@ function M.find_file_upwards(filename, start_path)
   local scan = require("plenary.scandir")
   local cwd = vim.fn.getcwd()
   local found_filepath = nil
-  while start_path ~= cwd do
+  while start_path ~= vim.fn.expand("$HOME") do
     local files = scan.scan_dir(
       start_path,
       { search_pattern = filename, hidden = true, depth = 1 }
