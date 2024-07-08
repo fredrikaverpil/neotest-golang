@@ -5,6 +5,7 @@ local options = require("neotest-golang.options")
 local ast = require("neotest-golang.ast")
 local runspec_dir = require("neotest-golang.runspec_dir")
 local runspec_file = require("neotest-golang.runspec_file")
+local runspec_namespace = require("neotest-golang.runspec_namespace")
 local runspec_test = require("neotest-golang.runspec_test")
 local parse = require("neotest-golang.parse")
 local testify = require("neotest-golang.testify")
@@ -124,7 +125,7 @@ function M.Adapter.build_spec(args)
   elseif pos.type == "namespace" then
     -- A runspec is to be created, based on running all tests in the given
     -- namespace.
-    return -- delegate to type 'test' as it requires the same logic
+    return runspec_namespace.build(pos)
   elseif pos.type == "test" then
     -- A runspec is to be created, based on on running the given test.
     return runspec_test.build(pos, args.strategy)
@@ -155,6 +156,12 @@ function M.Adapter.results(spec, result, tree)
   elseif spec.context.pos_type == "file" then
     -- A test command executed a file of tests and the output/status must
     -- now be processed.
+    local results = parse.test_results(spec, result, tree)
+    M.workaround_neotest_issue_391(result)
+    return results
+  elseif spec.context.pos_type == "namespace" then
+    -- A test command executed a single test and the output/status must now be
+    -- processed.
     local results = parse.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
