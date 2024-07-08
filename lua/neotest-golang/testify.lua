@@ -6,8 +6,8 @@ local parsers = require("nvim-treesitter.parsers")
 local M = {}
 local lookup_map = {}
 
-M.testify_query = [[
-  ; query
+M.lookup_query = [[
+  ; query for detecting package, struct and test suite, for use in lookup.
   (package_clause
     (package_identifier) @package)
   (type_declaration
@@ -31,6 +31,16 @@ M.testify_query = [[
       (call_expression
         arguments: (argument_list
           (type_identifier) @suite_receiver))))
+  ]]
+
+M.receiver_method_query = [[
+  ; query for receiver method, to be used as test suite namespace.
+   (method_declaration
+    receiver: (parameter_list
+      (parameter_declaration
+        ; name: (identifier)
+        type: (pointer_type
+          (type_identifier) @namespace.name )))) @namespace.definition
   ]]
 
 ---@param file_path string
@@ -107,7 +117,7 @@ function M.generate_lookup_map()
 
   -- First pass: collect all receivers and suites
   for _, filepath in ipairs(go_files) do
-    local matches = M.run_query_on_file(filepath, M.testify_query)
+    local matches = M.run_query_on_file(filepath, M.lookup_query)
     local package_name = matches.package
         and matches.package[1]
         and matches.package[1].text

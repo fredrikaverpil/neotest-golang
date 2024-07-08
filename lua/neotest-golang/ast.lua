@@ -7,7 +7,7 @@ local testify = require("neotest-golang.testify")
 
 local M = {}
 
-local test_function = [[
+M.test_function = [[
     ; query for test function
     ((function_declaration
       name: (identifier) @test.name) (#match? @test.name "^(Test|Example)"))
@@ -21,23 +21,13 @@ local test_function = [[
       @test.definition
   ]]
 
-local test_method = [[
+M.test_method = [[
    ; query for test method
    (method_declaration
     name: (field_identifier) @test.name (#match? @test.name "^(Test|Example)")) @test.definition
   ]]
 
-local receiver_method = [[
-  ; query for receiver method, to be used as test suite namespace
-   (method_declaration
-    receiver: (parameter_list
-      (parameter_declaration
-        ; name: (identifier)
-        type: (pointer_type
-          (type_identifier) @namespace.name )))) @namespace.definition
-  ]]
-
-local table_tests = [[
+M.table_tests = [[
     ;; query for list table tests
         (block
           (short_var_declaration
@@ -137,12 +127,16 @@ local table_tests = [[
                     (#eq? @test.key.name @test.key.name1))))))))
   ]]
 
-local query = test_function .. test_method .. table_tests .. receiver_method
-
 --- Detect test names in Go *._test.go files.
 --- @param file_path string
 function M.detect_tests(file_path)
   local opts = { nested_tests = true }
+  local query = M.test_function .. M.test_method .. M.table_tests
+
+  if options.get().testify == true then
+    -- only detect receiver methods if testify is enabled, to avoid confusion
+    query = query .. testify.receiver_method_query
+  end
 
   ---@type neotest.Tree
   local tree = lib.treesitter.parse_positions(file_path, query, opts)
