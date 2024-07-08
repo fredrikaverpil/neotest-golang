@@ -1,4 +1,4 @@
---- Helpers to build the command and context around running a single test.
+--- Helpers to build the command and context around running all tests in a namespace.
 
 local convert = require("neotest-golang.convert")
 local cmd = require("neotest-golang.cmd")
