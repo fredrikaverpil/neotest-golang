@@ -91,15 +91,14 @@ function M.Adapter.build_spec(args)
   -- Neotest also distinguishes between different "position types":
   -- - "dir": A directory of tests
   -- - "file": A single test file
+  -- - "namespace": A set of tests, collected under the same namespace
   -- - "test": A single test
-  -- - "namespace": ? (unclear to me at this point what this is)
-  -- Depending on the current position type, different ways to build the
-  -- runspec are used.
   --
   -- If a valid runspec is built and returned from this function, it will be
   -- executed by Neotest. But if, for some reason, this function returns nil,
   -- Neotest will call this function again, but using the next position type
-  -- (in this order: dir, file, test). This gives the ability to have fallbacks.
+  -- (in this order: dir, file, namespace, test). This gives the ability to
+  -- have fallbacks.
   -- For example, if a runspec cannot be built for a file of tests, we can
   -- instead try to build a runspec for each individual test file. The end
   -- result would in this case produce multiple commands to execute (for each
@@ -160,7 +159,7 @@ function M.Adapter.results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif spec.context.pos_type == "namespace" then
-    -- A test command executed a single test and the output/status must now be
+    -- A test command executed a namespace and the output/status must now be
     -- processed.
     local results = parse.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
