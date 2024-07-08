@@ -7,51 +7,62 @@ local M = {}
 local lookup_map = {}
 
 M.lookup_query = [[
-  ; query for detecting package, struct and test suite, for use in lookup.
+  ; query for the lookup between receiver and test suite.
+
+  ; package main  // @package
   (package_clause
     (package_identifier) @package)
-  (type_declaration
-    (type_spec
-      name: (type_identifier) @struct_name
-      type: (struct_type)))
-  (method_declaration
-    receiver: (parameter_list
-      (parameter_declaration
-        type: (pointer_type
-          (type_identifier) @receiver_type)))
-    name: (field_identifier) @method_name)
+
+  ; func TestSuite(t *testing.T) {  // @test_function
+	;   suite.Run(t, new(testSuiteStruct))  // @suite_receiver
+  ; }
   (function_declaration
-    name: (identifier) @function_name)
+    name: (identifier) @test_function (#match? @test_function "^Test") )
   (call_expression
     function: (selector_expression
-      operand: (identifier) @module
-      field: (field_identifier) @run (#eq? @run "Run"))
+      operand: (identifier)
+      field: (field_identifier))
     arguments: (argument_list
       (identifier)
       (call_expression
         arguments: (argument_list
-          (type_identifier) @suite_receiver))))
+          (type_identifier) @suite_struct))))
 
-; capture variable declarations
-(short_var_declaration
-  left: (expression_list
-    (identifier) @var_name)
-  right: (expression_list
-    (unary_expression
-      operand: (composite_literal
-        type: (type_identifier) @struct_type))))
+  ; func TestSuite(t *testing.T) {  // 
+  ;   s := &testSuiteStruct{}  // @suite_struct
+  ;   suite.Run(t, s)
+  ; }
+  (function_declaration 
+    name: (identifier) @test_function (#match? @test_function "^Test")
+    parameters: (parameter_list 
+      (parameter_declaration 
+        name: (identifier) 
+        type: (pointer_type 
+          (qualified_type 
+            package: (package_identifier) 
+            name: (type_identifier))))) 
+    body: (block 
+      (short_var_declaration 
+        left: (expression_list 
+          (identifier)) 
+        right: (expression_list 
+          (unary_expression 
+            operand: (composite_literal 
+              type: (type_identifier) @suite_struct 
+              body: (literal_value))))) 
+      (expression_statement 
+        (call_expression 
+          function: (selector_expression 
+            operand: (identifier) 
+            field: (field_identifier)) 
+          arguments: (argument_list 
+            (identifier) 
+            (identifier)))))) 
 
-(assignment_statement
-  left: (expression_list
-    (identifier) @var_name)
-  right: (expression_list
-    (unary_expression
-      operand: (composite_literal
-        type: (type_identifier) @struct_type))))
   ]]
 
-M.receiver_method_query = [[
-  ; query for receiver method, to be used as test suite namespace.
+M.namespace_query = [[
+  ; query for receiver method, to be used as test suite namespace initially (will be replaced later).
    (method_declaration
     receiver: (parameter_list
       (parameter_declaration
@@ -147,37 +158,17 @@ function M.generate_lookup_map()
       suites = {},
     }
 
-    -- Collect all receivers
-    for _, struct in ipairs(matches.struct_name or {}) do
+    -- Collect all receivers (same name as suite structs)
+    for _, struct in ipairs(matches.suite_struct or {}) do
       lookup[filepath].receivers[struct.text] = true
     end
 
     -- Collect all test suite functions and their receivers
-    for _, func in ipairs(matches.function_name or {}) do
+    for _, func in ipairs(matches.test_function or {}) do
       if func.text:match("^Test") then
-        for _, node in ipairs(matches.suite_receiver or {}) do
+        for _, node in ipairs(matches.suite_struct or {}) do
           lookup[filepath].suites[node.text] = func.text
           global_suites[node.text] = func.text
-        end
-      end
-    end
-
-    -- Handle var_name and struct_type matches
-    if matches.var_name and matches.struct_type then
-      for i, var in ipairs(matches.var_name) do
-        local struct_type = matches.struct_type[i]
-        if struct_type then
-          -- Add the struct_type as a receiver
-          lookup[filepath].receivers[struct_type.text] = true
-
-          -- Find the corresponding function_name (test suite)
-          for _, func in ipairs(matches.function_name or {}) do
-            if func.text:match("^Test") then
-              lookup[filepath].suites[struct_type.text] = func.text
-              global_suites[struct_type.text] = func.text
-              break
-            end
-          end
         end
       end
     end
@@ -245,8 +236,6 @@ function M.run_query_on_file(filepath, query_string)
   end
 
   vim.api.nvim_buf_delete(bufnr, { force = true })
-
-  vim.notify(vim.inspect(matches))
 
   return matches
 end

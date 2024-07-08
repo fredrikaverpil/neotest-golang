@@ -135,7 +135,7 @@ function M.detect_tests(file_path)
 
   if options.get().testify == true then
     -- only detect receiver methods if testify is enabled, to avoid confusion
-    query = query .. testify.receiver_method_query
+    query = query .. testify.namespace_query
   end
 
   ---@type neotest.Tree
