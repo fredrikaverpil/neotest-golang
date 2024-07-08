@@ -22,8 +22,6 @@ function M.build(pos)
     test_name
   )
 
-  vim.notify(vim.inspect(test_cmd))
-
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
