@@ -14,23 +14,25 @@ M.lookup_query = [[
     (package_identifier) @package)
 
   ; func TestSuite(t *testing.T) {  // @test_function
-	;   suite.Run(t, new(testSuiteStruct))  // @suite_receiver
+  ;   suite.Run(t, new(testSuitestruct))  // @suite_lib, @run_method, @suite_receiver
   ; }
   (function_declaration
-    name: (identifier) @test_function (#match? @test_function "^Test") )
-  (call_expression
-    function: (selector_expression
-      operand: (identifier)
-      field: (field_identifier))
-    arguments: (argument_list
-      (identifier)
-      (call_expression
-        arguments: (argument_list
-          (type_identifier) @suite_struct))))
+    name: (identifier) @test_function (#match? @test_function "^Test")
+    body: (block
+      (expression_statement
+        (call_expression
+          function: (selector_expression
+            operand: (identifier) @suite_lib (#eq? @suite_lib "suite")
+            field: (field_identifier) @run_method (#eq? @run_method "Run"))
+          arguments: (argument_list
+            (identifier)
+            (call_expression
+              arguments: (argument_list
+                (type_identifier) @suite_struct)))))))
 
-  ; func TestSuite(t *testing.T) {  // 
+  ; func TestSuite(t *testing.T) {  // @test_function
   ;   s := &testSuiteStruct{}  // @suite_struct
-  ;   suite.Run(t, s)
+  ;   suite.Run(t, s) // @suite_lib, @run_method
   ; }
   (function_declaration 
     name: (identifier) @test_function (#match? @test_function "^Test")
@@ -53,13 +55,12 @@ M.lookup_query = [[
       (expression_statement 
         (call_expression 
           function: (selector_expression 
-            operand: (identifier) 
-            field: (field_identifier)) 
+            operand: (identifier) @suite_lib (#eq? @suite_lib "suite")
+            field: (field_identifier) @run_method (#eq? @run_method "Run"))
           arguments: (argument_list 
             (identifier) 
-            (identifier)))))) 
-
-  ]]
+            (identifier))))))
+]]
 
 M.namespace_query = [[
   ; query for receiver method, to be used as test suite namespace initially (will be replaced later).
@@ -147,6 +148,9 @@ function M.generate_lookup_map()
   -- First pass: collect all receivers and suites
   for _, filepath in ipairs(go_files) do
     local matches = M.run_query_on_file(filepath, M.lookup_query)
+
+    -- vim.notify(vim.inspect(matches))
+
     local package_name = matches.package
         and matches.package[1]
         and matches.package[1].text
@@ -182,6 +186,8 @@ function M.generate_lookup_map()
       end
     end
   end
+
+  -- vim.notify(vim.inspect(lookup))
 
   return lookup
 end
