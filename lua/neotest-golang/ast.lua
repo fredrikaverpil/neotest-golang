@@ -3,7 +3,7 @@
 local lib = require("neotest.lib")
 
 local options = require("neotest-golang.options")
-local testify = require("neotest-golang.testify")
+local testify = require("neotest-golang.features.testify")
 
 local M = {}
 
@@ -134,8 +134,8 @@ function M.detect_tests(file_path)
   local query = M.test_function .. M.test_method .. M.table_tests
 
   if options.get().testify == true then
-    -- only detect receiver methods if testify is enabled, to avoid confusion
-    query = query .. testify.namespace_query
+    -- detect receiver method structs as namespaces.
+    query = query .. testify.query.namespace_query
   end
 
   ---@type neotest.Tree
@@ -143,7 +143,7 @@ function M.detect_tests(file_path)
 
   if options.get().testify == true then
     local tree_modified_for_testify =
-      testify.modify_neotest_tree(file_path, tree)
+      testify.tree_modification.modify_neotest_tree(file_path, tree)
     return tree_modified_for_testify
   end
 

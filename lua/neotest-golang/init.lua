@@ -8,7 +8,7 @@ local runspec_file = require("neotest-golang.runspec_file")
 local runspec_namespace = require("neotest-golang.runspec_namespace")
 local runspec_test = require("neotest-golang.runspec_test")
 local parse = require("neotest-golang.parse")
-local testify = require("neotest-golang.testify")
+local testify = require("neotest-golang.features.testify")
 
 local M = {}
 
@@ -19,7 +19,7 @@ M.Adapter = {
   name = "neotest-golang",
   init = function()
     if options.get().testify == true then
-      testify.generate_lookup_map()
+      testify.lookup.generate()
     end
   end,
 }
