@@ -48,11 +48,9 @@ function M.generate()
 
     -- Collect all test suite functions and their receivers
     for _, func in ipairs(matches.test_function or {}) do
-      if func.text:match("^Test") then
-        for _, node in ipairs(matches.suite_struct or {}) do
-          lookup[filepath].suites[node.text] = func.text
-          global_suites[node.text] = func.text
-        end
+      for _, node in ipairs(matches.suite_struct or {}) do
+        lookup[filepath].suites[node.text] = func.text
+        global_suites[node.text] = func.text
       end
     end
   end
