@@ -42,9 +42,9 @@ function M.replace_receiver_with_suite(tree, file_lookup)
   --- @param suite string The suite name, e.g. "TestSuite"
   --- @return string The modified string, where receiver is replaced by suite, e.g. "/project/main_test.go::TestSuite::TestFunction"
   local function replace_receiver_in_pos_id(str, receiver, suite)
-    return str
-      :gsub("::" .. receiver .. "::", "::" .. suite .. "::")
-      :gsub("::" .. receiver .. "$", "::" .. suite)
+    local modified = str:gsub("::" .. receiver .. "::", "::" .. suite .. "::")
+    modified = modified:gsub("::" .. receiver .. "$", "::" .. suite)
+    return modified
   end
 
   --- Update a single neotest.Tree node with the given replacements.
