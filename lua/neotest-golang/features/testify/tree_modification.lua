@@ -1,14 +1,16 @@
---- Opt-in functionality to support testify suites.
+--- Functions to modify the Neotest tree, for testify suite support.
 
 local lookup = require("neotest-golang.features.testify.lookup")
 
 local M = {}
 
---- Modify the neotest tree, so that testify suites are properly described.
+--- Modify the neotest tree, so that testify suites can be executed
+--- as Neotest namespaces.
 ---
 --- When testify tests are discovered, they are discovered with the Go receiver
---- as the Neotest namespace. This is incorrect, and to fix this, we need to do
---- a search-replace of the receiver with the suite name.
+--- type as the Neotest namespace. However, to produce a valid test path,
+--- this receiver type must be replaced with the testify suite name in the
+--- Neotest tree.
 --- @param tree neotest.Tree The original neotest tree
 --- @return neotest.Tree The modified tree.
 function M.modify_neotest_tree(tree)
@@ -30,31 +32,33 @@ end
 
 --- Replace receiver methods with their corresponding test suites in the tree.
 --- @param tree neotest.Tree The tree to modify
---- @param file_lookup table The lookup table containing receiver-to-suite mappings
+--- @param lookup_table table The lookup table containing receiver-to-suite mappings
 --- @return neotest.Tree The modified tree with receivers replaced by suites
-function M.replace_receiver_with_suite(tree, file_lookup)
-  if not file_lookup then
+function M.replace_receiver_with_suite(tree, lookup_table)
+  if not lookup_table then
     return tree
   end
 
-  -- Create a global replacements table and suite names set
-  local global_replacements = {}
-  local suite_names = {}
-  for _, file_data in pairs(file_lookup) do
-    if file_data.suites then
-      for receiver, suite in pairs(file_data.suites) do
-        global_replacements[receiver] = suite
-        suite_names[suite] = true
+  -- TODO: To make this more robust, it would be a good idea to only perform replacements
+  -- within the relevant Go package. Right now, this implementation is naive and will
+  -- not check for package boundaries. The file lookup contains all data required for this.
+  local replacements = {}
+  local suite_functions = {}
+  for _, file_data in pairs(lookup_table) do
+    if file_data.replacements then
+      for receiver_type, suite_function in pairs(file_data.replacements) do
+        replacements[receiver_type] = suite_function
+        suite_functions[suite_function] = true
       end
     end
   end
 
-  if vim.tbl_isempty(global_replacements) then
+  if vim.tbl_isempty(replacements) then
     -- no replacements found
     return tree
   end
 
-  M.recursive_update(tree, global_replacements, suite_names)
+  M.recursive_update(tree, replacements, suite_functions)
   M.fix_relationships(tree)
 
   return tree
@@ -100,32 +104,34 @@ function M.merge_duplicate_namespaces(tree)
   return tree
 end
 
--- Utility functions
-
 --- Perform the neotest.Position id replacement.
 ---
 --- Namespaces and tests are delimited by "::" and we need to replace the receiver
 --- with the suite name here.
 --- @param str string The neotest.Position id
---- @param receiver string The receiver name
---- @param suite string The suite name
+--- @param receiver_type string The receiver type
+--- @param suite_function string The suite function name
 --- @return string The modified neotest.Position id string
-function M.replace_receiver_in_pos_id(str, receiver, suite)
-  local modified = str:gsub("::" .. receiver .. "::", "::" .. suite .. "::")
-  modified = modified:gsub("::" .. receiver .. "$", "::" .. suite)
+function M.replace_receiver_in_pos_id(str, receiver_type, suite_function)
+  local modified =
+    str:gsub("::" .. receiver_type .. "::", "::" .. suite_function .. "::")
+  modified = modified:gsub("::" .. receiver_type .. "$", "::" .. suite_function)
   return modified
 end
 
 --- Update a single neotest.Tree node with the given replacements.
 --- @param n neotest.Tree The node to update
 --- @param replacements table<string, string> A table of old-to-new replacements
---- @param suite_names table<string, boolean> A set of known suite names
-function M.update_node(n, replacements, suite_names)
+--- @param suite_functions table<string, boolean> A set of known suite functions
+function M.update_node(n, replacements, suite_functions)
+  -- TODO: To make this more robust, it would be a good idea to only perform replacements
+  -- within the relevant Go package. Right now, this implementation is naive and will
+  -- not check for package boundaries.
   for receiver, suite in pairs(replacements) do
     if n._data.name == receiver then
       n._data.name = suite
       n._data.type = "namespace"
-    elseif suite_names[n._data.name] then
+    elseif suite_functions[n._data.name] then
       n._data.type = "namespace"
     end
     n._data.id = M.replace_receiver_in_pos_id(n._data.id, receiver, suite)
@@ -151,12 +157,12 @@ end
 --- Recursively update a tree/node and its children with the given replacements.
 --- @param n neotest.Tree The tree to update recursively
 --- @param replacements table<string, string> A table of old-to-new replacements
---- @param suite_names table<string, boolean> A set of known suite names
-function M.recursive_update(n, replacements, suite_names)
-  M.update_node(n, replacements, suite_names)
+--- @param suite_functions table<string, boolean> A set of known suite functions
+function M.recursive_update(n, replacements, suite_functions)
+  M.update_node(n, replacements, suite_functions)
   n._nodes = M.update_nodes_table(n._nodes, replacements)
   for _, child in ipairs(n:children()) do
-    M.recursive_update(child, replacements, suite_names)
+    M.recursive_update(child, replacements, suite_functions)
   end
 end
 
