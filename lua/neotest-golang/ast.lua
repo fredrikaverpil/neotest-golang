@@ -135,7 +135,7 @@ function M.detect_tests(file_path)
 
   if options.get().testify == true then
     -- detect receiver method structs as namespaces.
-    query = query .. testify.query.namespace_query
+    query = query .. testify.namespace.query
   end
 
   ---@type neotest.Tree

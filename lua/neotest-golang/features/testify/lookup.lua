@@ -1,7 +1,7 @@
 --- Lookup table for testify suite receivers/suite names.
 
 local find = require("neotest-golang.find")
-local query = require("neotest-golang.query")
+local query = require("neotest-golang.features.testify.query")
 
 local M = {}
 
