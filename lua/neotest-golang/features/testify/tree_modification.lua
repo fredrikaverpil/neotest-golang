@@ -4,9 +4,14 @@ local lookup = require("neotest-golang.features.testify.lookup")
 
 local M = {}
 
----@param file_path string
----@param tree neotest.Tree
-function M.modify_neotest_tree(file_path, tree)
+--- Modify the neotest tree, so that testify suites are properly described.
+---
+--- When testify tests are discovered, they are discovered with the receiver as
+--- Neotest namespace. This is incorrect, and to fix this, we need to do a
+--- search-replace of the receiver with the suite name.
+--- @param tree neotest.Tree The original neotest tree
+--- @return neotest.Tree The modified tree.
+function M.modify_neotest_tree(tree)
   local lookup_map = lookup.get()
 
   if not lookup_map then
@@ -19,41 +24,65 @@ function M.modify_neotest_tree(file_path, tree)
   return tree_with_merged_namespaces
 end
 
-function M.replace_receiver_with_suite(node, file_lookup)
+--- Replace receiver methods with their corresponding test suites in the tree.
+--- @param tree neotest.Tree The tree to modify
+--- @param file_lookup table The lookup table containing receiver-to-suite mappings
+--- @return neotest.Tree The modified tree with receivers replaced by suites
+function M.replace_receiver_with_suite(tree, file_lookup)
   if not file_lookup then
-    return node
+    return tree
   end
 
-  local function replace_in_string(str, old, new)
+  --- Perform the neotest.Position id replacement.
+  ---
+  --- Namespaces and tests are delimited by "::" and we need to replace the receiver
+  --- with the suite name here.
+  --- @param str string The neotest.Position id, e.g. "/project/main_test.go::myReceiver::TestFunction"
+  --- @param receiver string The receiver name, e.g. "myReceiver"
+  --- @param suite string The suite name, e.g. "TestSuite"
+  --- @return string The modified string, where receiver is replaced by suite, e.g. "/project/main_test.go::TestSuite::TestFunction"
+  local function replace_receiver_in_pos_id(str, receiver, suite)
     return str
-      :gsub("::" .. old .. "::", "::" .. new .. "::")
-      :gsub("::" .. old .. "$", "::" .. new)
+      :gsub("::" .. receiver .. "::", "::" .. suite .. "::")
+      :gsub("::" .. receiver .. "$", "::" .. suite)
   end
 
+  --- Update a single neotest.Tree node with the given replacements.
+  --- @param n neotest.Tree The node to update
+  --- @param replacements table<string, string> A table of old-to-new replacements
+  --- @param suite_names table<string, boolean> A set of known suite names
   local function update_node(n, replacements, suite_names)
-    for old, new in pairs(replacements) do
-      if n._data.name == old then
-        n._data.name = new
+    for receiver, suite in pairs(replacements) do
+      if n._data.name == receiver then
+        n._data.name = suite
         n._data.type = "namespace"
       elseif suite_names[n._data.name] then
         n._data.type = "namespace"
       end
-      n._data.id = replace_in_string(n._data.id, old, new)
+      n._data.id = replace_receiver_in_pos_id(n._data.id, receiver, suite)
     end
   end
 
+  --- Update the nodes table with the given replacements.
+  --- @param nodes table<string, neotest.Tree> The table of nodes to update
+  --- @param replacements table<string, string> A table of old-to-new replacements
+  --- @return table<string, neotest.Tree> The updated nodes table
   local function update_nodes_table(nodes, replacements)
     local new_nodes = {}
     for key, value in pairs(nodes) do
       local new_key = key
       for old, new in pairs(replacements) do
-        new_key = replace_in_string(new_key, old, new)
+        new_key = replace_receiver_in_pos_id(new_key, old, new)
       end
       new_nodes[new_key] = value
     end
     return new_nodes
   end
 
+  --- Recursively update a tree/node and its children with the given replacements.
+  --- @param n neotest.Tree The tree to update recursively
+  --- @param replacements table<string, string> A table of old-to-new replacements
+  --- @param suite_names table<string, boolean> A set of known suite names
   local function recursive_update(n, replacements, suite_names)
     update_node(n, replacements, suite_names)
     n._nodes = update_nodes_table(n._nodes, replacements)
@@ -78,12 +107,13 @@ function M.replace_receiver_with_suite(node, file_lookup)
 
   if vim.tbl_isempty(global_replacements) then
     -- no replacements found
-    return node
+    return tree
   end
 
-  recursive_update(node, global_replacements, suite_names)
+  recursive_update(tree, global_replacements, suite_names)
 
-  -- After updating all nodes, ensure parent-child relationships are correct
+  --- Ensure parent-child relationships are correct after updating all nodes.
+  --- @param n neotest.Tree The node to fix relationships for
   local function fix_relationships(n)
     for _, child in ipairs(n:children()) do
       child._parent = n
@@ -91,20 +121,25 @@ function M.replace_receiver_with_suite(node, file_lookup)
     end
   end
 
-  fix_relationships(node)
+  fix_relationships(tree)
 
-  return node
+  return tree
 end
 
-function M.merge_duplicate_namespaces(node)
-  if not node._children or #node._children == 0 then
-    return node
+--- Merge duplicate namespaces in the tree.
+---
+--- Without this merging, the namespace will reappear once for each testify test.
+--- @param tree neotest.Tree The tree to merge duplicate namespaces in
+--- @return neotest.Tree The tree with merged duplicate namespaces
+function M.merge_duplicate_namespaces(tree)
+  if not tree._children or #tree._children == 0 then
+    return tree
   end
 
   local namespaces = {}
   local new_children = {}
 
-  for _, child in ipairs(node._children) do
+  for _, child in ipairs(tree._children) do
     if child._data.type == "namespace" then
       local existing = namespaces[child._data.name]
       if existing then
@@ -127,8 +162,8 @@ function M.merge_duplicate_namespaces(node)
     M.merge_duplicate_namespaces(child)
   end
 
-  node._children = new_children
-  return node
+  tree._children = new_children
+  return tree
 end
 
 return M

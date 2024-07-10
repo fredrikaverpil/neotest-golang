@@ -143,7 +143,7 @@ function M.detect_tests(file_path)
 
   if options.get().testify == true then
     local tree_modified_for_testify =
-      testify.tree_modification.modify_neotest_tree(file_path, tree)
+      testify.tree_modification.modify_neotest_tree(tree)
     return tree_modified_for_testify
   end
 
