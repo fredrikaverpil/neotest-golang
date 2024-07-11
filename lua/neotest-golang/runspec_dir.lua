@@ -29,8 +29,12 @@ function M.build(pos)
   local package_name = "./..."
   for _, golist_item in ipairs(golist_data) do
     if pos.path == golist_item.Dir then
-      package_name = golist_item.ImportPath
-      break
+      if golist_item.Name == "main" then
+        -- do nothing, keep ./...
+      else
+        package_name = golist_item.ImportPath
+        break
+      end
     end
   end
 
