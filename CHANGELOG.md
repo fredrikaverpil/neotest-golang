@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.5.2...v0.6.0) (2024-07-11)
+
+
+### Features
+
+* testify test suite support ([#58](https://github.com/fredrikaverpil/neotest-golang/issues/58)) ([d723241](https://github.com/fredrikaverpil/neotest-golang/commit/d723241f49c3413ec9fc6a5be20aa3410b345834))
+
 ## [0.5.2](https://github.com/fredrikaverpil/neotest-golang/compare/v0.5.1...v0.5.2) (2024-07-08)
 
 
