@@ -2,7 +2,8 @@
 
 Reliable Neotest adapter for running Go tests in Neovim.
 
-<img width="1528" alt="neotest-golang" src="https://github.com/fredrikaverpil/neotest-golang/assets/994357/4f6e1fa6-2274-42e6-ba94-9a205061e5de">
+![neotest-golang](https://github.com/fredrikaverpil/neotest-golang/assets/994357/afb6e936-b355-4d7b-ab73-65c21ee66ae7)
+
 
 ## ⭐️ Features
 
