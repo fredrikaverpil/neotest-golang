@@ -21,12 +21,6 @@ M.test_function = [[
       @test.definition
   ]]
 
-M.test_method = [[
-   ; query for test method
-   (method_declaration
-    name: (field_identifier) @test.name (#match? @test.name "^(Test|Example)")) @test.definition
-  ]]
-
 M.table_tests = [[
     ;; query for list table tests
         (block
@@ -131,11 +125,13 @@ M.table_tests = [[
 --- @param file_path string
 function M.detect_tests(file_path)
   local opts = { nested_tests = true }
-  local query = M.test_function .. M.test_method .. M.table_tests
+  local query = M.test_function .. M.table_tests
 
   if options.get().testify == true then
-    -- detect receiver method structs as namespaces.
-    query = query .. testify.namespace.query
+    -- detect receiver types (as namespaces) and test methods.
+    query = query
+      .. testify.query.namespace_query
+      .. testify.query.test_method_query
   end
 
   ---@type neotest.Tree

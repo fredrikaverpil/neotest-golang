@@ -4,6 +4,27 @@ local parsers = require("nvim-treesitter.parsers")
 
 local M = {}
 
+M.namespace_query = [[
+  ; query for detecting receiver type and treat as Neotest namespace.
+
+  ; func (suite *testSuite) TestSomething() { // @namespace.name
+  ;  // test code
+  ; }
+   (method_declaration
+    receiver: (parameter_list
+      (parameter_declaration
+        ; name: (identifier)
+        type: (pointer_type
+          (type_identifier) @namespace.name )))) @namespace.definition
+    name: (field_identifier) @test_function (#match? @test_function "^(Test|Example)")
+  ]]
+
+M.test_method_query = [[
+   ; query for test method
+   (method_declaration
+    name: (field_identifier) @test.name (#match? @test.name "^(Test|Example)")) @test.definition
+  ]]
+
 --- Run a TreeSitter query on a file and return the matches.
 --- @param filepath string The path to the file to query
 --- @param query_string string The TreeSitter query string
