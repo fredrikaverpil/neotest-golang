@@ -44,6 +44,14 @@ describe("With testify_enabled=false", function()
       },
       {
         {
+          id = test_filepath .. "::TestExampleTestSuite2",
+          name = "TestExampleTestSuite2",
+          path = test_filepath,
+          type = "test",
+        },
+      },
+      {
+        {
           id = test_filepath .. "::TestTrivial",
           name = "TestTrivial",
           path = test_filepath,
@@ -108,14 +116,14 @@ describe("With testify_enabled=true", function()
       },
       {
         {
-          id = test_filepath .. "::ExampleTestSuite2",
-          name = "ExampleTestSuite2",
+          id = test_filepath .. "::TestExampleTestSuite2",
+          name = "TestExampleTestSuite2",
           path = test_filepath,
           type = "namespace",
         },
         {
           {
-            id = test_filepath .. "::ExampleTestSuite2::TestExample",
+            id = test_filepath .. "::TestExampleTestSuite2::TestExample",
             name = "TestExample",
             path = test_filepath,
             type = "test",
@@ -123,7 +131,7 @@ describe("With testify_enabled=true", function()
         },
         {
           {
-            id = test_filepath .. "::ExampleTestSuite2::TestExample2",
+            id = test_filepath .. "::TestExampleTestSuite2::TestExample2",
             name = "TestExample2",
             path = test_filepath,
             type = "test",

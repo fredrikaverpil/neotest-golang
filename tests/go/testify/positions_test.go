@@ -40,6 +40,8 @@ func TestExampleTestSuite(t *testing.T) {
 
 // --------------------------------------------------------------------
 
+// A second suite is defined in the same file.
+
 type ExampleTestSuite2 struct {
 	suite.Suite
 	VariableThatShouldStartAtFive int
@@ -55,6 +57,10 @@ func (suite *ExampleTestSuite2) TestExample() {
 
 func (suite *ExampleTestSuite2) TestExample2() {
 	assert.Equal(suite.T(), 5, suite.VariableThatShouldStartAtFive)
+}
+
+func TestExampleTestSuite2(t *testing.T) {
+	suite.Run(t, new(ExampleTestSuite2))
 }
 
 // --------------------------------------------------------------------
