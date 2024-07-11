@@ -7,8 +7,8 @@ Reliable Neotest adapter for running Go tests in Neovim.
 ## ⭐️ Features
 
 - Supports all [Neotest usage](https://github.com/nvim-neotest/neotest#usage).
-- Supports table tests and nested test functions (based on AST/tree-sitter
-  detection).
+- Supports table tests and nested test functions (based on treesitter AST
+  parsing).
 - DAP support with [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go)
   integration for debugging of tests using
   [delve](https://github.com/go-delve/delve).
@@ -361,8 +361,8 @@ more information on this.
 
 > [!WARNING]
 > This feature comes with some caveats and nuances, which is why it
-> is not enabled by default. I respectfully advise you to only enable this if
-> you really need it.
+> is not enabled by default. I advise you to only enable this if
+> you need it.
 
 There are some real shenaningans going on behind the scenes to make this work.
 First, a lookup of "receiver type-to-suite test function" must be created of all
@@ -375,8 +375,8 @@ feature...
 > Right now, there is no way to update the lookup other than restarting
 > Neotest/Neovim. So in case you are implementing a new suite, please restart to
 > see the new suites/tests appear in e.g. the summary window. Also, nested tests
-> or table tests are not supported, but can be added at any time. Feel free to
-> open a PR!
+> or table tests are not supported. All of this can be remedied at any time.
+> Feel free to dig in and open a PR!
 
 ## 🙏 PRs are welcome
 
