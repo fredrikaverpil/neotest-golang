@@ -4,7 +4,6 @@ Reliable Neotest adapter for running Go tests in Neovim.
 
 ![neotest-golang](https://github.com/fredrikaverpil/neotest-golang/assets/994357/afb6e936-b355-4d7b-ab73-65c21ee66ae7)
 
-
 ## ⭐️ Features
 
 - Supports all [Neotest usage](https://github.com/nvim-neotest/neotest#usage).
@@ -366,11 +365,11 @@ more information on this.
 > you need it.
 
 There are some real shenaningans going on behind the scenes to make this work.
-First, a lookup of "receiver type-to-suite test function" must be created of all
-Go test files in your project. Then, the generated Neotest node tree needs to be
+😅 First, a lookup of "receiver type-to-suite test function" will be created of
+all Go test files in your project. Then, the generated Neotest node tree is
 modified by mutating private attributes and merging of nodes to avoid
 duplicates. I'm personally a bit afraid of the maintenance burden of this
-feature...
+feature... 🙈
 
 > [!NOTE]
 > Right now, there is no way to update the lookup other than restarting
