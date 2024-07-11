@@ -2,7 +2,7 @@
 --- a Go package.
 
 local cmd = require("neotest-golang.cmd")
-local path = require("neotest-golang.path")
+local find = require("neotest-golang.find")
 
 local M = {}
 
@@ -15,7 +15,7 @@ local M = {}
 --- @param pos neotest.Position
 --- @return neotest.RunSpec | nil
 function M.build(pos)
-  local go_mod_filepath = path.find_file_upwards("go.mod", pos.path)
+  local go_mod_filepath = find.file_upwards("go.mod", pos.path)
   if go_mod_filepath == nil then
     -- if no go.mod file was found up the directory tree, until reaching $CWD,
     -- then we cannot determine the Go project root.

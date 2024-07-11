@@ -3,17 +3,20 @@ local options = require("neotest-golang.options")
 describe("Options are set up", function()
   it("With defaults", function()
     local expected_options = {
-      dap_go_enabled = false,
-      dap_go_opts = {},
-      runner = "go",
       go_test_args = {
         "-v",
         "-race",
         "-count=1",
       },
-      gotestsum_args = { "--format=standard-verbose" },
+      dap_go_enabled = false,
+      dap_go_opts = {},
+      testify_enabled = false,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
+
+      -- experimental
+      runner = "go",
+      gotestsum_args = { "--format=standard-verbose" },
       dev_notifications = false,
     }
     options.setup()
@@ -22,18 +25,21 @@ describe("Options are set up", function()
 
   it("With non-defaults", function()
     local expected_options = {
-      dap_go_enabled = false,
-      dap_go_opts = {},
-      runner = "go",
       go_test_args = {
         "-v",
         "-race",
         "-count=1",
         "-parallel=1", -- non-default
       },
-      gotestsum_args = { "--format=standard-verbose" },
+      dap_go_enabled = false,
+      dap_go_opts = {},
+      testify_enabled = false,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
+
+      -- experimental
+      runner = "go",
+      gotestsum_args = { "--format=standard-verbose" },
       dev_notifications = false,
     }
     options.setup(expected_options)

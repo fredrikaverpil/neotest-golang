@@ -71,13 +71,14 @@ return {
 
 ## ⚙️ Configuration
 
-| Argument                 | Default value                   | Description                                                                               |
-| ------------------------ | ------------------------------- | ----------------------------------------------------------------------------------------- |
-| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                         |
-| `dap_go_enabled`         | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests. |
-| `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                         |
-| `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                               |
-| `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                            |
+| Argument                 | Default value                   | Description                                                                                                                                            |
+| ------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                      |
+| `dap_go_enabled`         | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                                              |
+| `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                      |
+| `testify_enabled`        | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/#testify-suites) for more info. |
+| `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                                                                                            |
+| `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                                                                                         |
 
 ### Example configuration: custom `go test` arguments
 
@@ -353,6 +354,27 @@ You can set the optional `go_test_args` to control the number of test binaries
 and number of tests to run in parallel using the `-p` and `-parallel` flags,
 respectively. Execute `go help test`, `go help testflag`, `go help build` for
 more information on this.
+
+### Testify suites
+
+> [!WARNING]
+> This feature comes with some caveats and nuances, which is why it
+> is not enabled by default. I respectfully advise you to only enable this if
+> you really need it.
+
+There are some real shenaningans going on behind the scenes to make this work.
+First, a lookup of "receiver type-to-suite test function" must be created of all
+Go test files in your project. Then, the generated Neotest node tree needs to be
+modified by mutating private attributes and merging of nodes to avoid
+duplicates. I'm personally a bit afraid of the maintenance burden of this
+feature...
+
+> [!NOTE]
+> Right now, there is no way to update the lookup other than restarting
+> Neotest/Neovim. So in case you are implementing a new suite, please restart to
+> see the new suites/tests appear in e.g. the summary window. Also, nested tests
+> or table tests are not supported, but can be added at any time. Feel free to
+> open a PR!
 
 ## 🙏 PRs are welcome
 

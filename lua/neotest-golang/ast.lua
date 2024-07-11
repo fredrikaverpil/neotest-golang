@@ -2,12 +2,12 @@
 
 local lib = require("neotest.lib")
 
+local options = require("neotest-golang.options")
+local testify = require("neotest-golang.features.testify")
+
 local M = {}
 
---- Detect test names in Go *._test.go files.
---- @param file_path string
-function M.detect_tests(file_path)
-  local test_function = [[
+M.test_function = [[
     ; query for test function
     ((function_declaration
       name: (identifier) @test.name) (#match? @test.name "^(Test|Example)"))
@@ -21,13 +21,7 @@ function M.detect_tests(file_path)
       @test.definition
   ]]
 
-  local test_method = [[
-   ; query for test method
-   (method_declaration
-    name: (field_identifier) @test.name (#match? @test.name "^(Test|Example)")) @test.definition
-  ]]
-
-  local table_tests = [[
+M.table_tests = [[
     ;; query for list table tests
         (block
           (short_var_declaration
@@ -127,13 +121,27 @@ function M.detect_tests(file_path)
                     (#eq? @test.key.name @test.key.name1))))))))
   ]]
 
-  local query = test_function .. test_method .. table_tests
+--- Detect test names in Go *._test.go files.
+--- @param file_path string
+function M.detect_tests(file_path)
   local opts = { nested_tests = true }
+  local query = M.test_function .. M.table_tests
+
+  if options.get().testify_enabled == true then
+    -- detect receiver types (as namespaces) and test methods.
+    query = query
+      .. testify.query.namespace_query
+      .. testify.query.test_method_query
+  end
 
   ---@type neotest.Tree
-  local positions = lib.treesitter.parse_positions(file_path, query, opts)
+  local tree = lib.treesitter.parse_positions(file_path, query, opts)
 
-  return positions
+  if options.get().testify_enabled == true then
+    tree = testify.tree_modification.modify_neotest_tree(tree)
+  end
+
+  return tree
 end
 
 return M
