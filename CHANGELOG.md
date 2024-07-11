@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/fredrikaverpil/neotest-golang/compare/v0.6.0...v0.6.1) (2024-07-11)
+
+
+### Bug Fixes
+
+* remove dependency on 'find' executable ([#112](https://github.com/fredrikaverpil/neotest-golang/issues/112)) ([885baab](https://github.com/fredrikaverpil/neotest-golang/commit/885baab15ad240e318d25c24e3544cfb26e44110))
+* runspec for dir/file did not properly detect go package ([#110](https://github.com/fredrikaverpil/neotest-golang/issues/110)) ([c9c5e33](https://github.com/fredrikaverpil/neotest-golang/commit/c9c5e33186b8c4c1e94cdbad4d496b2411af8381))
+
 ## [0.6.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.5.2...v0.6.0) (2024-07-11)
 
 
