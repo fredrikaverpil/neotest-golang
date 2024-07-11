@@ -23,6 +23,7 @@ describe("Lookup", function()
         package = "testify",
         replacements = {
           ExampleTestSuite = "TestExampleTestSuite",
+          ExampleTestSuite2 = "TestExampleTestSuite2",
         },
       },
       [folderpath .. "/testname_test.go"] = {
