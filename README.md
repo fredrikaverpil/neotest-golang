@@ -34,6 +34,7 @@ present in neotest-golang (this project):
 
 | Neotest-go issue                                        | URL                                                                   |
 | ------------------------------------------------------- | --------------------------------------------------------------------- |
+| Support for Testify framework                           | [neotest-go#6](https://github.com/nvim-neotest/neotest-go/issues/6)   |
 | DAP support                                             | [neotest-go#12](https://github.com/nvim-neotest/neotest-go/issues/12) |
 | Test Output in JSON, making it difficult to read        | [neotest-go#52](https://github.com/nvim-neotest/neotest-go/issues/52) |
 | Support for Nested Subtests                             | [neotest-go#74](https://github.com/nvim-neotest/neotest-go/issues/74) |
