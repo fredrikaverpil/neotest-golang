@@ -18,6 +18,7 @@ Reliable Neotest adapter for running Go tests in Neovim.
 - Works great with
   [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) for
   displaying coverage in the sign column.
+- Supports [testify](https://github.com/stretchr/testify) suites.
 
 <details>
 <summary>Why a second Neotest adapter for Go? 🤔</summary>
@@ -76,7 +77,7 @@ return {
 | `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                      |
 | `dap_go_enabled`         | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                                              |
 | `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                      |
-| `testify_enabled`        | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/#testify-suites) for more info. |
+| `testify_enabled`        | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info. |
 | `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                                                                                            |
 | `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                                                                                         |
 
