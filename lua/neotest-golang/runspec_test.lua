@@ -3,7 +3,7 @@
 local convert = require("neotest-golang.convert")
 local options = require("neotest-golang.options")
 local cmd = require("neotest-golang.cmd")
-local dap = require("neotest-golang.dap")
+local dap = require("neotest-golang.features.dap")
 
 local M = {}
 
