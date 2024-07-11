@@ -76,7 +76,7 @@ return {
 | `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                         |
 | `dap_go_enabled`         | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests. |
 | `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                         |
-| `testify`                | `false`                         | Enable support for [stretchr/testify](https://github.com/stretchr/testify) suites.        |
+| `testify_enabled`        | `false`                         | Enable support for [stretchr/testify](https://github.com/stretchr/testify) suites.        |
 | `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                               |
 | `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                            |
 

@@ -8,9 +8,9 @@ local opts = {
   go_test_args = { "-v", "-race", "-count=1" },
   dap_go_enabled = false,
   dap_go_opts = {},
+  testify_enabled = false,
   warn_test_name_dupes = true,
   warn_test_not_executed = true,
-  testify = false,
 
   -- experimental, for now undocumented, options
   runner = "go", -- or "gotestsum"

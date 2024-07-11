@@ -127,7 +127,7 @@ function M.detect_tests(file_path)
   local opts = { nested_tests = true }
   local query = M.test_function .. M.table_tests
 
-  if options.get().testify == true then
+  if options.get().testify_enabled == true then
     -- detect receiver types (as namespaces) and test methods.
     query = query
       .. testify.query.namespace_query
@@ -137,7 +137,7 @@ function M.detect_tests(file_path)
   ---@type neotest.Tree
   local tree = lib.treesitter.parse_positions(file_path, query, opts)
 
-  if options.get().testify == true then
+  if options.get().testify_enabled == true then
     tree = testify.tree_modification.modify_neotest_tree(tree)
   end
 

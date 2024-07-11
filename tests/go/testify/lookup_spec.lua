@@ -6,7 +6,7 @@ local testify = require("neotest-golang.features.testify")
 describe("Lookup", function()
   it("Generates tree replacement instructions", function()
     -- Arrange
-    options.set({ testify = true }) -- enable testify
+    options.set({ testify_enabled = true }) -- enable testify
     local folderpath = vim.loop.cwd() .. "/tests/go"
     local expected_lookup = {
       [folderpath .. "/positions_test.go"] = {

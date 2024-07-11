@@ -18,7 +18,7 @@ local M = {}
 M.Adapter = {
   name = "neotest-golang",
   init = function()
-    if options.get().testify == true then
+    if options.get().testify_enabled == true then
       testify.lookup.generate()
     end
   end,

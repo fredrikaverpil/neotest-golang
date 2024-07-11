@@ -72,7 +72,7 @@ describe("With testify_enabled=true", function()
     -- Arrange
     local test_filepath = vim.loop.cwd()
       .. "/tests/go/testify/positions_test.go"
-    options.set({ testify = true }) -- enable testify
+    options.set({ testify_enabled = true }) -- enable testify
     testify.lookup.generate() -- generate lookup
 
     local expected = {
