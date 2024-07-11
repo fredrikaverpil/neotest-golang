@@ -28,9 +28,14 @@ function M.build(pos, tree)
   -- find the go package that corresponds to the pos.path
   local package_name = "./..."
   local pos_path_filename = vim.fn.fnamemodify(pos.path, ":t")
+  local pos_path_foldername = vim.fn.fnamemodify(pos.path, ":h")
+
   for _, golist_item in ipairs(golist_data) do
     if golist_item.TestGoFiles ~= nil then
-      if vim.tbl_contains(golist_item.TestGoFiles, pos_path_filename) then
+      if
+        pos_path_foldername == golist_item.Dir
+        and vim.tbl_contains(golist_item.TestGoFiles, pos_path_filename)
+      then
         package_name = golist_item.ImportPath
         break
       end
