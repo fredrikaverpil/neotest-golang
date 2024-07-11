@@ -1,5 +1,7 @@
 --- Helpers around filepaths.
 
+local plenary_scan = require("plenary.scandir")
+
 local M = {}
 
 --- Find a file upwards in the directory tree and return its path, if found.
@@ -36,17 +38,12 @@ function M.file_upwards(filename, start_path)
 end
 
 -- Get all *_test.go files in a directory recursively.
--- FIXME: do not use `find`, as this puts unnecessary dependency here?
--- Might want to use plenary instead.
 function M.go_test_filepaths(folderpath)
-  local files = {}
-  local function scan_dir(dir)
-    local p = io.popen('find "' .. dir .. '" -type f -name "*_test.go"')
-    for file in p:lines() do
-      table.insert(files, file)
-    end
-  end
-  scan_dir(folderpath)
+  local files = plenary_scan.scan_dir(folderpath, {
+    search_pattern = "_test%.go$",
+    depth = math.huge,
+    add_dirs = false,
+  })
   return files
 end
 
