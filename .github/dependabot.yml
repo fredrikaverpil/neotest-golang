@@ -5,7 +5,8 @@ updates:
     schedule:
       interval: "monthly"
   - package-ecosystem: gomod
-    directory: /
+    directories:
+      - "**/*"
     schedule:
       interval: monthly
     commit-message:
