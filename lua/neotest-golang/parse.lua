@@ -4,7 +4,7 @@
 local async = require("neotest.async")
 
 local options = require("neotest-golang.options")
-local convert = require("neotest-golang.convert")
+local lib = require("neotest-golang.lib")
 local json = require("neotest-golang.json")
 
 -- TODO: remove pos_type when properly supporting all position types.
@@ -223,9 +223,9 @@ function M.decorate_with_go_package_and_test_name(
         for _, gotestline in ipairs(gotest_output) do
           if gotestline.Action == "run" and gotestline.Test ~= nil then
             if gotestline.Package == golistline.ImportPath then
-              local pattern = convert.to_lua_pattern(folderpath)
+              local pattern = lib.convert.to_lua_pattern(folderpath)
                 .. "/(.-)/"
-                .. convert.to_lua_pattern(gotestline.Test)
+                .. lib.convert.to_lua_pattern(gotestline.Test)
                 .. "$"
               match = tweaked_pos_id:find(pattern, 1, false)
               if match ~= nil then

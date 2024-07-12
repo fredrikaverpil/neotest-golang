@@ -1,6 +1,6 @@
 --- Helpers to build the command and context around running a single test.
 
-local convert = require("neotest-golang.convert")
+local lib = require("neotest-golang.lib")
 local options = require("neotest-golang.options")
 local cmd = require("neotest-golang.cmd")
 local dap = require("neotest-golang.features.dap")
@@ -17,8 +17,8 @@ function M.build(pos, strategy)
   local golist_data = cmd.golist_data(test_folder_absolute_path)
 
   --- @type string
-  local test_name = convert.to_gotest_test_name(pos.id)
-  test_name = convert.to_gotest_regex_pattern(test_name)
+  local test_name = lib.convert.to_gotest_test_name(pos.id)
+  test_name = lib.convert.to_gotest_regex_pattern(test_name)
 
   local test_cmd, json_filepath = cmd.test_command_in_package_with_regexp(
     test_folder_absolute_path,
