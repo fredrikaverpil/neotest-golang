@@ -2,7 +2,7 @@
 --- Neotest interface: https://github.com/nvim-neotest/neotest/blob/master/lua/neotest/adapters/interface.lua
 
 local options = require("neotest-golang.options")
-local ast = require("neotest-golang.ast")
+local query = require("neotest-golang.query")
 local runspec = require("neotest-golang.runspec")
 local process = require("neotest-golang.process")
 local testify = require("neotest-golang.features.testify")
@@ -60,7 +60,7 @@ end
 --- @param file_path string Absolute file path
 --- @return neotest.Tree | nil
 function M.Adapter.discover_positions(file_path)
-  return ast.detect_tests(file_path)
+  return query.detect_tests(file_path)
 end
 
 --- Build the runspec, which describes what command(s) are to be executed.
