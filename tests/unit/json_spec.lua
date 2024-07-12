@@ -1,4 +1,5 @@
 local lib = require("neotest-golang.lib")
+local _ = require("plenary")
 
 describe("Go list", function()
   it("Returns one entry", function()
