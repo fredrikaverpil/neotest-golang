@@ -3,10 +3,7 @@
 
 local options = require("neotest-golang.options")
 local ast = require("neotest-golang.ast")
-local runspec_dir = require("neotest-golang.runspec_dir")
-local runspec_file = require("neotest-golang.runspec_file")
-local runspec_namespace = require("neotest-golang.runspec_namespace")
-local runspec_test = require("neotest-golang.runspec_test")
+local runspec = require("neotest-golang.runspec")
 local parse = require("neotest-golang.parse")
 local testify = require("neotest-golang.features.testify")
 
@@ -111,23 +108,23 @@ function M.Adapter.build_spec(args)
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is also the current working
     -- directory.
-    return runspec_dir.build(pos)
+    return runspec.dir.build(pos)
   elseif pos.type == "dir" then
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is a sub-directory of the current
     -- working directory.
-    return runspec_dir.build(pos)
+    return runspec.dir.build(pos)
   elseif pos.type == "file" then
     -- A runspec is to be created, based on on running all tests in the given
     -- file.
-    return runspec_file.build(pos, tree)
+    return runspec.file.build(pos, tree)
   elseif pos.type == "namespace" then
     -- A runspec is to be created, based on running all tests in the given
     -- namespace.
-    return runspec_namespace.build(pos)
+    return runspec.namespace.build(pos)
   elseif pos.type == "test" then
     -- A runspec is to be created, based on on running the given test.
-    return runspec_test.build(pos, args.strategy)
+    return runspec.test.build(pos, args.strategy)
   end
 
   vim.notify(
