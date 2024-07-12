@@ -359,7 +359,8 @@ more information on this.
 
 ### Testify suites
 
-> [!WARNING] This feature comes with some caveats and nuances, which is why it
+> [!WARNING] 
+> This feature comes with some caveats and nuances, which is why it
 > is not enabled by default. I advise you to only enable this if you need it.
 
 There are some real shenaningans going on behind the scenes to make this work.
@@ -369,7 +370,8 @@ modified by mutating private attributes and merging of nodes to avoid
 duplicates. I'm personally a bit afraid of the maintenance burden of this
 feature... 🙈
 
-> [!NOTE] Right now, there is no way to update the lookup other than restarting
+> [!NOTE] 
+> Right now, there is no way to update the lookup other than restarting
 > Neotest/Neovim. So in case you are implementing a new suite, please restart to
 > see the new suites/tests appear in e.g. the summary window. Also, nested tests
 > or table tests are not supported. All of this can be remedied at any time.
