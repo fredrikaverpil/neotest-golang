@@ -4,7 +4,7 @@
 local options = require("neotest-golang.options")
 local ast = require("neotest-golang.ast")
 local runspec = require("neotest-golang.runspec")
-local parse = require("neotest-golang.parse")
+local process = require("neotest-golang.process")
 local testify = require("neotest-golang.features.testify")
 
 local M = {}
@@ -146,25 +146,25 @@ function M.Adapter.results(spec, result, tree)
   if spec.context.pos_type == "dir" then
     -- A test command executed a directory of tests and the output/status must
     -- now be processed.
-    local results = parse.test_results(spec, result, tree)
+    local results = process.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif spec.context.pos_type == "file" then
     -- A test command executed a file of tests and the output/status must
     -- now be processed.
-    local results = parse.test_results(spec, result, tree)
+    local results = process.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif spec.context.pos_type == "namespace" then
     -- A test command executed a namespace and the output/status must now be
     -- processed.
-    local results = parse.test_results(spec, result, tree)
+    local results = process.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif spec.context.pos_type == "test" then
     -- A test command executed a single test and the output/status must now be
     -- processed.
-    local results = parse.test_results(spec, result, tree)
+    local results = process.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   end
@@ -179,7 +179,7 @@ end
 --- Workaround, to avoid JSON in output panel, erase contents of output.
 --- @param result neotest.StrategyResult
 function M.workaround_neotest_issue_391(result)
-  -- FIXME: once output is parsed, erase file contents, so to avoid JSON in
+  -- FIXME: once output is processed, erase file contents, so to avoid JSON in
   -- output panel. This is a workaround for now, only because of
   -- https://github.com/nvim-neotest/neotest/issues/391
 
