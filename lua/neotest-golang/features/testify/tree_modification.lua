@@ -41,7 +41,8 @@ function M.replace_receiver_with_suite(tree, lookup_table)
 
   -- TODO: To make this more robust, it would be a good idea to only perform replacements
   -- within the relevant Go package. Right now, this implementation is naive and will
-  -- not check for package boundaries. The file lookup contains all data required for this.
+  -- not check for package boundaries. Replacement are done "globally", replacing 'a' with
+  -- 'b' everywhere, across all test files.
   local replacements = {}
   local suite_functions = {}
   for _, file_data in pairs(lookup_table) do
@@ -126,7 +127,8 @@ end
 function M.update_node(n, replacements, suite_functions)
   -- TODO: To make this more robust, it would be a good idea to only perform replacements
   -- within the relevant Go package. Right now, this implementation is naive and will
-  -- not check for package boundaries.
+  -- not check for package boundaries. Replacement are done "globally", replacing 'a' with
+  -- 'b' everywhere, across all test files.
   for receiver, suite in pairs(replacements) do
     if n._data.name == receiver then
       n._data.name = suite

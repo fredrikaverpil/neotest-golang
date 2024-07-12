@@ -2,12 +2,9 @@
 --- Neotest interface: https://github.com/nvim-neotest/neotest/blob/master/lua/neotest/adapters/interface.lua
 
 local options = require("neotest-golang.options")
-local ast = require("neotest-golang.ast")
-local runspec_dir = require("neotest-golang.runspec_dir")
-local runspec_file = require("neotest-golang.runspec_file")
-local runspec_namespace = require("neotest-golang.runspec_namespace")
-local runspec_test = require("neotest-golang.runspec_test")
-local parse = require("neotest-golang.parse")
+local query = require("neotest-golang.query")
+local runspec = require("neotest-golang.runspec")
+local process = require("neotest-golang.process")
 local testify = require("neotest-golang.features.testify")
 
 local M = {}
@@ -63,7 +60,7 @@ end
 --- @param file_path string Absolute file path
 --- @return neotest.Tree | nil
 function M.Adapter.discover_positions(file_path)
-  return ast.detect_tests(file_path)
+  return query.detect_tests(file_path)
 end
 
 --- Build the runspec, which describes what command(s) are to be executed.
@@ -111,23 +108,23 @@ function M.Adapter.build_spec(args)
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is also the current working
     -- directory.
-    return runspec_dir.build(pos)
+    return runspec.dir.build(pos)
   elseif pos.type == "dir" then
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is a sub-directory of the current
     -- working directory.
-    return runspec_dir.build(pos)
+    return runspec.dir.build(pos)
   elseif pos.type == "file" then
     -- A runspec is to be created, based on on running all tests in the given
     -- file.
-    return runspec_file.build(pos, tree)
+    return runspec.file.build(pos, tree)
   elseif pos.type == "namespace" then
     -- A runspec is to be created, based on running all tests in the given
     -- namespace.
-    return runspec_namespace.build(pos)
+    return runspec.namespace.build(pos)
   elseif pos.type == "test" then
     -- A runspec is to be created, based on on running the given test.
-    return runspec_test.build(pos, args.strategy)
+    return runspec.test.build(pos, args.strategy)
   end
 
   vim.notify(
@@ -149,25 +146,25 @@ function M.Adapter.results(spec, result, tree)
   if spec.context.pos_type == "dir" then
     -- A test command executed a directory of tests and the output/status must
     -- now be processed.
-    local results = parse.test_results(spec, result, tree)
+    local results = process.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif spec.context.pos_type == "file" then
     -- A test command executed a file of tests and the output/status must
     -- now be processed.
-    local results = parse.test_results(spec, result, tree)
+    local results = process.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif spec.context.pos_type == "namespace" then
     -- A test command executed a namespace and the output/status must now be
     -- processed.
-    local results = parse.test_results(spec, result, tree)
+    local results = process.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif spec.context.pos_type == "test" then
     -- A test command executed a single test and the output/status must now be
     -- processed.
-    local results = parse.test_results(spec, result, tree)
+    local results = process.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   end
@@ -182,7 +179,7 @@ end
 --- Workaround, to avoid JSON in output panel, erase contents of output.
 --- @param result neotest.StrategyResult
 function M.workaround_neotest_issue_391(result)
-  -- FIXME: once output is parsed, erase file contents, so to avoid JSON in
+  -- FIXME: once output is processed, erase file contents, so to avoid JSON in
   -- output panel. This is a workaround for now, only because of
   -- https://github.com/nvim-neotest/neotest/issues/391
 

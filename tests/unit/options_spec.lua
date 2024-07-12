@@ -1,4 +1,5 @@
 local options = require("neotest-golang.options")
+local _ = require("plenary")
 
 describe("Options are set up", function()
   it("With defaults", function()

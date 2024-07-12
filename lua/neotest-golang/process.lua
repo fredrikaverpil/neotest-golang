@@ -4,8 +4,7 @@
 local async = require("neotest.async")
 
 local options = require("neotest-golang.options")
-local convert = require("neotest-golang.convert")
-local json = require("neotest-golang.json")
+local lib = require("neotest-golang.lib")
 
 -- TODO: remove pos_type when properly supporting all position types.
 -- and instead get this from the pos.type field.
@@ -80,7 +79,7 @@ function M.test_results(spec, result, tree)
     raw_output = async.fn.readfile(context.test_output_json_filepath)
   end
 
-  local gotest_output = json.process_gotest_json_output(raw_output)
+  local gotest_output = lib.json.process_gotest_json_output(raw_output)
 
   --- The 'go list -json' output, converted into a lua table.
   local golist_output = context.golist_data
@@ -223,9 +222,9 @@ function M.decorate_with_go_package_and_test_name(
         for _, gotestline in ipairs(gotest_output) do
           if gotestline.Action == "run" and gotestline.Test ~= nil then
             if gotestline.Package == golistline.ImportPath then
-              local pattern = convert.to_lua_pattern(folderpath)
+              local pattern = lib.convert.to_lua_pattern(folderpath)
                 .. "/(.-)/"
-                .. convert.to_lua_pattern(gotestline.Test)
+                .. lib.convert.to_lua_pattern(gotestline.Test)
                 .. "$"
               match = tweaked_pos_id:find(pattern, 1, false)
               if match ~= nil then

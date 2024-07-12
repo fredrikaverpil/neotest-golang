@@ -1,7 +1,6 @@
 --- Helpers to build the command and context around running all tests in a namespace.
 
-local convert = require("neotest-golang.convert")
-local cmd = require("neotest-golang.cmd")
+local lib = require("neotest-golang.lib")
 
 local M = {}
 
@@ -11,13 +10,13 @@ local M = {}
 function M.build(pos)
   --- @type string
   local test_folder_absolute_path = string.match(pos.path, "(.+)/")
-  local golist_data = cmd.golist_data(test_folder_absolute_path)
+  local golist_data = lib.cmd.golist_data(test_folder_absolute_path)
 
   --- @type string
-  local test_name = convert.to_gotest_test_name(pos.id)
-  test_name = convert.to_gotest_regex_pattern(test_name)
+  local test_name = lib.convert.to_gotest_test_name(pos.id)
+  test_name = lib.convert.to_gotest_regex_pattern(test_name)
 
-  local test_cmd, json_filepath = cmd.test_command_in_package_with_regexp(
+  local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(
     test_folder_absolute_path,
     test_name
   )

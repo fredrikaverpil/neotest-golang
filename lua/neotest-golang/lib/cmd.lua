@@ -3,7 +3,7 @@
 local async = require("neotest.async")
 
 local options = require("neotest-golang.options")
-local json = require("neotest-golang.json")
+local json = require("neotest-golang.lib.json")
 
 local M = {}
 

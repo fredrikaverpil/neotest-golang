@@ -73,14 +73,14 @@ return {
 
 ## ⚙️ Configuration
 
-| Argument                 | Default value                   | Description                                                                                                                                            |
-| ------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                      |
-| `dap_go_enabled`         | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                                              |
-| `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                      |
+| Argument                 | Default value                   | Description                                                                                                                                                          |
+| ------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                                    |
+| `dap_go_enabled`         | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                                                            |
+| `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                                    |
 | `testify_enabled`        | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info. |
-| `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                                                                                            |
-| `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                                                                                         |
+| `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                                                                                                          |
+| `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                                                                                                       |
 
 ### Example configuration: custom `go test` arguments
 
@@ -359,10 +359,8 @@ more information on this.
 
 ### Testify suites
 
-> [!WARNING]
-> This feature comes with some caveats and nuances, which is why it
-> is not enabled by default. I advise you to only enable this if
-> you need it.
+> [!WARNING] This feature comes with some caveats and nuances, which is why it
+> is not enabled by default. I advise you to only enable this if you need it.
 
 There are some real shenaningans going on behind the scenes to make this work.
 😅 First, a lookup of "receiver type-to-suite test function" will be created of
@@ -371,8 +369,7 @@ modified by mutating private attributes and merging of nodes to avoid
 duplicates. I'm personally a bit afraid of the maintenance burden of this
 feature... 🙈
 
-> [!NOTE]
-> Right now, there is no way to update the lookup other than restarting
+> [!NOTE] Right now, there is no way to update the lookup other than restarting
 > Neotest/Neovim. So in case you are implementing a new suite, please restart to
 > see the new suites/tests appear in e.g. the summary window. Also, nested tests
 > or table tests are not supported. All of this can be remedied at any time.
@@ -406,5 +403,7 @@ looks like for the Go test file.
 
 Again, from the Go test file, execute `:EditQuery` to open up the query editor
 in a separate window. In the editor, you can now start creating your syntax
-query and play around. You can paste in queries from `ast.lua` in the editor, to
-see how the query behaves and highlights parts of your Go test file.
+query and play around. You can paste in queries from
+[`query.lua`](https://github.com/fredrikaverpil/neotest-golang/blob/main/lua/neotest-golang/query.lua)
+in the editor, to see how the query behaves and highlights parts of your Go test
+file.
