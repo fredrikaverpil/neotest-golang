@@ -3,7 +3,7 @@
 local async = require("neotest.async")
 
 local options = require("neotest-golang.options")
-local lib = require("neotest-golang.lib")
+local json = require("neotest-golang.lib.json")
 
 local M = {}
 
@@ -17,7 +17,7 @@ function M.golist_data(cwd)
   }
   local output =
     vim.fn.system("cd " .. cwd .. " && " .. table.concat(go_list_command, " "))
-  return lib.json.process_golist_output(output)
+  return json.process_golist_output(output)
 end
 
 function M.test_command_in_package(package_or_path)

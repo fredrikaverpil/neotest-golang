@@ -1,7 +1,6 @@
 --- Helpers to build the command and context around running all tests of
 --- a Go package.
 
-local cmd = require("neotest-golang.cmd")
 local lib = require("neotest-golang.lib")
 
 local M = {}
@@ -23,7 +22,7 @@ function M.build(pos)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local golist_data = cmd.golist_data(go_mod_folderpath)
+  local golist_data = lib.cmd.golist_data(go_mod_folderpath)
 
   -- find the go package that corresponds to the go_mod_folderpath
   local package_name = "./..."
@@ -38,7 +37,7 @@ function M.build(pos)
     end
   end
 
-  local test_cmd, json_filepath = cmd.test_command_in_package(package_name)
+  local test_cmd, json_filepath = lib.cmd.test_command_in_package(package_name)
 
   --- @type RunspecContext
   local context = {

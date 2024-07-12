@@ -1,6 +1,5 @@
 --- Helpers to build the command and context around running all tests of a file.
 
-local cmd = require("neotest-golang.cmd")
 local lib = require("neotest-golang.lib")
 
 local M = {}
@@ -22,7 +21,7 @@ function M.build(pos, tree)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local golist_data = cmd.golist_data(go_mod_folderpath)
+  local golist_data = lib.cmd.golist_data(go_mod_folderpath)
 
   -- find the go package that corresponds to the pos.path
   local package_name = "./..."
@@ -47,10 +46,10 @@ function M.build(pos, tree)
   local regexp = M.get_regexp(pos.path)
   if regexp ~= nil then
     test_cmd, json_filepath =
-      cmd.test_command_in_package_with_regexp(package_name, regexp)
+      lib.cmd.test_command_in_package_with_regexp(package_name, regexp)
   else
     -- fallback: run all tests in the package
-    test_cmd, json_filepath = cmd.test_command_in_package(package_name)
+    test_cmd, json_filepath = lib.cmd.test_command_in_package(package_name)
     -- NOTE: could also fall back to running on a per-test basis by using a bare return
   end
 
