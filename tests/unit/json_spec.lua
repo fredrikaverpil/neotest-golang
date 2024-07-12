@@ -1,4 +1,4 @@
-local json = require("neotest-golang.json")
+local lib = require("neotest-golang.lib")
 
 describe("Go list", function()
   it("Returns one entry", function()
@@ -10,7 +10,7 @@ describe("Go list", function()
     local expected = { { Dir = "foo" } }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(json.process_golist_output(input))
+      vim.inspect(lib.json.process_golist_output(input))
     )
   end)
 
@@ -25,7 +25,7 @@ describe("Go list", function()
     local expected = { { Dir = "foo" }, { Dir = "bar" } }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(json.process_golist_output(input))
+      vim.inspect(lib.json.process_golist_output(input))
     )
   end)
 
@@ -44,7 +44,7 @@ describe("Go list", function()
     local expected = { { Dir = "foo" }, { Dir = "bar" }, { Dir = "baz" } }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(json.process_golist_output(input))
+      vim.inspect(lib.json.process_golist_output(input))
     )
   end)
   it("Returns nested entries", function()
@@ -76,7 +76,7 @@ describe("Go list", function()
     }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(json.process_golist_output(input))
+      vim.inspect(lib.json.process_golist_output(input))
     )
   end)
 end)

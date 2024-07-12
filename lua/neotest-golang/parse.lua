@@ -5,7 +5,6 @@ local async = require("neotest.async")
 
 local options = require("neotest-golang.options")
 local lib = require("neotest-golang.lib")
-local json = require("neotest-golang.json")
 
 -- TODO: remove pos_type when properly supporting all position types.
 -- and instead get this from the pos.type field.
@@ -80,7 +79,7 @@ function M.test_results(spec, result, tree)
     raw_output = async.fn.readfile(context.test_output_json_filepath)
   end
 
-  local gotest_output = json.process_gotest_json_output(raw_output)
+  local gotest_output = lib.json.process_gotest_json_output(raw_output)
 
   --- The 'go list -json' output, converted into a lua table.
   local golist_output = context.golist_data

@@ -1,6 +1,6 @@
 local nio = require("nio")
 local adapter = require("neotest-golang")
-local convert = require("neotest-golang.convert")
+local lib = require("neotest-golang.lib")
 local _ = require("plenary")
 
 describe("Neotest position to Go test name", function()
@@ -17,7 +17,7 @@ describe("Neotest position to Go test name", function()
 
     -- Act
     local pos = tree:node(3):data()
-    local actual_go_test_name = convert.to_gotest_test_name(pos.id)
+    local actual_go_test_name = lib.convert.to_gotest_test_name(pos.id)
 
     -- Assert
     local actual_name = pos.name
@@ -36,7 +36,7 @@ describe("Neotest position to Go test name", function()
 
     -- Act
     local pos = tree:node(4):data()
-    local actual_go_test_name = convert.to_gotest_test_name(pos.id)
+    local actual_go_test_name = lib.convert.to_gotest_test_name(pos.id)
 
     -- Assert
     local actual_name = pos.name
@@ -53,7 +53,7 @@ describe("Neotest position to Go test name", function()
 
     -- Act
     local pos = tree:node(5):data()
-    local actual_go_test_name = convert.to_gotest_test_name(pos.id)
+    local actual_go_test_name = lib.convert.to_gotest_test_name(pos.id)
 
     -- Assert
     local actual_name = pos.name
@@ -72,7 +72,7 @@ describe("Neotest position to Go test name", function()
 
     -- Act
     local pos = tree:node(8):data()
-    local actual_go_test_name = convert.to_gotest_test_name(pos.id)
+    local actual_go_test_name = lib.convert.to_gotest_test_name(pos.id)
 
     -- Assert
     local actual_name = pos.name
@@ -98,8 +98,8 @@ describe("Full Go test name conversion", function()
 
     -- Act
     local pos = tree:node(7):data()
-    local test_name = convert.to_gotest_test_name(pos.id)
-    test_name = convert.to_gotest_regex_pattern(test_name)
+    local test_name = lib.convert.to_gotest_test_name(pos.id)
+    test_name = lib.convert.to_gotest_regex_pattern(test_name)
 
     -- Assert
     local actual_name = pos.name
