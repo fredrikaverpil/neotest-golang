@@ -2,7 +2,6 @@
 
 local cmd = require("neotest-golang.cmd")
 local lib = require("neotest-golang.lib")
-local find = require("neotest-golang.find")
 
 local M = {}
 
@@ -15,7 +14,7 @@ function M.build(pos, tree)
     return M.fail_fast(pos)
   end
 
-  local go_mod_filepath = find.file_upwards("go.mod", pos.path)
+  local go_mod_filepath = lib.find.file_upwards("go.mod", pos.path)
   if go_mod_filepath == nil then
     -- if no go.mod file was found up the directory tree, until reaching $CWD,
     -- then we cannot determine the Go project root.

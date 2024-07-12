@@ -1,6 +1,6 @@
 --- Lookup table for renaming Neotest namespaces (receiver type to testify suite function).
 
-local find = require("neotest-golang.find")
+local lib = require("neotest-golang.lib")
 local query = require("neotest-golang.features.testify.query")
 
 local M = {}
@@ -80,7 +80,7 @@ end
 --- @return table<string, table> The generated lookup table
 function M.generate()
   local cwd = vim.fn.getcwd()
-  local filepaths = find.go_test_filepaths(cwd)
+  local filepaths = lib.find.go_test_filepaths(cwd)
   local lookup = {}
   -- local global_suites = {}
 
