@@ -73,9 +73,7 @@ local function create_lookup_manager()
       return lookup_table
     end,
     create = function(file_path)
-      if not lookup_table[file_path] then
-        lookup_table[file_path] = M.generate_data(file_path)
-      end
+      lookup_table[file_path] = M.generate_data(file_path)
       return lookup_table
     end,
     get = function()
