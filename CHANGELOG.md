@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.6.1...v0.7.0) (2024-07-13)
+
+
+### Features
+
+* add healthcheck ([#123](https://github.com/fredrikaverpil/neotest-golang/issues/123)) ([2e34efd](https://github.com/fredrikaverpil/neotest-golang/commit/2e34efdee206bc9830cd387e3f26e4531fb1e19a))
+
+
+### Bug Fixes
+
+* discussion form ([#125](https://github.com/fredrikaverpil/neotest-golang/issues/125)) ([ef0d561](https://github.com/fredrikaverpil/neotest-golang/commit/ef0d561686d57069f712d460a11dfc3d8012626a))
+* improve discussions form further ([#127](https://github.com/fredrikaverpil/neotest-golang/issues/127)) ([b63ff72](https://github.com/fredrikaverpil/neotest-golang/commit/b63ff721c9d8bca09aded7377e8e72167c8910d1))
+* invalid discussion form (again) ([#126](https://github.com/fredrikaverpil/neotest-golang/issues/126)) ([a0cc974](https://github.com/fredrikaverpil/neotest-golang/commit/a0cc9746441f6a243b22e60689d477b19bff06cd))
+
 ## [0.6.1](https://github.com/fredrikaverpil/neotest-golang/compare/v0.6.0...v0.6.1) (2024-07-11)
 
 
