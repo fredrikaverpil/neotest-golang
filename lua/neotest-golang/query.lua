@@ -138,7 +138,7 @@ function M.detect_tests(file_path)
   local tree = lib.treesitter.parse_positions(file_path, query, opts)
 
   if options.get().testify_enabled == true then
-    tree = testify.tree_modification.modify_neotest_tree(tree)
+    tree = testify.tree_modification.modify_neotest_tree(file_path, tree)
   end
 
   return tree

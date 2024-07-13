@@ -14,11 +14,7 @@ local M = {}
 --- @field name string
 M.Adapter = {
   name = "neotest-golang",
-  init = function()
-    if options.get().testify_enabled == true then
-      testify.lookup.generate()
-    end
-  end,
+  init = function() end,
 }
 
 --- Find the project root directory given a current directory to work from.

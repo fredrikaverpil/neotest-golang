@@ -367,23 +367,21 @@ more information on this.
 
 ### Testify suites
 
-> [!WARNING] 
+> [!WARNING]
 > This feature comes with some caveats and nuances, which is why it
 > is not enabled by default. I advise you to only enable this if you need it.
 
 There are some real shenaningans going on behind the scenes to make this work.
-😅 First, a lookup of "receiver type-to-suite test function" will be created of
-all Go test files in your project. Then, the generated Neotest node tree is
-modified by mutating private attributes and merging of nodes to avoid
+😅 First, an in-memory lookup of "receiver type-to-suite test function" will be
+created of all Go test files in your project. Then, the generated Neotest node
+tree is modified by mutating private attributes and merging of nodes to avoid
 duplicates. I'm personally a bit afraid of the maintenance burden of this
 feature... 🙈
 
-> [!NOTE] 
-> Right now, there is no way to update the lookup other than restarting
-> Neotest/Neovim. So in case you are implementing a new suite, please restart to
-> see the new suites/tests appear in e.g. the summary window. Also, nested tests
-> or table tests are not supported. All of this can be remedied at any time.
-> Feel free to dig in and open a PR!
+> [!NOTE]
+> Right now, nested tests and table tests are not supported. All of this
+> can be remedied at any time by extending the treesitter queries. Feel free to
+> dig in and open a PR!
 
 ## 🙏 PRs are welcome
 

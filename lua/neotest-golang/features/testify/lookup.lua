@@ -1,6 +1,5 @@
 --- Lookup table for renaming Neotest namespaces (receiver type to testify suite function).
 
-local lib = require("neotest-golang.lib")
 local query = require("neotest-golang.features.testify.query")
 
 local M = {}
@@ -63,55 +62,66 @@ M.query = [[
             (identifier))))))
 ]]
 
---- The lookup table.
---- @type table<string, table>
-local lookup_table = {}
+local function create_lookup_manager()
+  local lookup_table = {}
 
---- Get the current lookup table, generating it if empty.
---- @return table<string, table> The lookup table containing testify suite information
-function M.get()
-  if vim.tbl_isempty(lookup_table) then
-    lookup_table = M.generate()
-  end
-  return lookup_table
+  return {
+    init = function(file_paths)
+      for _, file_path in ipairs(file_paths) do
+        lookup_table[file_path] = M.generate_data(file_path)
+      end
+      return lookup_table
+    end,
+    create = function(file_path)
+      if not lookup_table[file_path] then
+        lookup_table[file_path] = M.generate_data(file_path)
+      end
+      return lookup_table
+    end,
+    get = function()
+      return lookup_table
+    end,
+    clear = function()
+      lookup_table = {}
+    end,
+  }
 end
 
---- Generate the lookup table for testify suites.
+-- Create an instance of the lookup manager
+local lookup_manager = create_lookup_manager()
+
+--- Public lookup functions.
+M.initialize_lookup = lookup_manager.init
+M.create_lookup = lookup_manager.create
+M.get_lookup = lookup_manager.get
+M.clear_lookup = lookup_manager.clear
+
+--- Generate the lookup data for the given file.
 --- @return table<string, table> The generated lookup table
-function M.generate()
-  local cwd = vim.fn.getcwd()
-  local filepaths = lib.find.go_test_filepaths(cwd)
-  local lookup = {}
-  -- local global_suites = {}
+function M.generate_data(file_path)
+  local data = {}
 
   -- First pass: collect all data for the lookup table.
-  for _, filepath in ipairs(filepaths) do
-    local matches = query.run_query_on_file(filepath, M.query)
+  local matches = query.run_query_on_file(file_path, M.query)
 
-    local package_name = matches.package
-        and matches.package[1]
-        and matches.package[1].text
-      or "unknown"
+  local package_name = matches.package
+      and matches.package[1]
+      and matches.package[1].text
+    or "unknown"
 
-    lookup[filepath] = {
-      package = package_name,
-      replacements = {},
-    }
+  data = {
+    package = package_name,
+    replacements = {},
+  }
 
-    for i, struct in ipairs(matches.suite_struct or {}) do
-      local func = matches.test_function[i]
-      if func then
-        lookup[filepath].replacements[struct.text] = func.text
-      end
+  for i, struct in ipairs(matches.suite_struct or {}) do
+    local func = matches.test_function[i]
+    if func then
+      data.replacements[struct.text] = func.text
     end
   end
 
-  return lookup
-end
-
---- Clear the lookup table.
-function M.clear()
-  lookup_table = {}
+  return data
 end
 
 return M
