@@ -39,27 +39,10 @@ function M.process_golist_output(raw_output)
   end
   table.insert(json_objects, current_object)
 
-  -- Parse each JSON object
-  local objects = {}
-  for _, json_object in ipairs(json_objects) do
-    if string.match(json_object, "^%s*{") then -- must start with the `{` character
-      local status, json_data = pcall(vim.fn.json_decode, json_object)
-      if status then
-        table.insert(objects, json_data)
-      else
-        -- NOTE: this can be hit because of "Vim:E474: Unidentified byte: ..."
-        vim.notify(
-          "Failed to decode JSON line: " .. json_object,
-          vim.log.levels.WARN
-        )
-      end
-    else
-      -- vim.notify("Not valid JSON: " .. line, vim.log.levels.DEBUG)
-    end
-  end
+  local jsonlines = M.process_gotest_json_output(json_objects)
 
   -- Return the table of objects
-  return objects
+  return jsonlines
 end
 
 return M
