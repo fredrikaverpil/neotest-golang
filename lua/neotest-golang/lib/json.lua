@@ -2,12 +2,12 @@
 
 local M = {}
 
---- Process output from 'go test -json' and return an iterable table.
---- @param raw_output table
+--- Decode JSON from a table of strings into a table of objects.
+--- @param tbl table
 --- @return table
-function M.process_gotest_json_output(raw_output)
+function M.decode_from_table(tbl)
   local jsonlines = {}
-  for _, line in ipairs(raw_output) do
+  for _, line in ipairs(tbl) do
     if string.match(line, "^%s*{") then -- must start with the `{` character
       local status, json_data = pcall(vim.fn.json_decode, line)
       if status then
@@ -23,31 +23,22 @@ function M.process_gotest_json_output(raw_output)
   return jsonlines
 end
 
---- Process output from 'go list -json' an iterable lua table.
---- @param raw_output string
+--- Decode JSON from a string into a table of objects.
+--- @param str string
 --- @return table
-function M.process_golist_output(raw_output)
+function M.decode_from_string(str)
   -- Split the input into separate JSON objects
-  local json_objects = {}
+  local tbl = {}
   local current_object = ""
-  for line in raw_output:gmatch("[^\r\n]+") do
+  for line in str:gmatch("[^\r\n]+") do
     if line:match("^%s*{") and current_object ~= "" then
-      table.insert(json_objects, current_object)
+      table.insert(tbl, current_object)
       current_object = ""
     end
     current_object = current_object .. line
   end
-  table.insert(json_objects, current_object)
-
-  -- Parse each JSON object
-  local objects = {}
-  for _, json_object in ipairs(json_objects) do
-    local obj = vim.fn.json_decode(json_object)
-    table.insert(objects, obj)
-  end
-
-  -- Return the table of objects
-  return objects
+  table.insert(tbl, current_object)
+  return M.decode_from_table(tbl)
 end
 
 return M
