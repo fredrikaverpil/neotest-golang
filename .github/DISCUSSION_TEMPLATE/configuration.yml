@@ -35,6 +35,11 @@ body:
       label: Output from `:checkhealth neotest-golang`
       description: Please provide the output.
       render: text
+      placeholder: |
+        neotest-golang: require("neotest-golang.health").check()
+
+        - OK Go binary found on PATH: ...
+        - OK Found go.mod file for ... in ...
     validations:
       required: true
   - type: textarea
