@@ -1,7 +1,5 @@
 --- Lookup table for renaming Neotest namespaces (receiver type to testify suite function).
 
-local options = require("neotest-golang.options")
-local lib = require("neotest-golang.lib")
 local query = require("neotest-golang.features.testify.query")
 
 local M = {}
@@ -64,88 +62,66 @@ M.query = [[
             (identifier))))))
 ]]
 
---- The lookup table store.
---- @type table<string, table>
-local lookup_table = {}
+local function create_lookup_manager()
+  local lookup_table = {}
 
---- Debouncer for generating the lookup table.
---- @type function
-local debounce = lib.debounce.create_debouncer()
-local debounced_generate = debounce(function()
-  return M._generate()
-end, options.get().testify_debounce_delay)
-
---- Generate the lookup table for testify suites.
---- @return table<string, table> The generated lookup table
-function M.generate()
-  if options.get().testify_generate_lookup then
-    local get_result = debounced_generate()
-
-    -- Wait for up to 5 seconds for the result, polling every 100ms.
-    local max_wait_time = 5000
-    local interval_time = 100
-    vim.wait(max_wait_time, function()
-      lookup_table = get_result()
-      return not vim.tbl_isempty(lookup_table)
-    end, interval_time)
-  end
-
-  if vim.tbl_isempty(lookup_table) then
-    vim.notify(
-      "Warning: generating the lookup timed out.",
-      vim.log.levels.ERROR
-    )
-  end
-
-  return lookup_table
+  return {
+    init = function(file_paths)
+      for _, file_path in ipairs(file_paths) do
+        lookup_table[file_path] = M.generate_data(file_path)
+      end
+      return lookup_table
+    end,
+    create = function(file_path)
+      if not lookup_table[file_path] then
+        lookup_table[file_path] = M.generate_data(file_path)
+      end
+      return lookup_table
+    end,
+    get = function()
+      return lookup_table
+    end,
+    clear = function()
+      lookup_table = {}
+    end,
+  }
 end
 
---- Generate the lookup table for testify suites.
+-- Create an instance of the lookup manager
+local lookup_manager = create_lookup_manager()
+
+--- Public lookup functions.
+M.initialize_lookup = lookup_manager.init
+M.create_lookup = lookup_manager.create
+M.get_lookup = lookup_manager.get
+M.clear_lookup = lookup_manager.clear
+
+--- Generate the lookup data for the given file.
 --- @return table<string, table> The generated lookup table
-function M._generate()
-  vim.notify("Generating testify lookup...", vim.log.levels.INFO)
-  local cwd = vim.fn.getcwd()
-  local filepaths = lib.find.go_test_filepaths(cwd)
-  local lookup = {}
+function M.generate_data(file_path)
+  local data = {}
 
   -- First pass: collect all data for the lookup table.
-  for _, filepath in ipairs(filepaths) do
-    local matches = query.run_query_on_file(filepath, M.query)
+  local matches = query.run_query_on_file(file_path, M.query)
 
-    local package_name = matches.package
-        and matches.package[1]
-        and matches.package[1].text
-      or "unknown"
+  local package_name = matches.package
+      and matches.package[1]
+      and matches.package[1].text
+    or "unknown"
 
-    lookup[filepath] = {
-      package = package_name,
-      replacements = {},
-    }
+  data = {
+    package = package_name,
+    replacements = {},
+  }
 
-    for i, struct in ipairs(matches.suite_struct or {}) do
-      local func = matches.test_function[i]
-      if func then
-        lookup[filepath].replacements[struct.text] = func.text
-      end
+  for i, struct in ipairs(matches.suite_struct or {}) do
+    local func = matches.test_function[i]
+    if func then
+      data.replacements[struct.text] = func.text
     end
   end
 
-  return lookup
-end
-
---- Get the lookup table for testify suites.
---- @param opts table<string, boolean> Options for getting the lookup table
---- @return table<string, table> The generated lookup table
-function M.get(opts)
-  if options.get().testify_generate_lookup and opts.generate then
-    return M.generate()
-  end
-  return lookup_table
-end
-
---- Clear the lookup table.
-function M.clear()
-  lookup_table = {}
+  return data
 end
 
 return M

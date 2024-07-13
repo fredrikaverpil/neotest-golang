@@ -12,8 +12,6 @@ describe("Options are set up", function()
       dap_go_enabled = false,
       dap_go_opts = {},
       testify_enabled = false,
-      testify_generate_lookup = true,
-      testify_debounce_delay = 500,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
 
@@ -37,8 +35,6 @@ describe("Options are set up", function()
       dap_go_enabled = false,
       dap_go_opts = {},
       testify_enabled = false,
-      testify_generate_lookup = true,
-      testify_debounce_delay = 500,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
 

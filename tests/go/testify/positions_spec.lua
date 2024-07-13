@@ -3,6 +3,7 @@ local _ = require("plenary")
 
 local adapter = require("neotest-golang")
 local options = require("neotest-golang.options")
+local lib = require("neotest-golang.lib")
 local testify = require("neotest-golang.features.testify")
 
 local function compareIgnoringKeys(t1, t2, ignoreKeys)
@@ -81,8 +82,8 @@ describe("With testify_enabled=true", function()
     local test_filepath = vim.loop.cwd()
       .. "/tests/go/testify/positions_test.go"
     options.set({ testify_enabled = true }) -- enable testify
-    testify.lookup.generate() -- generate lookup
-
+    local filepaths = lib.find.go_test_filepaths(test_filepath)
+    testify.lookup.initialize_lookup(filepaths) -- generate lookup
     local expected = {
       {
         id = test_filepath,

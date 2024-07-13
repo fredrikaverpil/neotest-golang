@@ -1,8 +1,13 @@
 --- Functions to modify the Neotest tree, for testify suite support.
 
+local options = require("neotest-golang.options")
+local lib = require("neotest-golang.lib")
 local lookup = require("neotest-golang.features.testify.lookup")
 
 local M = {}
+
+local lookup_table = lookup.get_lookup()
+local ignore_filepaths_during_init = {}
 
 --- Modify the neotest tree, so that testify suites can be executed
 --- as Neotest namespaces.
@@ -11,12 +16,30 @@ local M = {}
 --- type as the Neotest namespace. However, to produce a valid test path,
 --- this receiver type must be replaced with the testify suite name in the
 --- Neotest tree.
+--- @param file_path string The path to the test file
 --- @param tree neotest.Tree The original neotest tree
 --- @return neotest.Tree The modified tree.
-function M.modify_neotest_tree(tree)
-  local lookup_map = lookup.get({ generate = true })
+function M.modify_neotest_tree(file_path, tree)
+  if vim.tbl_isempty(lookup_table) then
+    ignore_filepaths_during_init = lib.find.go_test_filepaths(vim.fn.getcwd())
+    lookup_table = lookup.initialize_lookup(ignore_filepaths_during_init)
+  end
 
-  if not lookup_map then
+  if vim.tbl_contains(ignore_filepaths_during_init, file_path) then
+    -- some optimization;
+    -- ignore the first call, as it is handled by the initialization above.
+    for i, path in ipairs(ignore_filepaths_during_init) do
+      if path == file_path then
+        table.remove(ignore_filepaths_during_init, i)
+        break
+      end
+    end
+  else
+    -- after initialization, always update the lookup for the given filepath.
+    lookup_table = lookup.create_lookup(file_path)
+  end
+
+  if not lookup_table then
     vim.notify(
       "No lookup found. Could not modify Neotest tree for testify suite support",
       vim.log.levels.WARN
@@ -24,10 +47,11 @@ function M.modify_neotest_tree(tree)
     return tree
   end
 
-  local modified_tree = M.replace_receiver_with_suite(tree:root(), lookup_map)
-  local tree_with_merged_namespaces =
-    M.merge_duplicate_namespaces(modified_tree)
-  return tree_with_merged_namespaces
+  local modified_tree = {}
+  modified_tree = M.replace_receiver_with_suite(tree:root(), lookup_table)
+  modified_tree = M.merge_duplicate_namespaces(modified_tree)
+
+  return modified_tree
 end
 
 --- Replace receiver methods with their corresponding test suites in the tree.

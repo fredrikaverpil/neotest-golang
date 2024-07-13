@@ -75,16 +75,14 @@ You can run `:checkhealth neotest-golang` to review common issues.
 
 ## ⚙️ Configuration
 
-| Argument                  | Default value                   | Description                                                                                                                                                          |
-| ------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `go_test_args`            | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                                    |
-| `dap_go_enabled`          | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                                                            |
-| `dap_go_opts`             | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                                    |
-| `testify_enabled`         | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info. |
-| `testify_generate_lookup` | `true`                          | Automatically re-generate testify lookup when recalculating Neotest tree.                                                                                            |
-| `testify_debounce_delay`  | `500`                           | The time to debounce/delay lookup re-generation (in milliseconds).                                                                                                   |
-| `warn_test_name_dupes`    | `true`                          | Warn about duplicate test names within the same Go package.                                                                                                          |
-| `warn_test_not_executed`  | `true`                          | Warn if test was not executed.                                                                                                                                       |
+| Argument                 | Default value                   | Description                                                                                                                                                          |
+| ------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                                    |
+| `dap_go_enabled`         | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                                                            |
+| `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                                    |
+| `testify_enabled`        | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info. |
+| `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                                                                                                          |
+| `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                                                                                                       |
 
 ### Example configuration: custom `go test` arguments
 
@@ -369,23 +367,21 @@ more information on this.
 
 ### Testify suites
 
-> [!WARNING] 
+> [!WARNING]
 > This feature comes with some caveats and nuances, which is why it
 > is not enabled by default. I advise you to only enable this if you need it.
 
 There are some real shenaningans going on behind the scenes to make this work.
-😅 First, a lookup of "receiver type-to-suite test function" will be created of
-all Go test files in your project. Then, the generated Neotest node tree is
-modified by mutating private attributes and merging of nodes to avoid
+😅 First, an in-memory lookup of "receiver type-to-suite test function" will be
+created of all Go test files in your project. Then, the generated Neotest node
+tree is modified by mutating private attributes and merging of nodes to avoid
 duplicates. I'm personally a bit afraid of the maintenance burden of this
 feature... 🙈
 
-> [!NOTE] 
-> Right now, there is no way to update the lookup other than restarting
-> Neotest/Neovim. So in case you are implementing a new suite, please restart to
-> see the new suites/tests appear in e.g. the summary window. Also, nested tests
-> or table tests are not supported. All of this can be remedied at any time.
-> Feel free to dig in and open a PR!
+> [!NOTE]
+> Right now, nested tests and table tests are not supported. All of this
+> can be remedied at any time by extending the treesitter queries. Feel free to
+> dig in and open a PR!
 
 ## 🙏 PRs are welcome
 
