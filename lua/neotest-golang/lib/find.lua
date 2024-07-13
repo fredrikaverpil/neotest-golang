@@ -11,24 +11,26 @@ local M = {}
 --- @param start_path string
 --- @return string | nil
 function M.file_upwards(filename, start_path)
-  local found_filepath = nil
-  while start_path ~= vim.fn.expand("$HOME") do
-    local files = scandir.scan_dir(start_path, {
+  -- Ensure start_path is a directory
+  local start_dir = vim.fn.isdirectory(start_path) == 1 and start_path
+    or vim.fn.fnamemodify(start_path, ":h")
+  local home_dir = vim.fn.expand("$HOME")
+
+  while start_dir ~= home_dir do
+    local files = scandir.scan_dir(start_dir, {
       search_pattern = convert.to_lua_pattern(filename),
       depth = 1,
       add_dirs = false,
     })
     if #files > 0 then
-      found_filepath = files[1]
-      return found_filepath
+      return files[1]
     end
+
+    -- Go up one directory
+    start_dir = vim.fn.fnamemodify(start_dir, ":h")
   end
 
-  if found_filepath == nil then
-    -- go up one directory and try again
-    start_path = vim.fn.fnamemodify(start_path, ":h")
-    return M.file_upwards(filename, start_path)
-  end
+  return nil
 end
 
 -- Get all *_test.go files in a directory recursively.
