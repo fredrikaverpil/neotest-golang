@@ -1,4 +1,4 @@
-title: ""
+title: "config: "
 labels: [configuration]
 body:
   - type: markdown
@@ -50,8 +50,6 @@ body:
   - type: textarea
     attributes:
       label: Describe the problem
-      description: |
-        A clear and concise description of what the problem is. 
-        Please include any related errors you see in Neovim (e.g. in `:messages`) and attach any screenshots.
+      description: "A clear and concise description of what the problem is. \nPlease include any related errors you see in Neovim (e.g. in `:messages`) and attach any screenshots.\n"
     validations:
       required: true
