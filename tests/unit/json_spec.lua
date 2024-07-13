@@ -11,7 +11,7 @@ describe("Go list", function()
     local expected = { { Dir = "foo" } }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(lib.json.process_golist_output(input))
+      vim.inspect(lib.json.decode_from_string(input))
     )
   end)
 
@@ -26,7 +26,7 @@ describe("Go list", function()
     local expected = { { Dir = "foo" }, { Dir = "bar" } }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(lib.json.process_golist_output(input))
+      vim.inspect(lib.json.decode_from_string(input))
     )
   end)
 
@@ -45,7 +45,7 @@ describe("Go list", function()
     local expected = { { Dir = "foo" }, { Dir = "bar" }, { Dir = "baz" } }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(lib.json.process_golist_output(input))
+      vim.inspect(lib.json.decode_from_string(input))
     )
   end)
   it("Returns nested entries", function()
@@ -77,7 +77,7 @@ describe("Go list", function()
     }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(lib.json.process_golist_output(input))
+      vim.inspect(lib.json.decode_from_string(input))
     )
   end)
 end)
