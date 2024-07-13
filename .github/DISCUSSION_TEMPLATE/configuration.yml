@@ -1,0 +1,59 @@
+name: Configuration
+description: Get help with configuration issues.
+title: "configuration: "
+labels: [configuration]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        To best be able to help you with your configuration-related issue, please fill out the below form.
+  - type: checkboxes
+    attributes:
+      label: Did you check docs and existing issues?
+      description: Make sure you checked all of the below before submitting an issue.
+      options:
+        - label: I have read the [documentation](https://github.com/fredrikaverpil/neotest-golang/blob/main/README.md).
+          required: true
+        - label: I have searched the existing [discussions](https://github.com/fredrikaverpil/neotest-golang/discussions).
+          required: true
+        - label: I have updated to the latest version of Neotest.
+          required: true
+        - label: I have updated to the latest version of neotest-golang.
+          required: true
+  - type: input
+    attributes:
+      label: "Neovim version (nvim -v)"
+      placeholder: "0.10.0 commit db1b0ee3b30f"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: "Operating system/version"
+      placeholder: "MacOS 14.5"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Output from `:checkhealth neotest-golang`
+      description: Please provide the output.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Your Neotest and neotest-golang Lua setup
+      description: Please provide valid Lua code, describing how you load and configure the neotest-golang adapter.
+      render: Lua
+      placeholder: |
+        return {
+          -- your setup here
+        }
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Describe the problem
+      description: |
+        A clear and concise description of what the problem is. 
+        Please include any related errors you see in Neovim (e.g. in `:messages`) and attach any screenshots.
+    validations:
+      required: true

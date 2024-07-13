@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Configuration issue
+    url: https://github.com/fredrikaverpil/neotest-golang/discussions/categories/configuration
+    about: Get help setting up neotest-golang.
   - name: Ask a question or start a discussion
     url: https://github.com/fredrikaverpil/neotest-golang/discussions
     about: Use Github discussions instead.
