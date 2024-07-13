@@ -71,6 +71,8 @@ return {
 }
 ```
 
+You can run `:checkhealth neotest-golang` to review common issues.
+
 ## ⚙️ Configuration
 
 | Argument                 | Default value                   | Description                                                                                                                                                          |
@@ -300,6 +302,10 @@ return {
 </details>
 
 ## ⛑️ Tips & troubleshooting
+
+### Issues with setting up the adapter
+
+You can run `:checkhealth neotest-golang` to review common issues.
 
 ### Neotest is slowing down Neovim
 
