@@ -1,6 +1,4 @@
-name: Configuration
-description: Get help with configuration issues.
-title: "configuration: "
+title: ""
 labels: [configuration]
 body:
   - type: markdown
