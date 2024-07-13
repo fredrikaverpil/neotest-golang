@@ -34,6 +34,7 @@ body:
     attributes:
       label: Output from `:checkhealth neotest-golang`
       description: Please provide the output.
+      render: text
     validations:
       required: true
   - type: textarea
