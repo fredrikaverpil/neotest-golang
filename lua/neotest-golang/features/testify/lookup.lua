@@ -1,5 +1,6 @@
 --- Lookup table for renaming Neotest namespaces (receiver type to testify suite function).
 
+local options = require("neotest-golang.options")
 local lib = require("neotest-golang.lib")
 local query = require("neotest-golang.features.testify.query")
 
@@ -63,26 +64,49 @@ M.query = [[
             (identifier))))))
 ]]
 
---- The lookup table.
+--- The lookup table store.
 --- @type table<string, table>
 local lookup_table = {}
 
---- Get the current lookup table, generating it if empty.
---- @return table<string, table> The lookup table containing testify suite information
-function M.get()
-  if vim.tbl_isempty(lookup_table) then
-    lookup_table = M.generate()
+--- Debouncer for generating the lookup table.
+--- @type function
+local debounce = lib.debounce.create_debouncer()
+local debounced_generate = debounce(function()
+  return M._generate()
+end, options.get().testify_debounce_delay)
+
+--- Generate the lookup table for testify suites.
+--- @return table<string, table> The generated lookup table
+function M.generate()
+  if options.get().testify_generate_lookup then
+    local get_result = debounced_generate()
+
+    -- Wait for up to 5 seconds for the result, polling every 100ms.
+    local max_wait_time = 5000
+    local interval_time = 100
+    vim.wait(max_wait_time, function()
+      lookup_table = get_result()
+      return not vim.tbl_isempty(lookup_table)
+    end, interval_time)
   end
+
+  if vim.tbl_isempty(lookup_table) then
+    vim.notify(
+      "Warning: generating the lookup timed out.",
+      vim.log.levels.ERROR
+    )
+  end
+
   return lookup_table
 end
 
 --- Generate the lookup table for testify suites.
 --- @return table<string, table> The generated lookup table
-function M.generate()
+function M._generate()
+  vim.notify("Generating testify lookup...", vim.log.levels.INFO)
   local cwd = vim.fn.getcwd()
   local filepaths = lib.find.go_test_filepaths(cwd)
   local lookup = {}
-  -- local global_suites = {}
 
   -- First pass: collect all data for the lookup table.
   for _, filepath in ipairs(filepaths) do
@@ -107,6 +131,16 @@ function M.generate()
   end
 
   return lookup
+end
+
+--- Get the lookup table for testify suites.
+--- @param opts table<string, boolean> Options for getting the lookup table
+--- @return table<string, table> The generated lookup table
+function M.get(opts)
+  if options.get().testify_generate_lookup and opts.generate then
+    return M.generate()
+  end
+  return lookup_table
 end
 
 --- Clear the lookup table.

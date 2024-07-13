@@ -14,7 +14,7 @@ local M = {}
 --- @param tree neotest.Tree The original neotest tree
 --- @return neotest.Tree The modified tree.
 function M.modify_neotest_tree(tree)
-  local lookup_map = lookup.get()
+  local lookup_map = lookup.get({ generate = true })
 
   if not lookup_map then
     vim.notify(
