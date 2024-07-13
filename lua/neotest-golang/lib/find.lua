@@ -1,6 +1,8 @@
 --- Helpers around filepaths.
 
-local plenary_scan = require("plenary.scandir")
+local scandir = require("plenary.scandir")
+
+local convert = require("neotest-golang.lib.convert")
 
 local M = {}
 
@@ -9,41 +11,32 @@ local M = {}
 --- @param start_path string
 --- @return string | nil
 function M.file_upwards(filename, start_path)
-  local scan = require("plenary.scandir")
   local found_filepath = nil
   while start_path ~= vim.fn.expand("$HOME") do
-    local files = scan.scan_dir(
-      start_path,
-      { search_pattern = filename, hidden = true, depth = 1 }
-    )
+    local files = scandir.scan_dir(start_path, {
+      search_pattern = convert.to_lua_pattern(filename),
+      depth = 1,
+      add_dirs = false,
+    })
     if #files > 0 then
       found_filepath = files[1]
-      break
+      return found_filepath
     end
-    start_path = vim.fn.fnamemodify(start_path, ":h") -- go up one directory
   end
 
   if found_filepath == nil then
-    -- check if filename exists in the current directory
-    local files = scan.scan_dir(
-      start_path,
-      { search_pattern = filename, hidden = true, depth = 1 }
-    )
-    if #files > 0 then
-      found_filepath = files[1]
-    end
+    -- go up one directory and try again
+    start_path = vim.fn.fnamemodify(start_path, ":h")
+    return M.file_upwards(filename, start_path)
   end
-
-  return found_filepath
 end
 
 -- Get all *_test.go files in a directory recursively.
 function M.go_test_filepaths(folderpath)
-  local files = plenary_scan.scan_dir(folderpath, {
-    search_pattern = "_test%.go$",
-    depth = math.huge,
-    add_dirs = false,
-  })
+  local files = scandir.scan_dir(
+    folderpath,
+    { search_pattern = "_test%.go$", add_dirs = false }
+  )
   return files
 end
 
