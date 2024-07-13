@@ -305,7 +305,9 @@ return {
 
 ### Issues with setting up the adapter
 
-You can run `:checkhealth neotest-golang` to review common issues.
+You can run `:checkhealth neotest-golang` to review common issues. If you need
+help, please open a discussion
+[here](https://github.com/fredrikaverpil/neotest-golang/discussions/new?category=configuration).
 
 ### Neotest is slowing down Neovim
 
