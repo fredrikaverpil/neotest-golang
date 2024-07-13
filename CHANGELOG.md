@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.7.0...v0.8.0) (2024-07-13)
+
+
+### Features
+
+* re-generate testify lookup ([#128](https://github.com/fredrikaverpil/neotest-golang/issues/128)) ([b26c220](https://github.com/fredrikaverpil/neotest-golang/commit/b26c220021f6dd42553f075f528dc0b1812522bd))
+
+
+### Bug Fixes
+
+* always recreate lookup for file ([#131](https://github.com/fredrikaverpil/neotest-golang/issues/131)) ([01792c4](https://github.com/fredrikaverpil/neotest-golang/commit/01792c4e56d17a9bfce39ac10acd4d9f242b50a1))
+* find_upwards could go into infinite loop ([#129](https://github.com/fredrikaverpil/neotest-golang/issues/129)) ([b9cc68c](https://github.com/fredrikaverpil/neotest-golang/commit/b9cc68c9bcb8465122460addb25b2b1df0bbb0cb))
+
 ## [0.7.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.6.1...v0.7.0) (2024-07-13)
 
 
