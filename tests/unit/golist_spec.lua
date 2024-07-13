@@ -81,6 +81,10 @@ describe("go list output", function()
     first_entry.Module.GoVersion = nil
     expected.Deps = nil
     first_entry.Deps = nil
+    expected.StaleReason = nil
+    first_entry.StaleReason = nil
+    expected.Target = nil
+    first_entry.Target = nil
 
     assert.are_same(vim.inspect(expected), vim.inspect(first_entry))
     assert.are_same(expected, first_entry)
