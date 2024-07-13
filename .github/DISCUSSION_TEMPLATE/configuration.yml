@@ -12,7 +12,7 @@ body:
       options:
         - label: I have read the [documentation](https://github.com/fredrikaverpil/neotest-golang/blob/main/README.md).
           required: true
-        - label: I have searched the existing [discussions](https://github.com/fredrikaverpil/neotest-golang/discussions).
+        - label: I have searched the existing configuration related [discussions](https://github.com/fredrikaverpil/neotest-golang/discussions/categories/configuration).
           required: true
         - label: I have updated to the latest version of Neotest.
           required: true
