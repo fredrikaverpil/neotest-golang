@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/fredrikaverpil/neotest-golang/compare/v0.8.0...v0.8.1) (2024-07-14)
+
+
+### Bug Fixes
+
+* include sub-test in test output ([#133](https://github.com/fredrikaverpil/neotest-golang/issues/133)) ([50c3d56](https://github.com/fredrikaverpil/neotest-golang/commit/50c3d569a57157e73216582a638cbb9fde023424))
+
 ## [0.8.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.7.0...v0.8.0) (2024-07-13)
 
 
