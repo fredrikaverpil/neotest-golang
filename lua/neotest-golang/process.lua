@@ -259,8 +259,14 @@ function M.decorate_with_go_test_results(res, gotest_output)
   for pos_id, test_data in pairs(res) do
     for _, line in ipairs(gotest_output) do
       if
-        test_data.gotest_data.pkg == line.Package
-        and test_data.gotest_data.name == line.Test
+        line.Package == test_data.gotest_data.pkg
+        and (
+          line.Test == test_data.gotest_data.name
+          or lib.string.starts_with(
+            line.Test,
+            test_data.gotest_data.name .. "/"
+          )
+        )
       then
         -- record test status
         if line.Action == "pass" then
