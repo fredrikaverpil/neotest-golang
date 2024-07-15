@@ -1,5 +1,6 @@
 --- Helpers to build the command and context around running a single test.
 
+local logger = require("neotest-golang.logging")
 local lib = require("neotest-golang.lib")
 local options = require("neotest-golang.options")
 local dap = require("neotest-golang.features.dap")
@@ -26,10 +27,10 @@ function M.build(pos, strategy)
 
   local runspec_strategy = nil
   if strategy == "dap" then
-    if options.get().dap_go_enabled then
-      runspec_strategy = dap.get_dap_config(test_name)
-      dap.setup_debugging(test_folder_absolute_path)
-    end
+    M.assert_dap_prerequisites()
+    runspec_strategy = dap.get_dap_config(test_name)
+    logger.debug("DAP strategy used: " .. vim.inspect(runspec_strategy))
+    dap.setup_debugging(test_folder_absolute_path)
   end
 
   --- @type RunspecContext
@@ -54,6 +55,17 @@ function M.build(pos, strategy)
   end
 
   return run_spec
+end
+
+function M.assert_dap_prerequisites()
+  local dap_go_enabled = options.get().dap_go_enabled
+  local dap_go_found = pcall(require, "dap-go")
+  if not dap_go_enabled or not dap_go_found then
+    local msg = "You must set {dap_go_enabled=true} and have leoluz/nvim-dap-go installed to use DAP strategy. "
+      .. "See the neotest-golang README for more information."
+    logger.error(msg)
+    error(msg)
+  end
 end
 
 return M

@@ -4,6 +4,8 @@ local options = require("neotest-golang.options")
 
 local M = {}
 
+---This will prepare and setup nvim-dap-go for debugging.
+---@param cwd string
 function M.setup_debugging(cwd)
   local dap_go_opts = options.get().dap_go_opts or {}
   local dap_go_opts_original = vim.deepcopy(dap_go_opts)
