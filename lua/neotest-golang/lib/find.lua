@@ -2,7 +2,7 @@
 
 local scandir = require("plenary.scandir")
 
-local convert = require("neotest-golang.lib.convert")
+local logger = require("neotest-golang.logging")
 
 local M = {}
 
@@ -17,13 +17,12 @@ function M.file_upwards(filename, start_path)
   local home_dir = vim.fn.expand("$HOME")
 
   while start_dir ~= home_dir do
-    local files = scandir.scan_dir(start_dir, {
-      search_pattern = convert.to_lua_pattern(filename),
-      depth = 1,
-      add_dirs = false,
-    })
-    if #files > 0 then
-      return files[1]
+    logger.debug("Searching for " .. filename .. " in " .. start_dir)
+
+    local try_path = start_dir .. "/" .. filename
+    if vim.fn.filereadable(try_path) == 1 then
+      logger.debug("Found " .. filename .. " at " .. try_path)
+      return try_path
     end
 
     -- Go up one directory
