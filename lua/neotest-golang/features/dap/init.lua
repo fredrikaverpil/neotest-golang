@@ -21,9 +21,9 @@ function M.setup_debugging(cwd)
   end
 end
 
---- @param test_name string
+--- @param test_name_regex string
 --- @return table | nil
-function M.get_dap_config(test_name)
+function M.get_dap_config(test_name_regex)
   -- :help dap-configuration
   local dap_config = {
     type = "go",
@@ -31,7 +31,7 @@ function M.get_dap_config(test_name)
     request = "launch",
     mode = "test",
     program = "${fileDirname}",
-    args = { "-test.run", "^" .. test_name .. "$" },
+    args = { "-test.run", test_name_regex },
   }
 
   return dap_config

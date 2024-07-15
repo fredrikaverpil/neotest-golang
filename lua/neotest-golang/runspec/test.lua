@@ -18,17 +18,17 @@ function M.build(pos, strategy)
 
   --- @type string
   local test_name = lib.convert.to_gotest_test_name(pos.id)
-  test_name = lib.convert.to_gotest_regex_pattern(test_name)
+  local test_name_regex = lib.convert.to_gotest_regex_pattern(test_name)
 
   local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(
     test_folder_absolute_path,
-    test_name
+    test_name_regex
   )
 
   local runspec_strategy = nil
   if strategy == "dap" then
     M.assert_dap_prerequisites()
-    runspec_strategy = dap.get_dap_config(test_name)
+    runspec_strategy = dap.get_dap_config(test_name_regex)
     logger.debug("DAP strategy used: " .. vim.inspect(runspec_strategy))
     dap.setup_debugging(test_folder_absolute_path)
   end
