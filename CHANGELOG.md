@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/fredrikaverpil/neotest-golang/compare/v0.9.0...v0.9.1) (2024-07-15)
+
+
+### Bug Fixes
+
+* **dap:** show config error, remove excessive regex characters from test name ([#141](https://github.com/fredrikaverpil/neotest-golang/issues/141)) ([91dabb0](https://github.com/fredrikaverpil/neotest-golang/commit/91dabb01aef5ba3e0e7db86ff9d6dc66c58c65af))
+
 ## [0.9.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.8.1...v0.9.0) (2024-07-15)
 
 
