@@ -75,14 +75,13 @@ You can run `:checkhealth neotest-golang` to review common issues.
 
 ## ⚙️ Configuration
 
-| Argument                 | Default value                   | Description                                                                                                                                                          |
-| ------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                                    |
-| `dap_go_enabled`         | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                                                            |
-| `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                                    |
-| `testify_enabled`        | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info. |
-| `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                                                                                                          |
-| `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                                                                                                       |
+| Argument               | Default value                   | Description                                                                                                                                                          |
+| ---------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `go_test_args`         | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                                    |
+| `dap_go_enabled`       | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                                                            |
+| `dap_go_opts`          | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                                    |
+| `testify_enabled`      | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info. |
+| `warn_test_name_dupes` | `true`                          | Warn about duplicate test names within the same Go package.                                                                                                          |
 
 ### Example configuration: custom `go test` arguments
 
@@ -303,11 +302,24 @@ return {
 
 ## ⛑️ Tips & troubleshooting
 
-### Issues with setting up the adapter
+### Issues with setting up or using the adapter
 
 You can run `:checkhealth neotest-golang` to review common issues. If you need
 help, please open a discussion
 [here](https://github.com/fredrikaverpil/neotest-golang/discussions/new?category=configuration).
+
+You can also enable logging to further inspect what's going on under the hood.
+Neotest-golang piggybacks on the Neotest logger. You can enable it like so:
+
+```lua
+require("neotest.logging"):set_level(vim.log.levels.INFO)
+```
+
+Lower the log level further to `DEBUG` or `TRACE` to get even more information.
+
+You can get ahold of the log file's path using
+`require("neotest.logging"):get_filename()`, which usually points to your
+`~/.local/state/nvim/neotest.log`.
 
 ### Neotest is slowing down Neovim
 

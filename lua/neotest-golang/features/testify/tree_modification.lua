@@ -1,6 +1,6 @@
 --- Functions to modify the Neotest tree, for testify suite support.
 
-local options = require("neotest-golang.options")
+local logger = require("neotest-golang.logging")
 local lib = require("neotest-golang.lib")
 local lookup = require("neotest-golang.features.testify.lookup")
 
@@ -40,9 +40,8 @@ function M.modify_neotest_tree(file_path, tree)
   end
 
   if not lookup_table then
-    vim.notify(
-      "No lookup found. Could not modify Neotest tree for testify suite support",
-      vim.log.levels.WARN
+    logger.warn(
+      "No lookup found. Could not modify Neotest tree for testify suite support"
     )
     return tree
   end

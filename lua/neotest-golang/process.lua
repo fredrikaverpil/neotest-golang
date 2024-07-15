@@ -3,6 +3,7 @@
 
 local async = require("neotest.async")
 
+local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local lib = require("neotest-golang.lib")
 
@@ -59,9 +60,8 @@ function M.test_results(spec, result, tree)
   -- Sanity check
   if options.get().dev_notifications == true then
     if pos.id ~= context.pos_id then
-      vim.notify(
-        "Neotest position id mismatch: " .. pos.id .. " vs " .. context.pos_id,
-        vim.log.levels.ERROR
+      logger.error(
+        "Neotest position id mismatch: " .. pos.id .. " vs " .. context.pos_id
       )
     end
   end
@@ -118,7 +118,7 @@ function M.test_results(spec, result, tree)
   local res = M.aggregate_data(tree, gotest_output, golist_output)
 
   -- DEBUG: enable the following to see the internal test result data.
-  -- vim.notify(vim.inspect(res), vim.log.levels.DEBUG)
+  -- logger.debug(vim.inspect(res))
 
   -- show various warnings
   M.show_warnings(res)
@@ -130,7 +130,7 @@ function M.test_results(spec, result, tree)
   end
 
   -- DEBUG: enable the following to see the final Neotest result.
-  -- vim.notify(vim.inspect(neotest_results), vim.log.levels.DEBUG)
+  -- logger.debug(vim.inspect(neotest_results))
 
   return neotest_result
 end
@@ -322,11 +322,10 @@ function M.show_warnings(d)
       end
     end
     if #position_ids > 0 then
-      vim.notify(
-        "Test(s) not associated (not found/executed):\n"
-          .. table.concat(position_ids, "\n"),
-        vim.log.levels.DEBUG
-      )
+      local msg = "Test(s) not associated (not found/executed):\n"
+        .. table.concat(position_ids, "\n")
+      vim.notify(msg, vim.log.levels.DEBUG)
+      logger.debug(msg)
     end
   end
 
@@ -342,9 +341,8 @@ function M.show_warnings(d)
       end
     end
     if #test_dupes > 0 then
-      vim.notify(
-        "Duplicate test name(s) detected:\n" .. table.concat(test_dupes, "\n"),
-        vim.log.levels.WARN
+      logger.warn(
+        "Duplicate test name(s) detected:\n" .. table.concat(test_dupes, "\n")
       )
     end
   end

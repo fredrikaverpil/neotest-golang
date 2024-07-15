@@ -18,6 +18,8 @@ body:
           required: true
         - label: I have updated to the latest version of neotest-golang.
           required: true
+        - label: I have checked the Neotest log for errors (see README for instructions on enabling it).
+          required: false
   - type: input
     attributes:
       label: "Neovim version (nvim -v)"

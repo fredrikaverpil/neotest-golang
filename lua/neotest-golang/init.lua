@@ -1,11 +1,11 @@
 --- This is the main entry point for the neotest-golang adapter. It follows the
 --- Neotest interface: https://github.com/nvim-neotest/neotest/blob/master/lua/neotest/adapters/interface.lua
 
+local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local query = require("neotest-golang.query")
 local runspec = require("neotest-golang.runspec")
 local process = require("neotest-golang.process")
-local testify = require("neotest-golang.features.testify")
 
 local M = {}
 
@@ -72,10 +72,7 @@ function M.Adapter.build_spec(args)
   local pos = args.tree:data() -- NOTE: causes <file> is not accessible by the current user!
 
   if not tree then
-    vim.notify(
-      "Unexpectedly did not receive a neotest.Tree.",
-      vim.log.levels.ERROR
-    )
+    logger.error("Unexpectedly did not receive a neotest.Tree.")
     return
   end
 
@@ -123,11 +120,10 @@ function M.Adapter.build_spec(args)
     return runspec.test.build(pos, args.strategy)
   end
 
-  vim.notify(
+  logger.error(
     "Unknown Neotest position type, "
       .. "cannot build runspec with position type: "
-      .. pos.type,
-    vim.log.levels.ERROR
+      .. pos.type
   )
 end
 
@@ -165,10 +161,9 @@ function M.Adapter.results(spec, result, tree)
     return results
   end
 
-  vim.notify(
+  logger.error(
     "Cannot process test results due to unknown Neotest position type:"
-      .. spec.context.pos_type,
-    vim.log.levels.ERROR
+      .. spec.context.pos_type
   )
 end
 

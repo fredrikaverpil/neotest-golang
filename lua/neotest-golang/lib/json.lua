@@ -1,5 +1,7 @@
 --- JSON processing helpers.
 
+local logger = require("neotest-golang.logging")
+
 local M = {}
 
 --- Decode JSON from a table of strings into a table of objects.
@@ -14,7 +16,7 @@ function M.decode_from_table(tbl)
         table.insert(jsonlines, json_data)
       else
         -- NOTE: this can be hit because of "Vim:E474: Unidentified byte: ..."
-        vim.notify("Failed to decode JSON line: " .. line, vim.log.levels.WARN)
+        logger.warn("Failed to decode JSON line: " .. line)
       end
     else
       -- vim.notify("Not valid JSON: " .. line, vim.log.levels.DEBUG)
