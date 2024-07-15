@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.8.1...v0.9.0) (2024-07-15)
+
+
+### Features
+
+* add logger ([#138](https://github.com/fredrikaverpil/neotest-golang/issues/138)) ([d7cf086](https://github.com/fredrikaverpil/neotest-golang/commit/d7cf0861e1b9b1c08ef8fdfa0ffbb68788294656))
+
 ## [0.8.1](https://github.com/fredrikaverpil/neotest-golang/compare/v0.8.0...v0.8.1) (2024-07-14)
 
 
