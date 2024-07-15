@@ -12,6 +12,12 @@ local M = {}
 function M.check()
   M.go_binary_on_path()
   M.go_mod_found()
+
+  M.is_plugin_available("neotest")
+  M.is_plugin_available("nvim-treesitter")
+  M.is_plugin_available("nio")
+  M.is_plugin_available("dap-go")
+  M.is_plugin_available("plenary")
 end
 
 function M.go_binary_on_path()
@@ -36,6 +42,15 @@ function M.go_mod_found()
   end
   if go_mod_filepath == nil then
     warn("No go.mod file found")
+  end
+end
+
+function M.is_plugin_available(plugin)
+  local is_plugin_available = pcall(require, plugin)
+  if is_plugin_available then
+    ok(plugin .. " is available")
+  else
+    warn(plugin .. " is not available")
   end
 end
 
