@@ -1,5 +1,6 @@
 --- Helpers to build the command and context around running all tests of a file.
 
+local logger = require("neotest-golang.logging")
 local lib = require("neotest-golang.lib")
 
 local M = {}
@@ -10,14 +11,15 @@ local M = {}
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos, tree)
   if vim.tbl_isempty(tree:children()) then
-    return M.fail_fast(pos)
+    return M.return_skipped(pos)
   end
 
   local go_mod_filepath = lib.find.file_upwards("go.mod", pos.path)
   if go_mod_filepath == nil then
-    -- if no go.mod file was found up the directory tree, until reaching $CWD,
-    -- then we cannot determine the Go project root.
-    return M.fail_fast(pos)
+    local msg =
+      "The selected file does not appear to be part of a valid Go module (no go.mod file found)."
+    logger.error(msg)
+    error(msg)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
@@ -72,7 +74,7 @@ function M.build(pos, tree)
   return run_spec
 end
 
-function M.fail_fast(pos)
+function M.return_skipped(pos)
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
