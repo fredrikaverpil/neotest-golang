@@ -17,9 +17,10 @@ local M = {}
 function M.build(pos)
   local go_mod_filepath = lib.find.file_upwards("go.mod", pos.path)
   if go_mod_filepath == nil then
-    -- if no go.mod file was found up the directory tree, until reaching $CWD,
-    -- then we cannot determine the Go project root.
-    return M.fail_fast(pos)
+    local msg =
+      "The selected directory does not contain a go.mod file or is not part of a Go module."
+    logger.error(msg)
+    error(msg)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
@@ -56,27 +57,6 @@ function M.build(pos)
     context = context,
   }
 
-  return run_spec
-end
-
-function M.fail_fast(pos)
-  local msg = "The selected folder must contain a go.mod file "
-    .. "or be a subdirectory of a Go package."
-  logger.error(msg)
-
-  --- @type RunspecContext
-  local context = {
-    pos_id = pos.id,
-    pos_type = "dir",
-    golist_data = {}, -- no golist output
-    parse_test_results = false,
-  }
-
-  --- @type neotest.RunSpec
-  local run_spec = {
-    command = { "echo", msg },
-    context = context,
-  }
   return run_spec
 end
 
