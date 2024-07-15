@@ -1,6 +1,7 @@
 --- Helpers to build the command and context around running all tests of
 --- a Go package.
 
+local logger = require("neotest-golang.logging")
 local lib = require("neotest-golang.lib")
 
 local M = {}
@@ -61,7 +62,7 @@ end
 function M.fail_fast(pos)
   local msg = "The selected folder must contain a go.mod file "
     .. "or be a subdirectory of a Go package."
-  vim.notify(msg, vim.log.levels.ERROR)
+  logger.error(msg)
 
   --- @type RunspecContext
   local context = {

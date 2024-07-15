@@ -13,7 +13,6 @@ describe("Options are set up", function()
       dap_go_opts = {},
       testify_enabled = false,
       warn_test_name_dupes = true,
-      warn_test_not_executed = true,
 
       -- experimental
       runner = "go",
@@ -36,7 +35,6 @@ describe("Options are set up", function()
       dap_go_opts = {},
       testify_enabled = false,
       warn_test_name_dupes = true,
-      warn_test_not_executed = true,
 
       -- experimental
       runner = "go",

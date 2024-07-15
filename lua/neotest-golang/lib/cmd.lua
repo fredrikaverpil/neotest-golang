@@ -2,6 +2,7 @@
 
 local async = require("neotest.async")
 
+local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.lib.json")
 
@@ -52,6 +53,8 @@ function M.test_command(go_test_required_args)
     cmd = M.gotestsum(go_test_required_args, json_filepath)
   end
 
+  logger.info("Test command: " .. table.concat(cmd, " "))
+
   return cmd, json_filepath
 end
 
@@ -81,7 +84,7 @@ end
 
 function M.system_has(executable)
   if vim.fn.executable(executable) == 0 then
-    vim.notify("Executable not found: " .. executable, vim.log.levels.WARN)
+    logger.warn("Executable not found: " .. executable)
     return false
   end
   return true
