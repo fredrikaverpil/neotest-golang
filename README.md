@@ -315,7 +315,9 @@ Neotest-golang piggybacks on the Neotest logger. You can enable it like so:
 require("neotest.logging"):set_level(vim.log.levels.INFO)
 ```
 
-Lower the log level further to `DEBUG` or `TRACE` to get even more information.
+Lower the log level further to `DEBUG` to get even more information. The lowest
+level is `TRACE`, but is not used by this adapter and is only useful when
+debugging issues with Neotest.
 
 You can get ahold of the log file's path using
 `require("neotest.logging"):get_filename()`, which usually points to your
