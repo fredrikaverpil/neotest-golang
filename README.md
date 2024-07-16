@@ -321,7 +321,17 @@ debugging issues with Neotest.
 
 You can get ahold of the log file's path using
 `require("neotest.logging"):get_filename()`, which usually points to your
-`~/.local/state/nvim/neotest.log`.
+`~/.local/state/nvim/neotest.Log`.
+
+The logfile tends to be ginormous and if you are only looking for neotest-golang
+related entries, you can either search for the `[neotest-golang]` prefix, or
+open the log in a Neovim buffer and then filter out only the adapter-related
+entries:
+
+```lua
+:edit ~/.local/state/nvim/neotest.log
+:lua require("neotest-golang.utils.buffer").filter("[neotest-golang]")
+```
 
 ### Neotest is slowing down Neovim
 
