@@ -38,4 +38,8 @@ function M.error(msg)
   error(msg)
 end
 
+function M.get_level()
+  return logger._level
+end
+
 return M
