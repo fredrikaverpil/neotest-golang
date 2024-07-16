@@ -16,8 +16,11 @@ function M.golist_data(cwd)
     "-json",
     "./...",
   }
+  local go_list_command_concat = table.concat(go_list_command, " ")
+  logger.debug("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
   local output =
-    vim.fn.system("cd " .. cwd .. " && " .. table.concat(go_list_command, " "))
+    vim.fn.system("cd " .. cwd .. " && " .. go_list_command_concat, " ")
+  logger.info({ "Go list output: ", output })
   return json.decode_from_string(output)
 end
 

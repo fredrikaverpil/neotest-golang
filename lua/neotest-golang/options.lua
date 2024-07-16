@@ -2,6 +2,8 @@
 --- providing them as arguments to the Adapter function. See the README for mode
 --- details and examples.
 
+local logger = require("neotest-golang.logging")
+
 local M = {}
 
 local opts = {
@@ -10,6 +12,7 @@ local opts = {
   dap_go_opts = {},
   testify_enabled = false,
   warn_test_name_dupes = true,
+  warn_test_not_executed = true,
 
   -- experimental, for now undocumented, options
   runner = "go", -- or "gotestsum"
@@ -24,6 +27,7 @@ function M.setup(user_opts)
     end
   else
   end
+  logger.debug("Loaded with options: " .. vim.inspect(opts))
 end
 
 function M.get()

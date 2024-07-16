@@ -17,10 +17,10 @@ local M = {}
 function M.build(pos)
   local go_mod_filepath = lib.find.file_upwards("go.mod", pos.path)
   if go_mod_filepath == nil then
-    local msg =
+    logger.error(
       "The selected directory does not contain a go.mod file or is not part of a Go module."
-    logger.error(msg)
-    error(msg)
+    )
+    return nil -- NOTE: logger.error will throw an error, but the LSP doesn't see it.
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")

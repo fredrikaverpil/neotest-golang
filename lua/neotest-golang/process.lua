@@ -58,6 +58,7 @@ function M.test_results(spec, result, tree)
   local pos = tree:data()
 
   -- Sanity check
+  -- TODO: refactor so that we use pos.type and pos.id instead of passing them separately on the context
   if options.get().dev_notifications == true then
     if pos.id ~= context.pos_id then
       logger.error(
@@ -310,8 +311,8 @@ end
 --- @param d table<string, TestData>
 --- @return nil
 function M.show_warnings(d)
-  if options.get().dev_notifications == true then
-    -- warn if Go package/test is missing for given Neotest position id (Neotest tree node).
+  -- warn if Go package/test is missing for given Neotest position id (Neotest tree node).
+  if options.get().warn_test_not_executed == true then
     --- @type table<string>
     local position_ids = {}
     for pos_id, test_data in pairs(d) do
@@ -322,10 +323,10 @@ function M.show_warnings(d)
       end
     end
     if #position_ids > 0 then
-      local msg = "Test(s) not associated (not found/executed):\n"
-        .. table.concat(position_ids, "\n")
-      vim.notify(msg, vim.log.levels.DEBUG)
-      logger.debug(msg)
+      logger.warn({
+        "Test(s) not associated (not found/executed): ",
+        position_ids,
+      })
     end
   end
 
@@ -341,9 +342,7 @@ function M.show_warnings(d)
       end
     end
     if #test_dupes > 0 then
-      logger.warn(
-        "Duplicate test name(s) detected:\n" .. table.concat(test_dupes, "\n")
-      )
+      logger.warn({ "Duplicate test name(s) detected: ", test_dupes })
     end
   end
 end
