@@ -316,6 +316,9 @@ Neotest-golang piggybacks on the Neotest logger. You can enable it like so:
 require("neotest.logging"):set_level(vim.log.levels.INFO)
 ```
 
+⚠️ Please note that this could cause tests to run slower, so don't forget to
+remove this setting once you have resolved your issue!
+
 Lower the log level further to `DEBUG` to get even more information. The lowest
 level is `TRACE`, but is not used by this adapter and is only useful when
 debugging issues with Neotest.
