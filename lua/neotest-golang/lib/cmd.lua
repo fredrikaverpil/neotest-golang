@@ -3,7 +3,6 @@
 local async = require("neotest.async")
 
 local logger = require("neotest-golang.logging")
-local convert = require("neotest-golang.lib.convert")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.lib.json")
 
@@ -17,18 +16,11 @@ function M.golist_data(cwd)
     "-json",
     "./...",
   }
-  logger.debug(
-    "Running Go list: (" .. table.concat(go_list_command, " ") .. ") in " .. cwd
-  )
+  local go_list_command_concat = table.concat(go_list_command, " ")
+  logger.debug("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
   local output =
-    vim.fn.system("cd " .. cwd .. " && " .. table.concat(go_list_command, " "))
-
-  if logger.get_level() < 2 then
-    -- NOTE: this is behind an if-condition for optimization reasons.
-    -- See the log level integer values by inspecting vim.log.levels.DEBUG.
-    logger.info("Go list output: " .. convert.table_to_string(output))
-  end
-
+    vim.fn.system("cd " .. cwd .. " && " .. go_list_command_concat, " ")
+  logger.info({ "Go list output: ", output })
   return json.decode_from_string(output)
 end
 

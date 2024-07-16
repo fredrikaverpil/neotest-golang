@@ -88,16 +88,4 @@ function M.to_lua_pattern(str)
   return str
 end
 
-function M.table_to_string(tbl)
-  local inspected = vim.inspect(tbl)
-
-  -- First, replace escaped newlines and tabs
-  inspected = inspected:gsub("\\n", ""):gsub("\\t", "")
-
-  -- Then, remove any remaining actual newlines and tabs
-  inspected = inspected:gsub("[\n\t]", "")
-
-  return inspected
-end
-
 return M
