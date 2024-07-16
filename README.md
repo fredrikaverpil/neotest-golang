@@ -325,7 +325,7 @@ debugging issues with Neotest.
 
 You can get ahold of the log file's path using
 `require("neotest.logging"):get_filename()`, which usually points to your
-`~/.local/state/nvim/neotest.Log`.
+`~/.local/state/nvim/neotest.log`.
 
 The logfile tends to be ginormous and if you are only looking for neotest-golang
 related entries, you can either search for the `[neotest-golang]` prefix, or
