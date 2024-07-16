@@ -75,13 +75,14 @@ You can run `:checkhealth neotest-golang` to review common issues.
 
 ## ⚙️ Configuration
 
-| Argument               | Default value                   | Description                                                                                                                                                          |
-| ---------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `go_test_args`         | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                                    |
-| `dap_go_enabled`       | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                                                            |
-| `dap_go_opts`          | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                                    |
-| `testify_enabled`      | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info. |
-| `warn_test_name_dupes` | `true`                          | Warn about duplicate test names within the same Go package.                                                                                                          |
+| Argument                 | Default value                   | Description                                                                                                                                                          |
+| ------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                                    |
+| `dap_go_enabled`         | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                                                            |
+| `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                                    |
+| `testify_enabled`        | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info. |
+| `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                                                                                                          |
+| `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                                                                                                       |
 
 ### Example configuration: custom `go test` arguments
 
