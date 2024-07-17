@@ -78,7 +78,6 @@ You can run `:checkhealth neotest-golang` to review common issues.
 | Argument                 | Default value                   | Description                                                                                                                                                          |
 | ------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                                    |
-| `dap_go_enabled`         | `false`                         | Leverage [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) for debugging tests.                                                                            |
 | `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                                    |
 | `testify_enabled`        | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info. |
 | `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                                                                                                          |
@@ -113,17 +112,42 @@ See `go help test`, `go help testflag`, `go help build` for possible arguments.
 To debug tests, make sure you depend on
 [mfussenegger/nvim-dap](https://github.com/mfussenegger/nvim-dap),
 [rcarriga/nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) and
-[leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go).
+[leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go). For example, make
+the following changes to your lua setup:
 
-Then set `dap_go_enabled` to `true`:
-
-```lua
-local config = { dap_go_enabled = true } -- Specify configuration
-require("neotest").setup({
-  adapters = {
-    require("neotest-golang")(config), -- Apply configuration
+```diff
+return {
++  {
++    "rcarriga/nvim-dap-ui",
++    dependencies = {
++      "mfussenegger/nvim-dap",
++      "nvim-neotest/nvim-nio",
++    },
++  },
+  {
+    "nvim-neotest/neotest",
+    dependencies = {
+      "nvim-neotest/nvim-nio",
+      "nvim-lua/plenary.nvim",
+      "antoinemadec/FixCursorHold.nvim",
+      "nvim-treesitter/nvim-treesitter",
+-      "fredrikaverpil/neotest-golang", -- Installation
++      {
++        "fredrikaverpil/neotest-golang", -- Installation
++        dependencies = {
++          "leoluz/nvim-dap-go",
++        },
++      },
+    },
+    config = function()
+      require("neotest").setup({
+        adapters = {
+          require("neotest-golang"), -- Registration
+        },
+      })
+    end,
   },
-})
+}
 ```
 
 Finally, set a keymap, like:
@@ -153,7 +177,13 @@ return {
 
 ```lua
 return {
-  -- Neotest setup
+  {
+    "rcarriga/nvim-dap-ui",
+    dependencies = {
+      "mfussenegger/nvim-dap",
+      "nvim-neotest/nvim-nio",
+    },
+  },
   {
     "nvim-neotest/neotest",
     event = "VeryLazy",
@@ -185,7 +215,6 @@ return {
           "-race",
           "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
         },
-        dap_go_enabled = true,
       }
     end,
     config = function(_, opts)
