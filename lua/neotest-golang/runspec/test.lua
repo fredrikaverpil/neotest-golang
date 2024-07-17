@@ -58,10 +58,9 @@ function M.build(pos, strategy)
 end
 
 function M.assert_dap_prerequisites()
-  local dap_go_enabled = options.get().dap_go_enabled
   local dap_go_found = pcall(require, "dap-go")
-  if not dap_go_enabled or not dap_go_found then
-    local msg = "You must set {dap_go_enabled=true} and have leoluz/nvim-dap-go installed to use DAP strategy. "
+  if not dap_go_found then
+    local msg = "You must have leoluz/nvim-dap-go installed to use DAP strategy. "
       .. "See the neotest-golang README for more information."
     logger.error(msg)
     error(msg)
