@@ -216,7 +216,7 @@ function M.decorate_with_go_package_and_test_name(
     local folderpath = vim.fn.fnamemodify(test_data.neotest_data.path, ":h")
     local tweaked_pos_id = pos_id:gsub(" ", "_")
     tweaked_pos_id = tweaked_pos_id:gsub('"', "")
-    tweaked_pos_id = tweaked_pos_id:gsub("::", "/")
+    tweaked_pos_id = tweaked_pos_id:gsub("::", lib.find.os_path_sep)
 
     for _, golistline in ipairs(golist_output) do
       if folderpath == golistline.Dir then
@@ -224,7 +224,9 @@ function M.decorate_with_go_package_and_test_name(
           if gotestline.Action == "run" and gotestline.Test ~= nil then
             if gotestline.Package == golistline.ImportPath then
               local pattern = lib.convert.to_lua_pattern(folderpath)
-                .. "/(.-)/"
+                .. lib.find.os_path_sep
+                .. "(.-)"
+                .. lib.find.os_path_sep
                 .. lib.convert.to_lua_pattern(gotestline.Test)
                 .. "$"
               match = tweaked_pos_id:find(pattern, 1, false)

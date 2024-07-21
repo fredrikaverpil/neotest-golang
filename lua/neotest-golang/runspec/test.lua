@@ -2,7 +2,6 @@
 
 local logger = require("neotest-golang.logging")
 local lib = require("neotest-golang.lib")
-local options = require("neotest-golang.options")
 local dap = require("neotest-golang.features.dap")
 
 local M = {}
@@ -13,7 +12,8 @@ local M = {}
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos, strategy)
   --- @type string
-  local test_folder_absolute_path = string.match(pos.path, "(.+)/")
+  local test_folder_absolute_path =
+    string.match(pos.path, "(.+)" .. lib.find.os_path_sep)
   local golist_data = lib.cmd.golist_data(test_folder_absolute_path)
 
   --- @type string
@@ -54,6 +54,7 @@ function M.build(pos, strategy)
     run_spec.context.parse_test_results = false
   end
 
+  logger.debug({ "RunSpec:", run_spec })
   return run_spec
 end
 
