@@ -238,8 +238,8 @@ function M.decorate_with_go_package_and_test_name(
 
               logger.debug({
                 "Match position with log",
-                pattern,
                 tweaked_pos_id,
+                pattern,
               })
 
               if match ~= nil then
