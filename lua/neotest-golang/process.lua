@@ -220,7 +220,7 @@ function M.decorate_with_go_package_and_test_name(
     local folderpath = vim.fn.fnamemodify(test_data.neotest_data.path, ":h")
     local tweaked_pos_id = pos_id:gsub(" ", "_")
     tweaked_pos_id = tweaked_pos_id:gsub('"', "")
-    tweaked_pos_id = tweaked_pos_id:gsub("\\", "/") -- FIXME: just testing this for windows
+    -- tweaked_pos_id = tweaked_pos_id:gsub("\\", "/") -- FIXME: just testing this for windows
     tweaked_pos_id = tweaked_pos_id:gsub("::", "/")
 
     for _, golistline in ipairs(golist_output) do
