@@ -25,6 +25,9 @@ function M.check()
   M.is_plugin_available("dap")
   M.is_plugin_available("dapui")
   M.is_plugin_available("dap-go")
+
+  start("Gotestsum (optional)")
+  M.binary_found_on_path("gotestsum")
 end
 
 function M.binary_found_on_path(executable)
