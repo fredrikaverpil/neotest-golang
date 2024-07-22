@@ -134,7 +134,7 @@ function M.test_results(spec, result, tree)
   end
 
   -- DEBUG: enable the following to see the final Neotest result.
-  -- logger.debug(vim.inspect(neotest_results))
+  logger.debug(vim.inspect(res))
 
   return neotest_result
 end
@@ -219,7 +219,7 @@ function M.decorate_with_go_package_and_test_name(
     local folderpath = vim.fn.fnamemodify(test_data.neotest_data.path, ":h")
     local tweaked_pos_id = pos_id:gsub(" ", "_")
     tweaked_pos_id = tweaked_pos_id:gsub('"', "")
-    tweaked_pos_id = tweaked_pos_id:gsub("::", lib.find.os_path_sep)
+    tweaked_pos_id = tweaked_pos_id:gsub("::", "/")
 
     for _, golistline in ipairs(golist_output) do
       if folderpath == golistline.Dir then
@@ -229,7 +229,7 @@ function M.decorate_with_go_package_and_test_name(
               local pattern = lib.convert.to_lua_pattern(folderpath)
                 .. lib.find.os_path_sep
                 .. "(.-)"
-                .. lib.find.os_path_sep
+                .. "/"
                 .. lib.convert.to_lua_pattern(gotestline.Test)
                 .. "$"
               match = tweaked_pos_id:find(pattern, 1, false)
@@ -324,6 +324,8 @@ function M.show_warnings(d)
       if
         test_data.gotest_data.pkg == "" or test_data.gotest_data.name == ""
       then
+        logger.debug("INVALID TEST DATA")
+        logger.debug(vim.inspect(d))
         table.insert(position_ids, pos_id)
       end
     end
