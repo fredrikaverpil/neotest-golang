@@ -81,8 +81,6 @@ function M.test_results(spec, result, tree)
   end
 
   logger.debug({ "Raw output from readfile", raw_output })
-  local cleaned_table = lib.strip.cleanTable(raw_output)
-  logger.debug({ "Table should be stripped from ansi codes", cleaned_table })
   local gotest_output = lib.json.decode_from_table(raw_output)
   logger.debug({ "Table JSON-decoded", gotest_output })
 
