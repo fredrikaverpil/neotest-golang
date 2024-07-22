@@ -244,6 +244,7 @@ function M.decorate_with_go_package_and_test_name(
               if match ~= nil then
                 test_data.gotest_data.pkg = gotestline.Package
                 test_data.gotest_data.name = gotestline.Test
+                logger.debug("MATCH")
                 break
               end
             end
