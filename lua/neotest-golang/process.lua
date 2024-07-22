@@ -227,6 +227,12 @@ function M.decorate_with_go_package_and_test_name(
         for _, gotestline in ipairs(gotest_output) do
           if gotestline.Action == "run" and gotestline.Test ~= nil then
             if gotestline.Package == golistline.ImportPath then
+              logger.debug({
+                "Match log with position",
+                pos_id,
+                gotestline.Test,
+                gotestline.Package,
+              })
               local pattern = lib.convert.to_lua_pattern(folderpath)
                 .. lib.find.os_path_sep
                 .. "(.-)"
@@ -325,8 +331,6 @@ function M.show_warnings(d)
       if
         test_data.gotest_data.pkg == "" or test_data.gotest_data.name == ""
       then
-        logger.debug("INVALID TEST DATA")
-        logger.debug(vim.inspect(d))
         table.insert(position_ids, pos_id)
       end
     end
