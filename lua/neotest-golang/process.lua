@@ -237,8 +237,8 @@ function M.decorate_with_go_package_and_test_name(
               match = tweaked_pos_id:find(pattern, 1, false)
 
               logger.debug({
-                "Match log with position",
-                gotestline.Test,
+                "Match position with log",
+                pattern,
                 tweaked_pos_id,
               })
 
