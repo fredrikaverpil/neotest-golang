@@ -80,9 +80,7 @@ function M.test_results(spec, result, tree)
     raw_output = async.fn.readfile(context.test_output_json_filepath)
   end
 
-  logger.debug({ "Raw output from readfile", raw_output })
   local gotest_output = lib.json.decode_from_table(raw_output)
-  logger.debug({ "Table JSON-decoded", gotest_output })
 
   --- The 'go list -json' output, converted into a lua table.
   local golist_output = context.golist_data
@@ -133,7 +131,8 @@ function M.test_results(spec, result, tree)
   end
 
   -- DEBUG: enable the following to see the final Neotest result.
-  logger.debug(vim.inspect(res))
+  -- logger.debug(vim.inspect(res))
+  -- logger.debug(vim.inspect(neotest_result))
 
   return neotest_result
 end
@@ -218,7 +217,6 @@ function M.decorate_with_go_package_and_test_name(
     local folderpath = vim.fn.fnamemodify(test_data.neotest_data.path, ":h")
     local tweaked_pos_id = pos_id:gsub(" ", "_")
     tweaked_pos_id = tweaked_pos_id:gsub('"', "")
-    -- tweaked_pos_id = tweaked_pos_id:gsub("\\", "/") -- FIXME: just testing this for windows
     tweaked_pos_id = tweaked_pos_id:gsub("::", "/")
 
     for _, golistline in ipairs(golist_output) do
@@ -234,16 +232,9 @@ function M.decorate_with_go_package_and_test_name(
                 .. "$"
               match = tweaked_pos_id:find(pattern, 1, false)
 
-              logger.debug({
-                "Match position with log",
-                tweaked_pos_id,
-                pattern,
-              })
-
               if match ~= nil then
                 test_data.gotest_data.pkg = gotestline.Package
                 test_data.gotest_data.name = gotestline.Test
-                logger.debug("MATCH")
                 break
               end
             end
