@@ -227,12 +227,6 @@ function M.decorate_with_go_package_and_test_name(
         for _, gotestline in ipairs(gotest_output) do
           if gotestline.Action == "run" and gotestline.Test ~= nil then
             if gotestline.Package == golistline.ImportPath then
-              logger.debug({
-                "Match log with position",
-                pos_id,
-                gotestline.Test,
-                gotestline.Package,
-              })
               local pattern = lib.convert.to_lua_pattern(folderpath)
                 .. lib.find.os_path_sep
                 .. "(.-)"
@@ -240,6 +234,13 @@ function M.decorate_with_go_package_and_test_name(
                 .. lib.convert.to_lua_pattern(gotestline.Test)
                 .. "$"
               match = tweaked_pos_id:find(pattern, 1, false)
+
+              logger.debug({
+                "Match log with position",
+                gotestline.Test,
+                tweaked_pos_id,
+              })
+
               if match ~= nil then
                 test_data.gotest_data.pkg = gotestline.Package
                 test_data.gotest_data.name = gotestline.Test
