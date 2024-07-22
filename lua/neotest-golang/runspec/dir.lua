@@ -23,6 +23,8 @@ function M.build(pos)
     return nil -- NOTE: logger.error will throw an error, but the LSP doesn't see it.
   end
 
+  logger.debug({ "Go mod filepath", go_mod_filepath })
+
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
   local golist_data = lib.cmd.golist_data(go_mod_folderpath)
 
