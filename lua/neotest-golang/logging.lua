@@ -7,8 +7,6 @@ local prefix = "[neotest-golang] "
 
 local function clean_output(str)
   -- Replace escaped newlines and tabs with spaces
-  str = str:gsub("\\n", " "):gsub("\\t", " ")
-  -- Remove any remaining actual newlines and tabs
   str = str:gsub("[\n\t]", " ")
   -- Collapse multiple spaces into one
   str = str:gsub("%s+", " ")
