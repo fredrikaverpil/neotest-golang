@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.9.1...v0.10.0) (2024-07-23)
+
+
+### Features
+
+* windows support ([#149](https://github.com/fredrikaverpil/neotest-golang/issues/149)) ([956ba1b](https://github.com/fredrikaverpil/neotest-golang/commit/956ba1b60a1afabf0ef9b4a096b81f6d0ba51703))
+
 ## [0.9.1](https://github.com/fredrikaverpil/neotest-golang/compare/v0.9.0...v0.9.1) (2024-07-15)
 
 
