@@ -54,7 +54,6 @@ function M.build(pos, strategy)
     run_spec.context.parse_test_results = false
   end
 
-  logger.debug({ "RunSpec:", run_spec })
   return run_spec
 end
 

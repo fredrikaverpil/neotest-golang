@@ -131,8 +131,7 @@ function M.test_results(spec, result, tree)
   end
 
   -- DEBUG: enable the following to see the final Neotest result.
-  -- logger.debug(vim.inspect(res))
-  -- logger.debug(vim.inspect(neotest_result))
+  -- logger.debug(vim.inspect(neotest_results))
 
   return neotest_result
 end

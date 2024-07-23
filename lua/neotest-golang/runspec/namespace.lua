@@ -38,7 +38,6 @@ function M.build(pos)
     context = context,
   }
 
-  logger.debug({ "RunSpec:", run_spec })
   return run_spec
 end
 
