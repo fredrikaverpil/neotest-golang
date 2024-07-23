@@ -71,6 +71,7 @@ function M.build(pos, tree)
     context = context,
   }
 
+  logger.debug({ "RunSpec:", run_spec })
   return run_spec
 end
 
