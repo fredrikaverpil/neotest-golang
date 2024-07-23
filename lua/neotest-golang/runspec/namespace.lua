@@ -9,7 +9,8 @@ local M = {}
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos)
   --- @type string
-  local test_folder_absolute_path = string.match(pos.path, "(.+)/")
+  local test_folder_absolute_path =
+    string.match(pos.path, "(.+)" .. lib.find.os_path_sep)
   local golist_data = lib.cmd.golist_data(test_folder_absolute_path)
 
   --- @type string

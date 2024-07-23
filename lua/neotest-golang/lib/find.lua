@@ -6,6 +6,8 @@ local logger = require("neotest-golang.logging")
 
 local M = {}
 
+M.os_path_sep = package.config:sub(1, 1) -- "/" on Unix, "\" on Windows
+
 --- Find a file upwards in the directory tree and return its path, if found.
 --- @param filename string
 --- @param start_path string
@@ -19,7 +21,7 @@ function M.file_upwards(filename, start_path)
   while start_dir ~= home_dir do
     logger.debug("Searching for " .. filename .. " in " .. start_dir)
 
-    local try_path = start_dir .. "/" .. filename
+    local try_path = start_dir .. M.os_path_sep .. filename
     if vim.fn.filereadable(try_path) == 1 then
       logger.debug("Found " .. filename .. " at " .. try_path)
       return try_path

@@ -81,6 +81,7 @@ function M.to_lua_pattern(str)
     "=",
     "<",
     ">",
+    "\\",
   }
   for _, character in ipairs(special_characters) do
     str = str:gsub("%" .. character, "%%%" .. character)
