@@ -10,23 +10,36 @@ local lib = require("neotest-golang.lib")
 local M = {}
 
 function M.check()
-  M.go_binary_on_path()
+  start("Requirements")
+  M.binary_found_on_path("go")
   M.go_mod_found()
-
+  M.treesitter_parser_installed("go")
   M.is_plugin_available("neotest")
   M.is_plugin_available("nvim-treesitter")
   M.is_plugin_available("nio")
-  M.is_plugin_available("dap-go")
   M.is_plugin_available("plenary")
+
+  start("DAP (optional)")
+  M.binary_found_on_path("dlv")
+  M.is_plugin_available("dap")
+  M.is_plugin_available("dapui")
+  M.is_plugin_available("dap-go")
 end
 
-function M.go_binary_on_path()
-  local go = vim.fn.executable("go")
-  if go == 1 then
-    ok("Go binary found on PATH: " .. vim.fn.exepath("go"))
+function M.binary_found_on_path(executable)
+  local found = vim.fn.executable(executable)
+  if found == 1 then
+    ok(
+      "Binary '"
+        .. executable
+        .. "' found on PATH: "
+        .. vim.fn.exepath(executable)
+    )
+    return true
   else
-    warn("Go binary not found on PATH")
+    warn("Binary '" .. executable .. "' not found on PATH")
   end
+  return false
 end
 
 function M.go_mod_found()
@@ -51,6 +64,15 @@ function M.is_plugin_available(plugin)
     ok(plugin .. " is available")
   else
     warn(plugin .. " is not available")
+  end
+end
+
+function M.treesitter_parser_installed(lang)
+  local is_installed = require("nvim-treesitter.parsers").has_parser(lang)
+  if is_installed then
+    ok("Treesitter parser for " .. lang .. " is installed")
+  else
+    warn("Treesitter parser for " .. lang .. " is not installed")
   end
 end
 
