@@ -1,4 +1,4 @@
-name: Luarocks
+name: luarocks
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  luarocks-upload:
+  upload:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
