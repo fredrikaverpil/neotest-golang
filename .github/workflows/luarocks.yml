@@ -1,5 +1,4 @@
 name: luarocks
-
 on:
   push:
     tags:
@@ -9,7 +8,6 @@ on:
       - created
   pull_request: # Tests luarocks install from generated rockspec on PR without uploading
   workflow_dispatch:
-
 jobs:
   upload:
     runs-on: ubuntu-22.04
@@ -19,7 +17,6 @@ jobs:
           fetch-depth: 0 # Required to get the tags
       - name: Get Version
         run: echo "LUAROCKS_VERSION=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
-
         # Needed to build the tree-sitter-go dependency
       - name: Install C/C++ Compiler
         uses: rlalik/setup-cpp-compiler@master
@@ -29,7 +26,6 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: tree-sitter-cli
-
       - name: LuaRocks Upload
         uses: nvim-neorocks/luarocks-tag-release@v7
         env:
