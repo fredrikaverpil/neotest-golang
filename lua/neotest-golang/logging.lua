@@ -13,11 +13,6 @@ local function clean_output(str)
   return str
 end
 
-local function table_to_string(tbl)
-  local result = vim.inspect(tbl)
-  return clean_output(result)
-end
-
 ---@param input any
 ---@return string
 local function handle_input(input)
@@ -27,7 +22,7 @@ local function handle_input(input)
     local result = ""
     for _, v in ipairs(input) do
       if type(v) == "table" then
-        result = result .. table_to_string(v) .. " "
+        result = result .. vim.inspect(v) .. " "
       elseif type(v) == "string" then
         result = result .. clean_output(v) .. " "
       else

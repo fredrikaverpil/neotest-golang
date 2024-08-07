@@ -79,11 +79,14 @@ function M.test_results(spec, result, tree)
   elseif runner == "gotestsum" then
     raw_output = async.fn.readfile(context.test_output_json_filepath)
   end
+  logger.debug({ "Raw 'go test' output: ", raw_output })
 
   local gotest_output = lib.json.decode_from_table(raw_output)
+  logger.debug({ "Parsed 'go test' output: ", gotest_output })
 
   --- The 'go list -json' output, converted into a lua table.
   local golist_output = context.golist_data
+  logger.debug({ "Parsed 'go list' output: ", golist_output })
 
   --- @type table<string, neotest.Result>
   local neotest_result = {}
@@ -118,8 +121,7 @@ function M.test_results(spec, result, tree)
   --- @type table<string, TestData>
   local res = M.aggregate_data(tree, gotest_output, golist_output)
 
-  -- DEBUG: enable the following to see the internal test result data.
-  -- logger.debug(vim.inspect(res))
+  logger.debug({ "Final internal test result data", res })
 
   -- show various warnings
   M.show_warnings(res)
@@ -130,8 +132,7 @@ function M.test_results(spec, result, tree)
     neotest_result[k] = v
   end
 
-  -- DEBUG: enable the following to see the final Neotest result.
-  -- logger.debug(vim.inspect(neotest_result))
+  logger.debug({ "Final Neotest result data", neotest_result })
 
   return neotest_result
 end
