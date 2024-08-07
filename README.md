@@ -86,6 +86,48 @@ You will need to call neotest's `setup` function to register this adapter.
 If you use rocks-config.nvim, consider setting up neotest and its adapters in a
 [plugin bundle](https://github.com/nvim-neorocks/rocks-config.nvim?tab=readme-ov-file#plugin-bundles).
 
+### ❄️ Nix & Home manager
+
+```nix
+{
+  config,
+  pkgs,
+  ...
+}: {
+  home.packages = with pkgs; [];
+  programs = {
+    neovim = {
+      plugins = [
+        # neotest and dependencies
+        pkgs.vimPlugins.neotest
+        pkgs.vimPlugins.nvim-nio
+        pkgs.vimPlugins.plenary-nvim
+        pkgs.vimPlugins.FixCursorHold-nvim
+        pkgs.vimPlugins.nvim-treesitter
+        (pkgs.vimPlugins.nvim-treesitter.withPlugins (plugins: [plugins.go]))
+        pkgs.vimPlugins.neotest-golang
+
+        ## debugging
+        pkgs.vimPlugins.nvim-dap
+        pkgs.vimPlugins.nvim-dap-ui
+        pkgs.vimPlugins.nvim-dap-virtual-text
+        pkgs.vimPlugins.nvim-dap-go
+      ];
+      enable = true;
+      extraConfig = ''
+        lua << EOF
+        require("neotest").setup({
+          adapters = {
+            require("neotest-golang")
+          },
+        })
+        EOF
+      '';
+    };
+  };
+}
+```
+
 ## ⚙️ Configuration
 
 | Argument                 | Default value                   | Description                                                                                                                                                          |
