@@ -47,10 +47,6 @@ present in neotest-golang (this project):
 
 ## 🥸 Installation
 
-> [!TIP]
->
-> You can run `:checkhealth neotest-golang` to review common issues.
-
 ### 💤 Lazy.nvim
 
 ```lua
@@ -237,6 +233,8 @@ return {
 }
 ```
 
+For a more verbose example, see the "extra everything" example config.
+
 ### Example configuration: extra everything
 
 <details>
@@ -401,25 +399,24 @@ return {
 
 ### Issues with setting up or using the adapter
 
-You can run `:checkhealth neotest-golang` to review common issues. If you need
-help, please open a discussion
-[here](https://github.com/fredrikaverpil/neotest-golang/discussions/new?category=configuration).
+> [!TIP]
+>
+> You can run `:checkhealth neotest-golang` to review common issues. If you need
+> configuring neotest-golang help, please open a discussion
+> [here](https://github.com/fredrikaverpil/neotest-golang/discussions/new?category=configuration).
 
 You can also enable logging to further inspect what's going on under the hood.
 Neotest-golang piggybacks on the Neotest logger. You can enable it like so:
 
 ```lua
-require("neotest.logging"):set_level(vim.log.levels.INFO)
+-- set debug level after having called require("neotest").setup()
+require("neotest.logging"):set_level(vim.log.levels.DEBUG)
 ```
 
 > [!WARNING]
 >
 > Please note that this could cause tests to run slower, so don't forget to
 > remove this setting once you have resolved your issue!
-
-Lower the log level further to `DEBUG` to get even more information. The lowest
-level is `TRACE`, but is not used by this adapter and is only useful when
-debugging issues with Neotest.
 
 You can get ahold of the log file's path using
 `require("neotest.logging"):get_filename()`, which usually points to your
