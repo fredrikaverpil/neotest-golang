@@ -84,9 +84,10 @@ The adapter is available via
 :Rocks install neotest-golang
 ```
 
-[rocks.nvim](https://github.com/nvim-neorocks/rocks.nvim) will automatically install dependencies if they are not already installed.
-You will need to call neotest's `setup` function to register this adapter.
-If you use rocks-config.nvim, consider setting up neotest and its adapters in a
+[rocks.nvim](https://github.com/nvim-neorocks/rocks.nvim) will automatically
+install dependencies if they are not already installed. You will need to call
+neotest's `setup` function to register this adapter. If you use
+rocks-config.nvim, consider setting up neotest and its adapters in a
 [plugin bundle](https://github.com/nvim-neorocks/rocks-config.nvim?tab=readme-ov-file#plugin-bundles).
 
 ### ❄️ Nix & Home manager
