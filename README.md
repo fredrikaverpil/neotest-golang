@@ -91,8 +91,10 @@ neotest's `setup` function to register this adapter. If you use
 consider setting up neotest and its adapters in a
 [plugin bundle](https://github.com/nvim-neorocks/rocks-config.nvim?tab=readme-ov-file#plugin-bundles).
 
-Please note that [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go)
-(required for DAP) is not on luarocks as of writing this.
+> [!NOTE]
+>
+> Please note that [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go)
+> (required for DAP) is not on luarocks as of writing this.
 
 ### ❄️ Nix & Home manager
 
@@ -410,8 +412,10 @@ Neotest-golang piggybacks on the Neotest logger. You can enable it like so:
 require("neotest.logging"):set_level(vim.log.levels.INFO)
 ```
 
-⚠️ Please note that this could cause tests to run slower, so don't forget to
-remove this setting once you have resolved your issue!
+> [!WARNING]
+>
+> Please note that this could cause tests to run slower, so don't forget to
+> remove this setting once you have resolved your issue!
 
 Lower the log level further to `DEBUG` to get even more information. The lowest
 level is `TRACE`, but is not used by this adapter and is only useful when
