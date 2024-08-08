@@ -485,8 +485,9 @@ more information on this.
 ### Testify suites
 
 > [!WARNING]
-> This feature comes with some caveats and nuances, which is why it
-> is not enabled by default. I advise you to only enable this if you need it.
+>
+> This feature comes with some caveats and nuances, which is why it is not
+> enabled by default. I advise you to only enable this if you need it.
 
 There are some real shenaningans going on behind the scenes to make this work.
 😅 First, an in-memory lookup of "receiver type-to-suite test function" will be
@@ -496,9 +497,10 @@ duplicates. I'm personally a bit afraid of the maintenance burden of this
 feature... 🙈
 
 > [!NOTE]
-> Right now, nested tests and table tests are not supported. All of this
-> can be remedied at any time by extending the treesitter queries. Feel free to
-> dig in and open a PR!
+>
+> Right now, nested tests and table tests are not supported. All of this can be
+> remedied at any time by extending the treesitter queries. Feel free to dig in
+> and open a PR!
 
 ## 🙏 PRs are welcome
 
