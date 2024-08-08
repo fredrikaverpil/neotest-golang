@@ -118,6 +118,7 @@ Please note that [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go)
         ## debugging
         pkgs.vimPlugins.nvim-dap
         pkgs.vimPlugins.nvim-dap-ui
+        pkgs.vimPlugins.nvim-nio
         pkgs.vimPlugins.nvim-dap-virtual-text
         pkgs.vimPlugins.nvim-dap-go
       ];
@@ -183,10 +184,11 @@ return {
 +  {
 +    "rcarriga/nvim-dap-ui",
 +    dependencies = {
-+      "mfussenegger/nvim-dap",
 +      "nvim-neotest/nvim-nio",
++      "mfussenegger/nvim-dap",
 +    },
 +  },
++
   {
     "nvim-neotest/neotest",
     dependencies = {
