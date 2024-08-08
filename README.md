@@ -240,15 +240,17 @@ return {
 <details>
 <summary>Click to expand</summary>
 
+In the below code block, you can see a merged snapshot of my own config. To view
+my current config, see:
+
+- [plugins/neotest.lua]()
+- [plugins/dap.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/plugins/dap.lua)
+- [lang/go.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/lang/go.lua)
+
 ```lua
 return {
-  {
-    "rcarriga/nvim-dap-ui",
-    dependencies = {
-      "mfussenegger/nvim-dap",
-      "nvim-neotest/nvim-nio",
-    },
-  },
+
+  -- Neotest setup
   {
     "nvim-neotest/neotest",
     event = "VeryLazy",
@@ -333,43 +335,6 @@ return {
   {
     "mfussenegger/nvim-dap",
     event = "VeryLazy",
-    dependencies = {
-      {
-        "rcarriga/nvim-dap-ui",
-        dependencies = {
-          "nvim-neotest/nvim-nio",
-        },
-        opts = {},
-        config = function(_, opts)
-          -- setup dap config by VsCode launch.json file
-          -- require("dap.ext.vscode").load_launchjs()
-          local dap = require("dap")
-          local dapui = require("dapui")
-          dapui.setup(opts)
-          dap.listeners.after.event_initialized["dapui_config"] = function()
-            dapui.open({})
-          end
-          dap.listeners.before.event_terminated["dapui_config"] = function()
-            dapui.close({})
-          end
-          dap.listeners.before.event_exited["dapui_config"] = function()
-            dapui.close({})
-          end
-        end,
-        keys = {
-          { "<leader>du", function() require("dapui").toggle({}) end, desc = "[d]ap [u]i" },
-          { "<leader>de", function() require("dapui").eval() end, desc = "[d]ap [e]val" },
-        },
-      },
-      {
-        "theHamsta/nvim-dap-virtual-text",
-        opts = {},
-      },
-      {
-        "leoluz/nvim-dap-go",
-        opts = {},
-      },
-    },
     keys = {
       {"<leader>db", function() require("dap").toggle_breakpoint() end, desc = "toggle [d]ebug [b]reakpoint" },
       {"<leader>dB", function() require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: ")) end, desc = "[d]ebug [B]reakpoint"},
@@ -389,6 +354,41 @@ return {
       {"<leader>dt", function() require("dap").terminate() end, desc = "[d]ebug [t]erminate" },
       {"<leader>dw", function() require("dap.ui.widgets").hover() end, desc = "[d]ebug [w]idgets" },
     },
+  },
+
+  -- DAP UI setup
+  {
+    "rcarriga/nvim-dap-ui",
+    event = "VeryLazy",
+    dependencies = {
+      "nvim-neotest/nvim-nio",
+      "mfussenegger/nvim-dap",
+    },
+    opts = {},
+    config = function(_, opts)
+      -- setup dap config by VsCode launch.json file
+      -- require("dap.ext.vscode").load_launchjs()
+      local dap = require("dap")
+      local dapui = require("dapui")
+      dapui.setup(opts)
+      dap.listeners.after.event_initialized["dapui_config"] = function()
+        dapui.open({})
+      end
+      dap.listeners.before.event_terminated["dapui_config"] = function()
+        dapui.close({})
+      end
+      dap.listeners.before.event_exited["dapui_config"] = function()
+        dapui.close({})
+      end
+    end,
+    keys = {
+      { "<leader>du", function() require("dapui").toggle({}) end, desc = "[d]ap [u]i" },
+      { "<leader>de", function() require("dapui").eval() end, desc = "[d]ap [e]val" },
+    },
+  },
+  {
+    "theHamsta/nvim-dap-virtual-text",
+    opts = {},
   },
 }
 ```
