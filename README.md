@@ -77,6 +77,9 @@ return {
 
 ### 🌒 Rocks.nvim
 
+The adapter is available via
+[luarocks package](https://luarocks.org/modules/fredrikaverpil/neotest-golang):
+
 ```vim
 :Rocks install neotest-golang
 ```
