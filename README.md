@@ -91,6 +91,9 @@ neotest's `setup` function to register this adapter. If you use
 consider setting up neotest and its adapters in a
 [plugin bundle](https://github.com/nvim-neorocks/rocks-config.nvim?tab=readme-ov-file#plugin-bundles).
 
+Please note that [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go)
+(required for DAP) is not on luarocks as of writing this.
+
 ### ❄️ Nix & Home manager
 
 ```nix
