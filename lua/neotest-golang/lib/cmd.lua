@@ -21,7 +21,9 @@ function M.golist_data(cwd)
   local output = vim
     .system(go_list_command, { cwd = cwd, text = true })
     :wait().stdout or ""
-  logger.info({ "Go list output: ", output })
+  if output == "" then
+    logger.error({ "Execution of 'go list' failed, output:", output })
+  end
   return json.decode_from_string(output)
 end
 
