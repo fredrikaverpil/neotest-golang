@@ -47,6 +47,10 @@ present in neotest-golang (this project):
 
 ## 🥸 Installation
 
+> [!NOTE]
+>
+> Requires Neovim 0.10.0.
+
 ### 💤 Lazy.nvim
 
 ```lua
