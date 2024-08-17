@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.11.0...v1.0.0) (2024-08-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* broken 'go list' report on some systems (requires nvim 0.10.0) ([#167](https://github.com/fredrikaverpil/neotest-golang/issues/167))
+
+### Bug Fixes
+
+* broken 'go list' report on some systems ([#167](https://github.com/fredrikaverpil/neotest-golang/issues/167)) ([26d937f](https://github.com/fredrikaverpil/neotest-golang/commit/26d937f53d9566a401797e3a50a946f42c4b500c))
+
 ## [0.11.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.10.0...v0.11.0) (2024-08-01)
 
 
