@@ -18,9 +18,12 @@ function M.golist_data(cwd)
   }
   local go_list_command_concat = table.concat(go_list_command, " ")
   logger.debug("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
-  local output =
-    vim.fn.system("cd " .. cwd .. " && " .. go_list_command_concat, " ")
-  logger.info({ "Go list output: ", output })
+  local output = vim
+    .system(go_list_command, { cwd = cwd, text = true })
+    :wait().stdout or ""
+  if output == "" then
+    logger.error({ "Execution of 'go list' failed, output:", output })
+  end
   return json.decode_from_string(output)
 end
 
