@@ -8,6 +8,7 @@ local M = {}
 
 local opts = {
   go_test_args = { "-v", "-race", "-count=1" },
+  go_list_args = {},
   dap_go_opts = {},
   testify_enabled = false,
   warn_test_name_dupes = true,

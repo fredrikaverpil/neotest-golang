@@ -9,21 +9,14 @@ local json = require("neotest-golang.lib.json")
 local M = {}
 
 function M.golist_data(cwd)
-  -- call 'go list -json ./...' to get test file data
+  -- call 'go list -json {go_list_args...} ./...' to get test file data
   local go_list_command = {
     "go",
     "list",
     "-json",
-    "./...",
   }
-
-  -- if we have tags in go test args
-  -- we need to add them to list command for it to be able to list properly
-  for _, go_test_arg in ipairs(options.get().go_test_args) do
-      if string.match(go_test_arg, "^-tags=") then
-          table.insert(go_list_command, 3, go_test_arg)
-      end
-  end
+  -- combine base command, user args and packages(./...)
+  vim.list_extend(vim.list_extend(go_list_command, options.get().go_list_args or {}), { "./..." })
 
   local go_list_command_concat = table.concat(go_list_command, " ")
   logger.debug("Running Go list: " .. go_list_command_concat .. " in " .. cwd)

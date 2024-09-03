@@ -9,6 +9,7 @@ describe("Options are set up", function()
         "-race",
         "-count=1",
       },
+      go_list_args = {},
       dap_go_opts = {},
       testify_enabled = false,
       warn_test_name_dupes = true,
@@ -31,6 +32,7 @@ describe("Options are set up", function()
         "-count=1",
         "-parallel=1", -- non-default
       },
+      go_list_args = {},
       dap_go_opts = {},
       testify_enabled = false,
       warn_test_name_dupes = true,
