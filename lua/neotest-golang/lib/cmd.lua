@@ -16,7 +16,10 @@ function M.golist_data(cwd)
     "-json",
   }
   -- combine base command, user args and packages(./...)
-  vim.list_extend(vim.list_extend(go_list_command, options.get().go_list_args or {}), { "./..." })
+    vim.list_extend(
+    vim.list_extend(go_list_command, options.get().go_list_args or {}),
+    { "./..." }
+  )
 
   local go_list_command_concat = table.concat(go_list_command, " ")
   logger.debug("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
