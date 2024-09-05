@@ -9,16 +9,18 @@ local json = require("neotest-golang.lib.json")
 local M = {}
 
 function M.golist_data(cwd)
-  -- call 'go list -json {go_list_args...} ./...' to get test file data
-
-  -- combine base command, user args and packages(./...)
-  local cmd = { "go", "list", "-json" }
-  vim.list_extend(cmd, options.get().go_list_args or {})
-  vim.list_extend(cmd, { "./..." })
-
-  local go_list_command_concat = table.concat(cmd, " ")
+  -- call 'go list -json ./...' to get test file data
+  local go_list_command = {
+    "go",
+    "list",
+    "-json",
+    "./...",
+  }
+  local go_list_command_concat = table.concat(go_list_command, " ")
   logger.debug("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
-  local output = vim.system(cmd, { cwd = cwd, text = true }):wait().stdout or ""
+  local output = vim
+    .system(go_list_command, { cwd = cwd, text = true })
+    :wait().stdout or ""
   if output == "" then
     logger.error({ "Execution of 'go list' failed, output:", output })
   end
