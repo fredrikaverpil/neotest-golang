@@ -143,8 +143,8 @@ consider setting up neotest and its adapters in a
 
 | Argument                 | Default value                   | Description                                                                                                                                                          |
 | ------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`.                                                                                                                                    |
-| `go_list_args`           | `{}`                            | Arguments to pass into `go list`. If using -tags in go_test_args the same argument should be passed to go_list_args for it to list tests properly.                   |
+| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`. See [here](https://github.com/fredrikaverpil/neotest-golang#using-build-tags) for info on using `-tags`.                           |
+| `go_list_args`           | `{}`                            | Arguments to pass into `go list`. See [here](https://github.com/fredrikaverpil/neotest-golang#using-build-tags) for info on using `-tags`.                           |
 | `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                                    |
 | `testify_enabled`        | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info. |
 | `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                                                                                                          |
@@ -512,6 +512,18 @@ feature... 🙈
 > Right now, nested tests and table tests are not supported. All of this can be
 > remedied at any time by extending the treesitter queries. Feel free to dig in
 > and open a PR!
+
+### Using build tags
+
+If you need to set build tags (like e.g. `-tags debug` or `-tags "tag1 tag2"`),
+you need to provide these arguments both in the `go_test_args` and
+`go_list_args` adapter options.
+
+> !TIP
+>
+> Depending on how you have Neovim setup, you can define this on a per-project
+> basis by placing a `.lazy.lua` with overrides in the project. This requires
+> the [lazy.nvim](https://github.com/folke/lazy.nvim) plugin manager.
 
 ## 🙏 PRs are welcome
 
