@@ -16,7 +16,6 @@ local lib = require("neotest-golang.lib")
 --- @field golist_data table<string, string> Filepath to 'go list' JSON data (lua table). -- TODO: rename to golist_data
 --- @field parse_test_results boolean If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
---- @field dummy_test? boolean Temporary workaround before supporting position type 'test'.
 
 --- @class TestData
 --- @field status neotest.ResultStatus
@@ -50,7 +49,7 @@ function M.test_results(spec, result, tree)
       ---@type neotest.ResultStatus
       status = "skipped",
     }
-    return results -- return early, fail fast
+    return results -- return early, used by e.g. debugging
   end
 
   --- The Neotest position tree node for this execution.
@@ -70,7 +69,6 @@ function M.test_results(spec, result, tree)
   --- The runner to use for running tests.
   --- @type string
   local runner = options.get().runner
-
   --- The raw output from the test command.
   --- @type table
   local raw_output = {}
@@ -81,41 +79,29 @@ function M.test_results(spec, result, tree)
   end
   logger.debug({ "Raw 'go test' output: ", raw_output })
 
-  local gotest_output = lib.json.decode_from_table(raw_output)
-  logger.debug({ "Parsed 'go test' output: ", gotest_output })
+  --- Final Neotest results, the way Neotest wants it returned.
+  --- @type table<string, neotest.Result>
+  local neotest_result = {}
+  --- Test command (e.g. 'go test') status.
+  --- @type neotest.ResultStatus
+  local test_command_status = "skipped"
+  --- Go test output,
+  --- @type table
+  local gotest_output = {}
+  --- Test command output.
+  --- @type string
+  local test_command_output_path = vim.fs.normalize(async.fn.tempname())
 
   --- The 'go list -json' output, converted into a lua table.
   local golist_output = context.golist_data
   logger.debug({ "Parsed 'go list' output: ", golist_output })
 
-  --- @type table<string, neotest.Result>
-  local neotest_result = {}
-
-  --- Test command (e.g. 'go test') status.
-  --- @type neotest.ResultStatus
-  local test_command_status = "skipped"
   if result.code == 0 then
-    test_command_status = "passed"
+    gotest_output = lib.json.decode_from_table(raw_output, false)
   else
-    test_command_status = "failed"
+    -- also capture the output from stderr, such as compilation errors
+    gotest_output = lib.json.decode_from_table(raw_output, true)
   end
-
-  --- Full 'go test' output (parsed from JSON).
-  --- @type table
-  local o = {}
-  local test_command_output_path = vim.fs.normalize(async.fn.tempname())
-  for _, line in ipairs(gotest_output) do
-    if line.Action == "output" then
-      table.insert(o, line.Output)
-    end
-  end
-  async.fn.writefile(o, test_command_output_path)
-
-  -- register properties on the directory node that was run
-  neotest_result[pos.id] = {
-    status = test_command_status,
-    output = test_command_output_path,
-  }
 
   --- Internal data structure to store test result data.
   --- @type table<string, TestData>
@@ -132,9 +118,60 @@ function M.test_results(spec, result, tree)
     neotest_result[k] = v
   end
 
+  -- decide what to do based on 'go test' command status code.
+  if result.code == 0 then
+    test_command_status = "passed"
+    logger.debug({ "Parsed 'go test' output: ", gotest_output })
+    async.fn.writefile(
+      M.extract_gotest_output(gotest_output),
+      test_command_output_path
+    )
+    -- register properties on the directory node that was run
+    neotest_result[pos.id] = {
+      status = test_command_status,
+      output = test_command_output_path,
+    }
+  else
+    test_command_status = "failed"
+    if runner == "go" then
+      logger.debug({ "Parsed 'go test' output: ", gotest_output })
+      async.fn.writefile(
+        M.extract_gotest_output(gotest_output),
+        test_command_output_path
+      )
+    elseif runner == "gotestsum" then
+      -- gotestsum unfortunately does not write the stderr output into its JSON output.
+      async.fn.writefile(
+        { "Failed to run test. Compilation error?" },
+        test_command_output_path
+      )
+    else
+      logger.error({ "Unknown runner:", runner })
+    end
+
+    -- register properties on the directory node that was run
+    neotest_result[pos.id] = {
+      status = test_command_status,
+      output = test_command_output_path,
+    }
+  end
+
   logger.debug({ "Final Neotest result data", neotest_result })
 
   return neotest_result
+end
+
+--- Extract the Output-type parts of the 'go test' output.
+--- @param gotest_output table
+--- @return table
+function M.extract_gotest_output(gotest_output)
+  local o = {}
+  for _, line in ipairs(gotest_output) do
+    if line.Action == "output" then
+      table.insert(o, line.Output)
+    end
+  end
+  return o
 end
 
 --- Aggregate neotest data and 'go test' output data.
