@@ -517,9 +517,33 @@ feature... 🙈
 
 If you need to set build tags (like e.g. `-tags debug` or `-tags "tag1 tag2"`),
 you need to provide these arguments both in the `go_test_args` and
-`go_list_args` adapter options.
+`go_list_args` adapter options. If you want to be able to debug, you also need
+to set `dap_go_opts`. Full example:
 
-> !TIP
+```lua
+return {
+  {
+    "nvim-neotest/neotest",
+    config = function()
+      require("neotest").setup({
+        adapters = {
+          require("neotest-golang")({
+            go_test_args = { "-count=1", "-tags=integration" },
+            go_list_args = { "-tags=integration" },
+            dap_go_opts = {
+              delve = {
+                build_flags = { "-tags=integration" },
+              },
+            },
+          }),
+        },
+      })
+    end,
+  },
+}
+```
+
+> [!TIP]
 >
 > Depending on how you have Neovim setup, you can define this on a per-project
 > basis by placing a `.lazy.lua` with overrides in the project. This requires
