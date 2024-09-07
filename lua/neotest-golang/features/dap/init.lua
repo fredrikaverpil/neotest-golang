@@ -1,6 +1,7 @@
 --- DAP setup related functions.
 
 local options = require("neotest-golang.options")
+local logger = require("neotest-golang.logging")
 
 local M = {}
 
@@ -13,10 +14,15 @@ function M.setup_debugging(cwd)
     dap_go_opts.delve = {}
   end
   dap_go_opts.delve.cwd = cwd
+  logger.debug({ "Provided dap_go_opts for DAP: ", dap_go_opts })
   require("dap-go").setup(dap_go_opts)
 
   -- reset nvim-dap-go (and cwd) after debugging with nvim-dap
   require("dap").listeners.after.event_terminated["neotest-golang-debug"] = function()
+    logger.debug({
+      "Resetting provided dap_go_opts for DAP: ",
+      dap_go_opts_original,
+    })
     require("dap-go").setup(dap_go_opts_original)
   end
 end
@@ -33,6 +39,11 @@ function M.get_dap_config(test_name_regex)
     program = "${fileDirname}",
     args = { "-test.run", test_name_regex },
   }
+
+  local dap_go_opts = options.get().dap_go_opts or {}
+  if dap_go_opts.delve ~= nil and dap_go_opts.delve.build_flags ~= nil then
+    dap_config.buildFlags = dap_go_opts.delve.build_flags
+  end
 
   return dap_config
 end
