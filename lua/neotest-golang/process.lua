@@ -9,7 +9,7 @@ local lib = require("neotest-golang.lib")
 
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
---- @field golist_data table<string, string> Filepath to 'go list' JSON data (lua table). -- TODO: rename to golist_data
+--- @field golist_data table<string, string> Filepath to 'go list' JSON data (lua table).
 --- @field golist_error? string Error message from 'go list' command.
 --- @field parse_test_results boolean If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
