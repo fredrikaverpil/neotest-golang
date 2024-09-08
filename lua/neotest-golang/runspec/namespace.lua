@@ -1,5 +1,6 @@
 --- Helpers to build the command and context around running all tests in a namespace.
 
+local logger = require("neotest-golang.logging")
 local lib = require("neotest-golang.lib")
 
 local M = {}
@@ -14,8 +15,11 @@ function M.build(pos)
   local golist_data, golist_error =
     lib.cmd.golist_data(test_folder_absolute_path)
 
-  local errors = {}
+  local errors = nil
   if golist_error ~= nil then
+    if errors == nil then
+      errors = {}
+    end
     table.insert(errors, golist_error)
   end
 
@@ -32,7 +36,7 @@ function M.build(pos)
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
-    parse_test_results = true,
+    process_test_results = true,
     test_output_json_filepath = json_filepath,
   }
 

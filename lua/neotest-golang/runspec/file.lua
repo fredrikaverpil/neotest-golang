@@ -25,8 +25,11 @@ function M.build(pos, tree)
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
   local golist_data, golist_error = lib.cmd.golist_data(go_mod_folderpath)
 
-  local errors = {}
+  local errors = nil
   if golist_error ~= nil then
+    if errors == nil then
+      errors = {}
+    end
     table.insert(errors, golist_error)
   end
 
@@ -65,7 +68,7 @@ function M.build(pos, tree)
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
-    parse_test_results = true,
+    process_test_results = true,
     test_output_json_filepath = json_filepath,
   }
 
@@ -85,7 +88,7 @@ function M.return_skipped(pos)
   local context = {
     pos_id = pos.id,
     golist_data = {}, -- no golist output
-    parse_test_results = false,
+    process_test_results = false,
   }
 
   --- Runspec designed for files that contain no tests.

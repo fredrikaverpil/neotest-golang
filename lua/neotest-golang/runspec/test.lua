@@ -17,8 +17,11 @@ function M.build(pos, strategy)
   local golist_data, golist_error =
     lib.cmd.golist_data(test_folder_absolute_path)
 
-  local errors = {}
+  local errors = nil
   if golist_error ~= nil then
+    if errors == nil then
+      errors = {}
+    end
     table.insert(errors, golist_error)
   end
 
@@ -43,7 +46,7 @@ function M.build(pos, strategy)
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
-    parse_test_results = true,
+    process_test_results = true,
     test_output_json_filepath = json_filepath,
   }
 
@@ -56,7 +59,7 @@ function M.build(pos, strategy)
 
   if runspec_strategy ~= nil then
     run_spec.strategy = runspec_strategy
-    run_spec.context.parse_test_results = false
+    run_spec.context.process_test_results = false
   end
 
   logger.debug({ "RunSpec:", run_spec })

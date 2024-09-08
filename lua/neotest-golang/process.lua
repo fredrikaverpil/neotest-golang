@@ -10,8 +10,8 @@ local lib = require("neotest-golang.lib")
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
 --- @field golist_data table<string, string> The 'go list' JSON data (lua table).
---- @field errors table<string> Error messages.
---- @field parse_test_results boolean If true, parsing of test output will occur.
+--- @field errors? table<string> Error messages.
+--- @field process_test_results boolean If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 
 --- @class TestData
@@ -41,14 +41,14 @@ function M.test_results(spec, result, tree)
   --- Test command (e.g. 'go test') status.
   --- @type neotest.ResultStatus
   local result_status = nil
-  if context.parse_test_results == false then
-    result_status = "skipped"
-  elseif #context.errors > 0 then
+  if context.errors ~= nil and #context.errors > 0 then
     result_status = "failed"
   elseif result.code == 0 then
     result_status = "passed"
-  else
+  elseif result.code > 0 then
     result_status = "failed"
+  else
+    result_status = "skipped"
   end
 
   --- Final Neotest results, the way Neotest wants it returned.
@@ -56,13 +56,13 @@ function M.test_results(spec, result, tree)
   local neotest_result = {}
 
   -- return early...
-  if context.parse_test_results == false then
+  if context.process_test_results == false then
     -- if we're not supposed to parse test results.
     neotest_result[context.pos_id] = {
       status = result_status,
     }
     return neotest_result
-  elseif #context.errors > 0 then
+  elseif context.errors ~= nil and #context.errors > 0 then
     -- if there are errors passed with the context.
     local test_command_output_path = vim.fs.normalize(async.fn.tempname())
     async.fn.writefile(context.errors, test_command_output_path)
@@ -129,6 +129,9 @@ function M.test_results(spec, result, tree)
   end
   local cmd_output_path = vim.fs.normalize(async.fn.tempname())
   async.fn.writefile(cmd_output, cmd_output_path)
+  if neotest_result[pos.id] == nil then
+    neotest_result[pos.id] = {}
+  end
   neotest_result[pos.id].status = result_status
   neotest_result[pos.id].output = cmd_output_path
 
