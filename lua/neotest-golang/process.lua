@@ -9,7 +9,7 @@ local lib = require("neotest-golang.lib")
 
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
---- @field golist_data table<string, string> Filepath to 'go list' JSON data (lua table).
+--- @field golist_data table<string, string> The 'go list' JSON data (lua table).
 --- @field golist_error? string Error message from 'go list' command.
 --- @field parse_test_results boolean If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
@@ -29,8 +29,7 @@ local lib = require("neotest-golang.lib")
 
 local M = {}
 
---- Process the results from the test command executing all tests in a
---- directory.
+--- Process the results from the test command.
 --- @param spec neotest.RunSpec
 --- @param result neotest.StrategyResult
 --- @param tree neotest.Tree
@@ -38,6 +37,19 @@ local M = {}
 function M.test_results(spec, result, tree)
   --- @type RunspecContext
   local context = spec.context
+
+  --- Test command (e.g. 'go test') status.
+  --- @type neotest.ResultStatus
+  local result_status = nil
+  if context.parse_test_results == false then
+    result_status = "skipped"
+  elseif context.golist_error ~= nil then
+    result_status = "failed"
+  elseif result.code == 0 then
+    result_status = "passed"
+  else
+    result_status = "failed"
+  end
 
   --- Final Neotest results, the way Neotest wants it returned.
   --- @type table<string, neotest.Result>
@@ -48,18 +60,18 @@ function M.test_results(spec, result, tree)
     ---@type table<string, neotest.Result>
     neotest_result[context.pos_id] = {
       ---@type neotest.ResultStatus
-      status = "skipped",
+      status = result_status,
     }
-    return neotest_result -- return early, used by e.g. debugging
+    return neotest_result
   end
 
-  -- handle 'go list' errors and fail/return early
+  -- return early if there was an error with running 'go list'
   if context.golist_error ~= nil then
     local test_command_output_path = vim.fs.normalize(async.fn.tempname())
     async.fn.writefile({ context.golist_error }, test_command_output_path)
 
     neotest_result[context.pos_id] = {
-      status = "failed",
+      status = result_status,
       output = test_command_output_path,
       errors = {
         {
@@ -67,7 +79,7 @@ function M.test_results(spec, result, tree)
         },
       },
     }
-    return neotest_result -- return early when 'go list' fail
+    return neotest_result
   end
 
   --- The Neotest position tree node for this execution.
@@ -77,6 +89,7 @@ function M.test_results(spec, result, tree)
   --- The runner to use for running tests.
   --- @type string
   local runner = options.get().runner
+
   --- The raw output from the test command.
   --- @type table
   local raw_output = {}
@@ -87,25 +100,12 @@ function M.test_results(spec, result, tree)
   end
   logger.debug({ "Raw 'go test' output: ", raw_output })
 
-  --- Test command (e.g. 'go test') status.
-  --- @type neotest.ResultStatus
-  local test_command_status = "skipped"
-  --- Go test output,
-  --- @type table
-  local gotest_output = {}
-  --- Test command output.
-  --- @type string
-  local test_command_output_path = vim.fs.normalize(async.fn.tempname())
-
   --- The 'go list -json' output, converted into a lua table.
   local golist_output = context.golist_data
-  logger.debug({ "Parsed 'go list' output: ", golist_output })
 
-  if result.code == 0 then
-    gotest_output = lib.json.decode_from_table(raw_output, false)
-  else
-    gotest_output = lib.json.decode_from_table(raw_output, true)
-  end
+  --- Go test output.
+  --- @type table
+  local gotest_output = lib.json.decode_from_table(raw_output, true)
 
   --- Internal data structure to store test result data.
   --- @type table<string, TestData>
@@ -116,59 +116,34 @@ function M.test_results(spec, result, tree)
   -- show various warnings
   M.show_warnings(res)
 
-  -- convert internal test result data into final Neotest result.
+  -- convert internal test result data into Neotest result.
   local test_results = M.to_neotest_result(res)
   for k, v in pairs(test_results) do
     neotest_result[k] = v
   end
 
-  -- decide what to do based on 'go test' command status code.
-  if result.code == 0 then
-    test_command_status = "passed"
-    logger.debug({ "Parsed 'go test' output: ", gotest_output })
-    async.fn.writefile(
-      M.extract_gotest_output(gotest_output),
-      test_command_output_path
-    )
-    -- register properties on the directory node that was run
-    neotest_result[pos.id] = {
-      status = test_command_status,
-      output = test_command_output_path,
-    }
-  else
-    test_command_status = "failed"
-    if runner == "go" then
-      logger.debug({ "Parsed 'go test' output: ", gotest_output })
-      async.fn.writefile(
-        M.extract_gotest_output(gotest_output),
-        test_command_output_path
-      )
-    elseif runner == "gotestsum" then
-      -- gotestsum unfortunately does not write the stderr output into its JSON output.
-      async.fn.writefile(
-        { "Failed to run 'go test'. Compilation error?" },
-        test_command_output_path
-      )
-    else
-      logger.error({ "Unknown runner:", runner })
-    end
-
-    -- register properties on the directory node that was run
-    neotest_result[pos.id] = {
-      status = test_command_status,
-      output = test_command_output_path,
-    }
+  -- set the full test command output to the position that was executed.
+  local cmd_output = M.filter_gotest_output(gotest_output)
+  if #cmd_output == 0 and result.code ~= 0 and runner == "gotestsum" then
+    -- special case; gotestsum does not capture compilation errors from stderr.
+    cmd_output = { "Failed to run 'go test'. Compilation error?" }
   end
+  local cmd_output_path = vim.fs.normalize(async.fn.tempname())
+  async.fn.writefile(cmd_output, cmd_output_path)
+  neotest_result[pos.id] = {
+    status = result_status,
+    output = cmd_output_path,
+  }
 
   logger.debug({ "Final Neotest result data", neotest_result })
 
   return neotest_result
 end
 
---- Extract the Output-type parts of the 'go test' output.
+--- Filter on the Output-type parts of the 'go test' output.
 --- @param gotest_output table
 --- @return table
-function M.extract_gotest_output(gotest_output)
+function M.filter_gotest_output(gotest_output)
   local o = {}
   for _, line in ipairs(gotest_output) do
     if line.Action == "output" then

@@ -29,7 +29,10 @@ function M.golist_data(cwd)
   end
 
   local output = result.stdout or ""
-  return json.decode_from_string(output), err
+
+  local golist_output = json.decode_from_string(output)
+  logger.debug({ "JSON-decoded 'go list' output: ", golist_output })
+  return golist_output, err
 end
 
 function M.golist_command()
