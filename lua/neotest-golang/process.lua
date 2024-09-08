@@ -116,8 +116,8 @@ function M.test_results(spec, result, tree)
   -- show various warnings
   M.show_warnings(res)
 
-  -- Convert internal test result data into final Neotest result.
-  local test_results = M.to_neotest_result(spec, result, res, gotest_output)
+  -- convert internal test result data into final Neotest result.
+  local test_results = M.to_neotest_result(res)
   for k, v in pairs(test_results) do
     neotest_result[k] = v
   end
@@ -393,12 +393,9 @@ function M.show_warnings(d)
 end
 
 --- Populate final Neotest results based on internal test result data.
---- @param spec neotest.RunSpec
---- @param result neotest.StrategyResult
 --- @param res table<string, TestData>
---- @param gotest_output table
 --- @return table<string, neotest.Result>
-function M.to_neotest_result(spec, result, res, gotest_output)
+function M.to_neotest_result(res)
   --- Neotest results.
   --- @type table<string, neotest.Result>
   local neotest_result = {}
