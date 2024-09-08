@@ -10,7 +10,7 @@ local lib = require("neotest-golang.lib")
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
 --- @field golist_data table<string, string> The 'go list' JSON data (lua table).
---- @field golist_error? string Error message from 'go list' command.
+--- @field errors table<string> Error messages.
 --- @field parse_test_results boolean If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 
@@ -43,7 +43,7 @@ function M.test_results(spec, result, tree)
   local result_status = nil
   if context.parse_test_results == false then
     result_status = "skipped"
-  elseif context.golist_error ~= nil then
+  elseif #context.errors > 0 then
     result_status = "failed"
   elseif result.code == 0 then
     result_status = "passed"
@@ -66,18 +66,19 @@ function M.test_results(spec, result, tree)
   end
 
   -- return early if there was an error with running 'go list'
-  if context.golist_error ~= nil then
+  if #context.errors > 0 then
     local test_command_output_path = vim.fs.normalize(async.fn.tempname())
-    async.fn.writefile({ context.golist_error }, test_command_output_path)
+    async.fn.writefile(context.errors, test_command_output_path)
+
+    local error_messages = {}
+    for _, err in ipairs(context.errors) do
+      table.insert(error_messages, { message = err })
+    end
 
     neotest_result[context.pos_id] = {
       status = result_status,
       output = test_command_output_path,
-      errors = {
-        {
-          message = context.golist_error,
-        },
-      },
+      errors = error_messages,
     }
     return neotest_result
   end
@@ -122,7 +123,8 @@ function M.test_results(spec, result, tree)
     neotest_result[k] = v
   end
 
-  -- set the full test command output to the position that was executed.
+  -- override the position which was executed with the full
+  -- command execution output.
   local cmd_output = M.filter_gotest_output(gotest_output)
   if #cmd_output == 0 and result.code ~= 0 and runner == "gotestsum" then
     -- special case; gotestsum does not capture compilation errors from stderr.
@@ -130,10 +132,8 @@ function M.test_results(spec, result, tree)
   end
   local cmd_output_path = vim.fs.normalize(async.fn.tempname())
   async.fn.writefile(cmd_output, cmd_output_path)
-  neotest_result[pos.id] = {
-    status = result_status,
-    output = cmd_output_path,
-  }
+  neotest_result[pos.id].status = result_status
+  neotest_result[pos.id].output = cmd_output_path
 
   logger.debug({ "Final Neotest result data", neotest_result })
 

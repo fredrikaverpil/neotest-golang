@@ -8,13 +8,17 @@ local M = {}
 --- @param pos neotest.Position
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos)
-  --- @type string
   local test_folder_absolute_path =
     string.match(pos.path, "(.+)" .. lib.find.os_path_sep)
+
   local golist_data, golist_error =
     lib.cmd.golist_data(test_folder_absolute_path)
 
-  --- @type string
+  local errors = {}
+  if golist_error ~= nil then
+    table.insert(errors, golist_error)
+  end
+
   local test_name = lib.convert.to_gotest_test_name(pos.id)
   test_name = lib.convert.to_gotest_regex_pattern(test_name)
 
@@ -27,7 +31,7 @@ function M.build(pos)
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
-    golist_error = golist_error,
+    errors = errors,
     parse_test_results = true,
     test_output_json_filepath = json_filepath,
   }

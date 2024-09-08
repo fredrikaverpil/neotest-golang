@@ -25,6 +25,11 @@ function M.build(pos, tree)
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
   local golist_data, golist_error = lib.cmd.golist_data(go_mod_folderpath)
 
+  local errors = {}
+  if golist_error ~= nil then
+    table.insert(errors, golist_error)
+  end
+
   -- find the go package that corresponds to the pos.path
   local package_name = "./..."
   local pos_path_filename = vim.fn.fnamemodify(pos.path, ":t")
@@ -59,7 +64,7 @@ function M.build(pos, tree)
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
-    golist_error = golist_error,
+    errors = errors,
     parse_test_results = true,
     test_output_json_filepath = json_filepath,
   }
