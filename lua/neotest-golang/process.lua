@@ -55,18 +55,15 @@ function M.test_results(spec, result, tree)
   --- @type table<string, neotest.Result>
   local neotest_result = {}
 
-  -- return early if we're not supposed to parse test results
+  -- return early...
   if context.parse_test_results == false then
-    ---@type table<string, neotest.Result>
+    -- if we're not supposed to parse test results.
     neotest_result[context.pos_id] = {
-      ---@type neotest.ResultStatus
       status = result_status,
     }
     return neotest_result
-  end
-
-  -- return early if there was an error with running 'go list'
-  if #context.errors > 0 then
+  elseif #context.errors > 0 then
+    -- if there are errors passed with the context.
     local test_command_output_path = vim.fs.normalize(async.fn.tempname())
     async.fn.writefile(context.errors, test_command_output_path)
 
