@@ -11,7 +11,8 @@ function M.build(pos)
   --- @type string
   local test_folder_absolute_path =
     string.match(pos.path, "(.+)" .. lib.find.os_path_sep)
-  local golist_data = lib.cmd.golist_data(test_folder_absolute_path)
+  local golist_data, golist_error =
+    lib.cmd.golist_data(test_folder_absolute_path)
 
   --- @type string
   local test_name = lib.convert.to_gotest_test_name(pos.id)
@@ -27,6 +28,7 @@ function M.build(pos)
     pos_id = pos.id,
     pos_type = "namespace",
     golist_data = golist_data,
+    golist_error = golist_error,
     parse_test_results = true,
     test_output_json_filepath = json_filepath,
   }

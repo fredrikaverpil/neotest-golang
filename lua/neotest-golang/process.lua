@@ -14,6 +14,7 @@ local lib = require("neotest-golang.lib")
 --- @field pos_id string Neotest tree position id.
 --- @field pos_type neotest.PositionType Neotest tree position type.
 --- @field golist_data table<string, string> Filepath to 'go list' JSON data (lua table). -- TODO: rename to golist_data
+--- @field golist_error? string Error message from 'go list' command.
 --- @field parse_test_results boolean If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 
@@ -42,14 +43,35 @@ function M.test_results(spec, result, tree)
   --- @type RunspecContext
   local context = spec.context
 
+  --- Final Neotest results, the way Neotest wants it returned.
+  --- @type table<string, neotest.Result>
+  local neotest_result = {}
+
+  -- return early if we're not supposed to parse test results
   if context.parse_test_results == false then
     ---@type table<string, neotest.Result>
-    local results = {}
-    results[context.pos_id] = {
+    neotest_result[context.pos_id] = {
       ---@type neotest.ResultStatus
       status = "skipped",
     }
-    return results -- return early, used by e.g. debugging
+    return neotest_result -- return early, used by e.g. debugging
+  end
+
+  -- handle 'go list' errors and fail/return early
+  if context.golist_error ~= nil then
+    local test_command_output_path = vim.fs.normalize(async.fn.tempname())
+    async.fn.writefile({ context.golist_error }, test_command_output_path)
+
+    neotest_result[context.pos_id] = {
+      status = "failed",
+      output = test_command_output_path,
+      errors = {
+        {
+          message = context.golist_error,
+        },
+      },
+    }
+    return neotest_result -- return early when 'go list' fail
   end
 
   --- The Neotest position tree node for this execution.
@@ -79,9 +101,6 @@ function M.test_results(spec, result, tree)
   end
   logger.debug({ "Raw 'go test' output: ", raw_output })
 
-  --- Final Neotest results, the way Neotest wants it returned.
-  --- @type table<string, neotest.Result>
-  local neotest_result = {}
   --- Test command (e.g. 'go test') status.
   --- @type neotest.ResultStatus
   local test_command_status = "skipped"
@@ -99,7 +118,6 @@ function M.test_results(spec, result, tree)
   if result.code == 0 then
     gotest_output = lib.json.decode_from_table(raw_output, false)
   else
-    -- also capture the output from stderr, such as compilation errors
     gotest_output = lib.json.decode_from_table(raw_output, true)
   end
 
@@ -142,7 +160,7 @@ function M.test_results(spec, result, tree)
     elseif runner == "gotestsum" then
       -- gotestsum unfortunately does not write the stderr output into its JSON output.
       async.fn.writefile(
-        { "Failed to run test. Compilation error?" },
+        { "Failed to run 'go test'. Compilation error?" },
         test_command_output_path
       )
     else

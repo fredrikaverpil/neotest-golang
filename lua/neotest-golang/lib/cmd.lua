@@ -19,11 +19,21 @@ function M.golist_data(cwd)
   local go_list_command_concat = table.concat(cmd, " ")
   logger.debug("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
   local result = vim.system(cmd, { cwd = cwd, text = true }):wait()
+
+  local err = nil
   if result.code == 1 then
-    logger.error({ "execution of 'go list' failed, output:", result.stderr })
+    err = "go list:"
+    if result.stdout ~= nil and result.stdout ~= "" then
+      err = err .. " " .. result.stdout
+    end
+    if result.stdout ~= nil and result.stderr ~= "" then
+      err = err .. " " .. result.stderr
+    end
+    logger.debug({ "Go list error: ", err })
   end
+
   local output = result.stdout or ""
-  return json.decode_from_string(output)
+  return json.decode_from_string(output), err
 end
 
 function M.test_command_in_package(package_or_path)

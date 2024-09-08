@@ -23,7 +23,7 @@ function M.build(pos, tree)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local golist_data = lib.cmd.golist_data(go_mod_folderpath)
+  local golist_data, golist_error = lib.cmd.golist_data(go_mod_folderpath)
 
   -- find the go package that corresponds to the pos.path
   local package_name = "./..."
@@ -60,6 +60,7 @@ function M.build(pos, tree)
     pos_id = pos.id,
     pos_type = "file",
     golist_data = golist_data,
+    golist_error = golist_error,
     parse_test_results = true,
     test_output_json_filepath = json_filepath,
   }
