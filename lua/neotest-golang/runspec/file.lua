@@ -58,7 +58,6 @@ function M.build(pos, tree)
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
-    pos_type = "file",
     golist_data = golist_data,
     golist_error = golist_error,
     parse_test_results = true,
@@ -80,7 +79,6 @@ function M.return_skipped(pos)
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
-    pos_type = "file",
     golist_data = {}, -- no golist output
     parse_test_results = false,
   }

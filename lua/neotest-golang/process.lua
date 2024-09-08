@@ -7,12 +7,8 @@ local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local lib = require("neotest-golang.lib")
 
--- TODO: remove pos_type when properly supporting all position types.
--- and instead get this from the pos.type field.
-
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
---- @field pos_type neotest.PositionType Neotest tree position type.
 --- @field golist_data table<string, string> Filepath to 'go list' JSON data (lua table). -- TODO: rename to golist_data
 --- @field golist_error? string Error message from 'go list' command.
 --- @field parse_test_results boolean If true, parsing of test output will occur.
@@ -77,16 +73,6 @@ function M.test_results(spec, result, tree)
   --- The Neotest position tree node for this execution.
   --- @type neotest.Position
   local pos = tree:data()
-
-  -- Sanity check
-  -- TODO: refactor so that we use pos.type and pos.id instead of passing them separately on the context
-  if options.get().dev_notifications == true then
-    if pos.id ~= context.pos_id then
-      logger.error(
-        "Neotest position id mismatch: " .. pos.id .. " vs " .. context.pos_id
-      )
-    end
-  end
 
   --- The runner to use for running tests.
   --- @type string

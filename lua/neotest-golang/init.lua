@@ -135,25 +135,27 @@ end
 --- @param tree neotest.Tree
 --- @return table<string, neotest.Result> | nil
 function M.Adapter.results(spec, result, tree)
-  if spec.context.pos_type == "dir" then
+  local pos = tree:data()
+
+  if pos.type == "dir" then
     -- A test command executed a directory of tests and the output/status must
     -- now be processed.
     local results = process.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
-  elseif spec.context.pos_type == "file" then
+  elseif pos.type == "file" then
     -- A test command executed a file of tests and the output/status must
     -- now be processed.
     local results = process.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
-  elseif spec.context.pos_type == "namespace" then
+  elseif pos.type == "namespace" then
     -- A test command executed a namespace and the output/status must now be
     -- processed.
     local results = process.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
-  elseif spec.context.pos_type == "test" then
+  elseif pos.type == "test" then
     -- A test command executed a single test and the output/status must now be
     -- processed.
     local results = process.test_results(spec, result, tree)
@@ -163,7 +165,7 @@ function M.Adapter.results(spec, result, tree)
 
   logger.error(
     "Cannot process test results due to unknown Neotest position type:"
-      .. spec.context.pos_type
+      .. pos.type
   )
 end
 

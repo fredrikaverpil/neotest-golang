@@ -44,7 +44,6 @@ function M.build(pos)
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
-    pos_type = "dir",
     golist_data = golist_data,
     golist_error = golist_error,
     parse_test_results = true,
