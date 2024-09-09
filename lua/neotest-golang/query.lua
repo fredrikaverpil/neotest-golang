@@ -91,30 +91,40 @@ M.table_tests = [[
                   field: (field_identifier) @test.field.name1) (#eq? @test.field.name @test.field.name1))))))
 
     ;; Query for table tests with inline structs (not keyed)
-    (for_statement
-      (range_clause
-        right: (composite_literal
-          type: (slice_type
-            element: (struct_type
-              (field_declaration_list
-                (field_declaration
-                  name: (field_identifier) ;; the key of the struct's test name
-                  type: (type_identifier) @field.type (#eq? @field.type "string")))))
-          body: (literal_value
-            (literal_element
-              (literal_value
-                (literal_element
-                  (interpreted_string_literal) @test.name) @test.definition)))))
+    (function_declaration
+      name: (identifier)
+      parameters: (parameter_list
+        (parameter_declaration
+          name: (identifier)
+          type: (pointer_type
+            (qualified_type
+              package: (package_identifier)
+              name: (type_identifier))))))
       body: (block
-        (expression_statement
-          (call_expression
-            function: (selector_expression
-              operand: (identifier)
-              field: (field_identifier) @test.method (#match? @test.method "^Run$")) 
-            arguments: (argument_list
-              (selector_expression
-                operand: (identifier)
-                field: (field_identifier))))))) 
+        (for_statement
+          (range_clause
+            left: (expression_list
+              (identifier)
+              (identifier))
+            right: (composite_literal
+              type: (slice_type
+                element: (struct_type
+                  (field_declaration_list
+                    (field_declaration
+                      name: (field_identifier) ; unkeyed field for test name
+                      type: (type_identifier) @field.type (#eq? @field.type "string") )))))))) 
+              body: (literal_value
+                (literal_element
+                  (literal_value
+                    (literal_element
+                      (interpreted_string_literal) @test.name)
+                    (literal_element)) @test.definition))
+          body: (block
+            (expression_statement
+              (call_expression
+                function: (selector_expression
+                  operand: (identifier)
+                  field: (field_identifier) @test.method (#match? @test.method "^Run$")))))
 
     ;; query for map table tests 
       (block
