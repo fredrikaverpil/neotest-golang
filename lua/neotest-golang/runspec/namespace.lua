@@ -1,5 +1,6 @@
 --- Helpers to build the command and context around running all tests in a namespace.
 
+local logger = require("neotest-golang.logging")
 local lib = require("neotest-golang.lib")
 
 local M = {}
@@ -8,12 +9,20 @@ local M = {}
 --- @param pos neotest.Position
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos)
-  --- @type string
   local test_folder_absolute_path =
     string.match(pos.path, "(.+)" .. lib.find.os_path_sep)
-  local golist_data = lib.cmd.golist_data(test_folder_absolute_path)
 
-  --- @type string
+  local golist_data, golist_error =
+    lib.cmd.golist_data(test_folder_absolute_path)
+
+  local errors = nil
+  if golist_error ~= nil then
+    if errors == nil then
+      errors = {}
+    end
+    table.insert(errors, golist_error)
+  end
+
   local test_name = lib.convert.to_gotest_test_name(pos.id)
   test_name = lib.convert.to_gotest_regex_pattern(test_name)
 
@@ -25,9 +34,8 @@ function M.build(pos)
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
-    pos_type = "namespace",
     golist_data = golist_data,
-    parse_test_results = true,
+    errors = errors,
     test_output_json_filepath = json_filepath,
   }
 

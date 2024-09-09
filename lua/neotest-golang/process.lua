@@ -7,16 +7,12 @@ local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local lib = require("neotest-golang.lib")
 
--- TODO: remove pos_type when properly supporting all position types.
--- and instead get this from the pos.type field.
-
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
---- @field pos_type neotest.PositionType Neotest tree position type.
---- @field golist_data table<string, string> Filepath to 'go list' JSON data (lua table). -- TODO: rename to golist_data
---- @field parse_test_results boolean If true, parsing of test output will occur.
+--- @field golist_data table<string, string> The 'go list' JSON data (lua table).
+--- @field errors? table<string> Non-gotest errors to show in the final output.
+--- @field is_dap_active boolean? If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
---- @field dummy_test? boolean Temporary workaround before supporting position type 'test'.
 
 --- @class TestData
 --- @field status neotest.ResultStatus
@@ -33,39 +29,32 @@ local lib = require("neotest-golang.lib")
 
 local M = {}
 
---- Process the results from the test command executing all tests in a
---- directory.
+--- Process the results from the test command.
 --- @param spec neotest.RunSpec
 --- @param result neotest.StrategyResult
 --- @param tree neotest.Tree
 --- @return table<string, neotest.Result>
 function M.test_results(spec, result, tree)
+  -- TODO: refactor this function into function calls; return_early, process_test_results, override_test_results.
+
   --- @type RunspecContext
   local context = spec.context
 
-  if context.parse_test_results == false then
-    ---@type table<string, neotest.Result>
-    local results = {}
-    results[context.pos_id] = {
-      ---@type neotest.ResultStatus
+  --- Final Neotest results, the way Neotest wants it returned.
+  --- @type table<string, neotest.Result>
+  local neotest_result = {}
+
+  -- ////// RETURN EARLY FOR DAP DEBUGGING //////
+
+  if context.is_dap_active then
+    -- return early if test result processing is not desired.
+    neotest_result[context.pos_id] = {
       status = "skipped",
     }
-    return results -- return early, fail fast
+    return neotest_result
   end
 
-  --- The Neotest position tree node for this execution.
-  --- @type neotest.Position
-  local pos = tree:data()
-
-  -- Sanity check
-  -- TODO: refactor so that we use pos.type and pos.id instead of passing them separately on the context
-  if options.get().dev_notifications == true then
-    if pos.id ~= context.pos_id then
-      logger.error(
-        "Neotest position id mismatch: " .. pos.id .. " vs " .. context.pos_id
-      )
-    end
-  end
+  -- ////// PROCESS TEST RESULTS FOR ALL POSITIONS (NODES) EXECUTED //////
 
   --- The runner to use for running tests.
   --- @type string
@@ -81,41 +70,12 @@ function M.test_results(spec, result, tree)
   end
   logger.debug({ "Raw 'go test' output: ", raw_output })
 
-  local gotest_output = lib.json.decode_from_table(raw_output)
-  logger.debug({ "Parsed 'go test' output: ", gotest_output })
-
   --- The 'go list -json' output, converted into a lua table.
   local golist_output = context.golist_data
-  logger.debug({ "Parsed 'go list' output: ", golist_output })
 
-  --- @type table<string, neotest.Result>
-  local neotest_result = {}
-
-  --- Test command (e.g. 'go test') status.
-  --- @type neotest.ResultStatus
-  local test_command_status = "skipped"
-  if result.code == 0 then
-    test_command_status = "passed"
-  else
-    test_command_status = "failed"
-  end
-
-  --- Full 'go test' output (parsed from JSON).
+  --- Go test output.
   --- @type table
-  local o = {}
-  local test_command_output_path = vim.fs.normalize(async.fn.tempname())
-  for _, line in ipairs(gotest_output) do
-    if line.Action == "output" then
-      table.insert(o, line.Output)
-    end
-  end
-  async.fn.writefile(o, test_command_output_path)
-
-  -- register properties on the directory node that was run
-  neotest_result[pos.id] = {
-    status = test_command_status,
-    output = test_command_output_path,
-  }
+  local gotest_output = lib.json.decode_from_table(raw_output, true)
 
   --- Internal data structure to store test result data.
   --- @type table<string, TestData>
@@ -126,15 +86,78 @@ function M.test_results(spec, result, tree)
   -- show various warnings
   M.show_warnings(res)
 
-  -- Convert internal test result data into final Neotest result.
-  local test_results = M.to_neotest_result(spec, result, res, gotest_output)
+  -- convert internal test result data into Neotest result.
+  local test_results = M.to_neotest_result(res)
   for k, v in pairs(test_results) do
     neotest_result[k] = v
+  end
+
+  -- ////// OVERRIDE TEST RESULTS FOR THE POSITION (NODE) EXECUTED //////
+
+  --- The Neotest position tree node for this execution.
+  --- @type neotest.Position
+  local pos = tree:data()
+
+  --- Test command (e.g. 'go test') status.
+  --- @type neotest.ResultStatus
+  local result_status = nil
+  if neotest_result[pos.id] and neotest_result[pos.id].status == "skipped" then
+    -- keep the status if it was already decided to be skipped.
+    result_status = "skipped"
+  elseif context.errors ~= nil and #context.errors > 0 then
+    -- mark as failed if a non-gotest error occurred.
+    result_status = "failed"
+  elseif result.code > 0 then
+    -- mark as failed if the go test command failed.
+    result_status = "failed"
+  elseif result.code == 0 then
+    -- mark as passed if the 'go test' command passed.
+    result_status = "passed"
+  else
+    logger.error(
+      "Unexpected state when determining test status. Exit code was: "
+        .. result.code
+    )
+  end
+
+  -- override the position which was executed with the full
+  -- command execution output.
+  local cmd_output = M.filter_gotest_output(gotest_output)
+  cmd_output = vim.list_extend(context.errors or {}, cmd_output)
+  if #cmd_output == 0 and result.code ~= 0 and runner == "gotestsum" then
+    -- special case; gotestsum does not capture compilation errors from stderr.
+    cmd_output = { "Failed to run 'go test'. Compilation error?" }
+  end
+  local cmd_output_path = vim.fs.normalize(async.fn.tempname())
+  async.fn.writefile(cmd_output, cmd_output_path)
+  if neotest_result[pos.id] == nil then
+    -- set status and output as none of them have yet to be set.
+    neotest_result[pos.id] = {
+      status = result_status,
+      output = cmd_output_path,
+    }
+  else
+    -- only override status and output, keep errors.
+    neotest_result[pos.id].status = result_status
+    neotest_result[pos.id].output = cmd_output_path
   end
 
   logger.debug({ "Final Neotest result data", neotest_result })
 
   return neotest_result
+end
+
+--- Filter on the Output-type parts of the 'go test' output.
+--- @param gotest_output table
+--- @return table<string>
+function M.filter_gotest_output(gotest_output)
+  local o = {}
+  for _, line in ipairs(gotest_output) do
+    if line.Action == "output" then
+      table.insert(o, line.Output)
+    end
+  end
+  return o
 end
 
 --- Aggregate neotest data and 'go test' output data.
@@ -352,12 +375,9 @@ function M.show_warnings(d)
 end
 
 --- Populate final Neotest results based on internal test result data.
---- @param spec neotest.RunSpec
---- @param result neotest.StrategyResult
 --- @param res table<string, TestData>
---- @param gotest_output table
 --- @return table<string, neotest.Result>
-function M.to_neotest_result(spec, result, res, gotest_output)
+function M.to_neotest_result(res)
   --- Neotest results.
   --- @type table<string, neotest.Result>
   local neotest_result = {}

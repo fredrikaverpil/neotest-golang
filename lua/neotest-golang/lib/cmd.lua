@@ -8,21 +8,38 @@ local json = require("neotest-golang.lib.json")
 
 local M = {}
 
+--- Call 'go list -json {go_list_args...} ./...' to get test file data
+--- @param cwd string
 function M.golist_data(cwd)
-  -- call 'go list -json {go_list_args...} ./...' to get test file data
+  local cmd = M.golist_command()
+  local go_list_command_concat = table.concat(cmd, " ")
+  logger.debug("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
+  local result = vim.system(cmd, { cwd = cwd, text = true }):wait()
 
-  -- combine base command, user args and packages(./...)
+  local err = nil
+  if result.code == 1 then
+    err = "go list:"
+    if result.stdout ~= nil and result.stdout ~= "" then
+      err = err .. " " .. result.stdout
+    end
+    if result.stdout ~= nil and result.stderr ~= "" then
+      err = err .. " " .. result.stderr
+    end
+    logger.debug({ "Go list error: ", err })
+  end
+
+  local output = result.stdout or ""
+
+  local golist_output = json.decode_from_string(output)
+  logger.debug({ "JSON-decoded 'go list' output: ", golist_output })
+  return golist_output, err
+end
+
+function M.golist_command()
   local cmd = { "go", "list", "-json" }
   vim.list_extend(cmd, options.get().go_list_args or {})
   vim.list_extend(cmd, { "./..." })
-
-  local go_list_command_concat = table.concat(cmd, " ")
-  logger.debug("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
-  local output = vim.system(cmd, { cwd = cwd, text = true }):wait().stdout or ""
-  if output == "" then
-    logger.error({ "Execution of 'go list' failed, output:", output })
-  end
-  return json.decode_from_string(output)
+  return cmd
 end
 
 function M.test_command_in_package(package_or_path)

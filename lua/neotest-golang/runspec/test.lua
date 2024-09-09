@@ -11,12 +11,20 @@ local M = {}
 --- @param strategy string
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos, strategy)
-  --- @type string
   local test_folder_absolute_path =
     string.match(pos.path, "(.+)" .. lib.find.os_path_sep)
-  local golist_data = lib.cmd.golist_data(test_folder_absolute_path)
 
-  --- @type string
+  local golist_data, golist_error =
+    lib.cmd.golist_data(test_folder_absolute_path)
+
+  local errors = nil
+  if golist_error ~= nil then
+    if errors == nil then
+      errors = {}
+    end
+    table.insert(errors, golist_error)
+  end
+
   local test_name = lib.convert.to_gotest_test_name(pos.id)
   local test_name_regex = lib.convert.to_gotest_regex_pattern(test_name)
 
@@ -36,9 +44,9 @@ function M.build(pos, strategy)
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
-    pos_type = "test",
     golist_data = golist_data,
-    parse_test_results = true,
+    errors = errors,
+    process_test_results = true,
     test_output_json_filepath = json_filepath,
   }
 
@@ -51,7 +59,7 @@ function M.build(pos, strategy)
 
   if runspec_strategy ~= nil then
     run_spec.strategy = runspec_strategy
-    run_spec.context.parse_test_results = false
+    run_spec.context.is_dap_active = true
   end
 
   logger.debug({ "RunSpec:", run_spec })

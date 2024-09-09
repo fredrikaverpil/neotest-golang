@@ -24,7 +24,15 @@ function M.build(pos)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local golist_data = lib.cmd.golist_data(go_mod_folderpath)
+  local golist_data, golist_error = lib.cmd.golist_data(go_mod_folderpath)
+
+  local errors = nil
+  if golist_error ~= nil then
+    if errors == nil then
+      errors = {}
+    end
+    table.insert(errors, golist_error)
+  end
 
   -- find the go package that corresponds to the go_mod_folderpath
   local package_name = "./..."
@@ -44,9 +52,8 @@ function M.build(pos)
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
-    pos_type = "dir",
     golist_data = golist_data,
-    parse_test_results = true,
+    errors = errors,
     test_output_json_filepath = json_filepath,
   }
 
