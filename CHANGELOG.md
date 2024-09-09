@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.1.0...v1.1.1) (2024-09-09)
+
+
+### Bug Fixes
+
+* do not detect TestMain as test function ([#183](https://github.com/fredrikaverpil/neotest-golang/issues/183)) ([b96b1cb](https://github.com/fredrikaverpil/neotest-golang/commit/b96b1cb3caf19830a56717e2f4e42359af5caaac))
+
 ## [1.1.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.0.0...v1.1.0) (2024-09-09)
 
 
