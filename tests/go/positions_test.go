@@ -157,6 +157,25 @@ func TestTableTestInlineStructLoopNotKeyed(t *testing.T) {
 	}
 }
 
+func TestTableTestInlineStructLoopNotKeyed2(t *testing.T) {
+	testcases := []struct {
+		name     string
+		x        int
+		y        int
+		expected int
+	}{
+		{"TableTest1", 1, 2, 3}, // no `name:` to match on
+		{"TableTest2", 3, 4, 7},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			if Add(tc.x, tc.y) != tc.expected {
+				t.Fail()
+			}
+		})
+	}
+}
+
 // Table test defined as anonymous struct in loop (in sub-test).
 func TestSubTestTableTestInlineStructLoop(t *testing.T) {
 	t.Run("SubTest", func(t *testing.T) {
