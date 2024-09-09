@@ -54,7 +54,6 @@ function M.build(pos)
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
-    process_test_results = true,
     test_output_json_filepath = json_filepath,
   }
 

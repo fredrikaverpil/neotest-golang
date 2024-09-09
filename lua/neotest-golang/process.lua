@@ -11,7 +11,7 @@ local lib = require("neotest-golang.lib")
 --- @field pos_id string Neotest tree position id.
 --- @field golist_data table<string, string> The 'go list' JSON data (lua table).
 --- @field errors? table<string> Non-gotest errors to show in the final output.
---- @field process_test_results boolean If true, parsing of test output will occur.
+--- @field is_dap_active boolean? If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 
 --- @class TestData
@@ -44,10 +44,10 @@ function M.test_results(spec, result, tree)
   --- @type table<string, neotest.Result>
   local neotest_result = {}
 
-  -- ////// RETURN EARLY //////
+  -- ////// RETURN EARLY FOR DAP DEBUGGING //////
 
-  -- return early if test result processing is not desired.
-  if context.process_test_results == false then
+  if context.is_dap_active then
+    -- return early if test result processing is not desired.
     neotest_result[context.pos_id] = {
       status = "skipped",
     }

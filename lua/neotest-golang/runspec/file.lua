@@ -68,7 +68,6 @@ function M.build(pos, tree)
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
-    process_test_results = true,
     test_output_json_filepath = json_filepath,
   }
 
@@ -88,7 +87,6 @@ function M.return_skipped(pos)
   local context = {
     pos_id = pos.id,
     golist_data = {}, -- no golist output
-    process_test_results = false,
   }
 
   --- Runspec designed for files that contain no tests.

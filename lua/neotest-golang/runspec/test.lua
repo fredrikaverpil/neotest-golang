@@ -59,7 +59,7 @@ function M.build(pos, strategy)
 
   if runspec_strategy ~= nil then
     run_spec.strategy = runspec_strategy
-    run_spec.context.process_test_results = false
+    run_spec.context.is_dap_active = true
   end
 
   logger.debug({ "RunSpec:", run_spec })
