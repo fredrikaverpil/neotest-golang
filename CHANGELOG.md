@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.0.0...v1.1.0) (2024-09-09)
+
+
+### Features
+
+* show compilation failure as test output ([#176](https://github.com/fredrikaverpil/neotest-golang/issues/176)) ([4c95fac](https://github.com/fredrikaverpil/neotest-golang/commit/4c95fac7268f365e6aa1f7e9b438b5ea161437c9))
+* added go_list_args option to configuration ([#172](https://github.com/fredrikaverpil/neotest-golang/issues/172)) ([a4d9968](https://github.com/fredrikaverpil/neotest-golang/commit/a4d99687c50259c25fa0e17d268ddbe2dad88abe))
+
+### Bug Fixes
+
+* keep all lines until next log entry ([#179](https://github.com/fredrikaverpil/neotest-golang/issues/179)) ([8e3698a](https://github.com/fredrikaverpil/neotest-golang/commit/8e3698a7882dd9030c0033c5fe6a54df3d96ecde))
+* use build flags for delve in dap-go config ([#178](https://github.com/fredrikaverpil/neotest-golang/issues/178)) ([71f7151](https://github.com/fredrikaverpil/neotest-golang/commit/71f7151dae1a557f2a1732ff93dbf39c3df123c1))
+
 ## [1.0.0](https://github.com/fredrikaverpil/neotest-golang/compare/v0.11.0...v1.0.0) (2024-08-17)
 
 
