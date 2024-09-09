@@ -101,11 +101,8 @@ function M.test_results(spec, result, tree)
   --- Test command (e.g. 'go test') status.
   --- @type neotest.ResultStatus
   local result_status = nil
-  if
+  if neotest_result[pos.id] and neotest_result[pos.id].status == "skipped" then
     -- keep the status if it was already decided to be skipped.
-    neotest_result[pos.id] ~= nil
-    and neotest_result[pos.id].status == "skipped"
-  then
     result_status = "skipped"
   elseif context.errors ~= nil and #context.errors > 0 then
     -- mark as failed if a non-gotest error occurred.
