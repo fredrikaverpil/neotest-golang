@@ -225,6 +225,32 @@ describe("Discovery of test positions", function()
       },
       {
         {
+          id = test_filepath .. "::TestTableTestInlineStructLoopNotKeyed2",
+          name = "TestTableTestInlineStructLoopNotKeyed2",
+          path = test_filepath,
+          type = "test",
+        },
+        {
+          {
+            id = test_filepath
+              .. '::TestTableTestInlineStructLoopNotKeyed2::"TableTest1"',
+            name = '"TableTest1"',
+            path = test_filepath,
+            type = "test",
+          },
+        },
+        {
+          {
+            id = test_filepath
+              .. '::TestTableTestInlineStructLoopNotKeyed2::"TableTest2"',
+            name = '"TableTest2"',
+            path = test_filepath,
+            type = "test",
+          },
+        },
+      },
+      {
+        {
           id = test_filepath .. "::TestSubTestTableTestInlineStructLoop",
           name = "TestSubTestTableTestInlineStructLoop",
           path = test_filepath,
