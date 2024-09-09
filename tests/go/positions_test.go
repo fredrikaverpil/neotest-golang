@@ -1,8 +1,15 @@
 package main
 
 import (
+	"os"
 	"testing"
 )
+
+// This function should not be detected by neotest-golang.
+func TestMain(m *testing.M) {
+	code := m.Run()
+	os.Exit(code)
+}
 
 // Vanilla top-level test.
 func TestTopLevel(t *testing.T) {

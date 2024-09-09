@@ -73,7 +73,7 @@ describe("go list output", function()
       StaleReason = "build ID mismatch",
       Target = "/Users/fredrik/go/bin/neotest-golang",
       TestGoFiles = { "positions_test.go", "testname_test.go" },
-      TestImports = { "testing" },
+      TestImports = { "os", "testing" },
     }
 
     -- ignored keys, as they might differ between OS/CI/platforms/too often

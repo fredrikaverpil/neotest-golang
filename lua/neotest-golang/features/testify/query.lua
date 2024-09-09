@@ -16,13 +16,13 @@ M.namespace_query = [[
         ; name: (identifier)
         type: (pointer_type
           (type_identifier) @namespace.name )))) @namespace.definition
-    name: (field_identifier) @test_function (#match? @test_function "^(Test|Example)")
+    name: (field_identifier) @test_function (#match? @test_function "^(Test|Example)") (#not-match? @test.name "^TestMain$")
   ]]
 
 M.test_method_query = [[
    ; query for test method
    (method_declaration
-    name: (field_identifier) @test.name (#match? @test.name "^(Test|Example)")) @test.definition
+    name: (field_identifier) @test.name (#match? @test.name "^(Test|Example)") (#not-match? @test.name "^TestMain$")) @test.definition
   ]]
 
 --- Run a TreeSitter query on a file and return the matches.
