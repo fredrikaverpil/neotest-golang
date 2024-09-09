@@ -35,37 +35,26 @@ local M = {}
 --- @param tree neotest.Tree
 --- @return table<string, neotest.Result>
 function M.test_results(spec, result, tree)
+  -- TODO: refactor this function into function calls; return_early, process_test_results, override_test_results.
+
   --- @type RunspecContext
   local context = spec.context
-
-  --- Test command (e.g. 'go test') status.
-  --- @type neotest.ResultStatus
-  local result_status = nil
-  if context.errors ~= nil and #context.errors > 0 then
-    result_status = "failed"
-  elseif result.code == 0 then
-    result_status = "passed"
-  elseif result.code > 0 then
-    result_status = "failed"
-  else
-    result_status = "skipped"
-  end
 
   --- Final Neotest results, the way Neotest wants it returned.
   --- @type table<string, neotest.Result>
   local neotest_result = {}
 
+  -- ////// RETURN EARLY //////
+
   -- return early if test result processing is not desired.
   if context.process_test_results == false then
     neotest_result[context.pos_id] = {
-      status = result_status,
+      status = "skipped",
     }
     return neotest_result
   end
 
-  --- The Neotest position tree node for this execution.
-  --- @type neotest.Position
-  local pos = tree:data()
+  -- ////// PROCESS TEST RESULTS FOR ALL POSITIONS (NODES) EXECUTED //////
 
   --- The runner to use for running tests.
   --- @type string
@@ -103,6 +92,37 @@ function M.test_results(spec, result, tree)
     neotest_result[k] = v
   end
 
+  -- ////// OVERRIDE TEST RESULTS FOR THE POSITION (NODE) EXECUTED //////
+
+  --- The Neotest position tree node for this execution.
+  --- @type neotest.Position
+  local pos = tree:data()
+
+  --- Test command (e.g. 'go test') status.
+  --- @type neotest.ResultStatus
+  local result_status = nil
+  if
+    -- keep the status if it was already decided to be skipped.
+    neotest_result[pos.id] ~= nil
+    and neotest_result[pos.id].status == "skipped"
+  then
+    result_status = "skipped"
+  elseif context.errors ~= nil and #context.errors > 0 then
+    -- mark as failed if a non-gotest error occurred.
+    result_status = "failed"
+  elseif result.code > 0 then
+    -- mark as failed if the go test command failed.
+    result_status = "failed"
+  elseif result.code == 0 then
+    -- mark as passed if the 'go test' command passed.
+    result_status = "passed"
+  else
+    logger.error(
+      "Unexpected state when determining test status. Exit code was: "
+        .. result.code
+    )
+  end
+
   -- override the position which was executed with the full
   -- command execution output.
   local cmd_output = M.filter_gotest_output(gotest_output)
@@ -114,7 +134,7 @@ function M.test_results(spec, result, tree)
   local cmd_output_path = vim.fs.normalize(async.fn.tempname())
   async.fn.writefile(cmd_output, cmd_output_path)
   if neotest_result[pos.id] == nil then
-    -- set status and output.
+    -- set status and output as none of them have yet to be set.
     neotest_result[pos.id] = {
       status = result_status,
       output = cmd_output_path,
