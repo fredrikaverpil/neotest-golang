@@ -12,7 +12,7 @@ local lib = require("neotest-golang.lib")
 --- @field golist_data table<string, string> The 'go list' JSON data (lua table).
 --- @field errors? table<string> Non-gotest errors to show in the final output.
 --- @field is_dap_active boolean? If true, parsing of test output will occur.
---- @field test_output_json_filepath? string Gotestsum JSON filepath.
+--- @field test_output_filepath? string e.g. a JSON filepath for test runners which uses this.
 
 --- @class TestData
 --- @field status neotest.ResultStatus
@@ -29,14 +29,47 @@ local lib = require("neotest-golang.lib")
 
 local M = {}
 
+--- Output processing, assuming 'go test' output.
+--- @async
+--- @param spec neotest.RunSpec
+--- @param result neotest.StrategyResult
+--- @param tree neotest.Tree
+--- @return table<string, neotest.Result> | nil
+function M.process_gotest_results(spec, result, tree)
+  local pos = tree:data()
+  if pos.type == "dir" then
+    -- A test command executed a directory of tests and the output/status must
+    -- now be processed.
+    local results = M.test_results(spec, result, tree)
+    return results
+  elseif pos.type == "file" then
+    -- A test command executed a file of tests and the output/status must
+    -- now be processed.
+    local results = M.test_results(spec, result, tree)
+    return results
+  elseif pos.type == "namespace" then
+    -- A test command executed a namespace and the output/status must now be
+    -- processed.
+    local results = M.test_results(spec, result, tree)
+    return results
+  elseif pos.type == "test" then
+    -- A test command executed a single test and the output/status must now be
+    -- processed.
+    local results = M.test_results(spec, result, tree)
+    return results
+  end
+  logger.error(
+    "Cannot process test results due to unknown Neotest position type:"
+      .. pos.type
+  )
+end
+
 --- Process the results from the test command.
 --- @param spec neotest.RunSpec
 --- @param result neotest.StrategyResult
 --- @param tree neotest.Tree
 --- @return table<string, neotest.Result>
 function M.test_results(spec, result, tree)
-  -- TODO: refactor this function into function calls; return_early, process_test_results, override_test_results.
-
   --- @type RunspecContext
   local context = spec.context
 
@@ -63,10 +96,12 @@ function M.test_results(spec, result, tree)
   --- The raw output from the test command.
   --- @type table
   local raw_output = {}
-  if runner == "go" then
+  if context.test_output_filepath ~= nil then
+    -- e.g. gotestsum output is in JSON format.
+    raw_output = async.fn.readfile(context.test_output_filepath)
+  else
+    -- 'go test' output is using neotest's result.output.
     raw_output = async.fn.readfile(result.output)
-  elseif runner == "gotestsum" then
-    raw_output = async.fn.readfile(context.test_output_json_filepath)
   end
   logger.debug({ "Raw 'go test' output: ", raw_output })
 
@@ -144,7 +179,30 @@ function M.test_results(spec, result, tree)
 
   logger.debug({ "Final Neotest result data", neotest_result })
 
+  M.workaround_neotest_issue_391(result)
+
   return neotest_result
+end
+
+--- Workaround, to avoid JSON in output panel, erase contents of output.
+--- @param result neotest.StrategyResult
+function M.workaround_neotest_issue_391(result)
+  -- FIXME: once output is processed, erase file contents, so to avoid JSON in
+  -- output panel. This is a workaround for now, only because of
+  -- https://github.com/nvim-neotest/neotest/issues/391
+
+  -- NOTE: when emptying the file with vim.fn.writefil, this error was hit
+  -- when debugging:
+  -- E5560: Vimscript function must not be called in a lua loop callback
+  -- vim.fn.writefile({ "" }, result.output)
+
+  if result.output ~= nil then -- and vim.fn.filereadable(result.output) == 1 then
+    local file = io.open(result.output, "w")
+    if file ~= nil then
+      file:write("")
+      file:close()
+    end
+  end
 end
 
 --- Filter on the Output-type parts of the 'go test' output.

@@ -1,7 +1,5 @@
 --- Helper functions building the command to execute.
 
-local async = require("neotest.async")
-
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.lib.json")
@@ -46,73 +44,38 @@ function M.golist_command()
   return cmd
 end
 
-function M.test_command_in_package(package_or_path)
-  local go_test_required_args = { package_or_path }
-  local cmd, json_filepath = M.test_command(go_test_required_args)
-  return cmd, json_filepath
-end
+--- @class TestCommandData
+--- @field package_name string | nil The Go package name.
+--- @field position neotest.Position The position of the test.
+--- @field regexp string | nil The regular expression to filter tests.
 
-function M.test_command_in_package_with_regexp(package_or_path, regexp)
-  local go_test_required_args = { package_or_path, "-run", regexp }
-  local cmd, json_filepath = M.test_command(go_test_required_args)
-  return cmd, json_filepath
-end
-
-function M.test_command(go_test_required_args)
+--- Generate the test command to execute.
+--- @param cmd_data TestCommandData
+--- @return table<string>, string | nil
+function M.test_command(cmd_data)
   --- The runner to use for running tests.
   --- @type string
   local runner = M.runner_fallback(options.get().runner)
 
-  --- The filepath to write test output JSON to, if using `gotestsum`.
+  --- Optional and custom filepath for writing test output.
   --- @type string | nil
-  local json_filepath = nil
+  local test_output_filepath = nil
 
   --- The final test command to execute.
   --- @type table<string>
   local cmd = {}
 
-  if runner == "go" then
-    cmd = M.go_test(go_test_required_args)
-  elseif runner == "gotestsum" then
-    json_filepath = vim.fs.normalize(async.fn.tempname())
-    cmd = M.gotestsum(go_test_required_args, json_filepath)
-  end
-
+  cmd, test_output_filepath = options.get().runners[runner].cmd(cmd_data)
   logger.info("Test command: " .. table.concat(cmd, " "))
 
-  return cmd, json_filepath
-end
-
-function M.go_test(go_test_required_args)
-  local cmd = { "go", "test", "-json" }
-  local args = options.get().go_test_args
-  if type(args) == "function" then
-    args = args()
-  end
-  cmd = vim.list_extend(vim.deepcopy(cmd), args)
-  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
-  return cmd
-end
-
-function M.gotestsum(go_test_required_args, json_filepath)
-  local cmd = { "gotestsum", "--jsonfile=" .. json_filepath }
-  local gotestsum_args = options.get().gotestsum_args
-  if type(gotestsum_args) == "function" then
-    gotestsum_args = gotestsum_args()
-  end
-  local go_test_args = options.get().go_test_args
-  if type(go_test_args) == "function" then
-    go_test_args = go_test_args()
-  end
-  cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_args)
-  cmd = vim.list_extend(vim.deepcopy(cmd), { "--" })
-  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_args)
-  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
-  return cmd
+  return cmd, test_output_filepath
 end
 
 function M.runner_fallback(executable)
   if M.system_has(executable) == false then
+    logger.warn(
+      "Runner not found: " .. executable .. ". Will fall back to 'go'."
+    )
     options.set({ runner = "go" })
     return options.get().runner
   end

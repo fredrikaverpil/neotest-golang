@@ -644,6 +644,17 @@ return {
 }
 ```
 
+## Custom test runners
+
+In neotest-golang, test runners are treated as first class citizens. The `go`
+and `gotestsum` runners are provided out of the box and serves as examples of
+how you could implement your own. See
+[`options.lua`](lua/neotest-golang/options.lua) for more details.
+
+This enables supplying your own functions for building the test command and
+processing the test output. This feature is not for the faint of heart, as test
+output processing is usually a quite complex story.
+
 ## 🙏 PRs are welcome
 
 Improvement suggestion PRs to this repo are very much welcome, and I encourage

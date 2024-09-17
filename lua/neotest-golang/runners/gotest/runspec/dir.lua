@@ -47,14 +47,20 @@ function M.build(pos)
     end
   end
 
-  local test_cmd, json_filepath = lib.cmd.test_command_in_package(package_name)
+  local cmd_data = {
+    package_name = package_name,
+    position = pos,
+    regexp = nil,
+  }
+
+  local test_cmd, test_output_filepath = lib.cmd.test_command(cmd_data)
 
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
-    test_output_json_filepath = json_filepath,
+    test_output_filepath = test_output_filepath,
   }
 
   --- @type neotest.RunSpec

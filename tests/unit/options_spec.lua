@@ -3,6 +3,7 @@ local _ = require("plenary")
 
 describe("Options are set up", function()
   it("With defaults", function()
+    -- arrange
     local expected_options = {
       runner = "go",
       go_test_args = {
@@ -20,11 +21,18 @@ describe("Options are set up", function()
       -- experimental
       dev_notifications = false,
     }
+
+    -- act
     options.setup()
-    assert.are_same(expected_options, options.get())
+
+    -- assert
+    local actual_options = options.get()
+    expected_options.runners = actual_options.runners -- skip asserting runners
+    assert.are_same(expected_options, actual_options)
   end)
 
   it("With non-defaults", function()
+    -- arrange
     local expected_options = {
       runner = "go",
       go_test_args = {
@@ -43,11 +51,18 @@ describe("Options are set up", function()
       -- experimental
       dev_notifications = false,
     }
+
+    -- act
     options.setup(expected_options)
-    assert.are_same(expected_options, options.get())
+
+    -- assert
+    local actual_options = options.get()
+    expected_options.runners = actual_options.runners -- skip asserting runners
+    assert.are_same(expected_options, actual_options)
   end)
 
   it("With args as functions", function()
+    -- arrange
     local expected_options = {
       go_test_args = function()
         return {
@@ -74,7 +89,13 @@ describe("Options are set up", function()
       end,
       dev_notifications = false,
     }
+
+    -- act
     options.setup(expected_options)
-    assert.are_same(expected_options, options.get())
+
+    -- assert
+    local actual_options = options.get()
+    expected_options.runners = actual_options.runners -- skip asserting runners
+    assert.are_same(expected_options, actual_options)
   end)
 end)
