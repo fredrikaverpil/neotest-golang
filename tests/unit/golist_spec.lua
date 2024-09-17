@@ -63,7 +63,7 @@ describe("go list output", function()
       Module = {
         Dir = tests_filepath,
         GoMod = tests_filepath .. "/go.mod",
-        GoVersion = "1.22.2",
+        GoVersion = "1.23.1",
         Main = true,
         Path = "github.com/fredrikaverpil/neotest-golang",
       },
