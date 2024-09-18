@@ -7,8 +7,8 @@ local logger = require("neotest-golang.logging")
 local M = {}
 
 local opts = {
-  go_test_args = { "-v", "-race", "-count=1" },
-  go_list_args = {},
+  go_test_args = { "-v", "-race", "-count=1" }, -- NOTE: can also be a function
+  go_list_args = {}, -- NOTE: can also be a function
   dap_go_opts = {},
   testify_enabled = false,
   warn_test_name_dupes = true,
@@ -16,7 +16,7 @@ local opts = {
 
   -- experimental, for now undocumented, options
   runner = "go", -- or "gotestsum"
-  gotestsum_args = { "--format=standard-verbose" },
+  gotestsum_args = { "--format=standard-verbose" }, -- NOTE: can also be a function
   dev_notifications = false,
 }
 

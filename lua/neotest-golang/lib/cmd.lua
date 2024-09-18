@@ -37,7 +37,11 @@ end
 
 function M.golist_command()
   local cmd = { "go", "list", "-json" }
-  vim.list_extend(cmd, options.get().go_list_args or {})
+  local go_list_args = options.get().go_list_args
+  if type(go_list_args) == "function" then
+    go_list_args = go_list_args()
+  end
+  vim.list_extend(cmd, go_list_args or {})
   vim.list_extend(cmd, { "./..." })
   return cmd
 end
@@ -81,16 +85,28 @@ end
 
 function M.go_test(go_test_required_args)
   local cmd = { "go", "test", "-json" }
-  cmd = vim.list_extend(vim.deepcopy(cmd), options.get().go_test_args)
+  local args = options.get().go_test_args
+  if type(args) == "function" then
+    args = args()
+  end
+  cmd = vim.list_extend(vim.deepcopy(cmd), args)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
   return cmd
 end
 
 function M.gotestsum(go_test_required_args, json_filepath)
   local cmd = { "gotestsum", "--jsonfile=" .. json_filepath }
-  cmd = vim.list_extend(vim.deepcopy(cmd), options.get().gotestsum_args)
+  local gotestsum_args = options.get().gotestsum_args
+  if type(gotestsum_args) == "function" then
+    gotestsum_args = gotestsum_args()
+  end
+  local go_test_args = options.get().go_test_args
+  if type(go_test_args) == "function" then
+    go_test_args = go_test_args()
+  end
+  cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_args)
   cmd = vim.list_extend(vim.deepcopy(cmd), { "--" })
-  cmd = vim.list_extend(vim.deepcopy(cmd), options.get().go_test_args)
+  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_args)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
   return cmd
 end

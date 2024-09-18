@@ -141,14 +141,14 @@ consider setting up neotest and its adapters in a
 
 ## ⚙️ Configuration
 
-| Argument                 | Default value                   | Description                                                                                                                                                          |
-| ------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`. See [here](https://github.com/fredrikaverpil/neotest-golang#using-build-tags) for info on using `-tags`.                           |
-| `go_list_args`           | `{}`                            | Arguments to pass into `go list`. See [here](https://github.com/fredrikaverpil/neotest-golang#using-build-tags) for info on using `-tags`.                           |
-| `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                                    |
-| `testify_enabled`        | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info. |
-| `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                                                                                                          |
-| `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                                                                                                       |
+| Argument                 | Default value                   | Description                                                                                                                                                                                                                                        |
+| ------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `go_test_args`           | `{ "-v", "-race", "-count=1" }` | Arguments to pass into `go test`. Note: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table). |
+| `go_list_args`           | `{}`                            | Arguments to pass into `go list`. Note: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table). |
+| `dap_go_opts`            | `{}`                            | Options to pass into `require("dap-go").setup()`.                                                                                                                                                                                                  |
+| `testify_enabled`        | `false`                         | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info.                                                                               |
+| `warn_test_name_dupes`   | `true`                          | Warn about duplicate test names within the same Go package.                                                                                                                                                                                        |
+| `warn_test_not_executed` | `true`                          | Warn if test was not executed.                                                                                                                                                                                                                     |
 
 ### Example configuration: custom `go test` arguments
 
@@ -548,6 +548,35 @@ return {
 > Depending on how you have Neovim setup, you can define this on a per-project
 > basis by placing a `.lazy.lua` with overrides in the project. This requires
 > the [lazy.nvim](https://github.com/folke/lazy.nvim) plugin manager.
+
+### Pass arguments as function instead of table
+
+Some use cases may require you to pass in dynamically generated arguments during
+runtime. To cater for this, you can provide arguments as a function.
+
+```lua
+return {
+  {
+    "nvim-neotest/neotest",
+    config = function()
+      require("neotest").setup({
+        adapters = {
+          require("neotest-golang")({
+            go_test_args = function()
+              -- provide custom logic here..
+              return { "-count=1", "-tags=integration" }
+            end,
+            go_list_args = function()
+              -- provide custom logic here..
+              return { "-tags=integration" }
+            end,
+          }),
+        },
+      })
+    end,
+  },
+}
+```
 
 ## 🙏 PRs are welcome
 
