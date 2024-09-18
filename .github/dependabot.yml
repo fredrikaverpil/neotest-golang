@@ -7,7 +7,7 @@ updates:
   - package-ecosystem: gomod
     directories:
       - "/tests/go"
-      # - "**/*" # doesn't work yet, hence the entry above.
+      - "**/*" # if this works, we can remove the above entry...
     schedule:
       interval: monthly
     commit-message:
