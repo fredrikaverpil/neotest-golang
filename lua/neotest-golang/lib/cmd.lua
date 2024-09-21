@@ -45,18 +45,18 @@ function M.golist_command()
 end
 
 function M.test_command_in_package(package_or_path)
-  local go_test_required_args = { package_or_path }
-  local cmd, json_filepath = M.test_command(go_test_required_args)
+  local cmd_data = { package_or_path = package_or_path }
+  local cmd, json_filepath = M.test_command(cmd_data)
   return cmd, json_filepath
 end
 
 function M.test_command_in_package_with_regexp(package_or_path, regexp)
-  local go_test_required_args = { package_or_path, "-run", regexp }
-  local cmd, json_filepath = M.test_command(go_test_required_args)
+  local cmd_data = { package_or_path = package_or_path, regexp = regexp }
+  local cmd, json_filepath = M.test_command(cmd_data)
   return cmd, json_filepath
 end
 
-function M.test_command(required_go_test_args)
+function M.test_command(cmd_data)
   --- The runner to use for running tests.
   --- @type string
   local runner = M.runner_fallback(options.get().runner)
@@ -69,8 +69,7 @@ function M.test_command(required_go_test_args)
   --- @type table<string>
   local cmd = {}
 
-  cmd, test_output_filepath =
-    options.get().runners[runner].cmd(required_go_test_args)
+  cmd, test_output_filepath = options.get().runners[runner].cmd(cmd_data)
   logger.info("Test command: " .. table.concat(cmd, " "))
 
   return cmd, test_output_filepath
