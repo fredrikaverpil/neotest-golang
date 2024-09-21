@@ -27,7 +27,7 @@ function M.build(pos)
   local test_name_regexp = lib.convert.to_gotest_regex_pattern(test_name)
 
   local cmd_data = {
-    package_or_path = test_folder_absolute_path,
+    absolute_folder_path = test_folder_absolute_path,
     position = pos,
     regexp = test_name_regexp,
   }

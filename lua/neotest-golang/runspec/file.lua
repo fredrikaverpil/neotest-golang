@@ -55,13 +55,19 @@ function M.build(pos, tree)
   local json_filepath = nil
   local regexp = M.get_regexp(pos.path)
   if regexp ~= nil then
-    local cmd_data =
-      { package_or_path = package_name, position = pos, regexp = regexp }
+    local cmd_data = {
+      package_name = package_name,
+      position = pos,
+      regexp = regexp,
+    }
     test_cmd, json_filepath = lib.cmd.test_command(cmd_data)
   else
     -- fallback: run all tests in the package
-    local cmd_data =
-      { package_or_path = package_name, position = pos, regexp = nil }
+    local cmd_data = {
+      package_name = package_name,
+      position = pos,
+      regexp = nil,
+    }
     test_cmd, json_filepath =
       lib.cmd.test_command_in_package_with_regexp(cmd_data)
     -- NOTE: could also fall back to running on a per-test basis by using a bare return

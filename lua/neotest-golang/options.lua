@@ -31,11 +31,21 @@ local default_runners = {
           go_test_args = go_test_args()
         end
         local required_go_test_args = {}
-        if cmd_data.regexp ~= nil then
+        if
+          cmd_data.position.type == "test"
+          or cmd_data.position.type == "namespace"
+        then
           required_go_test_args =
-            { cmd_data.package_or_path, "-run", cmd_data.regexp }
-        else
-          required_go_test_args = { cmd_data.package_or_path }
+            { cmd_data.absolute_folder_path, "-run", cmd_data.regexp }
+        elseif cmd_data.position.type == "file" then
+          if cmd_data.regexp ~= nil then
+            required_go_test_args =
+              { cmd_data.package_name, "-run", cmd_data.regexp }
+          else
+            required_go_test_args = { cmd_data.package_name }
+          end
+        elseif cmd_data.position.type == "dir" then
+          required_go_test_args = { cmd_data.package_name }
         end
         cmd = vim.list_extend(vim.deepcopy(cmd), go_test_args)
         cmd = vim.list_extend(vim.deepcopy(cmd), required_go_test_args)
@@ -55,11 +65,21 @@ local default_runners = {
           go_test_args = go_test_args()
         end
         local required_go_test_args = {}
-        if cmd_data.regexp ~= nil then
+        if
+          cmd_data.position.type == "test"
+          or cmd_data.position.type == "namespace"
+        then
           required_go_test_args =
-            { cmd_data.package_or_path, "-run", cmd_data.regexp }
-        else
-          required_go_test_args = { cmd_data.package_or_path }
+            { cmd_data.absolute_folder_path, "-run", cmd_data.regexp }
+        elseif cmd_data.position.type == "file" then
+          if cmd_data.regexp ~= nil then
+            required_go_test_args =
+              { cmd_data.package_name, "-run", cmd_data.regexp }
+          else
+            required_go_test_args = { cmd_data.package_name }
+          end
+        elseif cmd_data.position.type == "dir" then
+          required_go_test_args = { cmd_data.package_name }
         end
         cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_args)
         cmd = vim.list_extend(vim.deepcopy(cmd), { "--" })
