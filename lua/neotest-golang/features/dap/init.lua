@@ -9,6 +9,9 @@ local M = {}
 ---@param cwd string
 function M.setup_debugging(cwd)
   local dap_go_opts = options.get().dap_go_opts or {}
+  if type(dap_go_opts) == "function" then
+    dap_go_opts = dap_go_opts()
+  end
   local dap_go_opts_original = vim.deepcopy(dap_go_opts)
   if dap_go_opts.delve == nil then
     dap_go_opts.delve = {}

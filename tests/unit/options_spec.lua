@@ -60,7 +60,9 @@ describe("Options are set up", function()
       go_list_args = function()
         return {}
       end,
-      dap_go_opts = {},
+      dap_go_opts = function()
+        return {}
+      end,
       testify_enabled = false,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
