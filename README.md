@@ -43,6 +43,10 @@ present in neotest-golang (this project):
 | Table tests not recognized when defined inside for-loop | [neotest-go#86](https://github.com/nvim-neotest/neotest-go/issues/86) |
 | Running test suite doesn't work                         | [neotest-go#89](https://github.com/nvim-neotest/neotest-go/issues/89) |
 
+And here, a comparison in number of GitHub stars between the projects:
+
+[![Star History Chart](https://api.star-history.com/svg?repos=fredrikaverpil/neotest-golang,nvim-neotest/neotest-go&type=Date)](https://star-history.com/#fredrikaverpil/neotest-golang&nvim-neotest/neotest-go&Date)
+
 </details>
 
 ## 🥸 Installation
