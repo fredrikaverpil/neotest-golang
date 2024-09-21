@@ -24,12 +24,12 @@ function M.build(pos)
   end
 
   local test_name = lib.convert.to_gotest_test_name(pos.id)
-  test_name = lib.convert.to_gotest_regex_pattern(test_name)
+  local test_name_regexp = lib.convert.to_gotest_regex_pattern(test_name)
 
   local cmd_data = {
     package_or_path = test_folder_absolute_path,
     position = pos,
-    regexp = test_name,
+    regexp = test_name_regexp,
   }
   local test_cmd, json_filepath = lib.cmd.test_command(cmd_data)
 
