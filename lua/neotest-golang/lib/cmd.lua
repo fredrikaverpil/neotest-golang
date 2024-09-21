@@ -44,19 +44,14 @@ function M.golist_command()
   return cmd
 end
 
-function M.test_command_in_package(pos, package_or_path)
-  local cmd_data = { package_or_path = package_or_path, position = pos }
-  local cmd, json_filepath = M.test_command(cmd_data)
-  return cmd, json_filepath
-end
+--- @class TestCommandData
+--- @field package_or_path string The Go package or the full path to test.
+--- @field position neotest.Position The position of the test.
+--- @field regexp string | nil The regular expression to filter tests.
 
-function M.test_command_in_package_with_regexp(pos, package_or_path, regexp)
-  local cmd_data =
-    { package_or_path = package_or_path, position = pos, regexp = regexp }
-  local cmd, json_filepath = M.test_command(cmd_data)
-  return cmd, json_filepath
-end
-
+--- Generate the test command to execute.
+--- @param cmd_data TestCommandData
+--- @return table<string>, string | nil
 function M.test_command(cmd_data)
   --- The runner to use for running tests.
   --- @type string
