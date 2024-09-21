@@ -9,7 +9,7 @@ local M = {}
 local opts = {
   go_test_args = { "-v", "-race", "-count=1" }, -- NOTE: can also be a function
   go_list_args = {}, -- NOTE: can also be a function
-  dap_go_opts = {},
+  dap_go_opts = {}, -- NOTE: can also be a function
   testify_enabled = false,
   warn_test_name_dupes = true,
   warn_test_not_executed = true,
