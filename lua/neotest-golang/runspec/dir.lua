@@ -47,7 +47,8 @@ function M.build(pos)
     end
   end
 
-  local test_cmd, json_filepath = lib.cmd.test_command_in_package(package_name)
+  local test_cmd, json_filepath =
+    lib.cmd.test_command_in_package(pos, package_name)
 
   --- @type RunspecContext
   local context = {

@@ -29,6 +29,7 @@ function M.build(pos, strategy)
   local test_name_regex = lib.convert.to_gotest_regex_pattern(test_name)
 
   local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(
+    pos,
     test_folder_absolute_path,
     test_name_regex
   )

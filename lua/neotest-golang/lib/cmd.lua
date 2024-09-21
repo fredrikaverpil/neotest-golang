@@ -44,14 +44,15 @@ function M.golist_command()
   return cmd
 end
 
-function M.test_command_in_package(package_or_path)
-  local cmd_data = { package_or_path = package_or_path }
+function M.test_command_in_package(pos, package_or_path)
+  local cmd_data = { package_or_path = package_or_path, position = pos }
   local cmd, json_filepath = M.test_command(cmd_data)
   return cmd, json_filepath
 end
 
-function M.test_command_in_package_with_regexp(package_or_path, regexp)
-  local cmd_data = { package_or_path = package_or_path, regexp = regexp }
+function M.test_command_in_package_with_regexp(pos, package_or_path, regexp)
+  local cmd_data =
+    { package_or_path = package_or_path, position = pos, regexp = regexp }
   local cmd, json_filepath = M.test_command(cmd_data)
   return cmd, json_filepath
 end
