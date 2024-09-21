@@ -35,8 +35,10 @@ local default_runners = {
           cmd_data.position.type == "test"
           or cmd_data.position.type == "namespace"
         then
+          local absolute_folder_path =
+            vim.fn.fnamemodify(cmd_data.position.path, ":h")
           required_go_test_args =
-            { cmd_data.absolute_folder_path, "-run", cmd_data.regexp }
+            { absolute_folder_path, "-run", cmd_data.regexp }
         elseif cmd_data.position.type == "file" then
           if cmd_data.regexp ~= nil then
             required_go_test_args =
@@ -69,8 +71,10 @@ local default_runners = {
           cmd_data.position.type == "test"
           or cmd_data.position.type == "namespace"
         then
+          local absolute_folder_path =
+            vim.fn.fnamemodify(cmd_data.position.path, ":h")
           required_go_test_args =
-            { cmd_data.absolute_folder_path, "-run", cmd_data.regexp }
+            { absolute_folder_path, "-run", cmd_data.regexp }
         elseif cmd_data.position.type == "file" then
           if cmd_data.regexp ~= nil then
             required_go_test_args =

@@ -45,7 +45,6 @@ function M.golist_command()
 end
 
 --- @class TestCommandData
---- @field absolute_folder_path string | nil The absolute folder path to the test file.
 --- @field package_name string | nil The Go package name.
 --- @field position neotest.Position The position of the test.
 --- @field regexp string | nil The regular expression to filter tests.

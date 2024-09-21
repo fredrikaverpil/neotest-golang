@@ -37,7 +37,6 @@ function M.build(pos, tree)
   local package_name = "./..."
   local pos_path_filename = vim.fn.fnamemodify(pos.path, ":t")
   local pos_path_foldername = vim.fn.fnamemodify(pos.path, ":h")
-
   for _, golist_item in ipairs(golist_data) do
     if golist_item.TestGoFiles ~= nil then
       if
