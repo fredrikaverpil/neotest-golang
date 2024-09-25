@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.2.0...v1.3.0) (2024-09-25)
+
+
+### Features
+
+* **dap:** pass dap-go opts as function ([#195](https://github.com/fredrikaverpil/neotest-golang/issues/195)) ([24ed4cf](https://github.com/fredrikaverpil/neotest-golang/commit/24ed4cf294b8793280ac3a978673622156df7bd7))
+
 ## [1.2.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.1.1...v1.2.0) (2024-09-18)
 
 
