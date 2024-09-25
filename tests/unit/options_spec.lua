@@ -46,4 +46,35 @@ describe("Options are set up", function()
     options.setup(expected_options)
     assert.are_same(expected_options, options.get())
   end)
+
+  it("With args as functions", function()
+    local expected_options = {
+      go_test_args = function()
+        return {
+          "-v",
+          "-race",
+          "-count=1",
+          "-parallel=1",
+        }
+      end,
+      go_list_args = function()
+        return {}
+      end,
+      dap_go_opts = function()
+        return {}
+      end,
+      testify_enabled = false,
+      warn_test_name_dupes = true,
+      warn_test_not_executed = true,
+
+      -- experimental
+      runner = "go",
+      gotestsum_args = function()
+        return { "--format=standard-verbose" }
+      end,
+      dev_notifications = false,
+    }
+    options.setup(expected_options)
+    assert.are_same(expected_options, options.get())
+  end)
 end)

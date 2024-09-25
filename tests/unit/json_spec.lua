@@ -58,7 +58,7 @@ describe("Go list", function()
            "Main": true,
            "Dir": "/Users/fredrik/code/public/neotest-golang/tests/go",
            "GoMod": "/Users/fredrik/code/public/neotest-golang/tests/go/go.mod",
-           "GoVersion": "1.22.2"
+           "GoVersion": "1.23.1"
    }
 }
 ]]
@@ -71,7 +71,7 @@ describe("Go list", function()
           Main = true,
           Dir = "/Users/fredrik/code/public/neotest-golang/tests/go",
           GoMod = "/Users/fredrik/code/public/neotest-golang/tests/go/go.mod",
-          GoVersion = "1.22.2",
+          GoVersion = "1.23.1",
         },
       },
     }

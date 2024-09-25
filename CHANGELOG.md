@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.1.1...v1.2.0) (2024-09-18)
+
+
+### Features
+
+* add ability to pass args as function instead of table ([#188](https://github.com/fredrikaverpil/neotest-golang/issues/188)) ([c5df84c](https://github.com/fredrikaverpil/neotest-golang/commit/c5df84cddf75166cf5b81b9385c6bd2858d50aed))
+
 ## [1.1.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.1.0...v1.1.1) (2024-09-09)
 
 
