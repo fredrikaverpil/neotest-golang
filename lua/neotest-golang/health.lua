@@ -13,6 +13,7 @@ function M.check()
   start("Requirements")
   M.binary_found_on_path("go")
   M.go_mod_found()
+  M.is_problematic_path()
   M.treesitter_parser_installed("go")
   M.is_plugin_available("neotest")
   M.is_plugin_available("nvim-treesitter")
@@ -55,6 +56,33 @@ function M.go_mod_found()
   end
   if go_mod_filepath == nil then
     warn("No go.mod file found")
+  end
+end
+
+function M.is_problematic_path()
+  local go_mod_filepath = nil
+  local filepaths = lib.find.go_test_filepaths(vim.fn.getcwd())
+  for _, filepath in ipairs(filepaths) do
+    local start_path = vim.fn.fnamemodify(filepath, ":h")
+    go_mod_filepath = lib.find.file_upwards("go.mod", start_path)
+    local sysname = vim.uv.os_uname().sysname
+    local problematic_paths = {
+      Darwin = { "/tmp", vim.fs.normalize("~/Public") },
+      Linux = { "/tmp" },
+    }
+    if problematic_paths[sysname] == nil then
+      return
+    end
+    for _, problematic_path in ipairs(problematic_paths[sysname]) do
+      if go_mod_filepath ~= nil and go_mod_filepath:find(problematic_path) then
+        warn(
+          "Path reportedly problematic: "
+            .. problematic_path
+            .. " (try another path if you experience issues)"
+        )
+        return
+      end
+    end
   end
 end
 
