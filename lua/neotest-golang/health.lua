@@ -67,7 +67,7 @@ function M.is_problematic_path()
     go_mod_filepath = lib.find.file_upwards("go.mod", start_path)
     local sysname = vim.uv.os_uname().sysname
     local problematic_paths = {
-      Darwin = { "/tmp", vim.fs.normalize("~/Public") },
+      Darwin = { "/private/tmp", "/tmp", vim.fs.normalize("~/Public") },
       Linux = { "/tmp" },
     }
     if problematic_paths[sysname] == nil then
