@@ -11,7 +11,7 @@ jobs:
   nvim:
     strategy:
       matrix:
-        version: [stable] # TODO: add nightly back when fixed
+        version: [stable, nightly]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
