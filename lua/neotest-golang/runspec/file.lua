@@ -37,7 +37,6 @@ function M.build(pos, tree)
   local package_name = "./..."
   local pos_path_filename = vim.fn.fnamemodify(pos.path, ":t")
   local pos_path_foldername = vim.fn.fnamemodify(pos.path, ":h")
-
   for _, golist_item in ipairs(golist_data) do
     if golist_item.TestGoFiles ~= nil then
       if
@@ -55,11 +54,21 @@ function M.build(pos, tree)
   local json_filepath = nil
   local regexp = M.get_regexp(pos.path)
   if regexp ~= nil then
-    test_cmd, json_filepath =
-      lib.cmd.test_command_in_package_with_regexp(package_name, regexp)
+    local cmd_data = {
+      package_name = package_name,
+      position = pos,
+      regexp = regexp,
+    }
+    test_cmd, json_filepath = lib.cmd.test_command(cmd_data)
   else
     -- fallback: run all tests in the package
-    test_cmd, json_filepath = lib.cmd.test_command_in_package(package_name)
+    local cmd_data = {
+      package_name = package_name,
+      position = pos,
+      regexp = nil,
+    }
+    test_cmd, json_filepath =
+      lib.cmd.test_command_in_package_with_regexp(cmd_data)
     -- NOTE: could also fall back to running on a per-test basis by using a bare return
   end
 
