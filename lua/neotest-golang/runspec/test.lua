@@ -11,8 +11,8 @@ local M = {}
 --- @param strategy string
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos, strategy)
-  local test_folder_absolute_path =
-    string.match(pos.path, "(.+)" .. lib.find.os_path_sep)
+  local pos_path_foldername = vim.fn.fnamemodify(pos.path, ":h")
+  local test_folder_absolute_path = pos_path_foldername
 
   local golist_data, golist_error =
     lib.cmd.golist_data(test_folder_absolute_path)
@@ -36,7 +36,7 @@ function M.build(pos, strategy)
   local runspec_strategy = nil
   if strategy == "dap" then
     M.assert_dap_prerequisites()
-    runspec_strategy = dap.get_dap_config(test_name_regex)
+    runspec_strategy = dap.get_dap_config(pos_path_foldername, test_name_regex)
     logger.debug("DAP strategy used: " .. vim.inspect(runspec_strategy))
     dap.setup_debugging(test_folder_absolute_path)
   end
