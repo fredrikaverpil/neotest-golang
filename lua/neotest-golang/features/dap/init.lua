@@ -30,17 +30,18 @@ function M.setup_debugging(cwd)
   end
 end
 
+--- @param test_path string
 --- @param test_name_regex string
 --- @return table | nil
-function M.get_dap_config(test_name_regex)
+function M.get_dap_config(test_path, test_name_regex)
   -- :help dap-configuration
   local dap_config = {
     type = "go",
     name = "Neotest-golang",
     request = "launch",
     mode = "test",
-    program = "${fileDirname}",
     args = { "-test.run", test_name_regex },
+    program = test_path,
   }
 
   local dap_go_opts = options.get().dap_go_opts or {}
