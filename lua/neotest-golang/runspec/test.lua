@@ -35,7 +35,7 @@ function M.build(pos, strategy)
 
   local runspec_strategy = nil
   if strategy == "dap" then
-    M.assert_dap_prerequisites()
+    dap.assert_dap_prerequisites()
     runspec_strategy = dap.get_dap_config(pos_path_foldername, test_name_regex)
     logger.debug("DAP strategy used: " .. vim.inspect(runspec_strategy))
     dap.setup_debugging(test_folder_absolute_path)
@@ -64,16 +64,6 @@ function M.build(pos, strategy)
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec
-end
-
-function M.assert_dap_prerequisites()
-  local dap_go_found = pcall(require, "dap-go")
-  if not dap_go_found then
-    local msg = "You must have leoluz/nvim-dap-go installed to use DAP strategy. "
-      .. "See the neotest-golang README for more information."
-    logger.error(msg)
-    error(msg)
-  end
 end
 
 return M
