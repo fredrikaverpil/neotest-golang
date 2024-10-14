@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.2.0...v1.3.0) (2024-10-14)
+
+
+### Features
+
+* **dap:** add support for debugging tests in a file ([#205](https://github.com/fredrikaverpil/neotest-golang/issues/205)) ([a82e9b8](https://github.com/fredrikaverpil/neotest-golang/commit/a82e9b87753aba970d6a2168e79896379f4607b7))
+* **dap:** pass dap-go opts as function ([#195](https://github.com/fredrikaverpil/neotest-golang/issues/195)) ([24ed4cf](https://github.com/fredrikaverpil/neotest-golang/commit/24ed4cf294b8793280ac3a978673622156df7bd7))
+* gotestsum ([#150](https://github.com/fredrikaverpil/neotest-golang/issues/150)) ([1837348](https://github.com/fredrikaverpil/neotest-golang/commit/1837348e444743949de33249aefddf3a420bdeba))
+
+
+### Bug Fixes
+
+* **dap:** use test filepath from neotest positions ([#202](https://github.com/fredrikaverpil/neotest-golang/issues/202)) ([8779ea0](https://github.com/fredrikaverpil/neotest-golang/commit/8779ea0b595d4149895b065960f85481e575f8a3))
+
 ## [1.2.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.1.1...v1.2.0) (2024-09-18)
 
 
