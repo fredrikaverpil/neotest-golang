@@ -2,14 +2,16 @@
 
 local logger = require("neotest-golang.logging")
 local lib = require("neotest-golang.lib")
+local dap = require("neotest-golang.features.dap")
 
 local M = {}
 
---- Build runspec for a directory.
+--- Build runspec for a file.
 --- @param pos neotest.Position
 --- @param tree neotest.Tree
+--- @param strategy string
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build(pos, tree)
+function M.build(pos, tree, strategy)
   if vim.tbl_isempty(tree:children()) then
     return M.return_skipped(pos)
   end
@@ -63,6 +65,14 @@ function M.build(pos, tree)
     -- NOTE: could also fall back to running on a per-test basis by using a bare return
   end
 
+  local runspec_strategy = nil
+  if strategy == "dap" then
+    dap.assert_dap_prerequisites()
+    runspec_strategy = dap.get_dap_config(pos_path_foldername, regexp)
+    logger.debug("DAP strategy used: " .. vim.inspect(runspec_strategy))
+    dap.setup_debugging(pos_path_foldername)
+  end
+
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
@@ -77,6 +87,11 @@ function M.build(pos, tree)
     cwd = go_mod_folderpath,
     context = context,
   }
+
+  if runspec_strategy ~= nil then
+    run_spec.strategy = runspec_strategy
+    run_spec.context.is_dap_active = true
+  end
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec
