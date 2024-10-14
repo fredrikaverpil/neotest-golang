@@ -26,12 +26,30 @@ function M.build(pos, strategy)
   end
 
   local test_name = lib.convert.to_gotest_test_name(pos.id)
-  local test_name_regex = lib.convert.to_gotest_regex_pattern(test_name)
+  local test_name_regexp = lib.convert.to_gotest_regex_pattern(test_name)
 
-  local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(
-    test_folder_absolute_path,
-    test_name_regex
-  )
+  -- find the go package that corresponds to the pos.path
+  local package_name = "./..."
+  local pos_path_filename = vim.fn.fnamemodify(pos.path, ":t")
+  local pos_path_foldername = vim.fn.fnamemodify(pos.path, ":h")
+  for _, golist_item in ipairs(golist_data) do
+    if golist_item.TestGoFiles ~= nil then
+      if
+        pos_path_foldername == golist_item.Dir
+        and vim.tbl_contains(golist_item.TestGoFiles, pos_path_filename)
+      then
+        package_name = golist_item.ImportPath
+        break
+      end
+    end
+  end
+
+  local cmd_data = {
+    package_name = package_name,
+    position = pos,
+    regexp = test_name_regexp,
+  }
+  local test_cmd, test_output_filepath = lib.cmd.test_command(cmd_data)
 
   local runspec_strategy = nil
   if strategy == "dap" then
@@ -47,7 +65,7 @@ function M.build(pos, strategy)
     golist_data = golist_data,
     errors = errors,
     process_test_results = true,
-    test_output_json_filepath = json_filepath,
+    test_output_filepath = test_output_filepath,
   }
 
   --- @type neotest.RunSpec
