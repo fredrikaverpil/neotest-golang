@@ -76,8 +76,6 @@ function M.Adapter.build_spec(args)
     return
   end
 
-  logger.info({ "Tree:", pos })
-
   -- Below is the main logic of figuring out how to execute tests. In short,
   -- a "runspec" is defined for each command to execute.
   -- Neotest also distinguishes between different "position types":

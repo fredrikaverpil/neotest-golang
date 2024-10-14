@@ -51,7 +51,7 @@ function M.build(pos, tree, strategy)
       end
     end
   end
-  --
+
   -- find all top-level tests in pos.path
   local test_cmd = nil
   local json_filepath = nil
