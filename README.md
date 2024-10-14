@@ -389,6 +389,7 @@ return {
       { "<leader>tO", function() require("neotest").output_panel.toggle() end, desc = "[t]est [O]utput panel" },
       { "<leader>tt", function() require("neotest").run.stop() end, desc = "[t]est [t]erminate" },
       { "<leader>td", function() require("neotest").run.run({ suite = false, strategy = "dap" }) end, desc = "Debug nearest test" },
+      { "<leader>tD", function() require("neotest").run.run({ vim.fn.expand("%"), strategy = "dap" }) end, desc = "Debug current file" },
     },
   },
 
