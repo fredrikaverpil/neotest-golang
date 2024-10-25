@@ -336,8 +336,8 @@ function M.decorate_with_go_test_results(res, gotest_output)
   return res
 end
 
---- Colorize the test output based on the test result. 
---- 
+--- Colorize the test output based on the test result.
+---
 --- It will colorize the test output line based on the test result (PASS - green, FAIL - red, SKIP - yellow).
 --- @param output string
 --- @return string
@@ -347,11 +347,11 @@ function M.colorizer(output)
   end
 
   if string.find(output, "FAIL") then
-    output = output:gsub("^", "[31m"):gsub("$", "[0m") -- colorizer red
+    output = output:gsub("^", "[31m"):gsub("$", "[0m")
   elseif string.find(output, "PASS") then
-    output = output:gsub("^", "[32m"):gsub("$", "[0m") -- colorizer green
+    output = output:gsub("^", "[32m"):gsub("$", "[0m")
   elseif string.find(output, "SKIP") then
-    output = output:gsub("^", "[33m"):gsub("$", "[0m") -- colorizer yellow
+    output = output:gsub("^", "[33m"):gsub("$", "[0m")
   end
   return output
 end
@@ -413,7 +413,6 @@ function M.to_neotest_result(res)
       errors = test_data.errors,
       output = test_output_path, -- NOTE: could be slow when running many tests?
     }
-    vim.notify(vim.inspect(neotest_result[pos_id]))
   end
 
   return neotest_result
