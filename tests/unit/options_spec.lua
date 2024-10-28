@@ -14,6 +14,7 @@ describe("Options are set up", function()
       gotestsum_args = { "--format=standard-verbose" },
       dap_go_opts = {},
       testify_enabled = false,
+      colorize_test_output = true,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
 
@@ -37,6 +38,7 @@ describe("Options are set up", function()
       gotestsum_args = { "--format=standard-verbose" },
       dap_go_opts = {},
       testify_enabled = false,
+      colorize_test_output = false,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
 
@@ -64,6 +66,7 @@ describe("Options are set up", function()
         return {}
       end,
       testify_enabled = false,
+      colorize_test_output = true,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
 
