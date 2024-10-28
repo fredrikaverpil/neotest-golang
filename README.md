@@ -166,7 +166,7 @@ consider setting up neotest and its adapters in a
 | `go_list_args`           | `{}`                              | Arguments to pass into `go list`. Note: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                                   |
 | `dap_go_opts`            | `{}`                              | Options to pass into `require("dap-go").setup()`. Note: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                   |
 | `testify_enabled`        | `false`                           | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info.                                                                                                                                                                 |
-| `colorize_test_output`        | `false`                           | Enable output color for `SUCCESS`, `FAIL`, and `SKIP` tests. See [here](https://github.com/fredrikaverpil/neotest-golang#output-colors) for more info.                                                                                                                                                                 |
+| `colorize_test_output`   | `true`                            | Enable output color for `SUCCESS`, `FAIL`, and `SKIP` tests.                                                                                                                                                                                                                                                                         |
 | `warn_test_name_dupes`   | `true`                            | Warn about duplicate test names within the same Go package.                                                                                                                                                                                                                                                                          |
 | `warn_test_not_executed` | `true`                            | Warn if test was not executed.                                                                                                                                                                                                                                                                                                       |
 
@@ -573,29 +573,6 @@ feature... 🙈
 > Right now, nested tests and table tests are not supported. All of this can be
 > remedied at any time by extending the treesitter queries. Feel free to dig in
 > and open a PR!
-
-### Output colors
-
-If you want to enable output colors for `SUCCESS`, `FAIL`, and `SKIP` tests, you must set the `colorize_test_output` option to `true`. This will colorize the output of the tests in the output panel.
-
-Configuration example:
-```lua
-return {
-  {
-    "nvim-neotest/neotest",
-    config = function()
-      require("neotest").setup({
-        adapters = {
-          require("neotest-golang")({
-            -- ...
-            colorize_test_output = true,
-          }),
-        },
-      })
-    end,
-  },
-}
-```
 
 ### Using build tags
 
