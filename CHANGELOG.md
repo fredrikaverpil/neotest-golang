@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.3.0...v1.4.0) (2024-10-28)
+
+
+### Features
+
+* test output color ([#208](https://github.com/fredrikaverpil/neotest-golang/issues/208)) ([47ba93e](https://github.com/fredrikaverpil/neotest-golang/commit/47ba93efd98f9e80d80d3fb5e8ca72217c74b7f7))
+
 ## [1.3.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.2.0...v1.3.0) (2024-10-14)
 
 
