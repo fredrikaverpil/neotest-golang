@@ -328,18 +328,18 @@ require("neotest").setup({
 
 ### Example configuration: extra everything
 
-I've provided a pretty hefty configuration example below, which includes all
-required setup for testing and debugging along with all the keymaps.
+In the below code block, I've provided a pretty hefty configuration example,
+which includes the required setup for testing and debugging along with all the
+keymaps. This is a merged snapshot of my own config, which I hope you can draw
+inspiration from. To view my current config, which is divided up into several
+files, see:
+
+- [plugins/neotest.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/plugins/neotest.lua)
+- [plugins/dap.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/plugins/dap.lua)
+- [lang/go.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/lang/go.lua)
 
 <details>
 <summary>Click to expand</summary>
-
-In the below code block, you can see a merged snapshot of my own config. To view
-my current config, see:
-
-- [plugins/neotest.lua]()
-- [plugins/dap.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/plugins/dap.lua)
-- [lang/go.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/lang/go.lua)
 
 ```lua
 return {
