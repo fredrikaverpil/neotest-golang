@@ -55,7 +55,8 @@ And here, a comparison in number of GitHub stars between the projects:
 >
 > Requires Neovim 0.10.0.
 
-### 💤 Lazy.nvim
+<details>
+<summary>💤 Lazy.nvim</summary>
 
 ```lua
 return {
@@ -92,7 +93,10 @@ return {
 > See the [Lazy versioning spec](https://lazy.folke.io/spec/versioning) for more
 > details.
 
-### 🌒 Rocks.nvim
+</details>
+
+<details>
+<summary>🌒 Rocks.nvim</summary>
 
 The adapter is available via
 [luarocks package](https://luarocks.org/modules/fredrikaverpil/neotest-golang):
@@ -113,7 +117,10 @@ consider setting up neotest and its adapters in a
 > Please note that [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go)
 > (required for DAP) is not on luarocks as of writing this.
 
-### ❄️ Nix & Home manager
+</details>
+
+<details>
+<summary>❄️ Nix & Home manager</summary>
 
 ```nix
 {
@@ -155,6 +162,8 @@ consider setting up neotest and its adapters in a
   };
 }
 ```
+
+</details>
 
 ## ⚙️ Configuration
 
