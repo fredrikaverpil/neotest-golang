@@ -27,10 +27,11 @@ function M.check()
   M.is_plugin_available("dap-go")
 
   start("Gotestsum (optional)")
-  M.binary_found_on_path("gotestsum")
+  M.gotestsum_recommended_on_windows()
+  M.gotestsum_installed_but_not_used()
 end
 
-function M.binary_found_on_path(executable)
+function M.binary_found_on_path(executable, supress_warn)
   local found = vim.fn.executable(executable)
   if found == 1 then
     ok(
@@ -41,7 +42,11 @@ function M.binary_found_on_path(executable)
     )
     return true
   else
-    warn("Binary '" .. executable .. "' not found on PATH")
+    if supress_warn then
+      ok("Binary '" .. executable .. "' not found on PATH")
+    else
+      warn("Binary '" .. executable .. "' not found on PATH")
+    end
   end
   return false
 end
@@ -104,6 +109,42 @@ function M.treesitter_parser_installed(lang)
     ok("Treesitter parser for " .. lang .. " is installed")
   else
     warn("Treesitter parser for " .. lang .. " is not installed")
+  end
+end
+
+local function is_windows_uname()
+  local os_info = vim.loop.os_uname()
+  return os_info.sysname:lower():find("windows") ~= nil
+end
+
+function M.gotestsum_recommended_on_windows()
+  if is_windows_uname() then
+    if options.get().runner ~= "gotestsum" then
+      warn(
+        "On Windows, gotestsum runner is recommended for increased stability."
+          .. " See the README for linkts to issues/discussions and more info."
+      )
+    else
+      ok("On Windows and with gotestsum set up as runner.")
+    end
+  end
+end
+
+function M.gotestsum_installed_but_not_used()
+  local found = M.binary_found_on_path("gotestsum", true)
+
+  -- found but not active
+  if found and options.get().runner ~= "gotestsum" then
+    local msg = "Found gotestsum to be installed, but not set as test runner."
+    if is_windows_uname() then
+      warn(msg)
+    else
+      info(msg)
+    end
+
+  -- found and active
+  elseif found and options.get().runner == "gotestsum" then
+    ok("Tests will be executed by gotestsum.")
   end
 end
 
