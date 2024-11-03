@@ -19,6 +19,7 @@ function M.check()
   M.is_plugin_available("nvim-treesitter")
   M.is_plugin_available("nio")
   M.is_plugin_available("plenary")
+  M.race_detection_enabled_without_cgo_enabled()
 
   start("DAP (optional)")
   M.binary_found_on_path("dlv")
@@ -115,6 +116,36 @@ end
 local function is_windows_uname()
   local os_info = vim.loop.os_uname()
   return os_info.sysname:lower():find("windows") ~= nil
+end
+
+local function is_macos_uname()
+  local os_info = vim.loop.os_uname()
+  return os_info.sysname:lower():find("darwin") ~= nil
+end
+
+function M.race_detection_enabled_without_cgo_enabled()
+  if is_macos_uname() then
+    -- https://tip.golang.org/doc/go1.20#cgo mentions how this is not a problem on macOS since go 1.20
+    return
+  end
+
+  local is_cgo_enabled = true
+  local env_cgo_enabled = vim.fn.getenv("CGO_ENABLED")
+  if env_cgo_enabled == vim.NIL or env_cgo_enabled == "0" then
+    is_cgo_enabled = false
+  end
+
+  local go_test_args = options.get().go_test_args
+  local has_race_detection = false
+  for _, value in ipairs(go_test_args) do
+    if value == "-race" then
+      has_race_detection = true
+    end
+  end
+
+  if has_race_detection and not is_cgo_enabled then
+    error("CGO_ENABLED is disabled but -race is part of go_test_args.")
+  end
 end
 
 function M.gotestsum_recommended_on_windows()
