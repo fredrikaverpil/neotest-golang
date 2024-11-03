@@ -53,9 +53,10 @@ And here, a comparison in number of GitHub stars between the projects:
 
 > [!NOTE]
 >
-> Requires Neovim 0.10.0.
+> Requires Neovim 0.10.0 and above.
 
-### 💤 Lazy.nvim
+<details>
+<summary>💤 Lazy.nvim</summary>
 
 ```lua
 return {
@@ -92,7 +93,10 @@ return {
 > See the [Lazy versioning spec](https://lazy.folke.io/spec/versioning) for more
 > details.
 
-### 🌒 Rocks.nvim
+</details>
+
+<details>
+<summary>🌒 Rocks.nvim</summary>
 
 The adapter is available via
 [luarocks package](https://luarocks.org/modules/fredrikaverpil/neotest-golang):
@@ -113,7 +117,10 @@ consider setting up neotest and its adapters in a
 > Please note that [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go)
 > (required for DAP) is not on luarocks as of writing this.
 
-### ❄️ Nix & Home manager
+</details>
+
+<details>
+<summary>❄️ Nix & Home manager</summary>
 
 ```nix
 {
@@ -156,12 +163,14 @@ consider setting up neotest and its adapters in a
 }
 ```
 
+</details>
+
 ## ⚙️ Configuration
 
 | Argument                 | Default value                     | Description                                                                                                                                                                                                                                                                                                                          |
 | ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `runner`                 | `go`                              | Defines the test runner. Valid values: `go` or `gotestsum`.                                                                                                                                                                                                                                                                          |
-| `go_test_args`           | `{ "-v", "-race", "-count=1" }`   | Arguments to pass into `go test`. Note: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                                   |
+| `go_test_args`           | `{ "-v", "-race", "-count=1" }`   | Arguments to pass into `go test`. Notes: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                                  |
 | `gotestsum_args`         | `{ "--format=standard-verbose" }` | Arguments to pass into `gotestsum`. Notes: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table). Will only be used if `runner = "gotestsum"`. The `go_test_args` still applies. |
 | `go_list_args`           | `{}`                              | Arguments to pass into `go list`. Note: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                                   |
 | `dap_go_opts`            | `{}`                              | Options to pass into `require("dap-go").setup()`. Note: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                   |
@@ -169,6 +178,17 @@ consider setting up neotest and its adapters in a
 | `colorize_test_output`   | `true`                            | Enable output color for `SUCCESS`, `FAIL`, and `SKIP` tests.                                                                                                                                                                                                                                                                         |
 | `warn_test_name_dupes`   | `true`                            | Warn about duplicate test names within the same Go package.                                                                                                                                                                                                                                                                          |
 | `warn_test_not_executed` | `true`                            | Warn if test was not executed.                                                                                                                                                                                                                                                                                                       |
+
+> [!NOTE]
+>
+> The `-race` flag (in `go_test_args`) requires CGO to be enabled and a C
+> compiler (such as GCC) to be installed. I have included this as it provides
+> good production defaults.
+
+> [!IMPORTANT]
+>
+> The `gotestsum` runner is recommended for Windows users or if you are using
+> Ubuntu snaps. You can read more below on `gotestsum`.
 
 ### Example configuration: custom `go test` arguments
 
@@ -260,9 +280,9 @@ return {
 
 For a more verbose example, see the "extra everything" example config.
 
-### Use `gotestsum` as test runner
+### Using `gotestsum` as test runner
 
-To improve reliability, you can choose to run tests using
+To improve reliability, you can choose to set
 [`gotestsum`](https://github.com/gotestyourself/gotestsum) as the test runner.
 This tool allows you to use one format for stdout while simultaneously writing
 test output to a JSON file. `gotestsum` actually calls `go test` behind the
@@ -271,10 +291,19 @@ Using `gotestsum` offers the following benefits:
 
 - When you "attach" to a running test, you'll see clean `go test` output instead
   of having to navigate through difficult-to-read JSON.
-- On certain platforms or terminals, there's a risk of ANSI codes or other
-  characters being seemingly randomly inserted into the JSON test output. This
-  can corrupt the data and cause problems with JSON decoding. Enabling
-  `gotestsum` eliminates these issues.
+- On certain platforms (such as Windows) or terminals, there's a risk of ANSI
+  codes or other characters being seemingly randomly inserted into the JSON test
+  output. This can corrupt the data and cause problems with test output JSON
+  decoding. Enabling `gotestsum` eliminates these issues, as the test output is
+  then written directly to file.
+
+> [!INFO]
+>
+> See
+> [this issue comment](https://github.com/fredrikaverpil/neotest-golang/issues/193#issuecomment-2362845806)
+> for more details on reported issues on Windows and Ubuntu snaps.
+
+#### Configure neotest-golang to use `gotestsum` as test runner
 
 Make the `gotestsum` command availalbe via
 [mason.nvim](https://github.com/williamboman/mason.nvim) or by running the
