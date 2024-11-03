@@ -181,8 +181,9 @@ consider setting up neotest and its adapters in a
 
 > [!NOTE]
 >
-> The `-race` flag (in `go_test_args`) requires CGO to be enabled and a C
-> compiler (such as GCC) to be installed. I have included this as it provides
+> The `-race` flag (in `go_test_args`) requires CGO to be enabled
+> (`CGO_ENABLED=1` is the default) and a C compiler (such as GCC) to be
+> installed. I have included the `-race` argument as default, as it provides
 > good production defaults.
 
 > [!IMPORTANT]
