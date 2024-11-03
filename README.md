@@ -328,6 +328,9 @@ require("neotest").setup({
 
 ### Example configuration: extra everything
 
+I've provided a pretty hefty configuration example below, which includes all
+required setup for testing and debugging along with all the keymaps.
+
 <details>
 <summary>Click to expand</summary>
 
