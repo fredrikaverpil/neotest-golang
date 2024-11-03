@@ -297,7 +297,7 @@ Using `gotestsum` offers the following benefits:
   decoding. Enabling `gotestsum` eliminates these issues, as the test output is
   then written directly to file.
 
-> [!INFO]
+> [!NOTE]
 >
 > See
 > [this issue comment](https://github.com/fredrikaverpil/neotest-golang/issues/193#issuecomment-2362845806)
