@@ -183,8 +183,10 @@ consider setting up neotest and its adapters in a
 >
 > The `-race` flag (in `go_test_args`) requires CGO to be enabled
 > (`CGO_ENABLED=1` is the default) and a C compiler (such as GCC) to be
-> installed. I have included the `-race` argument as default, as it provides
-> good production defaults.
+> installed. However, since Go 1.20, this is not a requirement on macOS. I have
+> included the `-race` argument as default, as it provides good production
+> defaults. See [this issue](https://github.com/golang/go/issues/9918) for more
+> details.
 
 > [!IMPORTANT]
 >
