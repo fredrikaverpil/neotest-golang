@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.4.0...v1.5.0) (2024-11-03)
+
+
+### Features
+
+* **checkhealth:** add check for CGO_ENABLED and -race arg ([#212](https://github.com/fredrikaverpil/neotest-golang/issues/212)) ([654d8c4](https://github.com/fredrikaverpil/neotest-golang/commit/654d8c4e92cf305c1c61eefa782b4307a5005475))
+* **checkhealth:** windows warnings to minimize troubleshooting ([#213](https://github.com/fredrikaverpil/neotest-golang/issues/213)) ([bba9bc1](https://github.com/fredrikaverpil/neotest-golang/commit/bba9bc147a66c47537da280befdd0eda9c320966))
+
 ## [1.4.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.3.0...v1.4.0) (2024-10-28)
 
 
