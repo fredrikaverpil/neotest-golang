@@ -53,7 +53,7 @@ And here, a comparison in number of GitHub stars between the projects:
 
 > [!NOTE]
 >
-> Requires Neovim 0.10.0.
+> Requires Neovim 0.10.0 and above.
 
 <details>
 <summary>💤 Lazy.nvim</summary>
