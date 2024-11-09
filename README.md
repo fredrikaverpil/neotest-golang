@@ -12,6 +12,7 @@ Reliable Neotest adapter for running Go tests in Neovim.
 - DAP support with [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go)
   integration for debugging of tests using
   [delve](https://github.com/go-delve/delve).
+- DAP support for your own DAP configuration.
 - Monorepo support (detect, run and debug tests in sub-projects).
 - Inline diagnostics.
 - Custom `go test` argument support.
