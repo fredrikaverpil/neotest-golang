@@ -154,6 +154,9 @@ function M.filter_gotest_output(gotest_output)
   local o = {}
   for _, line in ipairs(gotest_output) do
     if line.Action == "output" then
+      if options.get().colorize_test_output == true then
+        line.Output = M.colorizer(line.Output)
+      end
       table.insert(o, line.Output)
     end
   end
