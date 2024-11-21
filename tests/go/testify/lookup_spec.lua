@@ -15,6 +15,10 @@ describe("Lookup", function()
         package = "main",
         replacements = {},
       },
+      [folderpath .. "/subpackage/subpackage_test.go"] = {
+        package = "subpackage",
+        replacements = {},
+      },
       [folderpath .. "/testify/othersuite_test.go"] = {
         package = "testify",
         replacements = {

@@ -61,30 +61,43 @@ function M.test_results(spec, result, tree)
   local runner = options.get().runner
 
   --- The raw output from the test command.
-  --- @type table
-  local raw_output = {}
+  --- @type table<string>
+  local raw_output = async.fn.readfile(result.output)
+  --- @type table<string>
+  local runner_raw_output = {}
   if runner == "go" then
-    raw_output = async.fn.readfile(result.output)
+    runner_raw_output = raw_output
   elseif runner == "gotestsum" then
-    raw_output = async.fn.readfile(context.test_output_json_filepath)
+    runner_raw_output = async.fn.readfile(context.test_output_json_filepath)
   end
-  logger.debug({ "Raw 'go test' output: ", raw_output })
+  logger.debug({ "Runner '" .. runner .. "', raw output: ", runner_raw_output })
 
   --- The 'go list -json' output, converted into a lua table.
   local golist_output = context.golist_data
 
   --- Go test output.
   --- @type table
-  local gotest_output = lib.json.decode_from_table(raw_output, true)
+  local gotest_output = lib.json.decode_from_table(runner_raw_output, true)
+
+  -- detect build error
+  local build_failed = M.detect_build_errors(result, raw_output)
+  local build_failure_lookup = {}
+  if build_failed then
+    build_failure_lookup =
+      M.build_failure_lookup(raw_output, gotest_output, golist_output, runner)
+  end
 
   --- Internal data structure to store test result data.
   --- @type table<string, TestData>
-  local res = M.aggregate_data(tree, gotest_output, golist_output)
+  local res =
+    M.aggregate_data(tree, gotest_output, golist_output, build_failure_lookup)
 
   logger.debug({ "Final internal test result data", res })
 
   -- show various warnings
-  M.show_warnings(res)
+  if not build_failed then
+    M.show_warnings(res)
+  end
 
   -- convert internal test result data into Neotest result.
   local test_results = M.to_neotest_result(res)
@@ -101,7 +114,12 @@ function M.test_results(spec, result, tree)
   --- Test command (e.g. 'go test') status.
   --- @type neotest.ResultStatus
   local result_status = nil
-  if neotest_result[pos.id] and neotest_result[pos.id].status == "skipped" then
+  if build_failed then
+    -- mark as failed if the build failed.
+    result_status = "failed"
+  elseif
+    neotest_result[pos.id] and neotest_result[pos.id].status == "skipped"
+  then
     -- keep the status if it was already decided to be skipped.
     result_status = "skipped"
   elseif context.errors ~= nil and #context.errors > 0 then
@@ -122,14 +140,15 @@ function M.test_results(spec, result, tree)
 
   -- override the position which was executed with the full
   -- command execution output.
-  local cmd_output = M.filter_gotest_output(gotest_output)
+  local cmd_output =
+    M.filter_gotest_output(raw_output, gotest_output, build_failed, runner)
   cmd_output = vim.list_extend(context.errors or {}, cmd_output)
-  if #cmd_output == 0 and result.code ~= 0 and runner == "gotestsum" then
-    -- special case; gotestsum does not capture compilation errors from stderr.
-    cmd_output = { "Failed to run 'go test'. Compilation error?" }
-  end
+
+  -- write output to final file.
   local cmd_output_path = vim.fs.normalize(async.fn.tempname())
   async.fn.writefile(cmd_output, cmd_output_path)
+
+  -- construct final result for the position.
   if neotest_result[pos.id] == nil then
     -- set status and output as none of them have yet to be set.
     neotest_result[pos.id] = {
@@ -148,31 +167,130 @@ function M.test_results(spec, result, tree)
 end
 
 --- Filter on the Output-type parts of the 'go test' output.
---- @param gotest_output table
+--- @param raw_output table<string>
+--- @param gotest_output table<string>
+--- @param build_failed boolean
+--- @param runner string
 --- @return table<string>
-function M.filter_gotest_output(gotest_output)
+function M.filter_gotest_output(raw_output, gotest_output, build_failed, runner)
   local o = {}
-  for _, line in ipairs(gotest_output) do
-    if line.Action == "output" then
-      if options.get().colorize_test_output == true then
+
+  if not build_failed or (build_failed and runner == "go") then
+    for _, line in ipairs(gotest_output) do
+      if line.Action == "output" then
         line.Output = M.colorizer(line.Output)
+        table.insert(o, line.Output)
       end
-      table.insert(o, line.Output)
+    end
+  else
+    if build_failed and runner == "gotestsum" then
+      for _, line in ipairs(raw_output) do
+        line = M.colorizer(line)
+        table.insert(o, line)
+      end
     end
   end
+
   return o
+end
+
+--- Detect build errors.
+--- @param result neotest.StrategyResult
+--- @param raw_output table<string>
+--- @return boolean
+function M.detect_build_errors(result, raw_output)
+  if result.code ~= 0 and #raw_output > 0 then
+    for _, line in pairs(raw_output) do
+      if string.find(line, "build failed", 1, true) then
+        return true
+      elseif string.find(line, "setup failed", 1, true) then
+        return true
+      elseif string.find(line, "#", 1, true) then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+--- Build lookup table with package as key and directories as values.
+--- @param raw_output table<string>
+--- @param gotest_output table<string>
+--- @param golist_output table
+--- @param runner string
+--- @return table<string, string[]>
+function M.build_failure_lookup(
+  raw_output,
+  gotest_output,
+  golist_output,
+  runner
+)
+  -- vim.notify(vim.inspect(build_failure_output))
+
+  local output = {}
+  if runner == "go" then
+    output = gotest_output
+  elseif runner == "gotestsum" then
+    output = raw_output
+  end
+
+  local failed_packages = {}
+  for _, value in pairs(output) do
+    -- if the output starts with '#'
+    if
+      runner == "go"
+      and value.Action == "output"
+      and string.find(value.Output, "#", 1, true)
+    then
+      local failed_package = vim.split(value.Output, " ")[2]
+      if not vim.tbl_contains(failed_packages, failed_package) then
+        table.insert(failed_packages, failed_package)
+      end
+    elseif runner == "gotestsum" and string.find(value, "#", 1, true) then
+      local failed_package = vim.split(value, " ")[2]
+      if not vim.tbl_contains(failed_packages, failed_package) then
+        table.insert(failed_packages, failed_package)
+      end
+    end
+  end
+
+  --- @type table<string, string[]>
+  local failed_package_lookup = {}
+  for _, data in ipairs(golist_output) do
+    for _, pkg in ipairs(failed_packages) do
+      if data.ImportPath == pkg then
+        -- vim.notify("Match: " .. data.ImportPath .. " == " .. pkg)
+        if failed_package_lookup[data.ImportPath] == nil then
+          failed_package_lookup[data.ImportPath] = {}
+        end
+
+        table.insert(failed_package_lookup[data.ImportPath], data.Dir)
+      end
+    end
+  end
+
+  -- vim.notify(vim.inspect(failed_package_lookup))
+
+  return failed_package_lookup
 end
 
 --- Aggregate neotest data and 'go test' output data.
 --- @param tree neotest.Tree
 --- @param gotest_output table
 --- @param golist_output table
+--- @param build_failure_lookup table<string, string[]>
 --- @return table<string, TestData>
-function M.aggregate_data(tree, gotest_output, golist_output)
+function M.aggregate_data(
+  tree,
+  gotest_output,
+  golist_output,
+  build_failure_lookup
+)
   local res = M.gather_neotest_data_and_set_defaults(tree)
   res =
     M.decorate_with_go_package_and_test_name(res, gotest_output, golist_output)
   res = M.decorate_with_go_test_results(res, gotest_output)
+  res = M.decorate_with_build_failures(res, build_failure_lookup)
   return res
 end
 
@@ -336,6 +454,47 @@ function M.decorate_with_go_test_results(res, gotest_output)
       end
     end
   end
+  return res
+end
+
+function M.decorate_with_build_failures(res, build_failure_lookup)
+  -- vim.notify(vim.inspect(build_failure_lookup))
+
+  for pos_id, test_data in pairs(res) do
+    -- pos_id = '/Users/fredrik/code/public/neotest-golang/tests/go/positions_test.go::TestSubTestTableTestInlineStructLoop::"SubTest"'
+    --
+    -- test_data = {
+    --   duplicate_test_detected = false,
+    --   errors = {},
+    --   gotest_data = {
+    --     name = "",
+    --     output = {},
+    --     pkg = ""
+    --   },
+    --   neotest_data = {
+    --     id = '/Users/fredrik/code/public/neotest-golang/tests/go/positions_test.go::TestSubTestTableTestInlineStructLoop::"SubTest"',
+    --     name = '"SubTest"',
+    --     path = "/Users/fredrik/code/public/neotest-golang/tests/go/positions_test.go",
+    --     range = { 144, 1, 160, 3 },
+    --     type = "test"
+    --   },
+    --   status = "skipped"
+    -- }
+
+    local pos_dir = vim.fn.fnamemodify(test_data.neotest_data.path, ":h")
+    for pkg, parent_paths in pairs(build_failure_lookup) do
+      if vim.tbl_contains(parent_paths, pos_dir) then
+        test_data.status = "failed"
+        table.insert(test_data.errors, {
+          line = test_data.neotest_data.range[0],
+          message = "Build failed for package: " .. pkg,
+        })
+      end
+    end
+  end
+
+  -- vim.notify(vim.inspect(res))
+
   return res
 end
 
