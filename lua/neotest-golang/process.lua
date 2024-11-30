@@ -79,6 +79,12 @@ function M.test_results(spec, result, tree)
   --- @type table
   local gotest_output = lib.json.decode_from_table(runner_raw_output, true)
 
+  -- detect go list error
+  local golist_failed = false
+  if context.errors ~= nil and #context.errors > 0 then
+    golist_failed = true
+  end
+
   -- detect build error
   local build_failed = M.detect_build_errors(result, raw_output)
   local build_failure_lookup = {}
@@ -94,8 +100,8 @@ function M.test_results(spec, result, tree)
 
   logger.debug({ "Final internal test result data", res })
 
-  -- show various warnings
-  if not build_failed then
+  -- show various warnings, unless `go list` failed or build failed.
+  if not golist_failed and not build_failed then
     M.show_warnings(res)
   end
 
@@ -117,14 +123,14 @@ function M.test_results(spec, result, tree)
   if build_failed then
     -- mark as failed if the build failed.
     result_status = "failed"
+  elseif context.errors ~= nil and #context.errors > 0 then
+    -- mark as failed if a non-gotest error occurred.
+    result_status = "failed"
   elseif
     neotest_result[pos.id] and neotest_result[pos.id].status == "skipped"
   then
     -- keep the status if it was already decided to be skipped.
     result_status = "skipped"
-  elseif context.errors ~= nil and #context.errors > 0 then
-    -- mark as failed if a non-gotest error occurred.
-    result_status = "failed"
   elseif result.code > 0 then
     -- mark as failed if the go test command failed.
     result_status = "failed"
