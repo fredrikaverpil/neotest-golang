@@ -25,7 +25,7 @@ function M.golist_data(cwd)
     if result.stdout ~= nil and result.stderr ~= "" then
       err = err .. " " .. result.stderr
     end
-    logger.debug({ "Go list error: ", err })
+    logger.warn({ "Go list error: ", err })
   end
 
   local output = result.stdout or ""
