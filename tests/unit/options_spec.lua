@@ -13,8 +13,8 @@ describe("Options are set up", function()
       go_list_args = {},
       gotestsum_args = { "--format=standard-verbose" },
       dap_go_opts = {},
-      dap_manual_enabled = false,
-      dap_manual_configuration = {},
+      dap_mode = "dap-go",
+      dap_manual_config = {},
       testify_enabled = false,
       colorize_test_output = true,
       warn_test_name_dupes = true,
@@ -39,8 +39,8 @@ describe("Options are set up", function()
       go_list_args = {},
       gotestsum_args = { "--format=standard-verbose" },
       dap_go_opts = {},
-      dap_manual_enabled = false,
-      dap_manual_configuration = {},
+      dap_mode = "dap-go",
+      dap_manual_config = {},
       testify_enabled = false,
       colorize_test_output = false,
       warn_test_name_dupes = true,
@@ -69,10 +69,10 @@ describe("Options are set up", function()
       dap_go_opts = function()
         return {}
       end,
-      dap_manual_enabled = function()
-        return false
+      dap_mode = function()
+        return "dap-go"
       end,
-      dap_manual_configuration = function()
+      dap_manual_config = function()
         return {}
       end,
       testify_enabled = false,

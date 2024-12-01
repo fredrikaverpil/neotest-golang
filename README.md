@@ -221,10 +221,16 @@ See `go help test`, `go help testflag`, `go help build` for possible arguments.
 ### Example configuration: debugging
 
 To debug tests, make sure you depend on
-[mfussenegger/nvim-dap](https://github.com/mfussenegger/nvim-dap),
-[rcarriga/nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) and
-[leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go). For example, make
-the following changes to your lua setup:
+[mfussenegger/nvim-dap](https://github.com/mfussenegger/nvim-dap) and
+[rcarriga/nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui). At now you have
+2 possible configurations:
+
+- Using [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go)
+- Using own DAP configuration
+
+#### Using nvim-dap-go
+
+For example, make the following changes to your lua setup:
 
 ```diff
 return {
@@ -255,6 +261,48 @@ return {
       require("neotest").setup({
         adapters = {
           require("neotest-golang"), -- Registration
+        },
+      })
+    end,
+  },
+}
+```
+
+#### Using manual DAP configuration
+
+You can use this configuration
+
+```diff
+return {
++  {
++    "rcarriga/nvim-dap-ui",
++    dependencies = {
++      "nvim-neotest/nvim-nio",
++      "mfussenegger/nvim-dap",
++    },
++  },
++
+  {
+    "nvim-neotest/neotest",
+    dependencies = {
+      "nvim-neotest/nvim-nio",
+      "nvim-lua/plenary.nvim",
+      "antoinemadec/FixCursorHold.nvim",
+      "nvim-treesitter/nvim-treesitter",
+      "fredrikaverpil/neotest-golang", -- Installation
+    },
+    config = function()
+      require("neotest").setup({
+        adapters = {
++         require("neotest-golang") { -- Registration
++           dap_mode = "manual",
++           dap_manual_config = {
++               name = "Debug go tests",
++               type = "go", -- Preconfigured DAP adapter name
++               request = "launch",
++               mode = "test",
++           }
++         },
         },
       })
     end,

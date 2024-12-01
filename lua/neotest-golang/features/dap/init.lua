@@ -1,24 +1,28 @@
 --- DAP setup related functions.
 
 local options = require("neotest-golang.options")
+local logger = require("neotest-golang.logging")
 
 local M = {}
 
-local function is_dap_manual_enabled()
-  local dap_manual_enabled = options.get().dap_manual_enabled
-  if type(dap_manual_enabled) == "function" then
-    dap_manual_enabled = dap_manual_enabled()
-  end
-  return dap_manual_enabled
-end
-
 local function get_dap_implementation()
   local dap_impl
-  if is_dap_manual_enabled() then
+  local selected_dap_mode = options.get().dap_mode
+  if type(selected_dap_mode) == "function" then
+    selected_dap_mode = selected_dap_mode()
+  end
+
+  if selected_dap_mode == "dap-go" then
+    dap_impl = require("neotest-golang.features.dap.dap_go")
+  elseif selected_dap_mode == "manual" then
     dap_impl = require("neotest-golang.features.dap.dap_manual")
   else
-    dap_impl = require("neotest-golang.features.dap.dap_go")
+    local msg = "Got dap-mode: `" .. selected_dap_mode .. "` that cannot be used. "
+    .. "See the neotest-golang README for more information."
+    logger.error(msg)
+    error(msg)
   end
+
   return dap_impl
 end
 
