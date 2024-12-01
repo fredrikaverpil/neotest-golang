@@ -35,7 +35,6 @@ function M.get_dap_config(test_path, test_name_regex)
 end
 
 ---Dummy function is needed to be corresponding to dap-go setup (just like trait implementation)
-function M.assert_dap_prerequisites()
-end
+function M.assert_dap_prerequisites() end
 
 return M

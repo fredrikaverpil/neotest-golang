@@ -17,7 +17,9 @@ local function get_dap_implementation()
   elseif selected_dap_mode == "manual" then
     dap_impl = require("neotest-golang.features.dap.dap_manual")
   else
-    local msg = "Got dap-mode: `" .. selected_dap_mode .. "` that cannot be used. "
+    local msg = "Got dap-mode: `"
+    .. selected_dap_mode
+    .. "` that cannot be used. "
     .. "See the neotest-golang README for more information."
     logger.error(msg)
     error(msg)
