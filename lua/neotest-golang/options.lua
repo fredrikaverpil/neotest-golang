@@ -12,6 +12,8 @@ local opts = {
   gotestsum_args = { "--format=standard-verbose" }, -- NOTE: can also be a function
   go_list_args = {}, -- NOTE: can also be a function
   dap_go_opts = {}, -- NOTE: can also be a function
+  dap_mode = "dap-go", -- NOTE: or "manual" ; can also be a function
+  dap_manual_config = {}, -- NOTE: can also be a function
   testify_enabled = false,
   colorize_test_output = true,
   warn_test_name_dupes = true,
