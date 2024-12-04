@@ -9,10 +9,10 @@ Reliable Neotest adapter for running Go tests in Neovim.
 - Supports all [Neotest usage](https://github.com/nvim-neotest/neotest#usage).
 - Supports table tests and nested test functions (based on treesitter AST
   parsing).
-- DAP support with [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go)
-  integration for debugging of tests using
+- DAP support. Either with
+  [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) integration or
+  custom configuration for debugging of tests using
   [delve](https://github.com/go-delve/delve).
-- DAP support for your own DAP configuration.
 - Monorepo support (detect, run and debug tests in sub-projects).
 - Inline diagnostics.
 - Custom `go test` argument support.
@@ -222,15 +222,17 @@ See `go help test`, `go help testflag`, `go help build` for possible arguments.
 
 To debug tests, make sure you depend on
 [mfussenegger/nvim-dap](https://github.com/mfussenegger/nvim-dap) and
-[rcarriga/nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui). At now you have
-2 possible configurations:
+[rcarriga/nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui). Then you have
+two options:
 
-- Using [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go)
-- Using own DAP configuration
+- Adapter-provided DAP configuration, leveraging
+  [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) (recommended).
+- Use your own custom DAP configuration (no additional dependency needed).
 
-#### Using nvim-dap-go
+Example configurations:
 
-For example, make the following changes to your lua setup:
+<details>
+<summary>Adapter-provided configuration</summary>
 
 ```diff
 return {
@@ -268,9 +270,10 @@ return {
 }
 ```
 
-#### Using manual DAP configuration
+</details>
 
-You can use this configuration
+<details>
+<summary>Custom DAP configuration</summary>
 
 ```diff
 return {
@@ -309,6 +312,8 @@ return {
   },
 }
 ```
+
+</details>
 
 Finally, set a keymap, like:
 
