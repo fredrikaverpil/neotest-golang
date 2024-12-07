@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.6.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.5.0...v1.6.0) (2024-12-07)
+
+
+### Features
+
+* show build error in test output ([#219](https://github.com/fredrikaverpil/neotest-golang/issues/219)) ([51a165e](https://github.com/fredrikaverpil/neotest-golang/commit/51a165e0b9d6c757d9da2b467b3c05e61f54a8ee))
+* support table tests without named keys ([#156](https://github.com/fredrikaverpil/neotest-golang/issues/156)) ([e87c2d3](https://github.com/fredrikaverpil/neotest-golang/commit/e87c2d3b4530ec6a556c14f995ec7f2f312814d1))
+* option to use DAP without nvim-dap-go ([#216](https://github.com/fredrikaverpil/neotest-golang/issues/216)) ([219ac82](https://github.com/fredrikaverpil/neotest-golang/commit/219ac8289db58802aaa331d499e8610bfcd861c0))
+
+
+### Bug Fixes
+
+* add output colorization to position executed by user ([#220](https://github.com/fredrikaverpil/neotest-golang/issues/220)) ([cdb0eb0](https://github.com/fredrikaverpil/neotest-golang/commit/cdb0eb0edfedcdf145972fdbe19fb95d17d987c2))
+
 ## [1.5.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.4.0...v1.5.0) (2024-11-03)
 
 
