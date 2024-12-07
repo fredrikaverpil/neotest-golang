@@ -225,14 +225,11 @@ To debug tests, make sure you depend on
 [rcarriga/nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui). Then you have
 two options:
 
-- Adapter-provided DAP configuration, leveraging
-  [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) (recommended).
-- Use your own custom DAP configuration (no additional dependency needed).
-
-Example configurations:
-
 <details>
-<summary>Adapter-provided configuration</summary>
+<summary>
+    Adapter-provided DAP configuration,
+    leveraging leoluz/nvim-dap-go (recommended).
+</summary>
 
 ```diff
 return {
@@ -273,7 +270,7 @@ return {
 </details>
 
 <details>
-<summary>Custom DAP configuration</summary>
+<summary>Use your own custom DAP configuration (no additional dependency needed).</summary>
 
 ```diff
 return {
@@ -313,7 +310,7 @@ return {
 }
 ```
 
-</details>
+</details><br>
 
 Finally, set a keymap, like:
 
