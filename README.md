@@ -338,9 +338,9 @@ For a more verbose example, see the "extra everything" example config.
 
 To improve reliability, you can choose to set
 [`gotestsum`](https://github.com/gotestyourself/gotestsum) as the test runner.
-This tool allows you to use one format for stdout while simultaneously writing
-test output to a JSON file. `gotestsum` actually calls `go test` behind the
-scenes, so your `go_test_args` configuration remains valid and will still apply.
+This tool allows the adapter to write test command output directly to a JSON
+file, without going through stdout.
+
 Using `gotestsum` offers the following benefits:
 
 - When you "attach" to a running test, you'll see clean `go test` output instead
@@ -350,6 +350,9 @@ Using `gotestsum` offers the following benefits:
   output. This can corrupt the data and cause problems with test output JSON
   decoding. Enabling `gotestsum` eliminates these issues, as the test output is
   then written directly to file.
+
+`gotestsum` calls `go test` behind the scenes, so your `go_test_args`
+configuration remains valid and will still apply.
 
 > [!NOTE]
 >
