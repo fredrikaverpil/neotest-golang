@@ -36,6 +36,14 @@ describe("Lookup", function()
         package = "main",
         replacements = {},
       },
+      [folderpath .. "/x/xtest_blackbox_test.go"] = {
+        package = "x_test",
+        replacements = {},
+      },
+      [folderpath .. "/x/xtest_whitebox_test.go"] = {
+        package = "x",
+        replacements = {},
+      },
     }
 
     -- Act

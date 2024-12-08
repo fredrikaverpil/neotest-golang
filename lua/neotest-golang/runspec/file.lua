@@ -50,6 +50,16 @@ function M.build(pos, tree, strategy)
         break
       end
     end
+    if golist_item.XTestGoFiles ~= nil then
+      -- NOTE: XTestGoFiles are test files that are part of a [packagename]_test package.
+      if
+        pos_path_foldername == golist_item.Dir
+        and vim.tbl_contains(golist_item.XTestGoFiles, pos_path_filename)
+      then
+        package_name = golist_item.ImportPath
+        break
+      end
+    end
   end
 
   -- find all top-level tests in pos.path
