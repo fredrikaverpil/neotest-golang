@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.6.0...v1.6.1) (2024-12-08)
+
+
+### Bug Fixes
+
+* properly handle XTestGoFiles ([#225](https://github.com/fredrikaverpil/neotest-golang/issues/225)) ([04f3d44](https://github.com/fredrikaverpil/neotest-golang/commit/04f3d444c05ec06db6939c56e134488a807a88bc))
+
 ## [1.6.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.5.0...v1.6.0) (2024-12-07)
 
 
