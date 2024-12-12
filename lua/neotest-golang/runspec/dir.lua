@@ -6,6 +6,60 @@ local lib = require("neotest-golang.lib")
 
 local M = {}
 
+--- Given the pos.path, find the corresponding Go package import path.
+--- Example:
+---   pos.path = "~/projects/projectx/internal/core"
+---   import_path = "github.com/foo/projectx/internal/core"
+---
+---Two strategies are going to be used:
+--- 1. Perfect match.
+--- 2. Sub-package match.
+---@param pos neotest.Position
+---@param golist_data table
+local function find_go_package_import_path(pos, golist_data)
+  ---@type string|nil
+  local package_import_path = nil
+
+  -- 1. Perfect match: the selected directory corresponds to a package.
+  for _, golist_item in ipairs(golist_data) do
+    if pos.path == golist_item.Dir then
+      if golist_item.Name == "main" then
+        -- found the base go package
+        return "./..."
+      else
+        package_import_path = golist_item.ImportPath .. "/..."
+        return package_import_path
+      end
+    end
+  end
+
+  -- 2. Sub-package match: the selected directory does not correspond
+  -- to a package, but might correspond to one or more sub-packages.
+  local subpackage_import_paths = {}
+  for _, golist_item in ipairs(golist_data) do
+    if string.find(golist_item.Dir, pos.path, 1, true) then
+      -- a sub-package was detected to exist under the selected dir.
+      table.insert(subpackage_import_paths, 1, golist_item.ImportPath)
+    end
+  end
+  if subpackage_import_paths then
+    -- let's figure out the sub-package with the shortest name.
+    local shortest = subpackage_import_paths[1]
+    local length = string.len(subpackage_import_paths[1])
+    for _, candidate in ipairs(subpackage_import_paths) do
+      if string.len(candidate) < length then
+        shortest = candidate
+        length = string.len(candidate)
+      end
+    end
+
+    package_import_path = vim.fn.fnamemodify(shortest, ":h") .. "/..."
+    return package_import_path
+  end
+
+  return nil
+end
+
 --- Build runspec for a directory.
 ---
 --- Strategy:
@@ -34,20 +88,13 @@ function M.build(pos)
     table.insert(errors, golist_error)
   end
 
-  -- find the go package that corresponds to the go_mod_folderpath
-  local package_name = "./..."
-  for _, golist_item in ipairs(golist_data) do
-    if pos.path == golist_item.Dir then
-      if golist_item.Name == "main" then
-        -- do nothing, keep ./...
-      else
-        package_name = golist_item.ImportPath
-        break
-      end
-    end
+  local package_import_path = find_go_package_import_path(pos, golist_data)
+  if not package_import_path then
+    logger.error("Could not find a package for the selected dir: " .. pos.path)
   end
 
-  local test_cmd, json_filepath = lib.cmd.test_command_in_package(package_name)
+  local test_cmd, json_filepath =
+    lib.cmd.test_command_in_package(package_import_path)
 
   --- @type RunspecContext
   local context = {
