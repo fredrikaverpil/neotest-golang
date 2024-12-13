@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/fredrikaverpil/neotest-golang/compare/v1.6.1...v1.6.2) (2024-12-13)
+
+
+### Bug Fixes
+
+* recursively run tests for dir ([#230](https://github.com/fredrikaverpil/neotest-golang/issues/230)) ([3927ac9](https://github.com/fredrikaverpil/neotest-golang/commit/3927ac97ee0a1df5a2397ea9d6b04a2aa4c9c61e))
+
 ## [1.6.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.6.0...v1.6.1) (2024-12-08)
 
 
