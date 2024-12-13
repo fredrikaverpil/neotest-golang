@@ -801,7 +801,7 @@ go test github.com/fredrikaverpil/neotest-golang/x
 go test github.com/fredrikaverpil/neotest-golang/x/...
 
 # run _some_ tests in a given package, based on a regexp filter
-go test github.com/fredrikaverpil/neotest-golang -run "^TestFoo$|^TestBar$"
+go test github.com/fredrikaverpil/neotest-golang -run "^(^TestFoo$|^TestBar$)$"
 ```
 
 > [!NOTE]
