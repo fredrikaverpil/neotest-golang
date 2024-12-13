@@ -81,18 +81,16 @@ return {
 }
 ```
 
-> [!TIP]
->
-> For increased stability and less updating noise, I recommend that you track
-> official releases by setting `version = "*"`. By omitting this option (or
-> setting `version = false`), you will get the latest and greatest directly from
-> the main branch.
->
-> I do not recommend pinning to a specific version or to a major version. But
-> ultimately it is up to you what you want :smile:.
->
-> See the [Lazy versioning spec](https://lazy.folke.io/spec/versioning) for more
-> details.
+For increased stability and less updating noise, I recommend that you track
+official releases by setting `version = "*"`. By omitting this option (or
+setting `version = false`), you will get the latest and greatest directly from
+the main branch.
+
+I do not recommend pinning to a specific version or to a major version. But
+ultimately it is up to you what you want :smile:.
+
+See the [Lazy versioning spec](https://lazy.folke.io/spec/versioning) for more
+details.
 
 </details>
 
