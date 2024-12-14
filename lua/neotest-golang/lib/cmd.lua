@@ -52,8 +52,19 @@ function M.test_command_in_package(package_or_path)
   return cmd, json_filepath
 end
 
-function M.test_command_in_package_with_regexp(package_or_path, regexp)
-  local go_test_required_args = { package_or_path, "-run", regexp }
+function M.test_command_in_package_with_regexp(
+  package_or_path, -- this is a filepath when running individual tests, otherwise it's the package's import path
+  regexp,
+  is_benchmark
+)
+  local go_test_required_args = { package_or_path }
+
+  if is_benchmark then
+    vim.list_extend(go_test_required_args, { "-run", "^$", "-bench", regexp })
+  else
+    vim.list_extend(go_test_required_args, { "-run", regexp })
+  end
+
   local cmd, json_filepath = M.test_command(go_test_required_args)
   return cmd, json_filepath
 end

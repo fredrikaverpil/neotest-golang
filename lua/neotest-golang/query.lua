@@ -10,7 +10,7 @@ local M = {}
 M.test_function = [[
     ; query for test function
     ((function_declaration
-      name: (identifier) @test.name) (#match? @test.name "^(Test|Example)") (#not-match? @test.name "^TestMain$"))
+      name: (identifier) @test.name) (#match? @test.name "^(Test|Example|Benchmark)") (#not-match? @test.name "^TestMain$"))
       @test.definition
 
     ; query for subtest, like t.Run()

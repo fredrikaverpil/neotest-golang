@@ -68,7 +68,7 @@ function M.build(pos, tree, strategy)
   local regexp = M.get_regexp(pos.path)
   if regexp ~= nil then
     test_cmd, json_filepath =
-      lib.cmd.test_command_in_package_with_regexp(package_name, regexp)
+      lib.cmd.test_command_in_package_with_regexp(package_name, regexp, false)
   else
     -- fallback: run all tests in the package
     test_cmd, json_filepath = lib.cmd.test_command_in_package(package_name)
