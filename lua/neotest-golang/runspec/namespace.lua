@@ -28,7 +28,8 @@ function M.build(pos)
 
   local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(
     test_folder_absolute_path,
-    test_name
+    test_name,
+    false
   )
 
   --- @type RunspecContext
