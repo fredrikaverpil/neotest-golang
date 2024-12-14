@@ -28,9 +28,15 @@ function M.build(pos, strategy)
   local test_name = lib.convert.to_gotest_test_name(pos.id)
   local test_name_regex = lib.convert.to_gotest_regex_pattern(test_name)
 
+  local is_benchmark = false
+  if string.match(pos.name, "^Benchmark") then
+    is_benchmark = true
+  end
+
   local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(
     test_folder_absolute_path,
-    test_name_regex
+    test_name_regex,
+    is_benchmark
   )
 
   local runspec_strategy = nil

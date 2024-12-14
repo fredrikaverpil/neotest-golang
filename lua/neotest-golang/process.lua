@@ -369,6 +369,16 @@ function M.decorate_with_go_package_and_test_name(
     tweaked_pos_id = tweaked_pos_id:gsub('"', "")
     tweaked_pos_id = tweaked_pos_id:gsub("::", "/")
 
+    -- A single benchmark was executed.
+    if
+      test_data.neotest_data.type == "test"
+      and string.match(test_data.neotest_data.name, "^Benchmark")
+    then
+      test_data.gotest_data.pkg = "unknown-because-benchmark"
+      test_data.gotest_data.name = test_data.neotest_data.name
+    end
+
+    -- One or many tests were executed.
     for _, golistline in ipairs(golist_output) do
       if folderpath == golistline.Dir then
         for _, gotestline in ipairs(gotest_output) do
@@ -411,20 +421,40 @@ end
 --- @param gotest_output table
 --- @return table<string, TestData>
 function M.decorate_with_go_test_results(res, gotest_output)
+  local count = 0
+  for _ in pairs(res) do
+    count = count + 1
+  end
+
   for pos_id, test_data in pairs(res) do
     for _, line in ipairs(gotest_output) do
       if
-        line.Package == test_data.gotest_data.pkg
+        (
+          line.Package == test_data.gotest_data.pkg
+          or test_data.gotest_data.pkg == "unknown-because-benchmark"
+        )
         and (
           line.Test == test_data.gotest_data.name
           or lib.string.starts_with(
             line.Test,
             test_data.gotest_data.name .. "/"
           )
+          or string.match(test_data.gotest_data.name, "^Benchmark")
         )
       then
         -- record test status
-        if line.Action == "pass" then
+        if
+          test_data.gotest_data.pkg == "unknown-because-benchmark"
+          and count == 1
+          and line.Action == "passed"
+        then
+          test_data.status = "passed"
+        elseif
+          test_data.gotest_data.pkg == "unknown-because-benchmark"
+          and count ~= 1
+        then
+          test_data.status = "skipped"
+        elseif line.Action == "pass" then
           test_data.status = "passed"
         elseif line.Action == "fail" then
           test_data.status = "failed"
