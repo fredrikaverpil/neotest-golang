@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.3](https://github.com/fredrikaverpil/neotest-golang/compare/v1.6.2...v1.6.3) (2024-12-19)
+
+
+### Bug Fixes
+
+* false positive on structs ([#235](https://github.com/fredrikaverpil/neotest-golang/issues/235)) ([1de0bef](https://github.com/fredrikaverpil/neotest-golang/commit/1de0befa2d09a824a9cba7f9b0a6c4d84d1dbe88))
+
 ## [1.6.2](https://github.com/fredrikaverpil/neotest-golang/compare/v1.6.1...v1.6.2) (2024-12-13)
 
 
