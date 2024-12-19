@@ -216,3 +216,21 @@ func TestTableTestMap(t *testing.T) {
 		})
 	}
 }
+
+// Struct which is not a table test.
+func TestStructNotTableTest(t *testing.T) {
+	type item struct {
+		id   string
+		name string
+	}
+	items := []item{
+		{"1", "one"},
+		{"2", "two"},
+	}
+
+	for _, i := range items {
+		if i.id == "" {
+			t.Fail()
+		}
+	}
+}
