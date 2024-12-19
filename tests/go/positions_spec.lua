@@ -308,6 +308,14 @@ describe("Discovery of test positions", function()
           },
         },
       },
+      {
+        {
+          id = test_filepath .. "::TestStructNotTableTest",
+          name = "TestStructNotTableTest",
+          path = test_filepath,
+          type = "test",
+        },
+      },
     }
 
     -- Act

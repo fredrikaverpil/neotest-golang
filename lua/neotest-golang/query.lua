@@ -59,74 +59,100 @@ M.table_tests = [[
     ;; query for list table tests (wrapped in loop)
     (for_statement
       (range_clause
-          left: (expression_list 
+          left: (expression_list
             (identifier)
-            (identifier) @test.case ) 
-          right: (composite_literal 
-            type: (slice_type 
-              element: (struct_type 
-                (field_declaration_list 
-                  (field_declaration 
-                    name: (field_identifier) 
+            (identifier) @test.case )
+          right: (composite_literal
+            type: (slice_type
+              element: (struct_type
+                (field_declaration_list
+                  (field_declaration
+                    name: (field_identifier)
                     type: (type_identifier)))))
             body: (literal_value
-              (literal_element 
-                (literal_value 
-                  (keyed_element 
-                    (literal_element 
-                      (identifier))  @test.field.name 
-                    (literal_element 
+              (literal_element
+                (literal_value
+                  (keyed_element
+                    (literal_element
+                      (identifier))  @test.field.name
+                    (literal_element
                       (interpreted_string_literal) @test.name ))
                   ) @test.definition)
               )))
-        body: (block 
-          (expression_statement 
-            (call_expression 
-              function: (selector_expression 
-                operand: (identifier) 
-                field: (field_identifier)) 
-              arguments: (argument_list 
-                (selector_expression 
-                  operand: (identifier) 
+        body: (block
+          (expression_statement
+            (call_expression
+              function: (selector_expression
+                operand: (identifier)
+                field: (field_identifier))
+              arguments: (argument_list
+                (selector_expression
+                  operand: (identifier)
                   field: (field_identifier) @test.field.name1) (#eq? @test.field.name @test.field.name1))))))
 
     ;; Query for table tests with inline structs (not keyed)
-    (function_declaration
-      name: (identifier)
-      parameters: (parameter_list
-        (parameter_declaration
-          name: (identifier)
-          type: (pointer_type
-            (qualified_type
-              package: (package_identifier)
-              name: (type_identifier))))))
-      body: (block
+    (block
+        (short_var_declaration
+          left: (expression_list (identifier) @test.cases)
+          right: (expression_list
+            (composite_literal
+                body: (literal_value
+                  (literal_element
+                    (literal_value
+                      (literal_element (interpreted_string_literal) @test.name)
+                      (literal_element)) @test.definition)))))
         (for_statement
           (range_clause
-            left: (expression_list
-              (identifier)
-              (identifier))
-            right: (composite_literal
+              left: (expression_list
+                ((identifier) @test.key.name)
+                ((identifier) @test.case))
+              right: (identifier) @test.cases1
+                (#eq? @test.cases @test.cases1))
+          body: (block
+            (expression_statement
+              (call_expression
+                  function: (selector_expression
+                      field: (field_identifier) @test.method)
+                        (#match? @test.method "^Run$")
+                      arguments: (argument_list
+                        (selector_expression
+                            operand: (identifier) @test.case1
+                              (#eq? @test.case @test.case1))))))))
+
+    ;; Query for table tests with inline structs (not keyed, wrapped in loop)
+    (for_statement
+      (range_clause
+          left: (expression_list
+            (identifier)
+            (identifier) @test.case)
+          right: (composite_literal
               type: (slice_type
-                element: (struct_type
-                  (field_declaration_list
-                    (field_declaration
-                      name: (field_identifier) ; unkeyed field for test name
-                      type: (type_identifier) @field.type (#eq? @field.type "string") )))))))) 
+                  element: (struct_type
+                    (field_declaration_list
+                      (field_declaration
+                          name: (field_identifier) @test.field.name
+                          type: (type_identifier) @field.type (#eq? @field.type "string")))))
+
               body: (literal_value
                 (literal_element
                   (literal_value
                     (literal_element
                       (interpreted_string_literal) @test.name)
-                    (literal_element)) @test.definition))
-          body: (block
-            (expression_statement
-              (call_expression
-                function: (selector_expression
-                  operand: (identifier)
-                  field: (field_identifier) @test.method (#match? @test.method "^Run$")))))
+                    (literal_element)) @test.definition))))
+      body: (block
+        (expression_statement
+          (call_expression
+              function: (selector_expression
+                  field: (field_identifier) @test.method)
+                    (#match? @test.method "^Run$")
+                  arguments: (argument_list
+                      (selector_expression
+                          operand: (identifier) @test.case1
+                            (#eq? @test.case @test.case1)
+                          field: (field_identifier) @test.field.name1
+                            (#eq? @test.field.name @test.field.name1)))))))
 
-    ;; query for map table tests 
+    ;; query for map table tests
       (block
           (short_var_declaration
             left: (expression_list
