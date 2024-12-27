@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.6.3...v1.7.0) (2024-12-27)
+
+
+### Features
+
+* write logs to adapter-specific file ([#239](https://github.com/fredrikaverpil/neotest-golang/issues/239)) ([5eabe6f](https://github.com/fredrikaverpil/neotest-golang/commit/5eabe6fcde5d4325e5bb5915cad06d2ae8ae5321))
+
 ## [1.6.3](https://github.com/fredrikaverpil/neotest-golang/compare/v1.6.2...v1.6.3) (2024-12-19)
 
 
