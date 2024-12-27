@@ -23,7 +23,7 @@ function M.file_upwards(filename, start_path)
 
     local try_path = start_dir .. M.os_path_sep .. filename
     if vim.fn.filereadable(try_path) == 1 then
-      logger.debug("Found " .. filename .. " at " .. try_path)
+      logger.info("Found " .. filename .. " at " .. try_path)
       return try_path
     end
 

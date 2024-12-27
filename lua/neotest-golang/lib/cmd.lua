@@ -13,7 +13,7 @@ local M = {}
 function M.golist_data(cwd)
   local cmd = M.golist_command()
   local go_list_command_concat = table.concat(cmd, " ")
-  logger.debug("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
+  logger.info("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
   local result = vim.system(cmd, { cwd = cwd, text = true }):wait()
 
   local err = nil

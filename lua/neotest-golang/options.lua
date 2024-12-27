@@ -18,6 +18,7 @@ local opts = {
   colorize_test_output = true,
   warn_test_name_dupes = true,
   warn_test_not_executed = true,
+  log_level = vim.log.levels.WARN,
 
   -- experimental, for now undocumented, options
   dev_notifications = false,
