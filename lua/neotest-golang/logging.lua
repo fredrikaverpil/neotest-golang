@@ -1,9 +1,20 @@
 local M = {}
 
----@type neotest.Logger
-local logger = require("neotest.logging")
+local logger = nil
 
-local prefix = "[neotest-golang] "
+local function get_logger()
+  local options = require("neotest-golang.options")
+
+  if logger == nil then
+    ---@type neotest.Logger
+    logger = require("neotest.logging").new(
+      "neotest-golang",
+      { level = options.get().log_level }
+    )
+  end
+
+  return logger
+end
 
 local function clean_output(str)
   -- Replace escaped newlines and tabs with spaces
@@ -35,6 +46,18 @@ local function handle_input(input)
   end
 end
 
+---Log the trace information.
+---@param msg string|table
+function M.trace(msg)
+  if M.get_level() > vim.log.levels.TRACE then
+    return
+  end
+  if type(msg) ~= "string" then
+    msg = handle_input(msg)
+  end
+  get_logger().trace(msg)
+end
+
 ---Log the debug information.
 ---@param msg string|table
 function M.debug(msg)
@@ -44,7 +67,7 @@ function M.debug(msg)
   if type(msg) ~= "string" then
     msg = handle_input(msg)
   end
-  logger.debug(prefix .. msg)
+  get_logger().debug(msg)
 end
 
 ---Log the information.
@@ -56,7 +79,7 @@ function M.info(msg)
   if type(msg) ~= "string" then
     msg = handle_input(msg)
   end
-  logger.info(prefix .. msg)
+  get_logger().info(msg)
 end
 
 ---Notify and log the warning.
@@ -66,7 +89,7 @@ function M.warn(msg)
     msg = handle_input(msg)
   end
   vim.notify(msg, vim.log.levels.WARN)
-  logger.warn(prefix .. msg)
+  get_logger().warn(msg)
 end
 
 ---Notify, log and throw error.
@@ -76,12 +99,12 @@ function M.error(msg)
     msg = handle_input(msg)
   end
   vim.notify(msg, vim.log.levels.ERROR)
-  logger.error(prefix .. msg)
+  get_logger().error(msg)
   error(msg)
 end
 
 function M.get_level()
-  return logger._level
+  return get_logger()._level
 end
 
 return M

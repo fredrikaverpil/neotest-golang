@@ -19,6 +19,7 @@ describe("Options are set up", function()
       colorize_test_output = true,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
+      log_level = vim.log.levels.WARN,
 
       -- experimental
       dev_notifications = false,
@@ -45,6 +46,7 @@ describe("Options are set up", function()
       colorize_test_output = false,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
+      log_level = vim.log.levels.WARN,
 
       -- experimental
       dev_notifications = false,
@@ -79,6 +81,7 @@ describe("Options are set up", function()
       colorize_test_output = true,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
+      log_level = vim.log.levels.WARN,
 
       -- experimental
       runner = "go",

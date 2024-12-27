@@ -177,6 +177,7 @@ consider setting up neotest and its adapters in a
 | `colorize_test_output`   | `true`                            | Enable output color for `SUCCESS`, `FAIL`, and `SKIP` tests.                                                                                                                                                                                                                                                                         |
 | `warn_test_name_dupes`   | `true`                            | Warn about duplicate test names within the same Go package.                                                                                                                                                                                                                                                                          |
 | `warn_test_not_executed` | `true`                            | Warn if test was not executed.                                                                                                                                                                                                                                                                                                       |
+| `log_level`              | `vim.log.levels.WARN`             | Log level.                                                                                                                                                                                                                                                                                                                           |
 
 > [!NOTE]
 >
@@ -556,31 +557,35 @@ return {
 > [here](https://github.com/fredrikaverpil/neotest-golang/discussions/new?category=configuration).
 
 You can also enable logging to further inspect what's going on under the hood.
-Neotest-golang piggybacks on the Neotest logger. You can enable it like so:
+Neotest-golang piggybacks on the Neotest logger but writes its own file. The
+default log level is `WARN` but during troubleshooting you want to increase
+this:
 
 ```lua
--- set debug level after having called require("neotest").setup()
-require("neotest.logging"):set_level(vim.log.levels.DEBUG)
+local config = {
+    log_level = vim.log.levels.TRACE, -- set log level
+}
+
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config), -- Apply configuration
+  },
+})
 ```
+
+The neotest-golang logs can be opened using this convenient vim command:
+
+```vim
+:exe 'edit' stdpath('log').'/neotest-golang.log'
+```
+
+This usually corresponds to something like
+`~/.local/state/nvim/neotest-golang.log`.
 
 > [!WARNING]
 >
-> Please note that this could cause tests to run slower, so don't forget to
-> remove this setting once you have resolved your issue!
-
-You can get ahold of the log file's path using
-`require("neotest.logging"):get_filename()`, which usually points to your
-`~/.local/state/nvim/neotest.log`.
-
-The logfile tends to be ginormous and if you are only looking for neotest-golang
-related entries, you can either search for the `[neotest-golang]` prefix, or
-open the log in a Neovim buffer and then filter out only the adapter-related
-entries:
-
-```lua
-:edit ~/.local/state/nvim/neotest.log
-:lua require("neotest-golang.utils.buffer").filter("[neotest-golang]")
-```
+> Don't forget to revert back to `WARN` level once you are done troubleshooting,
+> as the `TRACE` level can degrade performance.
 
 ### Neotest is slowing down Neovim
 
