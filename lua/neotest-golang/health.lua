@@ -114,12 +114,12 @@ function M.treesitter_parser_installed(lang)
 end
 
 local function is_windows_uname()
-  local os_info = vim.loop.os_uname()
+  local os_info = vim.uv.os_uname()
   return os_info.sysname:lower():find("windows") ~= nil
 end
 
 local function is_macos_uname()
-  local os_info = vim.loop.os_uname()
+  local os_info = vim.uv.os_uname()
   return os_info.sysname:lower():find("darwin") ~= nil
 end
 

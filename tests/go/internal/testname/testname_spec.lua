@@ -5,7 +5,7 @@ local _ = require("plenary")
 
 describe("Neotest position to Go test name", function()
   -- Arrange
-  local test_filepath = vim.loop.cwd()
+  local test_filepath = vim.uv.cwd()
     .. "/tests/go/internal/testname/testname_test.go"
 
   ---@type neotest.Tree
@@ -87,7 +87,7 @@ end)
 
 describe("Full Go test name conversion", function()
   -- Arrange
-  local test_filepath = vim.loop.cwd()
+  local test_filepath = vim.uv.cwd()
     .. "/tests/go/internal/testname/testname_test.go"
 
   ---@type neotest.Tree

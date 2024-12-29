@@ -22,7 +22,7 @@ end
 describe("Discovery of test positions", function()
   it("Discover OK", function()
     -- Arrange
-    local test_filepath = vim.loop.cwd()
+    local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/positions/positions_test.go"
     local expected = {
       {

@@ -4,7 +4,7 @@ local lib = require("neotest-golang.lib")
 
 describe("go list output from root", function()
   it("contains expected keys/values", function()
-    local tests_filepath = vim.loop.cwd() .. "/tests/go"
+    local tests_filepath = vim.uv.cwd() .. "/tests/go"
     local output = lib.cmd.golist_data(tests_filepath)
     local first_entry = output[1]
     local expected = {
@@ -88,8 +88,8 @@ end)
 
 describe("go list output from internal", function()
   it("contains expected keys/values", function()
-    local tests_filepath = vim.loop.cwd() .. "/tests/go"
-    local internal_filepath = vim.loop.cwd() .. "/tests/go/internal"
+    local tests_filepath = vim.uv.cwd() .. "/tests/go"
+    local internal_filepath = vim.uv.cwd() .. "/tests/go/internal"
     local output = lib.cmd.golist_data(internal_filepath)
     local first_entry = output[1]
     local expected = {
@@ -175,8 +175,8 @@ end)
 
 describe("go list output from internal/positions", function()
   it("contains expected keys/values", function()
-    local tests_filepath = vim.loop.cwd() .. "/tests/go"
-    local positions_filepath = vim.loop.cwd() .. "/tests/go/internal/positions"
+    local tests_filepath = vim.uv.cwd() .. "/tests/go"
+    local positions_filepath = vim.uv.cwd() .. "/tests/go/internal/positions"
     local output = lib.cmd.golist_data(positions_filepath)
     local first_entry = output[1]
     local expected = {
