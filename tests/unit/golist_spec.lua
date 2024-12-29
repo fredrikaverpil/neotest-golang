@@ -56,9 +56,8 @@ describe("go list output", function()
         "unsafe",
       },
       Dir = tests_filepath,
-      GoFiles = { "main.go" },
+      GoFiles = { "add.go" },
       ImportPath = "github.com/fredrikaverpil/neotest-golang",
-      Imports = { "fmt" },
       Match = { "./..." },
       Module = {
         Dir = tests_filepath,
