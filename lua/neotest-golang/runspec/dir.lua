@@ -20,20 +20,29 @@ local function find_go_package_import_path(pos, golist_data)
   ---@type string|nil
   local package_import_path = nil
 
-  -- 1. Perfect match: the selected directory corresponds to a package.
+  -- 1. Perfect match: main package.
   for _, golist_item in ipairs(golist_data) do
-    if pos.path == golist_item.Dir then
-      if golist_item.Name == "main" then
-        -- found the base go package
-        return "./..."
-      else
-        package_import_path = golist_item.ImportPath .. "/..."
-        return package_import_path
-      end
+    if
+      (
+        golist_item.Module.GoMod
+          == pos.path .. lib.find.os_path_sep .. "go.mod"
+        and golist_item.Name == "main"
+      ) or (pos.path == golist_item.Dir and golist_item.Name == "main")
+    then
+      package_import_path = golist_item.ImportPath .. "/..."
+      return "./..."
     end
   end
 
-  -- 2. Sub-package match: the selected directory does not correspond
+  -- 2. Perfect match: the selected directory corresponds to a package.
+  for _, golist_item in ipairs(golist_data) do
+    if pos.path == golist_item.Dir then
+      package_import_path = golist_item.ImportPath .. "/..."
+      return package_import_path
+    end
+  end
+
+  -- 3. Sub-package match: the selected directory does not correspond
   -- to a package, but might correspond to one or more sub-packages.
   local subpackage_import_paths = {}
   for _, golist_item in ipairs(golist_data) do
