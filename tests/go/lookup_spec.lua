@@ -11,8 +11,8 @@ describe("Lookup", function()
     local folderpath = vim.uv.cwd() .. "/tests/go"
     local filepaths = lib.find.go_test_filepaths(vim.uv.cwd())
     local expected_lookup = {
-      [folderpath .. "/positions_test.go"] = {
-        package = "main",
+      [folderpath .. "/internal/positions/positions_test.go"] = {
+        package = "positions",
         replacements = {},
       },
       [folderpath .. "/internal/subpackage/subpackage2/subpackage2_test.go"] = {
@@ -36,16 +36,16 @@ describe("Lookup", function()
           ExampleTestSuite2 = "TestExampleTestSuite2",
         },
       },
-      [folderpath .. "/testname_test.go"] = {
-        package = "main",
-        replacements = {},
-      },
       [folderpath .. "/internal/x/xtest_blackbox_test.go"] = {
         package = "x_test",
         replacements = {},
       },
       [folderpath .. "/internal/x/xtest_whitebox_test.go"] = {
         package = "x",
+        replacements = {},
+      },
+      [folderpath .. "/testname_test.go"] = {
+        package = "main",
         replacements = {},
       },
     }
