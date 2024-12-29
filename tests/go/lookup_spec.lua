@@ -44,8 +44,8 @@ describe("Lookup", function()
         package = "x",
         replacements = {},
       },
-      [folderpath .. "/testname_test.go"] = {
-        package = "main",
+      [folderpath .. "/internal/testname/testname_test.go"] = {
+        package = "testname",
         replacements = {},
       },
     }
