@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.7.0...v1.7.1) (2024-12-29)
+
+
+### Bug Fixes
+
+* asssume .go file in root ([#241](https://github.com/fredrikaverpil/neotest-golang/issues/241)) ([3799619](https://github.com/fredrikaverpil/neotest-golang/commit/37996199ffac7dc23b88732fe7e3bc99417cf156))
+* only detect t.Run ([#244](https://github.com/fredrikaverpil/neotest-golang/issues/244)) ([bd8e69e](https://github.com/fredrikaverpil/neotest-golang/commit/bd8e69ea606237c5e441f72ccf67fa774858b5dd))
+* vim.loop -&gt; vim.uv ([#243](https://github.com/fredrikaverpil/neotest-golang/issues/243)) ([09b29c4](https://github.com/fredrikaverpil/neotest-golang/commit/09b29c40d7c87a39cde73606d54cc1ed4ffc7e08))
+
 ## [1.7.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.6.3...v1.7.0) (2024-12-27)
 
 
