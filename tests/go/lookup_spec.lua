@@ -8,44 +8,44 @@ describe("Lookup", function()
   it("Generates tree replacement instructions", function()
     -- Arrange
     options.set({ testify_enabled = true }) -- enable testify
-    local folderpath = vim.loop.cwd() .. "/tests/go"
-    local filepaths = lib.find.go_test_filepaths(vim.loop.cwd())
+    local folderpath = vim.uv.cwd() .. "/tests/go"
+    local filepaths = lib.find.go_test_filepaths(vim.uv.cwd())
     local expected_lookup = {
-      [folderpath .. "/positions_test.go"] = {
-        package = "main",
+      [folderpath .. "/internal/positions/positions_test.go"] = {
+        package = "positions",
         replacements = {},
       },
-      [folderpath .. "/subpackage/subpackage2/subpackage2_test.go"] = {
+      [folderpath .. "/internal/subpackage/subpackage2/subpackage2_test.go"] = {
         package = "subpackage2",
         replacements = {},
       },
-      [folderpath .. "/subpackage/subpackage2/subpackage3/subpackage3_test.go"] = {
+      [folderpath .. "/internal/subpackage/subpackage2/subpackage3/subpackage3_test.go"] = {
         package = "subpackage3",
         replacements = {},
       },
-      [folderpath .. "/testify/othersuite_test.go"] = {
+      [folderpath .. "/internal/testify/othersuite_test.go"] = {
         package = "testify",
         replacements = {
           OtherTestSuite = "TestOtherTestSuite",
         },
       },
-      [folderpath .. "/testify/positions_test.go"] = {
+      [folderpath .. "/internal/testify/positions_test.go"] = {
         package = "testify",
         replacements = {
           ExampleTestSuite = "TestExampleTestSuite",
           ExampleTestSuite2 = "TestExampleTestSuite2",
         },
       },
-      [folderpath .. "/testname_test.go"] = {
-        package = "main",
-        replacements = {},
-      },
-      [folderpath .. "/x/xtest_blackbox_test.go"] = {
+      [folderpath .. "/internal/x/xtest_blackbox_test.go"] = {
         package = "x_test",
         replacements = {},
       },
-      [folderpath .. "/x/xtest_whitebox_test.go"] = {
+      [folderpath .. "/internal/x/xtest_whitebox_test.go"] = {
         package = "x",
+        replacements = {},
+      },
+      [folderpath .. "/internal/testname/testname_test.go"] = {
+        package = "testname",
         replacements = {},
       },
     }

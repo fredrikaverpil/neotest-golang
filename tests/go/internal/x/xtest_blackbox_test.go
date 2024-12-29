@@ -3,7 +3,7 @@ package x_test
 import (
 	"testing"
 
-	"github.com/fredrikaverpil/neotest-golang/x"
+	"github.com/fredrikaverpil/neotest-golang/internal/x"
 )
 
 func TestBlackBox(t *testing.T) {
