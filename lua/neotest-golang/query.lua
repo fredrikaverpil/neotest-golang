@@ -16,6 +16,7 @@ M.test_function = [[
     ; query for subtest, like t.Run()
     (call_expression
       function: (selector_expression
+        operand: (identifier) @test.operand (#match? @test.operand "^[t]$")
         field: (field_identifier) @test.method) (#match? @test.method "^Run$")
       arguments: (argument_list . (interpreted_string_literal) @test.name))
       @test.definition
@@ -47,6 +48,7 @@ M.table_tests = [[
              (expression_statement
               (call_expression
                 function: (selector_expression
+                  operand: (identifier) @test.operand (#match? @test.operand "^[t]$")
                   field: (field_identifier) @test.method)
                   (#match? @test.method "^Run$")
                 arguments: (argument_list
@@ -112,6 +114,7 @@ M.table_tests = [[
             (expression_statement
               (call_expression
                   function: (selector_expression
+                      operand: (identifier) @test.operand (#match? @test.operand "^[t]$")
                       field: (field_identifier) @test.method)
                         (#match? @test.method "^Run$")
                       arguments: (argument_list
@@ -143,6 +146,7 @@ M.table_tests = [[
         (expression_statement
           (call_expression
               function: (selector_expression
+                  operand: (identifier) @test.operand (#match? @test.operand "^[t]$")
                   field: (field_identifier) @test.method)
                     (#match? @test.method "^Run$")
                   arguments: (argument_list
@@ -176,6 +180,7 @@ M.table_tests = [[
                (expression_statement
                 (call_expression
                   function: (selector_expression
+                    operand: (identifier) @test.operand (#match? @test.operand "^[t]$")
                     field: (field_identifier) @test.method)
                     (#match? @test.method "^Run$")
                     arguments: (argument_list

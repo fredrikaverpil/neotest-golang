@@ -11,6 +11,10 @@ describe("Lookup", function()
     local folderpath = vim.uv.cwd() .. "/tests/go"
     local filepaths = lib.find.go_test_filepaths(vim.uv.cwd())
     local expected_lookup = {
+      [folderpath .. "/internal/operand/operand_test.go"] = {
+        package = "operand",
+        replacements = {},
+      },
       [folderpath .. "/internal/positions/positions_test.go"] = {
         package = "positions",
         replacements = {},
