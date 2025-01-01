@@ -91,7 +91,7 @@ describe("go list output from internal", function()
     local tests_filepath = vim.uv.cwd() .. "/tests/go"
     local internal_filepath = vim.uv.cwd() .. "/tests/go/internal"
     local output = lib.cmd.golist_data(internal_filepath)
-    local first_entry = output[2]
+    local first_entry = output[3]
     local expected = {
 
       Deps = {
