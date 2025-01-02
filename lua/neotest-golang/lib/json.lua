@@ -12,7 +12,7 @@ function M.decode_from_table(tbl, construct_invalid)
   local jsonlines = {}
   for _, line in ipairs(tbl) do
     if string.match(line, "^%s*{") then -- must start with the `{` character
-      local status, json_data = pcall(vim.fn.json_decode, line)
+      local status, json_data = pcall(vim.json.decode, line)
       if status then
         table.insert(jsonlines, json_data)
       else
