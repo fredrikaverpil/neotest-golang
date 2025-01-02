@@ -25,7 +25,8 @@ function M.build(pos, tree, strategy)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local golist_data, golist_error = lib.cmd.golist_data(go_mod_folderpath)
+  local pos_path_folderpath = vim.fn.fnamemodify(pos.path, ":h")
+  local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
 
   local errors = nil
   if golist_error ~= nil then
@@ -38,12 +39,11 @@ function M.build(pos, tree, strategy)
   -- find the go package that corresponds to the pos.path
   local package_name = "./..."
   local pos_path_filename = vim.fn.fnamemodify(pos.path, ":t")
-  local pos_path_foldername = vim.fn.fnamemodify(pos.path, ":h")
 
   for _, golist_item in ipairs(golist_data) do
     if golist_item.TestGoFiles ~= nil then
       if
-        pos_path_foldername == golist_item.Dir
+        pos_path_folderpath == golist_item.Dir
         and vim.tbl_contains(golist_item.TestGoFiles, pos_path_filename)
       then
         package_name = golist_item.ImportPath
@@ -53,7 +53,7 @@ function M.build(pos, tree, strategy)
     if golist_item.XTestGoFiles ~= nil then
       -- NOTE: XTestGoFiles are test files that are part of a [packagename]_test package.
       if
-        pos_path_foldername == golist_item.Dir
+        pos_path_folderpath == golist_item.Dir
         and vim.tbl_contains(golist_item.XTestGoFiles, pos_path_filename)
       then
         package_name = golist_item.ImportPath
@@ -78,9 +78,9 @@ function M.build(pos, tree, strategy)
   local runspec_strategy = nil
   if strategy == "dap" then
     dap.assert_dap_prerequisites()
-    runspec_strategy = dap.get_dap_config(pos_path_foldername, regexp)
+    runspec_strategy = dap.get_dap_config(pos_path_folderpath, regexp)
     logger.debug("DAP strategy used: " .. vim.inspect(runspec_strategy))
-    dap.setup_debugging(pos_path_foldername)
+    dap.setup_debugging(pos_path_folderpath)
   end
 
   --- @type RunspecContext

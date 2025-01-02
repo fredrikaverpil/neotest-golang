@@ -87,7 +87,7 @@ function M.build(pos)
   end
 
   local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local golist_data, golist_error = lib.cmd.golist_data(go_mod_folderpath)
+  local golist_data, golist_error = lib.cmd.golist_data(pos.path)
 
   local errors = nil
   if golist_error ~= nil then
