@@ -40,16 +40,24 @@ describe("Lookup", function()
           ExampleTestSuite2 = "TestExampleTestSuite2",
         },
       },
+      [folderpath .. "/internal/testname/testname_test.go"] = {
+        package = "testname",
+        replacements = {},
+      },
+      [folderpath .. "/internal/two/one_test.go"] = {
+        package = "two",
+        replacements = {},
+      },
+      [folderpath .. "/internal/two/two_test.go"] = {
+        package = "two",
+        replacements = {},
+      },
       [folderpath .. "/internal/x/xtest_blackbox_test.go"] = {
         package = "x_test",
         replacements = {},
       },
       [folderpath .. "/internal/x/xtest_whitebox_test.go"] = {
         package = "x",
-        replacements = {},
-      },
-      [folderpath .. "/internal/testname/testname_test.go"] = {
-        package = "testname",
         replacements = {},
       },
     }
