@@ -44,13 +44,13 @@ function M.golist_command()
     "go",
     "list",
     "-f",
-    [[{ 
-      "Dir": "{{.Dir}}",
-      "ImportPath": "{{.ImportPath}}",
-      "Name": "{{.Name}}",
-      "TestGoFiles": [{{range $i, $f := .TestGoFiles}}{{if $i}},{{end}}"{{$f}}"{{end}}],
-      "XTestGoFiles": [{{range $i, $f := .XTestGoFiles}}{{if $i}},{{end}}"{{$f}}"{{end}}],
-      "Module": { "GoMod": "{{.Module.GoMod}}" }
+    [[{
+    "Dir": "{{.Dir}}",
+    "ImportPath": "{{.ImportPath}}",
+    "Name": "{{.Name}}",
+    "TestGoFiles": [{{range $i, $f := .TestGoFiles}}{{if ne $i 0}},{{end}}"{{$f}}"{{end}}],
+    "XTestGoFiles": [{{range $i, $f := .XTestGoFiles}}{{if ne $i 0}},{{end}}"{{$f}}"{{end}}],
+    "Module": { "GoMod": "{{.Module.GoMod}}" }
     }]],
   }
 
