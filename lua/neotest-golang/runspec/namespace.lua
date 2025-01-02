@@ -9,11 +9,10 @@ local M = {}
 --- @param pos neotest.Position
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.build(pos)
-  local test_folder_absolute_path =
+  local pos_path_folderpath =
     string.match(pos.path, "(.+)" .. lib.find.os_path_sep)
 
-  local golist_data, golist_error =
-    lib.cmd.golist_data(test_folder_absolute_path)
+  local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
 
   local errors = nil
   if golist_error ~= nil then
@@ -26,10 +25,8 @@ function M.build(pos)
   local test_name = lib.convert.to_gotest_test_name(pos.id)
   test_name = lib.convert.to_gotest_regex_pattern(test_name)
 
-  local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(
-    test_folder_absolute_path,
-    test_name
-  )
+  local test_cmd, json_filepath =
+    lib.cmd.test_command_in_package_with_regexp(pos_path_folderpath, test_name)
 
   --- @type RunspecContext
   local context = {
@@ -42,7 +39,7 @@ function M.build(pos)
   --- @type neotest.RunSpec
   local run_spec = {
     command = test_cmd,
-    cwd = test_folder_absolute_path,
+    cwd = pos_path_folderpath,
     context = context,
   }
 
