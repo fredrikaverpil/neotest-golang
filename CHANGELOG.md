@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.2](https://github.com/fredrikaverpil/neotest-golang/compare/v1.7.1...v1.7.2) (2025-01-02)
+
+
+### Performance Improvements
+
+* lower 'go list' JSON payload size ([#248](https://github.com/fredrikaverpil/neotest-golang/issues/248)) ([4244d8f](https://github.com/fredrikaverpil/neotest-golang/commit/4244d8f81491ec4677d7bb90254c129450d61ea4))
+* more efficient 'go list' $cwd ([#246](https://github.com/fredrikaverpil/neotest-golang/issues/246)) ([770dd49](https://github.com/fredrikaverpil/neotest-golang/commit/770dd49a5edd71d517b726f32d12d99dc9ac97ee))
+* vim.fn.json_decode -&gt; vim.json.decode ([#249](https://github.com/fredrikaverpil/neotest-golang/issues/249)) ([e4b0770](https://github.com/fredrikaverpil/neotest-golang/commit/e4b07704bb0cfd64ac60ca828ac0683b7da1d259))
+
 ## [1.7.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.7.0...v1.7.1) (2024-12-29)
 
 
