@@ -36,7 +36,24 @@ function M.golist_data(cwd)
 end
 
 function M.golist_command()
-  local cmd = { "go", "list", "-json" }
+  -- NOTE: original command can contain a lot of data:
+  -- local cmd = { "go", "list", "-json" }
+
+  -- NOTE: optimized command only outputs fields needed:
+  local cmd = {
+    "go",
+    "list",
+    "-f",
+    [[{
+    "Dir": "{{.Dir}}",
+    "ImportPath": "{{.ImportPath}}",
+    "Name": "{{.Name}}",
+    "TestGoFiles": [{{range $i, $f := .TestGoFiles}}{{if ne $i 0}},{{end}}"{{$f}}"{{end}}],
+    "XTestGoFiles": [{{range $i, $f := .XTestGoFiles}}{{if ne $i 0}},{{end}}"{{$f}}"{{end}}],
+    "Module": { "GoMod": "{{.Module.GoMod}}" }
+    }]],
+  }
+
   local go_list_args = options.get().go_list_args
   if type(go_list_args) == "function" then
     go_list_args = go_list_args()
