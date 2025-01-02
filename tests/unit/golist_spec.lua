@@ -69,17 +69,34 @@ describe("go list output from root", function()
       Name = "main",
       Root = tests_filepath,
       Stale = true,
+      TestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
+      XTestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
     }
 
     -- ignored keys, as they might differ between OS/CI/platforms/too often
-    expected.Module.GoVersion = nil
-    first_entry.Module.GoVersion = nil
+    -- and we are also not interested in them.
     expected.Deps = nil
     first_entry.Deps = nil
-    expected.StaleReason = nil
-    first_entry.StaleReason = nil
-    expected.Target = nil
-    first_entry.Target = nil
+    expected.GoFiles = nil
+    first_entry.GoFiles = nil
+    expected.Imports = nil
+    first_entry.Imports = nil
+    expected.Match = nil
+    first_entry.Match = nil
+    expected.Module.Dir = nil
+    first_entry.Module.Dir = nil
+    expected.Module.GoVersion = nil
+    first_entry.Module.GoVersion = nil
+    expected.Module.Main = nil
+    first_entry.Module.Main = nil
+    expected.Module.Path = nil
+    first_entry.Module.Path = nil
+    expected.Root = nil
+    first_entry.Root = nil
+    expected.Stale = nil
+    first_entry.Stale = nil
+    expected.TestImports = nil
+    first_entry.TestImports = nil
 
     assert.are_same(vim.inspect(expected), vim.inspect(first_entry))
     assert.are_same(expected, first_entry)
@@ -155,18 +172,32 @@ describe("go list output from internal", function()
       Root = tests_filepath,
       Stale = true,
       TestGoFiles = { "positions_test.go" },
+      XTestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
       TestImports = { "os", "testing" },
     }
 
     -- ignored keys, as they might differ between OS/CI/platforms/too often
-    expected.Module.GoVersion = nil
-    first_entry.Module.GoVersion = nil
+    -- and we are also not interested in them.
     expected.Deps = nil
     first_entry.Deps = nil
-    expected.StaleReason = nil
-    first_entry.StaleReason = nil
-    expected.Target = nil
-    first_entry.Target = nil
+    expected.GoFiles = nil
+    first_entry.GoFiles = nil
+    expected.Match = nil
+    first_entry.Match = nil
+    expected.Module.Dir = nil
+    first_entry.Module.Dir = nil
+    expected.Module.GoVersion = nil
+    first_entry.Module.GoVersion = nil
+    expected.Module.Main = nil
+    first_entry.Module.Main = nil
+    expected.Module.Path = nil
+    first_entry.Module.Path = nil
+    expected.Root = nil
+    first_entry.Root = nil
+    expected.Stale = nil
+    first_entry.Stale = nil
+    expected.TestImports = nil
+    first_entry.TestImports = nil
 
     assert.are_same(vim.inspect(expected), vim.inspect(first_entry))
     assert.are_same(expected, first_entry)
@@ -180,7 +211,6 @@ describe("go list output from internal/positions", function()
     local output = lib.cmd.golist_data(positions_filepath)
     local first_entry = output[1]
     local expected = {
-
       Deps = {
         "cmp",
         "errors",
@@ -242,18 +272,32 @@ describe("go list output from internal/positions", function()
       Root = tests_filepath,
       Stale = true,
       TestGoFiles = { "positions_test.go" },
+      XTestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
       TestImports = { "os", "testing" },
     }
 
     -- ignored keys, as they might differ between OS/CI/platforms/too often
-    expected.Module.GoVersion = nil
-    first_entry.Module.GoVersion = nil
+    -- and we are also not interested in them.
     expected.Deps = nil
     first_entry.Deps = nil
-    expected.StaleReason = nil
-    first_entry.StaleReason = nil
-    expected.Target = nil
-    first_entry.Target = nil
+    expected.GoFiles = nil
+    first_entry.GoFiles = nil
+    expected.Match = nil
+    first_entry.Match = nil
+    expected.Module.Dir = nil
+    first_entry.Module.Dir = nil
+    expected.Module.GoVersion = nil
+    first_entry.Module.GoVersion = nil
+    expected.Module.Main = nil
+    first_entry.Module.Main = nil
+    expected.Module.Path = nil
+    first_entry.Module.Path = nil
+    expected.Root = nil
+    first_entry.Root = nil
+    expected.Stale = nil
+    first_entry.Stale = nil
+    expected.TestImports = nil
+    first_entry.TestImports = nil
 
     assert.are_same(vim.inspect(expected), vim.inspect(first_entry))
     assert.are_same(expected, first_entry)
