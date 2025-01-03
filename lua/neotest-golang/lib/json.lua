@@ -45,9 +45,6 @@ function M.decode_from_string(str)
   local tbl = {}
   local current_object = ""
   for line in str:gmatch("[^\r\n]+") do
-    -- TODO: only sanitize of option was given?
-    -- line = sanitize.sanitize_string(line)
-
     if line:match("^%s*{") and current_object ~= "" then
       table.insert(tbl, current_object)
       current_object = ""

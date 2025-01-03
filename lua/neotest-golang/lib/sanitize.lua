@@ -1,5 +1,25 @@
 local M = {}
 
+local function isSequentialList(t)
+  if type(t) ~= "table" then
+    return false
+  end
+
+  local count = 0
+  for _ in pairs(t) do
+    count = count + 1
+  end
+
+  -- Check if all indices from 1 to count exist
+  for i = 1, count do
+    if t[i] == nil then
+      return false
+    end
+  end
+
+  return true
+end
+
 function M.sanitize_string(str)
   local sanitized_string = ""
   for i = 1, #str do
@@ -23,10 +43,18 @@ end
 function M.sanitize_table(data)
   if type(data) == "table" then
     local new_table = {} -- Create a copy to avoid modifying the original table directly
-    for k, v in pairs(data) do
-      local sanitized_key = M.sanitize_string(tostring(k)) -- Sanitize keys (convert to string first)
-      new_table[sanitized_key] = M.sanitize_table(v) -- Recursively sanitize values
+
+    if isSequentialList(data) then
+      for i, v in ipairs(data) do
+        new_table[i] = M.sanitize_table(v) -- Recursively sanitize values
+      end
+    else
+      for k, v in pairs(data) do
+        local sanitized_key = M.sanitize_string(tostring(k)) -- Sanitize keys (convert to string first)
+        new_table[sanitized_key] = M.sanitize_table(v) -- Recursively sanitize values
+      end
     end
+
     return new_table
   elseif type(data) == "string" then
     return M.sanitize_string(data)
