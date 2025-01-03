@@ -426,6 +426,12 @@ function M.decorate_with_go_test_results(res, gotest_output)
         -- record test status
         if line.Action == "pass" then
           test_data.status = "passed"
+        elseif
+          line.Output ~= nil
+          and string.find(line.Output, "--- PASS: " .. line.Test, 1, true)
+        then
+          -- NOTE: for some reason, when sanitizing output, the above success case is not hit.
+          test_data.status = "passed"
         elseif line.Action == "fail" then
           test_data.status = "failed"
         elseif line.Action == "output" then
