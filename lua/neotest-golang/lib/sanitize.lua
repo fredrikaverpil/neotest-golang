@@ -4,11 +4,17 @@ function M.sanitize_string(str)
   local sanitized_string = ""
   for i = 1, #str do
     local byte = string.byte(str, i)
-    -- Check if byte is within the ANSI range
-    local ansi_range = 127
-    local ascii_range = 255
-    if byte <= ansi_range then
+    -- Preserve:
+    -- - newlines (10)
+    -- - tabs (9)
+    -- - regular ASCII printable chars (32-127)
+    -- This ensures we keep readable output while filtering binary noise
+    if byte == 9 or byte == 10 or (byte >= 32 and byte <= 127) then
       sanitized_string = sanitized_string .. string.char(byte)
+    else
+      -- Optionally replace binary chars with a placeholder
+      -- This helps identify where binary data was removed
+      -- sanitized_string = sanitized_string .. "·"
     end
   end
   return sanitized_string
