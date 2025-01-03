@@ -5,7 +5,6 @@ local async = require("neotest.async")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.lib.json")
-local sanitize = require("neotest-golang.lib.sanitize")
 
 local M = {}
 
@@ -30,9 +29,6 @@ function M.golist_data(cwd)
   end
 
   local output = result.stdout or ""
-
-  -- TODO: only sanitize of option was given?
-  output = sanitize.sanitize_string(output)
 
   local golist_output = json.decode_from_string(output)
   logger.debug({ "JSON-decoded 'go list' output: ", golist_output })
