@@ -1,5 +1,6 @@
 --- Helper functions building the command to execute.
 
+---@type nio
 local async = require("neotest.async")
 
 local logger = require("neotest-golang.logging")
@@ -14,25 +15,50 @@ function M.golist_data(cwd)
   local cmd = M.golist_command()
   local go_list_command_concat = table.concat(cmd, " ")
   logger.info("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
-  local result = vim.system(cmd, { cwd = cwd, text = true }):wait()
+  -- local result = vim.system(cmd, { cwd = cwd, text = true }):wait()
+  local bin = table.remove(cmd, 1) -- removes "go" from cmd
+  local args = cmd
 
-  local err = nil
-  if result.code == 1 then
-    err = "go list:"
-    if result.stdout ~= nil and result.stdout ~= "" then
-      err = err .. " " .. result.stdout
-    end
-    if result.stdout ~= nil and result.stderr ~= "" then
-      err = err .. " " .. result.stderr
-    end
-    logger.warn({ "Go list error: ", err })
+  local process, err = async.process.run({ cmd = bin, args = args, cwd = cwd })
+  if not process then
+    return nil, string.format("Failed to start go list: %s", err)
   end
 
-  local output = result.stdout or ""
+  local output, output_err = process.stdout.read()
+  local error_out, error_err = process.stderr.read()
 
-  local golist_output = json.decode_from_string(output)
+  -- Get result and auto-close the process
+  local command_return_code = process.result(true)
+
+  -- Handle stream reading errors
+  if output_err then
+    return nil, string.format("Failed to read stdout: %s", output_err)
+  end
+  if error_err then
+    return nil, string.format("Failed to read stderr: %s", error_err)
+  end
+
+  -- Handle command execution errors
+  if command_return_code == 1 then
+    local err_msg = "go list:"
+    if output and output ~= "" then
+      err_msg = err_msg .. " " .. output
+    end
+    if error_out and error_out ~= "" then
+      err_msg = err_msg .. " " .. error_out
+    end
+    logger.warn({ "Go list error: ", err_msg })
+    return nil, err_msg
+  end
+
+  -- Parse JSON output
+  local ok, golist_output = pcall(json.decode_from_string, output or "")
+  if not ok then
+    return nil, string.format("Failed to parse JSON output: %s", golist_output)
+  end
+
   logger.debug({ "JSON-decoded 'go list' output: ", golist_output })
-  return golist_output, err
+  return golist_output, nil
 end
 
 function M.golist_command()

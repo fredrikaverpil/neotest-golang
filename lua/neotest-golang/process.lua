@@ -1,6 +1,7 @@
 --- This file is centered around the parsing/processing of test execution output
 --- and assembling of the final results to hand back over to Neotest.
 
+---@type nio
 local async = require("neotest.async")
 
 local logger = require("neotest-golang.logging")
