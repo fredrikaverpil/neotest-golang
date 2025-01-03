@@ -1,7 +1,7 @@
 --- Helper functions building the command to execute.
 
 ---@type nio
-local async = require("neotest.async")
+local nio = require("nio") -- require("neotest.async")
 
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
@@ -15,24 +15,32 @@ function M.golist_data(cwd)
   local cmd = M.golist_command()
   local go_list_command_concat = table.concat(cmd, " ")
   logger.info("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
-  local result = vim.system(cmd, { cwd = cwd, text = true }):wait()
 
-  local err = nil
-  if result.code == 1 then
-    err = "go list:"
-    if result.stdout ~= nil and result.stdout ~= "" then
-      err = err .. " " .. result.stdout
+  local task = nio.run(function()
+    local result = vim.system(cmd, { cwd = cwd, text = true }):wait()
+
+    local err = nil
+    if result.code == 1 then
+      err = "go list:"
+      if result.stdout ~= nil and result.stdout ~= "" then
+        err = err .. " " .. result.stdout
+      end
+      if result.stdout ~= nil and result.stderr ~= "" then
+        err = err .. " " .. result.stderr
+      end
+      logger.warn({ "Go list error: ", err })
     end
-    if result.stdout ~= nil and result.stderr ~= "" then
-      err = err .. " " .. result.stderr
-    end
-    logger.warn({ "Go list error: ", err })
-  end
 
-  local output = result.stdout or ""
+    local output = result.stdout or ""
 
-  local golist_output = json.decode_from_string(output)
-  logger.debug({ "JSON-decoded 'go list' output: ", golist_output })
+    local golist_output = json.decode_from_string(output)
+    logger.debug({ "JSON-decoded 'go list' output: ", golist_output })
+
+    return golist_output, err
+  end)
+
+  local golist_output, err = task.wait()
+
   return golist_output, err
 end
 
@@ -92,7 +100,7 @@ function M.test_command(go_test_required_args)
   if runner == "go" then
     cmd = M.go_test(go_test_required_args)
   elseif runner == "gotestsum" then
-    json_filepath = vim.fs.normalize(async.fn.tempname())
+    json_filepath = vim.fs.normalize(nio.fn.tempname())
     cmd = M.gotestsum(go_test_required_args, json_filepath)
   end
 
