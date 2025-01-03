@@ -1,6 +1,7 @@
 --- JSON processing helpers.
 
 local logger = require("neotest-golang.logging")
+local sanitize = require("neotest-golang.lib.sanitize")
 
 local M = {}
 
@@ -14,6 +15,9 @@ function M.decode_from_table(tbl, construct_invalid)
     if string.match(line, "^%s*{") then -- must start with the `{` character
       local status, json_data = pcall(vim.json.decode, line)
       if status then
+        -- TODO: only sanitize of option was given?
+        json_data = sanitize.sanitize_table(json_data)
+
         table.insert(jsonlines, json_data)
       else
         -- NOTE: this can be hit because of "Vim:E474: Unidentified byte: ..."
@@ -23,10 +27,13 @@ function M.decode_from_table(tbl, construct_invalid)
       logger.debug({ "Not valid JSON:", line })
       if construct_invalid then
         -- this is for example errors from stderr, when there is a compilation error
+        -- TODO: only sanitize of option was given?
+        line = sanitize.sanitize_string(line)
         table.insert(jsonlines, { Action = "output", Output = line })
       end
     end
   end
+
   return jsonlines
 end
 
