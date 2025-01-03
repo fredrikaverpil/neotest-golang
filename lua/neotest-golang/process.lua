@@ -152,6 +152,7 @@ function M.test_results(spec, result, tree)
 
   -- write output to final file.
   local cmd_output_path = vim.fs.normalize(async.fn.tempname())
+  vim.notify(vim.inspect("about to crash 2"))
   async.fn.writefile(cmd_output, cmd_output_path)
 
   -- construct final result for the position.
@@ -575,6 +576,7 @@ function M.to_neotest_result(res)
   -- populate all test results onto the Neotest format.
   for pos_id, test_data in pairs(res) do
     local test_output_path = vim.fs.normalize(async.fn.tempname())
+    vim.notify(vim.inspect("about to crash 1"))
     async.fn.writefile(test_data.gotest_data.output, test_output_path)
     neotest_result[pos_id] = {
       status = test_data.status,
