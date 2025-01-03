@@ -1,5 +1,6 @@
 --- Helper functions building the command to execute.
 
+---@type nio
 local async = require("neotest.async")
 
 local logger = require("neotest-golang.logging")
