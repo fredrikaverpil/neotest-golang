@@ -32,7 +32,7 @@ function M.sanitize_string(str)
     if byte == 9 or byte == 10 or (byte >= 32 and byte <= 126) then
       sanitized_string = sanitized_string .. string.char(byte)
     else
-      sanitized_string = sanitized_string .. "?"
+      sanitized_string = sanitized_string .. "�"
     end
   end
   return sanitized_string
