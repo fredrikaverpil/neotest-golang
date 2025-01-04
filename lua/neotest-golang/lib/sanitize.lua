@@ -20,6 +20,17 @@ local function isSequentialList(t)
   return true
 end
 
+--- Sanitize a string by removing non-printable characters.
+--- - `utf8.codes()` iterates over complete UTF-8 characters,
+---   regardless of how many bytes they use (1-4 bytes per character)
+--- - `utf8.codepoint()` correctly extracts the Unicode code point
+---   from a complete UTF-8 sequence
+--- - `utf8.char()` properly converts a code point back into the
+---   correct UTF-8 byte sequence
+---
+---   This leverages https://github.com/uga-rosa/utf8.nvim
+---@param str string
+---@return string
 function M.sanitize_string(str)
   local utf8 = require("utf8")
   local sanitized_string = ""
