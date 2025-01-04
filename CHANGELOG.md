@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.3](https://github.com/fredrikaverpil/neotest-golang/compare/v1.7.2...v1.7.3) (2025-01-04)
+
+
+### Performance Improvements
+
+* run 'go test' from cwd closer to tests ([#252](https://github.com/fredrikaverpil/neotest-golang/issues/252)) ([f88f514](https://github.com/fredrikaverpil/neotest-golang/commit/f88f514c26b12356259a65a17cfb9d4ede90b425))
+
 ## [1.7.2](https://github.com/fredrikaverpil/neotest-golang/compare/v1.7.1...v1.7.2) (2025-01-02)
 
 
