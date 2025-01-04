@@ -21,33 +21,28 @@ local function isSequentialList(t)
 end
 
 function M.sanitize_string(str)
-  -- Convert to UTF-8 codepoints and back to handle the string properly
+  local utf8 = require("utf8")
   local sanitized_string = ""
-  local pos = 1
-  while pos <= #str do
-    local byte = string.byte(str, pos)
-    local char_len = 1
 
-    -- Detect UTF-8 sequence length
-    if byte >= 240 then -- 4 bytes
-      char_len = 4
-    elseif byte >= 224 then -- 3 bytes
-      char_len = 3
-    elseif byte >= 192 then -- 2 bytes
-      char_len = 2
-    end
-
-    local char = string.sub(str, pos, pos + char_len - 1)
-
-    -- Check if it's a valid UTF-8 sequence or allowed ASCII
-    if byte == 9 or byte == 10 or (byte >= 32 and byte <= 126) then
-      sanitized_string = sanitized_string .. char
+  for pos, _ in utf8.codes(str) do
+    local codepoint = utf8.codepoint(str, pos)
+    -- Allow:
+    -- - tab (9)
+    -- - newline (10)
+    -- - carriage return (13)
+    -- - regular printable ASCII (32-126)
+    if
+      codepoint == 9
+      or codepoint == 10
+      or codepoint == 13
+      or (codepoint >= 32 and codepoint <= 126)
+    then
+      sanitized_string = sanitized_string .. utf8.char(codepoint)
     else
-      sanitized_string = sanitized_string .. "?" -- Using ASCII replacement
+      sanitized_string = sanitized_string .. "?"
     end
-
-    pos = pos + char_len
   end
+
   return sanitized_string
 end
 
