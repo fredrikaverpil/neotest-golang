@@ -34,7 +34,7 @@ function M.sanitize_string(str)
     else
       -- Optionally replace binary chars with a placeholder
       -- This helps identify where binary data was removed
-      -- sanitized_string = sanitized_string .. "·"
+      sanitized_string = sanitized_string .. "?"
     end
   end
   return sanitized_string
