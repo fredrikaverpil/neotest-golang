@@ -29,7 +29,7 @@ function M.sanitize_string(str)
     -- - tabs (9)
     -- - regular ASCII printable chars (32-127)
     -- This ensures we keep readable output while filtering binary noise
-    if byte == 9 or byte == 10 or (byte >= 32 and byte <= 127) then
+    if byte == 9 or byte == 10 or (byte >= 32 and byte <= 126) then
       sanitized_string = sanitized_string .. string.char(byte)
     else
       sanitized_string = sanitized_string .. "?"
