@@ -32,8 +32,6 @@ function M.sanitize_string(str)
     if byte == 9 or byte == 10 or (byte >= 32 and byte <= 127) then
       sanitized_string = sanitized_string .. string.char(byte)
     else
-      -- Optionally replace binary chars with a placeholder
-      -- This helps identify where binary data was removed
       sanitized_string = sanitized_string .. "?"
     end
   end
@@ -46,12 +44,12 @@ function M.sanitize_table(data)
 
     if isSequentialList(data) then
       for i, v in ipairs(data) do
-        new_table[i] = M.sanitize_table(v) -- Recursively sanitize values
+        new_table[i] = M.sanitize_table(v)
       end
     else
       for k, v in pairs(data) do
-        local sanitized_key = M.sanitize_string(tostring(k)) -- Sanitize keys (convert to string first)
-        new_table[sanitized_key] = M.sanitize_table(v) -- Recursively sanitize values
+        local sanitized_key = M.sanitize_string(tostring(k))
+        new_table[sanitized_key] = M.sanitize_table(v)
       end
     end
 
@@ -59,9 +57,9 @@ function M.sanitize_table(data)
   elseif type(data) == "string" then
     return M.sanitize_string(data)
   elseif type(data) == "number" or type(data) == "boolean" or data == nil then
-    return data -- numbers, booleans and nil are fine
+    return data
   else
-    return tostring(data) -- Convert other types to string and sanitize
+    return tostring(data)
   end
 end
 
