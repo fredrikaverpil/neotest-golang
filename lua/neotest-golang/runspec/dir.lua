@@ -116,7 +116,7 @@ function M.build(pos)
   --- @type neotest.RunSpec
   local run_spec = {
     command = test_cmd,
-    cwd = go_mod_folderpath,
+    cwd = pos.path,
     context = context,
   }
 
