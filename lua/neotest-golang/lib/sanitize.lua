@@ -21,19 +21,32 @@ local function isSequentialList(t)
 end
 
 function M.sanitize_string(str)
+  -- Convert to UTF-8 codepoints and back to handle the string properly
   local sanitized_string = ""
-  for i = 1, #str do
-    local byte = string.byte(str, i)
-    -- Preserve:
-    -- - newlines (10)
-    -- - tabs (9)
-    -- - regular ASCII printable chars (32-127)
-    -- This ensures we keep readable output while filtering binary noise
-    if byte == 9 or byte == 10 or (byte >= 32 and byte <= 126) then
-      sanitized_string = sanitized_string .. string.char(byte)
-    else
-      sanitized_string = sanitized_string .. "�"
+  local pos = 1
+  while pos <= #str do
+    local byte = string.byte(str, pos)
+    local char_len = 1
+
+    -- Detect UTF-8 sequence length
+    if byte >= 240 then -- 4 bytes
+      char_len = 4
+    elseif byte >= 224 then -- 3 bytes
+      char_len = 3
+    elseif byte >= 192 then -- 2 bytes
+      char_len = 2
     end
+
+    local char = string.sub(str, pos, pos + char_len - 1)
+
+    -- Check if it's a valid UTF-8 sequence or allowed ASCII
+    if byte == 9 or byte == 10 or (byte >= 32 and byte <= 126) then
+      sanitized_string = sanitized_string .. char
+    else
+      sanitized_string = sanitized_string .. "?" -- Using ASCII replacement
+    end
+
+    pos = pos + char_len
   end
   return sanitized_string
 end
