@@ -291,17 +291,18 @@ return {
       "fredrikaverpil/neotest-golang", -- Installation
     },
     config = function()
++      local options = {
++        dap_mode = "manual",
++        dap_manual_config = {
++          name = "Debug go tests",
++          type = "go", -- Preconfigured DAP adapter name
++          request = "launch",
++          mode = "test",
++        },
++      }
       require("neotest").setup({
         adapters = {
-+         require("neotest-golang") { -- Registration
-+           dap_mode = "manual",
-+           dap_manual_config = {
-+               name = "Debug go tests",
-+               type = "go", -- Preconfigured DAP adapter name
-+               request = "launch",
-+               mode = "test",
-+           }
-+         },
++         require("neotest-golang")(options) -- Registration
         },
       })
     end,
