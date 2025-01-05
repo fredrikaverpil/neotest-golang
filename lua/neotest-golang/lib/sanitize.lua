@@ -20,19 +20,25 @@ local function isSequentialList(t)
   return true
 end
 
---- Sanitize a string by removing non-printable characters.
---- - `utf8.codes()` iterates over complete UTF-8 characters,
----   regardless of how many bytes they use (1-4 bytes per character)
---- - `utf8.codepoint()` correctly extracts the Unicode code point
----   from a complete UTF-8 sequence
---- - `utf8.char()` properly converts a code point back into the
----   correct UTF-8 byte sequence
+--- Sanitize a string by replacing control characters while preserving UTF-8.
+--- Allows:
+--- - Tab (U+0009)
+--- - Line Feed/Newline (U+000A)
+--- - Carriage Return (U+000D)
+--- - All printable characters (U+0020 and above, except DEL U+007F)
 ---
----   This leverages https://github.com/uga-rosa/utf8.nvim
----@param str string
----@return string
-function M.sanitize_string(str)
+--- Replaces:
+--- - Control characters (U+0000-U+0008, U+000B-U+000C, U+000E-U+001F)
+--- - Delete character (U+007F)
+---
+--- Uses the utf8.nvim library (https://github.com/uga-rosa/utf8.nvim) for proper UTF-8 handling.
+---
+---@param str string The input string to sanitize
+---@param replacement string? Optional replacement character (defaults to U+FFFD REPLACEMENT CHARACTER)
+---@return string The sanitized string
+function M.sanitize_string(str, replacement)
   local utf8 = require("utf8")
+  replacement = replacement or utf8.char(0xFFFD) -- Unicode replacement character
   local sanitized_string = ""
 
   for pos, _ in utf8.codes(str) do
@@ -41,16 +47,19 @@ function M.sanitize_string(str)
     -- - tab (9)
     -- - newline (10)
     -- - carriage return (13)
-    -- - regular printable ASCII (32-126)
+    -- - all printable characters (>= 32)
+    -- Filter out:
+    -- - control characters (0-8, 11-12, 14-31)
+    -- - delete character (127)
     if
       codepoint == 9
       or codepoint == 10
       or codepoint == 13
-      or (codepoint >= 32 and codepoint <= 126)
+      or codepoint >= 32 and codepoint ~= 127
     then
       sanitized_string = sanitized_string .. utf8.char(codepoint)
     else
-      sanitized_string = sanitized_string .. "?"
+      sanitized_string = sanitized_string .. replacement
     end
   end
 
