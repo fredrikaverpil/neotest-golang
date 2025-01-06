@@ -30,6 +30,9 @@ function M.check()
   start("Gotestsum (optional)")
   M.gotestsum_recommended_on_windows()
   M.gotestsum_installed_but_not_used()
+
+  start("Sanitization (optional)")
+  M.sanitization_enabled_but_no_utf8_lib()
 end
 
 function M.binary_found_on_path(executable, supress_warn)
@@ -177,6 +180,18 @@ function M.gotestsum_installed_but_not_used()
   elseif found and options.get().runner == "gotestsum" then
     ok("Tests will be executed by gotestsum.")
   end
+end
+
+function M.sanitization_enabled_but_no_utf8_lib()
+  if options.get().sanitization then
+    local is_installed = pcall(require, "utf8")
+    if is_installed then
+      ok("utf8.nvim is available")
+    else
+      warn("utf8.nvim is not available")
+    end
+  end
+  ok("Sanitization is disabled")
 end
 
 return M
