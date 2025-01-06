@@ -1,3 +1,5 @@
+local logger = require("neotest-golang.logging")
+
 local M = {}
 
 local function isSequentialList(t)
@@ -37,7 +39,11 @@ end
 ---@param replacement string? Optional replacement character (defaults to U+FFFD REPLACEMENT CHARACTER)
 ---@return string The sanitized string
 function M.sanitize_string(str, replacement)
-  local utf8 = require("utf8")
+  local success, utf8 = pcall(require, "utf8")
+  if not success then
+    logger.error("Failed to load uga-rosa/utf8.nvim")
+  end
+
   replacement = replacement or utf8.char(0xFFFD) -- Unicode replacement character
   local sanitized_string = ""
 
