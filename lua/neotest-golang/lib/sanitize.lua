@@ -45,7 +45,7 @@ function M.sanitize_string(str, replacement)
   end
 
   replacement = replacement or utf8.char(0xFFFD) -- Unicode replacement character
-  local sanitized_string = ""
+  local sanitized_chars = {}
 
   for pos, _ in utf8.codes(str) do
     local codepoint = utf8.codepoint(str, pos)
@@ -63,13 +63,13 @@ function M.sanitize_string(str, replacement)
       or codepoint == 13
       or codepoint >= 32 and codepoint ~= 127
     then
-      sanitized_string = sanitized_string .. utf8.char(codepoint)
+      table.insert(sanitized_chars, utf8.char(codepoint))
     else
-      sanitized_string = sanitized_string .. replacement
+      table.insert(sanitized_chars, replacement)
     end
   end
 
-  return sanitized_string
+  return table.concat(sanitized_chars)
 end
 
 function M.sanitize_table(data)
