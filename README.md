@@ -391,9 +391,9 @@ keymaps. This is a merged snapshot of my own config, which I hope you can draw
 inspiration from. To view my current config, which is divided up into several
 files, see:
 
-- [plugins/neotest.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/plugins/neotest.lua)
-- [plugins/dap.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/plugins/dap.lua)
-- [lang/go.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/lang/go.lua)
+- [plugins/neotest.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/fredrik/plugins/core/neotest.lua)
+- [plugins/dap.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/fredrik/plugins/core/dap.lua)
+- [lang/go.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/fredrik/plugins/lang/go.lua)
 
 <details>
 <summary>Click to expand</summary>
@@ -632,10 +632,10 @@ return {
 
 See `:h neotest.Config` for more information.
 
-[Here](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/plugins/neotest.lua)
+[Here](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/fredrik/plugins/core/neotest.lua)
 is my personal Neotest configuration, for inspiration. Please note that I am
 configuring Go and the neotest-golang adapter in a separate file
-[here](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/lang/go.lua).
+[here](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/fredrik/plugins/lang/go.lua).
 
 ### Go test execution and parallelism
 
