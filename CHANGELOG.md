@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.7.3...v1.8.0) (2025-01-10)
+
+
+### Features
+
+* add option to sanitize test execution output ([#250](https://github.com/fredrikaverpil/neotest-golang/issues/250)) ([dd9e5e1](https://github.com/fredrikaverpil/neotest-golang/commit/dd9e5e1699b0c42bbaaf2df9f3dea71ce3e090f0))
+
 ## [1.7.3](https://github.com/fredrikaverpil/neotest-golang/compare/v1.7.2...v1.7.3) (2025-01-04)
 
 
