@@ -20,6 +20,7 @@ Reliable Neotest adapter for running Go tests in Neovim.
   [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) for
   displaying coverage in the sign column.
 - Supports [testify](https://github.com/stretchr/testify) suites.
+- Option to sanitize test output from non-UTF8 characters.
 
 <details>
 <summary>Why a second Neotest adapter for Go? 🤔</summary>
@@ -178,6 +179,7 @@ consider setting up neotest and its adapters in a
 | `warn_test_name_dupes`   | `true`                            | Warn about duplicate test names within the same Go package.                                                                                                                                                                                                                                                                          |
 | `warn_test_not_executed` | `true`                            | Warn if test was not executed.                                                                                                                                                                                                                                                                                                       |
 | `log_level`              | `vim.log.levels.WARN`             | Log level.                                                                                                                                                                                                                                                                                                                           |
+| `sanitize_output`        | `false`                           | Filter control characters and non-printable characters from test output. Note: [usage](example-configuration-sanitize-output).                                                                                                                                                                                                       |
 
 > [!NOTE]
 >
@@ -381,6 +383,51 @@ require("neotest").setup({
     require("neotest-golang")(config), -- Apply configuration
   },
 })
+```
+
+### Example configuration: sanitize output
+
+When tests write non-printable characters to stdout/stderr, they can cause
+various issues like failing to write output to disk or UI rendering problems.
+The `sanitize_output` option helps clean up such output by preserving UTF-8 and
+replacing control characters with the Unicode replacement character (�).
+
+This is particularly useful when:
+
+- Tests write bytes to stdout/stderr.
+- Test output contains terminal control sequences.
+- Test output includes non-printable characters.
+
+The sanitization preserves all regular printable characters including tabs,
+newlines, and carriage returns.
+
+```diff
+return {
+  {
+    "nvim-neotest/neotest",
+    dependencies = {
+      "nvim-neotest/nvim-nio",
+      "nvim-lua/plenary.nvim",
+      "antoinemadec/FixCursorHold.nvim",
+      "nvim-treesitter/nvim-treesitter",
+-      "fredrikaverpil/neotest-golang", -- Installation
++      {
++        "fredrikaverpil/neotest-golang", -- Installation
++        dependencies = {
++          "uga-rosa/utf8.nvim", -- Additional dependency required
++        },
++      },
+    },
+    config = function()
+      require("neotest").setup({
+        adapters = {
+-          require("neotest-golang"), -- Registration
++          require("neotest-golang")({ sanitize_output = true }), -- Registration
+        },
+      })
+    end,
+  },
+}
 ```
 
 ### Example configuration: extra everything

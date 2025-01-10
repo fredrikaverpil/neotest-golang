@@ -19,6 +19,10 @@ describe("Lookup", function()
         package = "positions",
         replacements = {},
       },
+      [folderpath .. "/internal/sanitization/sanitize_test.go"] = {
+        package = "sanitization",
+        replacements = {},
+      },
       [folderpath .. "/internal/subpackage/subpackage2/subpackage2_test.go"] = {
         package = "subpackage2",
         replacements = {},
