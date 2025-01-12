@@ -9,7 +9,8 @@ local M = {}
 --- Call 'go list -json {go_list_args...} ./...' to get test file data
 --- @param cwd string
 function M.golist_data(cwd)
-  local cmd = M.golist_command()
+  local cmd = options.get().cmd_prefix or {}
+  cmd = vim.list_extend(vim.deepcopy(cmd), M.golist_command())
   local go_list_command_concat = table.concat(cmd, " ")
   logger.info("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
   local result = vim.system(cmd, { cwd = cwd, text = true }):wait()
