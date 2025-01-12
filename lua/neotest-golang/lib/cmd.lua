@@ -1,7 +1,5 @@
 --- Helper functions building the command to execute.
 
-local async = require("neotest.async")
-
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.lib.json")
@@ -81,17 +79,20 @@ function M.test_command(go_test_required_args)
   local runner = M.runner_fallback(options.get().runner)
 
   --- The filepath to write test output JSON to, if using `gotestsum`.
-  --- @type string | nil
+  --- @type fun() | string | nil
   local json_filepath = nil
 
   --- The final test command to execute.
-  --- @type table<string>
+  --- @type table<string> | fun()
   local cmd = M.cmd_prefix() or {}
 
   if runner == "go" then
     cmd = vim.list_extend(vim.deepcopy(cmd), M.go_test(go_test_required_args))
   elseif runner == "gotestsum" then
-    json_filepath = vim.fs.normalize(async.fn.tempname())
+    json_filepath = options.get().gotestsum_jsonfile
+    if type(json_filepath) == "function" then
+      json_filepath = json_filepath()
+    end
     cmd = vim.list_extend(
       vim.deepcopy(cmd),
       M.gotestsum(go_test_required_args, json_filepath)

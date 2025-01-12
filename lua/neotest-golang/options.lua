@@ -2,6 +2,7 @@
 --- providing them as arguments to the Adapter function. See the README for mode
 --- details and examples.
 
+local async = require("neotest.async")
 local logger = require("neotest-golang.logging")
 
 local M = {}
@@ -11,6 +12,7 @@ local opts = {
   cmd_prefix = {}, -- NOTE: can also be a function
   go_test_args = { "-v", "-race", "-count=1" }, -- NOTE: can also be a function
   gotestsum_args = { "--format=standard-verbose" }, -- NOTE: can also be a function
+  gotestsum_jsonfile = vim.fs.normalize(async.fn.tempname()), -- NOTE: can also be a function
   go_list_args = {}, -- NOTE: can also be a function
   dap_go_opts = {}, -- NOTE: can also be a function
   dap_mode = "dap-go", -- NOTE: or "manual" ; can also be a function
