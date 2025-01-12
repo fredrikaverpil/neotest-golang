@@ -21,6 +21,7 @@ Reliable Neotest adapter for running Go tests in Neovim.
   displaying coverage in the sign column.
 - Supports [testify](https://github.com/stretchr/testify) suites.
 - Option to sanitize test output from non-UTF8 characters.
+- Container support; run tests in container.
 
 <details>
 <summary>Why a second Neotest adapter for Go? 🤔</summary>
@@ -167,21 +168,23 @@ consider setting up neotest and its adapters in a
 
 ## ⚙️ Configuration
 
-| Argument                 | Default value                     | Description                                                                                                                                                                                                                                                                                                                          |
-| ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `runner`                 | `go`                              | Defines the test runner. Valid values: `go` or `gotestsum`.                                                                                                                                                                                                                                                                          |
-| `go_test_args`           | `{ "-v", "-race", "-count=1" }`   | Arguments to pass into `go test`. Notes: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                                  |
-| `gotestsum_args`         | `{ "--format=standard-verbose" }` | Arguments to pass into `gotestsum`. Notes: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table). Will only be used if `runner = "gotestsum"`. The `go_test_args` still applies. |
-| `go_list_args`           | `{}`                              | Arguments to pass into `go list`. Note: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                                   |
-| `dap_mode`               | `dap-go`                          | Set to `manual` for manual configuration.                                                                                                                                                                                                                                                                                            |
-| `dap_go_opts`            | `{}`                              | Options to pass into `require("dap-go").setup()`. Note: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                   |
-| `dap_manual_config`      | `{}`                              | The configuration to apply if `dap_mode == "manual"`.                                                                                                                                                                                                                                                                                |
-| `testify_enabled`        | `false`                           | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info.                                                                                                                                                                 |
-| `colorize_test_output`   | `true`                            | Enable output color for `SUCCESS`, `FAIL`, and `SKIP` tests.                                                                                                                                                                                                                                                                         |
-| `warn_test_name_dupes`   | `true`                            | Warn about duplicate test names within the same Go package.                                                                                                                                                                                                                                                                          |
-| `warn_test_not_executed` | `true`                            | Warn if test was not executed.                                                                                                                                                                                                                                                                                                       |
-| `log_level`              | `vim.log.levels.WARN`             | Log level.                                                                                                                                                                                                                                                                                                                           |
-| `sanitize_output`        | `false`                           | Filter control characters and non-printable characters from test output. Note: [usage](https://github.com/fredrikaverpil/neotest-golang#example-configuration-sanitize-output).                                                                                                                                                      |
+| Argument                 | Default value                           | Description                                                                                                                                                                                                                                                                                                                          |
+| ------------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `runner`                 | `go`                                    | Defines the test runner. Valid values: `go` or `gotestsum`.                                                                                                                                                                                                                                                                          |
+| `go_test_args`           | `{ "-v", "-race", "-count=1" }`         | Arguments to pass into `go test`. Notes: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                                  |
+| `gotestsum_args`         | `{ "--format=standard-verbose" }`       | Arguments to pass into `gotestsum`. Notes: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table). Will only be used if `runner = "gotestsum"`. The `go_test_args` still applies. |
+| `gotestsum_jsonfile`     | `vim.fs.normalize(async.fn.tempname())` | Path on which `gotestsum` writes its output JSON file.                                                                                                                                                                                                                                                                               |
+| `go_list_args`           | `{}`                                    | Arguments to pass into `go list`. Note: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                                   |
+| `cmd_prefix`             | `{}`                                    | Prefix commands sent to `go list` and test runner, for e.g. running commands in container.                                                                                                                                                                                                                                           |
+| `dap_mode`               | `dap-go`                                | Set to `manual` for manual configuration.                                                                                                                                                                                                                                                                                            |
+| `dap_go_opts`            | `{}`                                    | Options to pass into `require("dap-go").setup()`. Note: [`-tags` usage](https://github.com/fredrikaverpil/neotest-golang#using-build-tags), [pass args as function](https://github.com/fredrikaverpil/neotest-golang#pass-arguments-as-function-instead-of-table).                                                                   |
+| `dap_manual_config`      | `{}`                                    | The configuration to apply if `dap_mode == "manual"`.                                                                                                                                                                                                                                                                                |
+| `testify_enabled`        | `false`                                 | Enable support for [testify](https://github.com/stretchr/testify) suites. See [here](https://github.com/fredrikaverpil/neotest-golang#testify-suites) for more info.                                                                                                                                                                 |
+| `colorize_test_output`   | `true`                                  | Enable output color for `SUCCESS`, `FAIL`, and `SKIP` tests.                                                                                                                                                                                                                                                                         |
+| `warn_test_name_dupes`   | `true`                                  | Warn about duplicate test names within the same Go package.                                                                                                                                                                                                                                                                          |
+| `warn_test_not_executed` | `true`                                  | Warn if test was not executed.                                                                                                                                                                                                                                                                                                       |
+| `log_level`              | `vim.log.levels.WARN`                   | Log level.                                                                                                                                                                                                                                                                                                                           |
+| `sanitize_output`        | `false`                                 | Filter control characters and non-printable characters from test output. Note: [usage](https://github.com/fredrikaverpil/neotest-golang#example-configuration-sanitize-output).                                                                                                                                                      |
 
 > [!NOTE]
 >
@@ -431,6 +434,103 @@ return {
   },
 }
 ```
+
+### Example configuration: wrap commands (run tests in container)
+
+You can wrap all commands to be executed, using `cmd_prefix` in another command
+or script. For example, if you want to run tests in a docker container, you can
+set:
+
+```lua
+cmd_prefix = { "docker", "exec", "golang-test" }
+```
+
+This will then execute the `go test -json ...` command in an already running
+`golang-test` container.
+
+Before attmpting to run any tests through Neotest, you can start up the
+container like so, from the root of this project:
+
+```bash
+# start container and leave it idle
+docker run -d --name golang-test -v $(pwd):$(pwd) -w $(pwd)/tests/go golang:1.23-bullseye tail -f /dev/null
+```
+
+> [!NOTE]
+>
+> The `docker run` command was tailored for this particular project and you
+> might want to verify that you can execute the tests without errors like so:
+>
+> ```bash
+> docker exec golang-test go test ./...
+> ```
+>
+> Also make sure any depencies required to run the tests are installed in the
+> container.
+
+Now create a new `.lazy.lua` file in the root of this project, so to apply this
+configuration only for this project (requires the lazy.nvim package manager):
+
+```lua
+return {
+  {
+    "nvim-neotest/neotest",
+    lazy = true,
+    ft = { "go" },
+    dependencies = {
+      {
+        "fredrikaverpil/neotest-golang",
+        dependencies = {
+          "uga-rosa/utf8.nvim",
+        },
+      },
+    },
+    opts = {
+      -- Neotest log
+      -- log_level = vim.log.levels.DEBUG,
+      adapters = {
+        require("neotest-golang")({
+          -- Neotest-golang log
+          -- log_level = vim.log.levels.TRACE,
+
+          cmd_prefix = {
+            "docker",
+            "exec",
+            "golang-test",
+          },
+
+          go_test_args = {
+            "-v",
+            "-count=1",
+            "-race",
+            "-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+          },
+
+          runner = "go",
+          -- optionally, use gotestsum as runner instead
+          -- runner = "gotestsum",
+          -- gotestsum_args = { "--format=standard-verbose" },
+          -- gotestsum_jsonfile = function()
+          --   return vim.fs.joinpath(vim.fn.getcwd(), "tests/go/output.json")
+          -- end,
+
+          -- NOTE: there is a test in the test suite which requires sanitization.
+          sanitize_output = true,
+        }),
+      },
+    },
+  },
+}
+```
+
+> [!NOTE]
+>
+> If you want to use `gotestsum`, make sure to install it in the container.
+> Also, make sure you set the `gotestsum_jsonfile` option in neotest-golang (see
+> the example in the `.lazy.lua` file above).
+
+Finally, in Neovim, you should now be able to run tests and they will be
+executed inside the container.
 
 ### Example configuration: extra everything
 

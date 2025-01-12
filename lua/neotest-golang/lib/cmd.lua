@@ -1,7 +1,5 @@
 --- Helper functions building the command to execute.
 
-local async = require("neotest.async")
-
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local json = require("neotest-golang.lib.json")
@@ -11,7 +9,8 @@ local M = {}
 --- Call 'go list -json {go_list_args...} ./...' to get test file data
 --- @param cwd string
 function M.golist_data(cwd)
-  local cmd = M.golist_command()
+  local cmd = options.get().cmd_prefix or {}
+  cmd = vim.list_extend(vim.deepcopy(cmd), M.golist_command())
   local go_list_command_concat = table.concat(cmd, " ")
   logger.info("Running Go list: " .. go_list_command_concat .. " in " .. cwd)
   local result = vim.system(cmd, { cwd = cwd, text = true }):wait()
@@ -81,21 +80,28 @@ function M.test_command(go_test_required_args)
   local runner = M.runner_fallback(options.get().runner)
 
   --- The filepath to write test output JSON to, if using `gotestsum`.
-  --- @type string | nil
+  --- @type fun() | string | nil
   local json_filepath = nil
 
   --- The final test command to execute.
-  --- @type table<string>
-  local cmd = {}
+  --- @type table<string> | fun()
+  local cmd = M.cmd_prefix() or {}
 
   if runner == "go" then
-    cmd = M.go_test(go_test_required_args)
+    cmd = vim.list_extend(vim.deepcopy(cmd), M.go_test(go_test_required_args))
   elseif runner == "gotestsum" then
-    json_filepath = vim.fs.normalize(async.fn.tempname())
-    cmd = M.gotestsum(go_test_required_args, json_filepath)
+    json_filepath = options.get().gotestsum_jsonfile
+    if type(json_filepath) == "function" then
+      json_filepath = json_filepath()
+    end
+    cmd = vim.list_extend(
+      vim.deepcopy(cmd),
+      M.gotestsum(go_test_required_args, json_filepath)
+    )
   end
 
   logger.info("Test command: " .. table.concat(cmd, " "))
+  vim.notify(vim.inspect(cmd))
 
   return cmd, json_filepath
 end
@@ -142,6 +148,14 @@ function M.system_has(executable)
     return false
   end
   return true
+end
+
+function M.cmd_prefix()
+  local cmd_prefix = options.get().cmd_prefix
+  if type(cmd_prefix) == "function" then
+    cmd_prefix = cmd_prefix()
+  end
+  return cmd_prefix
 end
 
 return M

@@ -5,6 +5,7 @@ describe("Options are set up", function()
   it("With defaults", function()
     local expected_options = {
       runner = "go",
+      cmd_prefix = {},
       go_test_args = {
         "-v",
         "-race",
@@ -12,6 +13,7 @@ describe("Options are set up", function()
       },
       go_list_args = {},
       gotestsum_args = { "--format=standard-verbose" },
+      gotestsum_jsonfile = "", -- NOTE: this is actually a filepath
       dap_go_opts = {},
       dap_mode = "dap-go",
       dap_manual_config = {},
@@ -26,12 +28,14 @@ describe("Options are set up", function()
       dev_notifications = false,
     }
     options.setup()
+    expected_options.gotestsum_jsonfile = options.get().gotestsum_jsonfile -- NOTE: cannot be compared
     assert.are_same(expected_options, options.get())
   end)
 
   it("With non-defaults", function()
     local expected_options = {
       runner = "go",
+      cmd_prefix = {},
       go_test_args = {
         "-v",
         "-race",
@@ -40,6 +44,7 @@ describe("Options are set up", function()
       },
       go_list_args = {},
       gotestsum_args = { "--format=standard-verbose" },
+      gotestsum_jsonfile = "", -- NOTE: this is actually a filepath
       dap_go_opts = {},
       dap_mode = "dap-go",
       dap_manual_config = {},
@@ -54,11 +59,15 @@ describe("Options are set up", function()
       dev_notifications = false,
     }
     options.setup(expected_options)
+    expected_options.gotestsum_jsonfile = options.get().gotestsum_jsonfile -- NOTE: cannot be compared
     assert.are_same(expected_options, options.get())
   end)
 
   it("With args as functions", function()
     local expected_options = {
+      cmd_prefix = function()
+        return { "docker", "exec", "golang-test" }
+      end,
       go_test_args = function()
         return {
           "-v",
@@ -91,9 +100,11 @@ describe("Options are set up", function()
       gotestsum_args = function()
         return { "--format=standard-verbose" }
       end,
+      gotestsum_jsonfile = "", -- NOTE: this is actually a filepath
       dev_notifications = false,
     }
     options.setup(expected_options)
+    expected_options.gotestsum_jsonfile = options.get().gotestsum_jsonfile -- NOTE: cannot be compared
     assert.are_same(expected_options, options.get())
   end)
 end)
