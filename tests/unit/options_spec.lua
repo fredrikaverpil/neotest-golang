@@ -5,6 +5,7 @@ describe("Options are set up", function()
   it("With defaults", function()
     local expected_options = {
       runner = "go",
+      cmd_prefix = {},
       go_test_args = {
         "-v",
         "-race",
@@ -32,6 +33,7 @@ describe("Options are set up", function()
   it("With non-defaults", function()
     local expected_options = {
       runner = "go",
+      cmd_prefix = {},
       go_test_args = {
         "-v",
         "-race",
@@ -59,6 +61,9 @@ describe("Options are set up", function()
 
   it("With args as functions", function()
     local expected_options = {
+      cmd_prefix = function()
+        return { "docker", "exec", "golang-test" }
+      end,
       go_test_args = function()
         return {
           "-v",
