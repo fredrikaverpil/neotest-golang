@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report and help improve neotest-golang! :heart:
+        Thanks for taking the time to fill out this feature request and help improve neotest-golang! :heart:
   - type: checkboxes
     attributes:
       label: Did you check docs and existing issues?
