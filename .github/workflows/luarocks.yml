@@ -6,10 +6,11 @@ on:
   release:
     types:
       - created
-  pull_request: # Tests luarocks install from generated rockspec on PR without uploading
+  # pull_request: # Tests luarocks install from generated rockspec on PR without uploading
   workflow_dispatch:
 jobs:
   upload:
+    environment: luarocks
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
