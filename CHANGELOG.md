@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.8.0...v1.9.0) (2025-01-19)
+
+
+### Features
+
+* mkdocs ([#262](https://github.com/fredrikaverpil/neotest-golang/issues/262)) ([3f6f3c8](https://github.com/fredrikaverpil/neotest-golang/commit/3f6f3c8d0ce696f9d91fad565c3013f5b3fb3b7c))
+
 ## [1.8.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.7.3...v1.8.0) (2025-01-10)
 
 
