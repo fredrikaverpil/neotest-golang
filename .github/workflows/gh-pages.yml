@@ -5,7 +5,7 @@ on:
     branches:
       - main # Set a branch to deploy
   workflow_dispatch:
-  pull_request:
+  # pull_request:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
