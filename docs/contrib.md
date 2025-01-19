@@ -4,7 +4,7 @@ icon: material/heart-multiple-outline
 
 # Contributing
 
-## 🙏 PRs are welcome
+## Contributions are welcome
 
 Improvement suggestion PRs to this repo are very much welcome, and I encourage
 you to begin by reading the below paragraph on the adapter design and engage in
@@ -36,6 +36,15 @@ query and play around. You can paste in queries from
 [`query.lua`](https://github.com/fredrikaverpil/neotest-golang/blob/main/lua/neotest-golang/query.lua)
 in the editor, to see how the query behaves and highlights parts of your Go test
 file.
+
+## Previewing the documentation
+
+Intall uv with e.g. `brew install` or `pip install uv`. Then run `uv sync` in
+the project root to create a virtual environment and install dependencies into
+it.
+
+Finally, run `uv run mkdocs serve` to serve the documentation and preview it on
+`http://localhost:8000`.
 
 ## General design of the adapter
 
