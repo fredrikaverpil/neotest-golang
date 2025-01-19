@@ -19,16 +19,16 @@ If the problem persists and is configuration-related, please open a discussion
 For bugs and feature requests, feel free to use discussions or file a detailed
 issue.
 
-## Error "Test(s) not associated (not found/executed)"
+## Warning "Test(s) not associated (not found/executed)"
 
-There are numerous reasons as to why you might be hitting this error. Let me
+There are numerous reasons as to why you might be hitting this warning. Let me
 briefly explain:
 
 Neotest-golang processes the test JSON execution output and looks for certain
 key/value pairs corresponding to each position (folder, file, test) in the
 Neotest tree. Output and statuses are collected and then populated onto each
 position's data in the tree, but if a position was never populated with any
-data, this error gets hit.
+data, this warning gets hit.
 
 There are many reasons why this can happen:
 
