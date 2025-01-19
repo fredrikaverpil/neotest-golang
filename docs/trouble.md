@@ -6,12 +6,48 @@ icon: material/bug
 
 ## Issues with setting up or using the adapter
 
-You can run `:checkhealth neotest-golang` to review common issues. If you need
-configuring neotest-golang help, please open a discussion
+- Run `:checkhealth neotest-golang` to review common issues.
+- Search previous
+  [discussions](https://github.com/fredrikaverpil/neotest-golang/discussions)
+  and [issues](https://github.com/fredrikaverpil/neotest-golang/issues).
+- Enable logging with the [`log_level`](config.md#log_level) option to further
+  inspect what's going on under the hood.
+
+If the problem persists and is configuration-related, please open a discussion
 [here](https://github.com/fredrikaverpil/neotest-golang/discussions/new?category=configuration).
 
-You can also enable logging with the [`log_level`](config.md#log_level) option
-to further inspect what's going on under the hood.
+For bugs and feature requests, feel free to use discussions or file a detailed
+issue.
+
+## Error "Test(s) not associated (not found/executed)"
+
+There are numerous reasons as to why you might be hitting this error. Let me
+briefly explain:
+
+Neotest-golang processes the test JSON execution output and looks for certain
+key/value pairs corresponding to each position (folder, file, test) in the
+Neotest tree. Output and statuses are collected and then populated onto each
+position's data in the tree, but if a position was never populated with any
+data, this error gets hit.
+
+There are many reasons why this can happen:
+
+- Go did not compile and Neotest-golang failed to pick up on it. The intent is
+  that neotest-golang should show a compilation error (please file a bug report
+  if this happens).
+- You are using the default `go_test_args` (or use the `-race` flag), which
+  requires CGO but you don't have `gcc` installed. Read more about this in the
+  [`go_test_args`](config.md#go_test_args) option description.
+- You are on a system which writes non-UTF8 characters to stdout (in which case
+  you can look into [`gotestsum`](config.md#gotestsum) and/or
+  [`sanitize_output`](config.md#sanitize_output)). This has been reported to
+  happen in some specific cases:
+  - When on Windows:
+    [issues/147](https://github.com/fredrikaverpil/neotest-golang/issues/147)
+  - When using Ubuntu snaps:
+    [discussions/161](https://github.com/fredrikaverpil/neotest-golang/discussions/161)
+  - When using the mongodb test-container:
+    [discussions/256](https://github.com/fredrikaverpil/neotest-golang/discussions/256)
 
 ## Neotest is slowing down Neovim
 
