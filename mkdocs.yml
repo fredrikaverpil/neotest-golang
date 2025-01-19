@@ -34,7 +34,7 @@ theme:
     # - navigation.sections
     # - navigation.indexes
     - content.action.edit
-    - content.action.view
+    # - content.action.view
     - content.code.copy
 
   palette:
