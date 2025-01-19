@@ -2,6 +2,7 @@ site_name: neotest-golang
 site_url: https://neotest-golang.github.io
 repo_url: https://github.com/fredrikaverpil/neotest-golang
 docs_dir: docs
+edit_uri: edit/main/docs/
 watch:
   - pyproject.toml
   - uv.lock
@@ -26,7 +27,6 @@ theme:
     # bug: octicons/bug-16
     # example: octicons/beaker-16
     # quote: octicons/quote-16
-  edit_uri: edit/main/docs/
   features:
     - navigation.tracking
     # - navigation.tabs
@@ -47,12 +47,15 @@ theme:
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: black
+      accent: deep orange
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
+      primary: teal
+      accent: deep orange
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
