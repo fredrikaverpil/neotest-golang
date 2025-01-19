@@ -39,15 +39,16 @@ There are many reasons why this can happen:
   requires CGO but you don't have `gcc` installed. Read more about this in the
   [`go_test_args`](config.md#go_test_args) option description.
 - You are on a system which writes non-UTF8 characters to stdout (in which case
-  you can look into [`gotestsum`](config.md#gotestsum) and/or
+  you can look into [`gotestsum` runner](config.md#runner) and/or
   [`sanitize_output`](config.md#sanitize_output)). This has been reported to
   happen in some specific cases:
-  - When on Windows:
-    [issues/147](https://github.com/fredrikaverpil/neotest-golang/issues/147)
-  - When using Ubuntu snaps:
-    [discussions/161](https://github.com/fredrikaverpil/neotest-golang/discussions/161)
-  - When using the mongodb test-container:
-    [discussions/256](https://github.com/fredrikaverpil/neotest-golang/discussions/256)
+
+      - When on Windows:
+        [issues/147](https://github.com/fredrikaverpil/neotest-golang/issues/147)
+      - When using Ubuntu snaps:
+        [discussions/161](https://github.com/fredrikaverpil/neotest-golang/discussions/161)
+      - When using the mongodb test-container:
+        [discussions/256](https://github.com/fredrikaverpil/neotest-golang/discussions/256)
 
 ## Neotest is slowing down Neovim
 
