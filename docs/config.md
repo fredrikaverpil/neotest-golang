@@ -113,7 +113,7 @@ The value can also be passed in as a function.
 Default value: `"dap-go"`
 
 This option toggles between relying on
-[leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) so supply the delve
+[leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) to supply the delve
 DAP configuration, or whether you wish to bring your own DAP configuration.
 
 Set to `"manual"` for manual configuration.
