@@ -99,7 +99,7 @@ Then you have two options:
 
 Finally, set keymaps to run Neotest commands.
 
-!!! example "Keymap for running nearest test"
+!!! example "Keymap for debugging nearest test"
 
     ```lua
     return {
