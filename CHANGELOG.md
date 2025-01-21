@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.9.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.8.0...v1.9.0) (2025-01-21)
+
+
+### Features
+
+* mkdocs ([#262](https://github.com/fredrikaverpil/neotest-golang/issues/262)) ([3f6f3c8](https://github.com/fredrikaverpil/neotest-golang/commit/3f6f3c8d0ce696f9d91fad565c3013f5b3fb3b7c))
+
+
+### Bug Fixes
+
+* temporary fix for 'go list -json -f ...' on windows ([#278](https://github.com/fredrikaverpil/neotest-golang/issues/278)) ([473f54b](https://github.com/fredrikaverpil/neotest-golang/commit/473f54b85bbaead6b29b793ff74eb7cc96bdd0b1))
+
 ## [1.8.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.7.3...v1.8.0) (2025-01-10)
 
 
