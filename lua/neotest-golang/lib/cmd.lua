@@ -54,6 +54,12 @@ function M.golist_command()
     }]],
   }
 
+  -- FIXME: this is a workaround for Windows, where there is a bug with the output
+  -- when using the -f flag: https://github.com/fredrikaverpil/neotest-golang/issues/276
+  if vim.fn.has("win32") == 1 then
+    cmd = { "go", "list", "-json" }
+  end
+
   local go_list_args = options.get().go_list_args
   if type(go_list_args) == "function" then
     go_list_args = go_list_args()
