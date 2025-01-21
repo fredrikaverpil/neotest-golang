@@ -4,23 +4,22 @@ local function normalize_path(path)
   return path:gsub("\\", "/")
 end
 
+local function git_clone()
+  -- Ensure the required Neovim plugins are installed/cloned
+  if vim.fn.has("win32") == 1 then
+    os.execute("bash -c 'tests/install.sh'")
+  else
+    os.execute("tests/install.sh")
+  end
+end
+
 function M.init()
   vim.cmd([[set runtimepath=$VIMRUNTIME]])
   vim.opt.runtimepath:append(".")
   vim.opt.swapfile = false
 
-  -- vim.opt.packpath = {
-  --   ".tests/all/site",
-  -- }
-  --
-  -- vim.cmd([[
-  --     packadd plenary.nvim
-  --     packadd neotest
-  --     packadd nvim-nio
-  --     packadd nvim-treesitter
-  --   ]])
+  git_clone()
 
-  -- Set packpath with explicit paths
   local test_dir = normalize_path(vim.fn.getcwd() .. "/.tests/all/site")
   vim.opt.packpath = { test_dir }
 
@@ -32,35 +31,28 @@ function M.init()
     "nvim-treesitter",
   }
 
-  -- Ensure the required Neovim plugins are installed/cloned
-  if vim.fn.has("win32") == 1 then
-    os.execute("bash -c 'tests/install.sh'")
-  else
-    os.execute("tests/install.sh")
-  end
-
-  print("PLUGINS CLONED")
-
   for _, plugin in ipairs(plugins) do
     local plugin_path =
       normalize_path(test_dir .. "/pack/deps/start/" .. plugin)
     if vim.fn.isdirectory(plugin_path) ~= 1 then
-      -- create path
-      print("Creating path: " .. plugin_path)
-      vim.fn.mkdir(plugin_path, "p")
+      vim.notify(
+        "minimal_init.lua: Failed to find plugin directory: " .. plugin_path,
+        vim.log.levels.ERROR
+      )
+      vim.cmd("q!")
     end
     vim.opt.runtimepath:append(plugin_path)
   end
 
   -- Load plenary explicitly
-  local plenary_path =
-    normalize_path(test_dir .. "/pack/deps/start/plenary.nvim/lua")
-  package.path = package.path
-    .. ";"
-    .. plenary_path
-    .. "/?.lua;"
-    .. plenary_path
-    .. "/?/init.lua"
+  -- local plenary_path =
+  --   normalize_path(test_dir .. "/pack/deps/start/plenary.nvim/lua")
+  -- package.path = package.path
+  --   .. ";"
+  --   .. plenary_path
+  --   .. "/?.lua;"
+  --   .. plenary_path
+  --   .. "/?/init.lua"
 
   -- Source plenary's plugin files
   vim.cmd([[runtime plugin/plenary.vim]])
@@ -75,15 +67,12 @@ function M.init()
     vim.cmd("q!")
   end
 
-  print("RTPATH UPDATED")
-
+  -- Install treesitter parsers
   require("nvim-treesitter.configs").setup({
-    ensure_installed = { "go", "lua" }, -- This will install go and lua parsers
+    ensure_installed = { "go", "lua" },
     auto_install = true,
     sync_install = true,
   })
-
-  print("DONE")
 end
 
 M.init()
