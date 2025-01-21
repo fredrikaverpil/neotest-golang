@@ -23,11 +23,18 @@ local function compareIgnoringKeys(t1, t2, ignoreKeys)
   return copyTable(t1, ignoreKeys), copyTable(t2, ignoreKeys)
 end
 
+local function normalize_windows_path(path)
+  return path:gsub("/", "\\")
+end
+
 describe("With testify_enabled=false", function()
   it("Discover test functions", function()
     -- Arrange
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/testify/positions_test.go"
+    if vim.fn.has("win32") == 1 then
+      test_filepath = normalize_windows_path(test_filepath)
+    end
     local expected = {
       {
         id = test_filepath,
@@ -81,6 +88,9 @@ describe("With testify_enabled=true", function()
     -- Arrange
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/testify/positions_test.go"
+    if vim.fn.has("win32") == 1 then
+      test_filepath = normalize_windows_path(test_filepath)
+    end
     options.set({ testify_enabled = true }) -- enable testify
     local filepaths = lib.find.go_test_filepaths(test_filepath)
     testify.lookup.initialize_lookup(filepaths) -- generate lookup
