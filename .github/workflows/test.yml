@@ -11,8 +11,9 @@ jobs:
   nvim:
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest]
         version: [stable, nightly]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,7 +32,10 @@ jobs:
       - name: Run tests
         run: make test-lua
   go:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
