@@ -54,10 +54,21 @@ function M.golist_command()
     }]],
   }
 
-  -- FIXME: this is a workaround for Windows, where there is a bug with the output
-  -- when using the -f flag: https://github.com/fredrikaverpil/neotest-golang/issues/276
+  -- NOTE: paths do not have backslashes escaped on Windows, required additional dance
   if vim.fn.has("win32") == 1 then
-    cmd = { "go", "list", "-json" }
+    cmd = {
+      "go",
+      "list",
+      "-f",
+      [[{
+  "Dir": {{printf "%q" .Dir}},
+  "ImportPath": "{{.ImportPath}}",
+  "Name": "{{.Name}}",
+  "TestGoFiles": [{{range $i, $f := .TestGoFiles}}{{if ne $i 0}},{{end}}{{printf "%q" $f}}{{end}}],
+  "XTestGoFiles": [{{range $i, $f := .XTestGoFiles}}{{if ne $i 0}},{{end}}{{printf "%q" $f}}{{end}}],
+  "Module": { "GoMod": {{printf "%q" .Module.GoMod}} }
+  }]],
+    }
   end
 
   local go_list_args = options.get().go_list_args
