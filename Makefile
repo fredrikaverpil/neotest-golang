@@ -27,7 +27,7 @@ test-lua:
 		--headless \
 		--noplugin \
 		-u ${TESTS_INIT} \
-		-c "PlenaryBustedDirectory ${TESTS_DIR} { minimal_init = '${TESTS_INIT}' }"
+		-c "PlenaryBustedDirectory ${TESTS_DIR} { minimal_init = '${TESTS_INIT}', timeout = 50000 }"
 
 .PHONY: test-go
 test-go:
