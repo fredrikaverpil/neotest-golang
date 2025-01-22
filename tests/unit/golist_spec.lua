@@ -1,4 +1,8 @@
 local _ = require("plenary")
+local log = require("plenary.log").new({
+  plugin = "neotest-golang",
+  level = "debug",
+})
 
 local lib = require("neotest-golang.lib")
 
@@ -11,8 +15,10 @@ end
 
 describe("go list output from root", function()
   it("contains expected keys/values", function()
+    log.debug("Starting test of go list output")
     local tests_filepath = vim.uv.cwd() .. "/tests/go"
     local output = lib.cmd.golist_data(tests_filepath)
+    log.debug("Command:", vim.inspect(output))
     local first_entry = output[1]
     local expected = {
       Dir = convert_path_separators(tests_filepath .. "/cmd/main"),
