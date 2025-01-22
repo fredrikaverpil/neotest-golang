@@ -32,7 +32,7 @@ test-lua:
 .PHONY: test-go
 test-go:
 	# Do not allow tests to be skipped
-	@cd tests/go && output=$$(go test ./...); \
+	@cd tests/go && output=$$(go test -count=1 ./...); \
 	echo "$$output"; \
 	if echo "$$output" | grep -q "SKIP"; then \
 		echo "Error: Skipped tests detected"; \
