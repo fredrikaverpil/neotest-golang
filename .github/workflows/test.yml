@@ -36,7 +36,7 @@ jobs:
       #     ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
       - name: Run tests
         run: make test-lua
-  go:
+  go-test:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
