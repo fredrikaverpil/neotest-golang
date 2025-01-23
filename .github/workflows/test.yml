@@ -50,3 +50,26 @@ jobs:
           go-version: 1.23
       - name: Run tests
         run: make test-go
+  go-list:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23
+      - name: Run tests
+        run: |
+          go list -f '{
+          "Dir": {{printf "%q" .Dir}},
+          "ImportPath": "{{.ImportPath}}",
+          "Name": "{{.Name}}",
+          "TestGoFiles": [{{range $i, $f := .TestGoFiles}}{{if ne $i 0}},{{end}}{{printf "%q" $f}}{{end}}],
+          "XTestGoFiles": [{{range $i, $f := .XTestGoFiles}}{{if ne $i 0}},{{end}}{{printf "%q" $f}}{{end}}],
+          "Module": { "GoMod": {{printf "%q" .Module.GoMod}} }
+          }' ./...
+
