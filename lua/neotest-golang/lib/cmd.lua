@@ -51,7 +51,7 @@ function M.golist_command()
     "Name": "{{.Name}}",
     "TestGoFiles": [{{range $i, $f := .TestGoFiles}}{{if ne $i 0}},{{end}}"{{$f}}"{{end}}],
     "XTestGoFiles": [{{range $i, $f := .XTestGoFiles}}{{if ne $i 0}},{{end}}"{{$f}}"{{end}}],
-    "Module": { "GoMod": "{{.Module.GoMod}}" }
+    "Module": { "GoMod": {{printf "%q" .Module.GoMod}} }
     }]],
   }
 
