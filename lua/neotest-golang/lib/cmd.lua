@@ -46,7 +46,7 @@ function M.golist_command()
     "list",
     "-f",
     [[{
-    "Dir": "{{printf "%q" .Dir}}",
+    "Dir": {{printf "%q" .Dir}},
     "ImportPath": "{{.ImportPath}}",
     "Name": "{{.Name}}",
     "TestGoFiles": [{{range $i, $f := .TestGoFiles}}{{if ne $i 0}},{{end}}"{{$f}}"{{end}}],
