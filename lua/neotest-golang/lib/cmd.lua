@@ -39,13 +39,14 @@ function M.golist_command()
   -- NOTE: original command can contain a lot of data:
   -- local cmd = { "go", "list", "-json" }
 
-  -- NOTE: optimized command only outputs fields needed:
+  -- NOTE: optimized command only outputs fields needed.
+  -- NOTE: Dir needs %q to escape backslashes on Windows.
   local cmd = {
     "go",
     "list",
     "-f",
     [[{
-    "Dir": "{{.Dir}}",
+    "Dir": "{{printf "%q" .Dir}}",
     "ImportPath": "{{.ImportPath}}",
     "Name": "{{.Name}}",
     "TestGoFiles": [{{range $i, $f := .TestGoFiles}}{{if ne $i 0}},{{end}}"{{$f}}"{{end}}],
@@ -53,23 +54,6 @@ function M.golist_command()
     "Module": { "GoMod": "{{.Module.GoMod}}" }
     }]],
   }
-
-  -- NOTE: paths do not have backslashes escaped on Windows, required additional dance
-  if vim.fn.has("win32") == 1 then
-    cmd = {
-      "go",
-      "list",
-      "-f",
-      [[{
-  "Dir": {{printf "%q" .Dir}},
-  "ImportPath": "{{.ImportPath}}",
-  "Name": "{{.Name}}",
-  "TestGoFiles": [{{range $i, $f := .TestGoFiles}}{{if ne $i 0}},{{end}}{{printf "%q" $f}}{{end}}],
-  "XTestGoFiles": [{{range $i, $f := .XTestGoFiles}}{{if ne $i 0}},{{end}}{{printf "%q" $f}}{{end}}],
-  "Module": { "GoMod": {{printf "%q" .Module.GoMod}} }
-  }]],
-    }
-  end
 
   local go_list_args = options.get().go_list_args
   if type(go_list_args) == "function" then
