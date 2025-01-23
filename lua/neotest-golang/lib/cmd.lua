@@ -40,7 +40,7 @@ function M.golist_command()
   -- local cmd = { "go", "list", "-json" }
 
   -- NOTE: optimized command only outputs fields needed.
-  -- NOTE: Dir needs %q to escape backslashes on Windows.
+  -- NOTE: Dir and GoMod needs %q to escape backslashes on Windows.
   local cmd = {
     "go",
     "list",
