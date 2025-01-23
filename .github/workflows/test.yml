@@ -21,7 +21,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .tests
-          key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ hashFiles('tests/minimal_init.lua') }}
+          key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ hashFiles('tests/busted.lua') }}
       - name: Neovim setup
         uses: rhysd/action-setup-vim@v1
         with:
@@ -29,9 +29,30 @@ jobs:
           version: ${{ matrix.version }}
       - name: Neovim version
         run: nvim --version
+      - name: Install Hererocks
+        run: pip install hererocks
+      - name: Install readline
+        run: sudo apt-get install -y libreadline-dev
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+      - name: Install Lua
+        run: hererocks --lua 5.1 ./lua
+      - name: Add Lua to PATH
+        run: echo "$PWD/lua" >> $GITHUB_PATH
+      - name: Download Luarocks on Windows
+        run: |
+          curl -L https://luarocks.github.io/luarocks/releases/luarocks-3.11.1-win32.zip -o luarocks.zip
+          7z x luarocks.zip
+          ls
+          ls luarocks-3.11.1-win32
+        if: ${{ matrix.os == 'windows-latest' }}
+      - name: Install busted and nlua
+        run: |
+          luarocks-3.11.1-win32/install.bat
+          #luarocks-3.11.1-win32/luarocks.exe install busted --local
+        if: ${{ matrix.os == 'windows-latest' }}
       - name: Run tests
-        run: make test-lua
-        shell: bash
+        # run: make test-lua
+        run: nvim --noplugin -l tests/busted.lua --output TAP tests/
   go-test:
     strategy:
       matrix:
