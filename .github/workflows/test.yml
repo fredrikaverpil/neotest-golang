@@ -62,7 +62,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.23
-      - name: Run tests
+      - name: Run go-list -f ...
         run: |
           go list -f '{
           "Dir": {{printf "%q" .Dir}},
