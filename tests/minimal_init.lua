@@ -44,16 +44,6 @@ function M.init()
     vim.opt.runtimepath:append(plugin_path)
   end
 
-  -- Load plenary explicitly
-  -- local plenary_path =
-  --   normalize_path(test_dir .. "/pack/deps/start/plenary.nvim/lua")
-  -- package.path = package.path
-  --   .. ";"
-  --   .. plenary_path
-  --   .. "/?.lua;"
-  --   .. plenary_path
-  --   .. "/?/init.lua"
-
   -- Source plenary's plugin files
   vim.cmd([[runtime plugin/plenary.vim]])
 
