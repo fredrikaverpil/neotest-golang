@@ -1,7 +1,10 @@
 local M = {}
 
 local function normalize_path(path)
-  return path:gsub("\\", "/")
+  if vim.fn.has("win32") == 1 then
+    return path:gsub("\\", "/")
+  end
+  return path
 end
 
 function M.init()
