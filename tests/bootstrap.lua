@@ -1,19 +1,11 @@
 local M = {}
 
-local function normalize_path(path)
-  if vim.fn.has("win32") == 1 then
-    return path:gsub("\\", "/")
-  end
-  return path
-end
-
 function M.init()
   vim.cmd([[set runtimepath=$VIMRUNTIME]]) -- reset, otherwise it contains all of $PATH
   print("Runtime path: " .. vim.inspect(vim.opt.runtimepath:get()))
   -- vim.opt.runtimepath:append(".") -- add project root to runtime path
   vim.opt.swapfile = false
-
-  local site_dir = normalize_path(vim.fn.getcwd() .. "/.tests/all/site")
+  local site_dir = ".tests/all/site"
   vim.opt.packpath = { site_dir } -- set packpath to the site directory
 
   local plugins = {
@@ -26,8 +18,7 @@ function M.init()
   }
 
   for plugin, data in pairs(plugins) do
-    local plugin_path =
-      normalize_path(site_dir .. "/pack/deps/start/" .. plugin)
+    local plugin_path = site_dir .. "/pack/deps/start/" .. plugin
     if vim.fn.isdirectory(plugin_path) ~= 1 then
       os.execute("git clone " .. data.url .. " " .. plugin_path)
     else
