@@ -1,29 +1,10 @@
 local M = {}
 
+--- Initialize before running each test.
 function M.init()
-  vim.cmd([[set runtimepath=$VIMRUNTIME]])
-  vim.opt.runtimepath:append(".")
+  vim.cmd([[set runtimepath=$VIMRUNTIME]]) -- reset, otherwise it contains all of $PATH
   vim.opt.swapfile = false
-
-  vim.opt.packpath = {
-    ".tests/all/site",
-  }
-
-  vim.cmd([[
-      packadd plenary.nvim
-      packadd neotest
-      packadd nvim-nio
-      packadd nvim-treesitter
-    ]])
-
-  require("nvim-treesitter.configs").setup({
-    ensure_installed = { "go", "lua" }, -- This will install go and lua parsers
-    auto_install = true,
-    sync_install = true,
-  })
+  vim.opt.packpath = { ".tests/all/site" } -- set packpath to the site directory
 end
-
--- Ensure the required Neovim plugins are installed/cloned
-os.execute("tests/install.sh")
 
 M.init()

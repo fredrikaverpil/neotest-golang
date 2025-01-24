@@ -1,6 +1,3 @@
-TESTS_INIT=tests/minimal_init.lua
-TESTS_DIR=tests/
-
 # --- Default targets ---
 
 .PHONY: install
@@ -21,19 +18,28 @@ vuln: vuln-go
 
 # --- Targets ---
 
+.PHONY: clean
+clean:
+	rm -rf .tests
+
 .PHONY: test-lua
 test-lua:
 	nvim \
 		--headless \
 		--noplugin \
-		-u ${TESTS_INIT} \
-		-c "PlenaryBustedDirectory ${TESTS_DIR} { minimal_init = '${TESTS_INIT}' }"
+		-i NONE \
+		-u tests/bootstrap.lua \
+		-c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', timeout = 50000 }"
 
 .PHONY: test-go
 test-go:
 	# Do not allow tests to be skipped
-	cd tests/go && \
-	go test -v ./... | tee /dev/fd/2 | grep -q "SKIP" && exit 1 || exit 0
+	@cd tests/go && output=$$(go test -v -count=1 ./...); \
+	echo "$$output"; \
+	if echo "$$output" | grep -q "SKIP"; then \
+		echo "Error: Skipped tests detected"; \
+		exit 1; \
+	fi
 
 .PHONY: format-go
 format-go:

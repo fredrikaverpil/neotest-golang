@@ -19,11 +19,18 @@ local function compareIgnoringKeys(t1, t2, ignoreKeys)
   return copyTable(t1, ignoreKeys), copyTable(t2, ignoreKeys)
 end
 
+local function normalize_windows_path(path)
+  return path:gsub("/", "\\")
+end
+
 describe("Discovery of test positions", function()
   it("Discover OK", function()
     -- Arrange
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/positions/positions_test.go"
+    if vim.fn.has("win32") == 1 then
+      test_filepath = normalize_windows_path(test_filepath)
+    end
     local expected = {
       {
         id = test_filepath,

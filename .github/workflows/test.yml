@@ -11,11 +11,17 @@ jobs:
   nvim:
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest]
         version: [stable, nightly]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: .tests
+          key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ hashFiles('tests/minimal_init.lua') }}-${{ hashFiles('tests/bootstrap.lua') }}
       - name: Neovim setup
         uses: rhysd/action-setup-vim@v1
         with:
@@ -23,15 +29,13 @@ jobs:
           version: ${{ matrix.version }}
       - name: Neovim version
         run: nvim --version
-      - name: Bootstrap plenary for CI
-        run: |
-          mkdir -p ~/.local/share/nvim/site/pack/vendor/start
-          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
-          ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
       - name: Run tests
         run: make test-lua
-  go:
-    runs-on: ubuntu-latest
+  go-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,3 +45,4 @@ jobs:
           go-version: 1.23
       - name: Run tests
         run: make test-go
+
