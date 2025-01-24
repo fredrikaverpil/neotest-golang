@@ -4,7 +4,4 @@ version = "0.1.0"
 description = "Neotest-golang docs"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-    "hererocks>=0.25.1",
-    "mkdocs-material",
-]
+dependencies = ["mkdocs-material"]

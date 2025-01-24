@@ -21,17 +21,13 @@ vuln: vuln-go
 
 # --- Targets ---
 
-# https://lazy.folke.io/developers#minit-minimal-init
-# https://www.reddit.com/r/neovim/comments/1dr5152/testing_your_neovim_plugins_with_busted_and/
-
-.PHONY: lazy
-lazy:
-	mkdir -p .tests
-	git clone --depth 1 https://github.com/folke/lazy.nvim.git .tests/lazy.nvim
-
 .PHONY: test-lua
-test-lua: lazy
-	./scripts/test
+test-lua:
+	nvim \
+		--headless \
+		--noplugin \
+		-u ${TESTS_INIT} \
+		-c "PlenaryBustedDirectory ${TESTS_DIR} { minimal_init = '${TESTS_INIT}', timeout = 50000, sequential = true }"
 
 .PHONY: test-go
 test-go:
