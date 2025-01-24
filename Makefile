@@ -26,6 +26,7 @@ test-lua:
 	nvim \
 		--headless \
 		--noplugin \
+		-i NONE \
 		-u tests/bootstrap.lua \
 		-c "PlenaryBustedDirectory ${TESTS_DIR} { minimal_init = '${TESTS_INIT}', timeout = 50000 }"
 
