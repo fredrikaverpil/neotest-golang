@@ -11,7 +11,7 @@ jobs:
   nvim:
     strategy:
       matrix:
-        os: [ubuntu-latest] # skip windows-latest
+        os: [ubuntu-latest, windows-latest]
         version: [stable, nightly]
     runs-on: ${{ matrix.os }}
     steps:
