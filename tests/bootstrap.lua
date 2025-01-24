@@ -1,5 +1,7 @@
 local M = {}
 
+--- Initialize the test environment.
+--- Thie file will run once before attempting to run PlenaryBustedDirectory.
 function M.init()
   vim.cmd([[set runtimepath=$VIMRUNTIME]]) -- reset, otherwise it contains all of $PATH
   print("Runtime path: " .. vim.inspect(vim.opt.runtimepath:get()))
@@ -8,6 +10,7 @@ function M.init()
   local site_dir = ".tests/all/site"
   vim.opt.packpath = { site_dir } -- set packpath to the site directory
 
+  -- Clone down plugins, add to runtimepath
   local plugins = {
     ["plenary.nvim"] = { url = "https://github.com/nvim-lua/plenary.nvim" },
     ["nvim-nio"] = { url = "https://github.com/nvim-neotest/nvim-nio" },
@@ -16,7 +19,6 @@ function M.init()
     },
     neotest = { url = "https://github.com/nvim-neotest/neotest" },
   }
-
   for plugin, data in pairs(plugins) do
     local plugin_path = site_dir .. "/pack/deps/start/" .. plugin
     if vim.fn.isdirectory(plugin_path) ~= 1 then
@@ -31,12 +33,12 @@ function M.init()
   print("Runtime path: " .. vim.inspect(vim.opt.runtimepath:get()))
   print("Package path: " .. package.path)
 
-  -- test availability
+  -- Check availability
   require("plenary")
   require("neotest")
   require("nvim-treesitter")
 
-  -- Installed go parser, if not already installed
+  -- Install go parser, if not already installed
   require("nvim-treesitter.configs").setup({
     ensure_installed = { "go" },
     auto_install = true,
