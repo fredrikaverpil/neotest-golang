@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.9.0...v1.9.1) (2025-01-24)
+
+
+### Bug Fixes
+
+* `go test -f` needs backslash escaping on Windows ([#277](https://github.com/fredrikaverpil/neotest-golang/issues/277)) ([3d259fd](https://github.com/fredrikaverpil/neotest-golang/commit/3d259fd31765f0a6a411f1f15a169392f539c19f))
+
 ## [1.9.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.8.0...v1.9.0) (2025-01-21)
 
 
