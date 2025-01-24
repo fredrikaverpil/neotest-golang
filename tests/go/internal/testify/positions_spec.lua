@@ -124,6 +124,40 @@ describe("With testify_enabled=true", function()
             type = "test",
           },
         },
+        {
+          {
+            id = test_filepath .. "::TestExampleTestSuite::TestSubTestOperand1",
+            name = "TestSubTestOperand1",
+            path = test_filepath,
+            type = "test",
+          },
+          {
+            {
+              id = test_filepath
+                .. '::TestExampleTestSuite::TestSubTestOperand1::"subtest"',
+              name = '"subtest"',
+              path = test_filepath,
+              type = "test",
+            },
+          },
+        },
+        {
+          {
+            id = test_filepath .. "::TestExampleTestSuite::TestSubTestOperand2",
+            name = "TestSubTestOperand2",
+            path = test_filepath,
+            type = "test",
+          },
+          {
+            {
+              id = test_filepath
+                .. '::TestExampleTestSuite::TestSubTestOperand2::"subtest"',
+              name = '"subtest"',
+              path = test_filepath,
+              type = "test",
+            },
+          },
+        },
       },
       {
         {

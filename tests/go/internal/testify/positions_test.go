@@ -76,3 +76,21 @@ func TestTrivial(t *testing.T) {
 func (suite *OtherTestSuite) TestOther() {
 	assert.Equal(suite.T(), 5, suite.VariableThatShouldStartAtFive)
 }
+
+// --------------------------------------------------------------------
+
+// A test method with a subttest, using operand suite.
+func (suite *ExampleTestSuite) TestSubTestOperand1() {
+	suite.Run("subtest", func() {
+		suite.VariableThatShouldStartAtFive = 10
+		assert.Equal(suite.T(), 10, suite.VariableThatShouldStartAtFive)
+	})
+}
+
+// A test method with a subttest, using operand s.
+func (s *ExampleTestSuite) TestSubTestOperand2() {
+	s.Run("subtest", func() {
+		s.VariableThatShouldStartAtFive = 10
+		assert.Equal(s.T(), 10, s.VariableThatShouldStartAtFive)
+	})
+}

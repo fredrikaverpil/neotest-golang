@@ -17,7 +17,17 @@ M.namespace_query = [[
         type: (pointer_type
           (type_identifier) @namespace.name )))) @namespace.definition
     name: (field_identifier) @test_function (#match? @test_function "^(Test|Example)") (#not-match? @test.name "^TestMain$")
-  ]]
+]]
+
+M.subtest_query = [[
+   ; query for subtest, like s.Run(), suite.Run()
+  (call_expression
+    function: (selector_expression
+      operand: (identifier) @test.operand (#match? @test.operand "^(s|suite)$")
+      field: (field_identifier) @test.method) (#match? @test.method "^Run$")
+    arguments: (argument_list . (interpreted_string_literal) @test.name))
+    @test.definition
+]]
 
 M.test_method_query = [[
    ; query for test method
