@@ -42,9 +42,7 @@ function M.init()
   require("neotest")
   require("nvim-treesitter")
 
-  -- Installed parsers
-  local installed = require("nvim-treesitter.parsers").get_parser_configs()
-  print("Installing go parser")
+  -- Installed go parser, if not already installed
   require("nvim-treesitter.configs").setup({
     ensure_installed = { "go" },
     auto_install = true,
