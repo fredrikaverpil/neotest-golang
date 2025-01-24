@@ -1,6 +1,3 @@
-TESTS_INIT=tests/minimal_init.lua
-TESTS_DIR=tests/
-
 # --- Default targets ---
 
 .PHONY: install
@@ -21,6 +18,10 @@ vuln: vuln-go
 
 # --- Targets ---
 
+.PHONY: clean
+clean:
+	rm -rf .tests
+
 .PHONY: test-lua
 test-lua:
 	nvim \
@@ -28,7 +29,7 @@ test-lua:
 		--noplugin \
 		-i NONE \
 		-u tests/bootstrap.lua \
-		-c "PlenaryBustedDirectory ${TESTS_DIR} { minimal_init = '${TESTS_INIT}', timeout = 50000 }"
+		-c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', timeout = 50000 }"
 
 .PHONY: test-go
 test-go:
