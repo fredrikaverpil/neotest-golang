@@ -26,8 +26,8 @@ test-lua:
 	nvim \
 		--headless \
 		--noplugin \
-		-u ${TESTS_INIT} \
-		-c "PlenaryBustedDirectory ${TESTS_DIR} { minimal_init = '${TESTS_INIT}', timeout = 50000, sequential = true }"
+		-u tests/bootstrap.lua \
+		-c "PlenaryBustedDirectory ${TESTS_DIR} { minimal_init = '${TESTS_INIT}', timeout = 50000 }"
 
 .PHONY: test-go
 test-go:
