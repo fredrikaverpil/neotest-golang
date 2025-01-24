@@ -31,7 +31,6 @@ jobs:
         run: nvim --version
       - name: Run tests
         run: make test-lua
-        shell: bash
   go-test:
     strategy:
       matrix:
