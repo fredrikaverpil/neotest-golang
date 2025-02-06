@@ -94,3 +94,30 @@ func (s *ExampleTestSuite) TestSubTestOperand2() {
 		assert.Equal(s.T(), 10, s.VariableThatShouldStartAtFive)
 	})
 }
+
+// A test method with a subttest, using operand s and sub-tests.
+func (s *ExampleTestSuite) TestSubTestOperand3() {
+	tt := []struct {
+		name  string
+		value int
+	}{
+		{
+			name:  "foo",
+			value: 5,
+		},
+		{
+			name:  "bar",
+			value: 5,
+		},
+		{
+			name:  "baz",
+			value: 5,
+		},
+	}
+	for _, tc := range tt {
+		s.Run(tc.name, func() {
+			s.VariableThatShouldStartAtFive = tc.value
+			assert.Equal(s.T(), 5, s.VariableThatShouldStartAtFive)
+		})
+	}
+}
