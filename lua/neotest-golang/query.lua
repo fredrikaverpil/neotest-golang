@@ -199,6 +199,7 @@ function M.detect_tests(file_path)
     query = query
       .. testify.query.namespace_query
       .. testify.query.test_method_query
+      .. testify.query.subtest_query
   end
 
   ---@type neotest.Tree
