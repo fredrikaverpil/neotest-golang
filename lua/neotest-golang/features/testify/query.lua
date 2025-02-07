@@ -1,6 +1,7 @@
 --- Helper functions around running Treesitter queries.
 
 local parsers = require("nvim-treesitter.parsers")
+local options = require("neotest-golang.options")
 
 local M = {}
 
@@ -29,18 +30,21 @@ M.test_method_query = [[
   ) @test.definition
 ]]
 
-M.subtest_query = [[
+M.subtest_query = string.format(
+  [[
    ; query for subtest, like s.Run(), suite.Run()
   (call_expression
     function: (selector_expression
-      operand: (identifier) @test.operand (#match? @test.operand "^(s|suite)$")
+      operand: (identifier) @test.operand (#match? @test.operand "%s")
       field: (field_identifier) @test.method (#match? @test.method "^Run$")
     ) 
     arguments: (argument_list
       . (interpreted_string_literal) @test.name
     )
   ) @test.definition
-]]
+]],
+  options.get().testify_operand
+)
 
 --- Run a TreeSitter query on a file and return the matches.
 --- @param filepath string The path to the file to query

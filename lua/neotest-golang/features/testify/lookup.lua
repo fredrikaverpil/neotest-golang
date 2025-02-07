@@ -1,6 +1,7 @@
 --- Lookup table for renaming Neotest namespaces (receiver type to testify suite function).
 
 local query = require("neotest-golang.features.testify.query")
+local options = require("neotest-golang.options")
 
 local M = {}
 
@@ -16,11 +17,12 @@ M.package_query = [[
   )
 ]]
 
-M.suite_query = [[
+M.suite_query = string.format(
+  [[
   ;; query:
   ;;
   ;; func TestSuite(t *testing.T) {  // @test_function
-  ;;   suite.Run(t, new(testSuitestruct))  // @suite_lib, @run_method, @suite_receiver
+  ;;   suite.Run(t, new(testSuitestruct))  // @import_identifier, @run_method, @suite_receiver
   ;; }
   (function_declaration
     name: (identifier) @test_function (#match? @test_function "^Test")
@@ -28,8 +30,8 @@ M.suite_query = [[
       (expression_statement
         (call_expression
           function: (selector_expression
-            operand: (identifier) @suite_lib (#eq? @suite_lib "suite")
-            field: (field_identifier) @run_method (#eq? @run_method "Run")
+            operand: (identifier) @import_identifier (#match? @import_identifier "%s")
+            field: (field_identifier) @run_method (#match? @run_method "^Run$")
           )
           arguments: (argument_list
             (identifier)
@@ -43,14 +45,17 @@ M.suite_query = [[
       )
     )
   )
-]]
+]],
+  options.get().testify_import_identifier
+)
 
-M.test_function_query = [[
+M.test_function_query = string.format(
+  [[
   ;; query:
   ;;
   ;; func TestSuite(t *testing.T) {  // @test_function
   ;;   s := &testSuiteStruct{}  // @suite_struct
-  ;;   suite.Run(t, s) // @suite_lib, @run_method
+  ;;   suite.Run(t, s) // @import_identifier, @run_method
   ;; }
   (function_declaration 
     name: (identifier) @test_function (#match? @test_function "^Test")
@@ -82,8 +87,8 @@ M.test_function_query = [[
       (expression_statement 
         (call_expression 
           function: (selector_expression 
-            operand: (identifier) @suite_lib (#eq? @suite_lib "suite")
-            field: (field_identifier) @run_method (#eq? @run_method "Run")
+            operand: (identifier) @import_identifier (#match? @import_identifier "%s")
+            field: (field_identifier) @run_method (#match? @run_method "^Run$")
           )
           arguments: (argument_list 
             (identifier) 
@@ -93,7 +98,9 @@ M.test_function_query = [[
       )
     )
   )
-]]
+]],
+  options.get().testify_import_identifier
+)
 
 local function create_lookup_manager()
   local lookup_table = {}
