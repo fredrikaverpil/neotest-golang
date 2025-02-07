@@ -63,8 +63,8 @@ M.table_tests_list = [[
           (call_expression
             function: (selector_expression
               operand: (identifier) @test.operand (#match? @test.operand "^[t]$")
-              field: (field_identifier) @test.method
-            ) (#match? @test.method "^Run$") ; TODO: move up and inside `field`?
+              field: (field_identifier) @test.method (#match? @test.method "^Run$")
+            )
             arguments: (argument_list
               (selector_expression
                 operand: (identifier) @test.case1 (#eq? @test.case @test.case1)
@@ -170,8 +170,8 @@ M.table_tests_unkeyed = [[
           (call_expression
             function: (selector_expression
               operand: (identifier) @test.operand (#match? @test.operand "^[t]$")
-              field: (field_identifier) @test.method
-            ) (#match? @test.method "^Run$") ; NOTE: move up and inside `field`?
+              field: (field_identifier) @test.method (#match? @test.method "^Run$")
+            )
             arguments: (argument_list
               (selector_expression
                 operand: (identifier) @test.case1 (#eq? @test.case @test.case1)
@@ -220,8 +220,8 @@ M.table_tests_loop_unkeyed = [[
         (call_expression
           function: (selector_expression
             operand: (identifier) @test.operand (#match? @test.operand "^[t]$")
-            field: (field_identifier) @test.method
-          ) (#match? @test.method "^Run$") ; NOTE: move up and inside `field`?
+            field: (field_identifier) @test.method (#match? @test.method "^Run$")
+          )
           arguments: (argument_list
             (selector_expression
               operand: (identifier) @test.case1 (#eq? @test.case @test.case1)
@@ -273,8 +273,8 @@ M.table_tests_map = [[
           (call_expression
             function: (selector_expression
               operand: (identifier) @test.operand (#match? @test.operand "^[t]$")
-              field: (field_identifier) @test.method
-            ) (#match? @test.method "^Run$") ; NOTE: move up and inside `field`?
+              field: (field_identifier) @test.method (#match? @test.method "^Run$")
+            )
             arguments: (argument_list
               (
                 (identifier) @test.key.name1 (#eq? @test.key.name @test.key.name1)
