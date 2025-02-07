@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.2](https://github.com/fredrikaverpil/neotest-golang/compare/v1.9.1...v1.9.2) (2025-02-07)
+
+
+### Bug Fixes
+
+* match directive in testify query ([#286](https://github.com/fredrikaverpil/neotest-golang/issues/286)) ([247ffd9](https://github.com/fredrikaverpil/neotest-golang/commit/247ffd9de9f8b86bd426b7bd6686902ae500b506))
+* testify operand not recognized ([#284](https://github.com/fredrikaverpil/neotest-golang/issues/284)) ([78a0a1c](https://github.com/fredrikaverpil/neotest-golang/commit/78a0a1c49d95d562c8e7cd439fed29784e2e90c5))
+
 ## [1.9.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.9.0...v1.9.1) (2025-01-24)
 
 
