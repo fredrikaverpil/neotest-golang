@@ -4,18 +4,24 @@ local query = require("neotest-golang.features.testify.query")
 
 local M = {}
 
---- TreeSitter query for identifying testify suites and their components.
---- @type string
-M.query = [[
-  ; query for the lookup between receiver and test suite.
+-- TreeSitter query for identifying testify suites and their components.
+-- Below, queries for the lookup between receiver and test suite.
 
-  ; package main  // @package
+M.package_query = [[
+  ;; query:
+  ;;
+  ;; package main  // @package
   (package_clause
-    (package_identifier) @package)
+    (package_identifier) @package
+  )
+]]
 
-  ; func TestSuite(t *testing.T) {  // @test_function
-  ;   suite.Run(t, new(testSuitestruct))  // @suite_lib, @run_method, @suite_receiver
-  ; }
+M.suite_query = [[
+  ;; query:
+  ;;
+  ;; func TestSuite(t *testing.T) {  // @test_function
+  ;;   suite.Run(t, new(testSuitestruct))  // @suite_lib, @run_method, @suite_receiver
+  ;; }
   (function_declaration
     name: (identifier) @test_function (#match? @test_function "^Test")
     body: (block
@@ -23,17 +29,29 @@ M.query = [[
         (call_expression
           function: (selector_expression
             operand: (identifier) @suite_lib (#eq? @suite_lib "suite")
-            field: (field_identifier) @run_method (#eq? @run_method "Run"))
+            field: (field_identifier) @run_method (#eq? @run_method "Run")
+          )
           arguments: (argument_list
             (identifier)
             (call_expression
               arguments: (argument_list
-                (type_identifier) @suite_struct)))))))
+                (type_identifier) @suite_struct
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+]]
 
-  ; func TestSuite(t *testing.T) {  // @test_function
-  ;   s := &testSuiteStruct{}  // @suite_struct
-  ;   suite.Run(t, s) // @suite_lib, @run_method
-  ; }
+M.test_function_query = [[
+  ;; query:
+  ;;
+  ;; func TestSuite(t *testing.T) {  // @test_function
+  ;;   s := &testSuiteStruct{}  // @suite_struct
+  ;;   suite.Run(t, s) // @suite_lib, @run_method
+  ;; }
   (function_declaration 
     name: (identifier) @test_function (#match? @test_function "^Test")
     parameters: (parameter_list 
@@ -42,24 +60,39 @@ M.query = [[
         type: (pointer_type 
           (qualified_type 
             package: (package_identifier) 
-            name: (type_identifier))))) 
+            name: (type_identifier)
+          )
+        )
+      )
+    ) 
     body: (block 
       (short_var_declaration 
         left: (expression_list 
-          (identifier)) 
+          (identifier)
+        ) 
         right: (expression_list 
           (unary_expression 
             operand: (composite_literal 
               type: (type_identifier) @suite_struct 
-              body: (literal_value))))) 
+              body: (literal_value)
+            )
+          )
+        )
+      ) 
       (expression_statement 
         (call_expression 
           function: (selector_expression 
             operand: (identifier) @suite_lib (#eq? @suite_lib "suite")
-            field: (field_identifier) @run_method (#eq? @run_method "Run"))
+            field: (field_identifier) @run_method (#eq? @run_method "Run")
+          )
           arguments: (argument_list 
             (identifier) 
-            (identifier))))))
+            (identifier)
+          )
+        )
+      )
+    )
+  )
 ]]
 
 local function create_lookup_manager()
@@ -100,7 +133,8 @@ function M.generate_data(file_path)
   local data = {}
 
   -- First pass: collect all data for the lookup table.
-  local matches = query.run_query_on_file(file_path, M.query)
+  local queries = M.package_query .. M.suite_query .. M.test_function_query
+  local matches = query.run_query_on_file(file_path, queries)
 
   local package_name = matches.package
       and matches.package[1]
