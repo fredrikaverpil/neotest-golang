@@ -34,8 +34,8 @@ M.subtest_query = [[
   (call_expression
     function: (selector_expression
       operand: (identifier) @test.operand (#match? @test.operand "^(s|suite)$")
-      field: (field_identifier) @test.method
-    ) (#match? @test.method "^Run$")
+      field: (field_identifier) @test.method (#match? @test.method "^Run$")
+    ) 
     arguments: (argument_list
       . (interpreted_string_literal) @test.name
     )
