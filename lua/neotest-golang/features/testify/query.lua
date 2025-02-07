@@ -10,13 +10,23 @@ M.namespace_query = [[
   ; func (suite *testSuite) TestSomething() { // @namespace.name
   ;  // test code
   ; }
-   (method_declaration
+  (method_declaration
     receiver: (parameter_list
       (parameter_declaration
-        ; name: (identifier)
         type: (pointer_type
-          (type_identifier) @namespace.name )))) @namespace.definition
-    name: (field_identifier) @test_function (#match? @test_function "^(Test|Example)") (#not-match? @test.name "^TestMain$")
+          (type_identifier) @namespace.name
+        )
+      )
+    )
+  ) @namespace.definition
+  name: (field_identifier) @test_function (#match? @test_function "^(Test|Example)") (#not-match? @test.name "^TestMain$")
+]]
+
+M.test_method_query = [[
+   ; query for test method
+  (method_declaration
+    name: (field_identifier) @test.name (#match? @test.name "^(Test|Example)") (#not-match? @test.name "^TestMain$")
+  ) @test.definition
 ]]
 
 M.subtest_query = [[
@@ -24,16 +34,13 @@ M.subtest_query = [[
   (call_expression
     function: (selector_expression
       operand: (identifier) @test.operand (#match? @test.operand "^(s|suite)$")
-      field: (field_identifier) @test.method) (#match? @test.method "^Run$")
-    arguments: (argument_list . (interpreted_string_literal) @test.name))
-    @test.definition
+      field: (field_identifier) @test.method (#match? @test.method "^Run$")
+    ) 
+    arguments: (argument_list
+      . (interpreted_string_literal) @test.name
+    )
+  ) @test.definition
 ]]
-
-M.test_method_query = [[
-   ; query for test method
-   (method_declaration
-    name: (field_identifier) @test.name (#match? @test.name "^(Test|Example)") (#not-match? @test.name "^TestMain$")) @test.definition
-  ]]
 
 --- Run a TreeSitter query on a file and return the matches.
 --- @param filepath string The path to the file to query
