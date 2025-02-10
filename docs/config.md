@@ -160,6 +160,51 @@ Enable support for [testify](https://github.com/stretchr/testify) suites.
     remedied at any time by extending the treesitter queries. Feel free to dig in
     and open a PR!
 
+### `testify_operand`
+
+Default value: `"^(s|suite)$"`
+
+Extend this regex value to support something other than e.g. `s.Run` or
+`suite.Run` for running subtests.
+
+??? example "Custom subtest operand"
+
+    If `x` is used as operand for the `Run` method, you must set this option
+    and extend the regex.
+
+    ```go
+    func (x *TestSuite) TestFoo() {
+        x.Run("foo", func() {
+            ...
+        })
+    }
+    ```
+
+    ```lua
+    opts = { testify_operand = "^(s|suite|x)$" }
+    ```
+
+### `testify_import_identifier`
+
+Default value: `"^(suite)$"`
+
+Extend this regex value if you use a custom import identifier.
+
+??? example "Custom import identifier"
+
+    If `suite` is available under the import identifier `testifysuite`,
+    you need to set this option and extend the regex.
+
+    ```go
+    import (
+        testifysuite "github.com/stretchr/testify/suite"
+    )
+    ```
+
+    ```lua
+    opts = { testify_import_identifier = "^(suite|testifysuite)$" }
+    ```
+
 ### `colorize_test_output`
 
 Default value: `true`
