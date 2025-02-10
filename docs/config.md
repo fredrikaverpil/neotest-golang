@@ -154,9 +154,9 @@ Enable support for [testify](https://github.com/stretchr/testify) suites.
     duplicates. I'm personally a bit afraid of the maintenance burden of this
     feature... 🙈
 
-!!! note "Subtests not supported"
+!!! note "Table tests not supported"
 
-    Right now, nested tests and table tests are not supported for testify suites. All of this can be
+    Right now, table tests are not supported for testify suites. This can be
     remedied at any time by extending the treesitter queries. Feel free to dig in
     and open a PR!
 
