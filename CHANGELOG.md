@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.9.2...v1.10.0) (2025-02-10)
+
+
+### Features
+
+* optional regex for testify operand and import identifier ([#291](https://github.com/fredrikaverpil/neotest-golang/issues/291)) ([8f0c4fd](https://github.com/fredrikaverpil/neotest-golang/commit/8f0c4fdadb63db5881f0e3e839a14b729ebb7ecc))
+
 ## [1.9.2](https://github.com/fredrikaverpil/neotest-golang/compare/v1.9.1...v1.9.2) (2025-02-07)
 
 
