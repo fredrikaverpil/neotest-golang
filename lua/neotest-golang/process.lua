@@ -434,7 +434,9 @@ function M.decorate_with_go_test_results(res, gotest_output)
           test_data.status = "passed"
         elseif line.Action == "fail" then
           test_data.status = "failed"
-        elseif line.Action == "output" then
+        end
+
+        if line.Action == "output" then
           line.Output = M.colorizer(line.Output)
 
           test_data.gotest_data.output =
