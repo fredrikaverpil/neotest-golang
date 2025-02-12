@@ -185,15 +185,29 @@ end
 function M.filter_gotest_output(raw_output, gotest_output, build_failed, runner)
   local o = {}
 
-  if not build_failed or (build_failed and runner == "go") then
+  if not build_failed then
     for _, line in ipairs(gotest_output) do
       if line.Action == "output" then
         line.Output = M.colorizer(line.Output)
         table.insert(o, line.Output)
       end
     end
+  elseif build_failed and runner == "go" then
+    for _, line in ipairs(gotest_output) do
+      if line.Action == "build-output" then
+        line.Output = M.colorizer(line.Output)
+        table.insert(o, line.Output)
+      end
+    end
   else
     if build_failed and runner == "gotestsum" then
+      for _, line in ipairs(gotest_output) do
+        if line.Action == "build-output" then
+          line.Output = M.colorizer(line.Output)
+          table.insert(o, line.Output)
+        end
+      end
+
       for _, line in ipairs(raw_output) do
         line = M.colorizer(line)
         table.insert(o, line)
@@ -211,7 +225,9 @@ end
 function M.detect_build_errors(result, raw_output)
   if result.code ~= 0 and #raw_output > 0 then
     for _, line in pairs(raw_output) do
-      if string.find(line, "build failed", 1, true) then
+      if string.find(line, "build-fail", 1, true) then -- introduced in Go 1.24
+        return true
+      elseif string.find(line, "build failed", 1, true) then
         return true
       elseif string.find(line, "setup failed", 1, true) then
         return true
@@ -241,11 +257,20 @@ function M.build_failure_lookup(
   if runner == "go" then
     output = gotest_output
   elseif runner == "gotestsum" then
-    output = raw_output
+    output = raw_output -- FIXME: will not be able to pick up on 'build-fail' action
   end
 
   local failed_packages = {}
   for _, value in pairs(output) do
+    -- go 1.24 introduced 'build-fail' action
+    if value.Action == "build-fail" then
+      local failed_package = vim.split(value.ImportPath, " ")[1]
+      vim.notify(vim.inspect(failed_package))
+      if not vim.tbl_contains(failed_packages, failed_package) then
+        table.insert(failed_packages, failed_package)
+      end
+    end
+
     -- if the output starts with '#'
     if
       runner == "go"
@@ -436,6 +461,9 @@ function M.decorate_with_go_test_results(res, gotest_output)
         then
           -- NOTE: for some reason, when sanitizing output, the above success case is not hit.
           test_data.status = "passed"
+        elseif line.Action == "build-fail" then
+          line.Output = "WHOHEY BUILD FAIL"
+          test_data.status = "failed"
         elseif line.Action == "fail" then
           test_data.status = "failed"
         end
