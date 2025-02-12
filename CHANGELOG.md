@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.10.0...v1.10.1) (2025-02-12)
+
+
+### Bug Fixes
+
+* missing output from test execution ([#294](https://github.com/fredrikaverpil/neotest-golang/issues/294)) ([17d7de3](https://github.com/fredrikaverpil/neotest-golang/commit/17d7de3ba15c913e73824b8d7410dbc517a06a70))
+
 ## [1.10.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.9.2...v1.10.0) (2025-02-10)
 
 
