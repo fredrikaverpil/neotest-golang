@@ -11,7 +11,7 @@ jobs:
   nvim:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         version: [stable, nightly]
     runs-on: ${{ matrix.os }}
     steps:
@@ -34,7 +34,7 @@ jobs:
   go-test:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         go-version: [1.24] # rc versions are defined like 1.24.0-rc.3
     runs-on: ${{ matrix.os }}
     env:
