@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.2](https://github.com/fredrikaverpil/neotest-golang/compare/v1.10.1...v1.10.2) (2025-02-18)
+
+
+### Bug Fixes
+
+* added outputMode = remote ([#299](https://github.com/fredrikaverpil/neotest-golang/issues/)) ([261f695](https://github.com/fredrikaverpil/neotest-golang/commit/261f695cda63d203850f2bcdf5b21b0cfd76032e))
+
 ## [1.10.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.10.0...v1.10.1) (2025-02-12)
 
 
