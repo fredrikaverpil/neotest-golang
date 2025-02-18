@@ -41,6 +41,7 @@ function M.get_dap_config(test_path, test_name_regex)
     request = "launch",
     mode = "test",
     program = test_path,
+    outputMode = "remote",
   }
 
   if test_name_regex ~= nil then
