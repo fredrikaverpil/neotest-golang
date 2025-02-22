@@ -5,6 +5,7 @@ on:
       - opened
       - edited
       - synchronize
+      - reopened
 permissions:
   pull-requests: read
 jobs:
@@ -15,5 +16,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          validateSingleCommit: true
+          validateSingleCommitMatchesPrTitle: true
           ignoreLabels: |
             autorelease: pending
