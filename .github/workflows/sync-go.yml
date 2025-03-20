@@ -1,0 +1,19 @@
+name: go
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+# NOTE: This file will not be re-synced automatically. Add project-specifics here.
+
+jobs:
+  ci:
+    uses: fredrikaverpil/github/.github/workflows/go.yml@main
+    with:
+      go-versions: '["1.24"]' # rc versions are defined like 1.24.0-rc.3
+      os-versions: '["ubuntu-latest"]'
+      golangci-config-source: golden-latest
+      skip-golangci: true
