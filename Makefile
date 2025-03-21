@@ -1,20 +1,30 @@
 # --- Default targets ---
 
-.PHONY: install
-install: install-go-tooling
-.PHONY: install-go-tooling
-install-go-tooling: install-format-go install-lint-go install-vuln-go
 .PHONY: all
 all: test format lint vuln git-diff
+
 .PHONY: test
 test: test-lua test-go
+
 .PHONY: format
 format: format-go
+
 .PHONY: lint
 lint: lint-go
+
 .PHONY: vuln
 vuln: vuln-go
 
+# --- Tool definitions ---
+
+TOOLS_MODFILE := $(CURDIR)/tools/go.mod
+GCI := go tool -modfile=$(TOOLS_MODFILE) github.com/daixiang0/gci
+GOLINES := go tool -modfile=$(TOOLS_MODFILE) github.com/segmentio/golines
+GOFUMPT := go tool -modfile=$(TOOLS_MODFILE) mvdan.cc/gofumpt
+GOLANGCI_LINT := go tool -modfile=$(TOOLS_MODFILE) github.com/golangci/golangci-lint/cmd/golangci-lint
+GOVULNCHECK := go tool -modfile=$(TOOLS_MODFILE) golang.org/x/vuln/cmd/govulncheck
+GOSEC := go tool -modfile=$(TOOLS_MODFILE) github.com/securego/gosec/v2/cmd/gosec
+GOIMPORTS := go tool -modfile=$(TOOLS_MODFILE) golang.org/x/tools/cmd/goimports
 
 # --- Targets ---
 
@@ -44,39 +54,21 @@ test-go:
 .PHONY: format-go
 format-go:
 	cd tests/go && \
-		gci write --skip-generated --skip-vendor -s standard -s default . && \
-		golines --base-formatter=gofumpt --ignore-generated --tab-len=1 --max-len=120 --write-output .
+		$(GCI) write --skip-generated --skip-vendor -s standard -s default . && \
+		$(GOLINES) --base-formatter=gofumpt --ignore-generated --tab-len=1 --max-len=120 --write-output .
 
 .PHONY: lint-go
 lint-go:
 	cd tests/go && \
-		golangci-lint run --verbose ./... && \
+		$(GOLANGCI_LINT) run --verbose ./... && \
 		go vet ./...
 
 .PHONY: vuln-go
 vuln-go:
 	cd tests/go && \
-		govulncheck ./... && \
-		gosec ./...
+		$(GOVULNCHECK) ./... && \
+		$(GOSEC) ./...
 
 .PHONY: git-diff
 git-diff:
 	git diff --exit-code
-
-# --- Installation of tooling ---
-
-.PHONY: install-format-go
-install-format-go:
-	go install github.com/daixiang0/gci@latest && \
-		go install github.com/segmentio/golines@latest && \
-		go install mvdan.cc/gofumpt@latest	# NOTE: golines uses gofumpt
-
-.PHONY: install-lint-go
-install-lint-go:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
-.PHONY: install-vuln-go
-install-vuln-go:
-	go install golang.org/x/vuln/cmd/govulncheck@latest
-	go install github.com/securego/gosec/v2/cmd/gosec@latest
-
