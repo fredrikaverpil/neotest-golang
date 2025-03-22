@@ -16,7 +16,7 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v4
 
-      - name: run sync-workflows action
+      - name: run sync action
         uses: fredrikaverpil/github/.github/actions/sync@main
 
       - name: create pull request
