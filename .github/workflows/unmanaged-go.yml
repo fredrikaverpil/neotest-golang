@@ -1,3 +1,5 @@
+# SAFE TO CUSTOMIZE - This file is copied once and not overwritten during sync
+# Source: https://github.com/fredrikaverpil/github
 name: go
 
 on:
@@ -7,13 +9,10 @@ on:
     branches:
       - main
 
-# NOTE: This file will not be re-synced automatically. Add project-specifics here.
-
 jobs:
   ci:
     uses: fredrikaverpil/github/.github/workflows/go.yml@main
     with:
-      go-versions: '["1.24"]' # rc versions are defined like 1.24.0-rc.3
+      go-versions: '["1.24", "stable"]' # rc versions are defined like 1.24.0-rc.3
       os-versions: '["ubuntu-latest"]'
-      golangci-config-source: golden-latest
       skip-golangci: true
