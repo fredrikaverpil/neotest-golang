@@ -1,4 +1,4 @@
-name: lua
+name: test
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  test:
+  plenary:
     strategy:
       matrix:
         os: [ubuntu-latest]
