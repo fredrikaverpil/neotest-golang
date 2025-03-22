@@ -1,0 +1,18 @@
+# SAFE TO CUSTOMIZE - This file is copied once and not overwritten during sync
+# Source: https://github.com/fredrikaverpil/github
+name: python
+
+on:
+  workflow_dispatch:
+  # NOTE: python is disabled for this project
+  # pull_request:
+  # push:
+  #   branches:
+  #     - main
+
+jobs:
+  ci:
+    uses: fredrikaverpil/github/.github/workflows/python.yml@main
+    with:
+      python-versions: '["3.13"]'
+      os-versions: '["ubuntu-latest"]'
