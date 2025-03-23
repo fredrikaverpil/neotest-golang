@@ -43,3 +43,17 @@ updates:
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
+
+  - package-ecosystem: "cargo"
+    directories:
+      - tools
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      cargo-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
