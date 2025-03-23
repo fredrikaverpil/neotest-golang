@@ -4,8 +4,8 @@ local warn = vim.health.warn or vim.health.report_warn
 local error = vim.health.error or vim.health.report_error
 local info = vim.health.info or vim.health.report_info
 
-local options = require("neotest-golang.options")
 local lib = require("neotest-golang.lib")
+local options = require("neotest-golang.options")
 
 local M = {}
 

@@ -3,9 +3,9 @@
 
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
+local process = require("neotest-golang.process")
 local query = require("neotest-golang.query")
 local runspec = require("neotest-golang.runspec")
-local process = require("neotest-golang.process")
 
 local M = {}
 
