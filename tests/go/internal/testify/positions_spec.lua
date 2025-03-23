@@ -1,9 +1,9 @@
-local nio = require("nio")
 local _ = require("plenary")
+local nio = require("nio")
 
 local adapter = require("neotest-golang")
-local options = require("neotest-golang.options")
 local lib = require("neotest-golang.lib")
+local options = require("neotest-golang.options")
 local testify = require("neotest-golang.features.testify")
 
 local function compareIgnoringKeys(t1, t2, ignoreKeys)

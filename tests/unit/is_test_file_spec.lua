@@ -1,5 +1,5 @@
-local adapter = require("neotest-golang")
 local _ = require("plenary")
+local adapter = require("neotest-golang")
 
 describe("Is test file", function()
   it("True - Path to file", function()

@@ -1,6 +1,6 @@
-local nio = require("nio")
-local adapter = require("neotest-golang")
 local _ = require("plenary")
+local adapter = require("neotest-golang")
+local nio = require("nio")
 
 local function compareIgnoringKeys(t1, t2, ignoreKeys)
   local function copyTable(t, ignoreKeys)

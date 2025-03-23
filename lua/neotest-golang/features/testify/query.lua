@@ -1,7 +1,7 @@
 --- Helper functions around running Treesitter queries.
 
-local parsers = require("nvim-treesitter.parsers")
 local options = require("neotest-golang.options")
+local parsers = require("nvim-treesitter.parsers")
 
 local M = {}
 

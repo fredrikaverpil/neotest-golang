@@ -1,7 +1,7 @@
 --- Lookup table for renaming Neotest namespaces (receiver type to testify suite function).
 
-local query = require("neotest-golang.features.testify.query")
 local options = require("neotest-golang.options")
+local query = require("neotest-golang.features.testify.query")
 
 local M = {}
 

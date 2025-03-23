@@ -1,7 +1,7 @@
 local _ = require("plenary")
 
-local options = require("neotest-golang.options")
 local lib = require("neotest-golang.lib")
+local options = require("neotest-golang.options")
 local testify = require("neotest-golang.features.testify")
 
 local function normalize_windows_path(path)
