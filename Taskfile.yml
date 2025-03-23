@@ -17,7 +17,14 @@ tasks:
     cmds:
       - task --list
 
-  format-all:
+  all:
+    desc: Run all static checking and tests
+    cmds:
+      - task: format
+      - task: lint
+      - task: test
+
+  format:
     desc: Run format task from all taskfiles
     cmds:
       - cmd: task -t {{.TASKFILE}} format
@@ -26,7 +33,7 @@ tasks:
           split: "\n"
           as: TASKFILE
 
-  lint-all:
+  lint:
     desc: Run lint task from all taskfiles
     cmds:
       - cmd: task -t {{.TASKFILE}} lint
@@ -35,7 +42,7 @@ tasks:
           split: "\n"
           as: TASKFILE
 
-  test-all:
+  test:
     desc: Run test task from all taskfiles
     cmds:
       - cmd: task -t {{.TASKFILE}} test
@@ -43,8 +50,14 @@ tasks:
           var: TASKFILES
           split: "\n"
           as: TASKFILE
+      - task: test-plenary
 
-  install-all:
+  test-plenary:
+    desc: Run tests with Neovim and plenary
+    cmds:
+      - cmd: nvim --headless --noplugin -i NONE -u tests/bootstrap.lua -c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', timeout = 50000 }"
+
+  install:
     desc: Run install task from all taskfiles
     cmds:
       - cmd: task -t {{.TASKFILE}} install
@@ -52,3 +65,8 @@ tasks:
           var: TASKFILES
           split: "\n"
           as: TASKFILE
+
+  clean:
+    desc: Clean .tests directory
+    cmds:
+      - rm -rf .tests
