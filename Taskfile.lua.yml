@@ -35,6 +35,7 @@ tasks:
 
   install-stylua:
     desc: Install stylua using version from tools/Cargo.toml
+    aliases: ["install"]
     dir: '{{.TOOLS_DIR}}'
     cmds:
       - |
@@ -47,3 +48,8 @@ tasks:
       - which stylua >/dev/null 2>&1
     cmds:
       - task: install-stylua
+
+  no-op:
+    aliases: ["test"]
+    cmds:
+      - echo 0
