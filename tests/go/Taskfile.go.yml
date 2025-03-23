@@ -24,17 +24,19 @@ tasks:
 
   golangci-lint:
     desc: Lint with golangci-lint
+    aliaes: ["lint"]
     cmds:
-      - task -t Taskfile.go.yml golangci-lint
+      - '{{ .GO_TOOL_CMD }} golangci-lint run -v ./...'
 
   format:
     desc: Format with goimports, gci, gofumpt and golines
+    aliases: ["lint"]
     cmds:
       - '{{ .GO_TOOL_CMD }} goimports -w .'
       - '{{ .GO_TOOL_CMD }} gci write --skip-generated --skip-vendor -s standard -s default .'
-      - '{{ .GO_TOOL_CMD }} gofumpt'
+      - '{{ .GO_TOOL_CMD }} gofumpt -extra -w .'
       - '{{ .GO_TOOL_CMD }} golines --ignore-generated --tab-len=1 --max-len=120 --write-output .'
-      - git diff --exit-code
+      - git diff --color=always --exit-code
 
   govulncheck:
     desc: Check vulnerabilities with govulncheck
@@ -48,6 +50,7 @@ tasks:
 
   go-test:
     desc: Run go test
+    aliases: ["test"]
     cmds:
       - go test ./...
 
@@ -61,16 +64,17 @@ tasks:
     # gopls codeaction -w -exec -kind=quickfix <filename1.go> <filename2.go> ...
     desc: Check for gopls errors
     cmds:
-      - task: ensure-stylua
+      - task: ensure-gopls
       - gopls stats
       - find . -name "*.go" | xargs -P $(nproc) gopls check
 
   install-gopls:
     desc: Install stylua using version from tools/Cargo.toml
+    aliases: ["install"]
     cmds:
       - go install golang.org/x/tools/gopls@latest
 
-  ensure-stylua:
+  ensure-gopls:
     internal: true
     status:
       - which gopls >/dev/null 2>&1
