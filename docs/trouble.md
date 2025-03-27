@@ -38,6 +38,8 @@ There are many reasons why this can happen:
 - You are using the default `go_test_args` (or use the `-race` flag), which
   requires CGO but you don't have `gcc` installed. Read more about this in the
   [`go_test_args`](config.md#go_test_args) option description.
+- You are passing invalid args to `go_test_args`, e.g., `'-vet="all"'` instead
+  of `'-vet=all'`. (Quotes are valid in a shell, not `go test` itself)
 - You are on a system which writes non-UTF8 characters to stdout (in which case
   you can look into [`gotestsum` runner](config.md#runner) and/or
   [`sanitize_output`](config.md#sanitize_output)). This has been reported to
