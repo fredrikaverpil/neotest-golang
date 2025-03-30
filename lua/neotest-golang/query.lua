@@ -246,10 +246,10 @@ M.table_tests_map = [[
           (literal_value
             (keyed_element
               (literal_element
-                (interpreted_string_literal)  @test.name
+                (interpreted_string_literal) @test.name
               )
               (literal_element
-                (literal_value)  @test.definition
+                (literal_value) @test.definition
               )
             )
           )
@@ -257,30 +257,35 @@ M.table_tests_map = [[
       )
     )
     (for_statement
-       (range_clause
-          left: (expression_list
-            (
-              (identifier) @test.key.name
-            )
-            (
-              (identifier) @test.case
-            )
-          )
-          right: (identifier) @test.cases1 (#eq? @test.cases @test.cases1)
-        )
-        body: (block
-         (expression_statement
-          (call_expression
-            function: (selector_expression
-              operand: (identifier) @test.operand (#match? @test.operand "^[t]$")
-              field: (field_identifier) @test.method (#match? @test.method "^Run$")
+      (range_clause
+        left: (expression_list (identifier) @test.key.name (identifier) @test.case)
+        right: (identifier) @test.cases1 (#eq? @test.cases @test.cases1)
+      )
+      body: (block
+        (expression_statement
+          (call_expression ;; The Run(...) call
+            function: (selector_expression ;; The receiver.Run part
+              operand: [ ;; ALTERNATIVE receivers
+                ;; Case 1: Simple identifier 't'
+                (identifier) @run.receiver.simple (#match? @run.receiver.simple "^t$")
+                ;; Case 2: Result of a call like s.T()
+                (call_expression
+                  function: (selector_expression
+                    operand: (identifier) @suite.var ;; 's'
+                    field: (field_identifier) @suite.t_method (#match? @suite.t_method "^T$") ;; '.T'
+                  )
+                  arguments: (argument_list) ;; ()
+                ) @run.receiver.suite_t
+              ]
+              field: (field_identifier) @test.method (#match? @test.method "^Run$") ;; '.Run'
             )
             arguments: (argument_list
-              (
-                (identifier) @test.key.name1 (#eq? @test.key.name @test.key.name1)
-              )
+              ;; First argument: map key variable
+              (identifier) @test.key.name1 (#eq? @test.key.name @test.key.name1)
+              ;; Second argument: function literal
+              (func_literal) @test.func_body
             )
-          )
+          ) @test.run_call
         )
       )
     )
