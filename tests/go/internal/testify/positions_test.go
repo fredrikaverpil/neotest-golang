@@ -104,10 +104,6 @@ func (s *ExampleTestSuite) TestTableSubtestsWithMapAndStruct() {
 			a: 1,
 			b: "one",
 		},
-		"subtest2": {
-			a: 2,
-			b: "two",
-		},
 	}
 
 	for name, tc := range tests {
