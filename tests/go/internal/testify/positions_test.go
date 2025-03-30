@@ -94,3 +94,25 @@ func (s *ExampleTestSuite) TestSubTestOperand2() {
 		assert.Equal(s.T(), 10, s.VariableThatShouldStartAtFive)
 	})
 }
+
+func (s *ExampleTestSuite) TestTableSubtestsWithMapAndStruct() {
+	tests := map[string]struct {
+		a int
+		b string
+	}{
+		"subtest1": {
+			a: 1,
+			b: "one",
+		},
+		"subtest2": {
+			a: 2,
+			b: "two",
+		},
+	}
+
+	for name, tc := range tests {
+		s.T().Run(name, func(t *testing.T) {
+			assert.Equal(t, 3, len(tc.b))
+		})
+	}
+}
