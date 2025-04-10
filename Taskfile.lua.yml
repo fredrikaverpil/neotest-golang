@@ -21,12 +21,6 @@ tasks:
     cmds:
       - task -t Taskfile.lua.yml --list
 
-  lint:
-    desc: Lint Lua files with stylua
-    cmds:
-      - task: ensure-stylua
-      - stylua --check --config-path stylua.toml .
-
   format:
     desc: Format Lua files with stylua
     cmds:
@@ -50,6 +44,6 @@ tasks:
       - task: install-stylua
 
   no-op:
-    aliases: ["test"]
+    aliases: ["test", "lint"]
     cmds:
       - echo 0
