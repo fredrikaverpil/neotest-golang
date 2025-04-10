@@ -11,19 +11,7 @@ updates:
     groups:
       github-actions:
         patterns: ["*"]
-    labels:
-      - "dependencies"
-
-  - package-ecosystem: "gomod"
-    directories: ["./tools"]
-    allow:
-      - dependency-type: indirect
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    groups:
-      go-tools:
-        patterns: ["*"]
+    open-pull-requests-limit: 10
     labels:
       - "dependencies"
 
@@ -37,12 +25,14 @@ updates:
       uv-minor-patch:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+    open-pull-requests-limit: 10
     labels:
       - "dependencies"
 
   - package-ecosystem: "gomod"
     directories:
       - tests/go
+      - tools
     schedule:
       interval: "weekly"
       day: "monday"
@@ -50,12 +40,13 @@ updates:
       gomod-minor-patch:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+    open-pull-requests-limit: 10
     labels:
       - "dependencies"
 
   - package-ecosystem: "cargo"
     directories:
-
+      - tools
     schedule:
       interval: "weekly"
       day: "monday"
@@ -63,5 +54,6 @@ updates:
       cargo-minor-patch:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+    open-pull-requests-limit: 10
     labels:
       - "dependencies"
