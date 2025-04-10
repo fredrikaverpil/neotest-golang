@@ -19,7 +19,9 @@ Reliable Neotest adapter for running Go tests in Neovim.
 - Works great with
   [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) for
   displaying coverage in the sign column.
-- Supports [testify](https://github.com/stretchr/testify) suites.
+- Supports [testify](https://github.com/stretchr/testify) suites
+  ([disabled](https://fredrikaverpil.github.io/neotest-golang/config/#testify_enabled)
+  by default).
 - Option to sanitize test output from non-UTF8 characters.
 
 ---
