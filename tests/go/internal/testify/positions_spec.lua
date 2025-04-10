@@ -66,6 +66,14 @@ describe("With testify_enabled=false", function()
           type = "test",
         },
       },
+      {
+        {
+          id = test_filepath .. '::"subtest1"',
+          name = '"subtest1"',
+          path = test_filepath,
+          type = "test",
+        },
+      },
     }
 
     -- Act
@@ -153,6 +161,24 @@ describe("With testify_enabled=true", function()
               id = test_filepath
                 .. '::TestExampleTestSuite::TestSubTestOperand2::"subtest"',
               name = '"subtest"',
+              path = test_filepath,
+              type = "test",
+            },
+          },
+        },
+        {
+          {
+            id = test_filepath
+              .. "::TestExampleTestSuite::TestTableSubtestsWithMapAndStruct",
+            name = "TestTableSubtestsWithMapAndStruct",
+            path = test_filepath,
+            type = "test",
+          },
+          {
+            {
+              id = test_filepath
+                .. '::TestExampleTestSuite::TestTableSubtestsWithMapAndStruct::"subtest1"',
+              name = '"subtest1"',
               path = test_filepath,
               type = "test",
             },
