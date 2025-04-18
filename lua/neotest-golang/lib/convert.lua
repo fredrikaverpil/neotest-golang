@@ -22,13 +22,13 @@ function M.to_gotest_regex_pattern(test_name)
     "^",
     "$",
   }
--- Each segment separated by '/' must be wrapped in an exact regex match.
--- From Go docs:
---    For tests, the regular expression is split by unbracketed
---    slash (/) characters into a sequence of regular expressions, and each
---    part of a test's identifier must match the corresponding element in
---    the sequence, if any.
-local segments = {}
+  -- Each segment separated by '/' must be wrapped in an exact regex match.
+  -- From Go docs:
+  --    For tests, the regular expression is split by unbracketed
+  --    slash (/) characters into a sequence of regular expressions, and each
+  --    part of a test's identifier must match the corresponding element in
+  --    the sequence, if any.
+  local segments = {}
   for segment in string.gmatch(test_name, "[^/]+") do
     for _, character in ipairs(special_characters) do
       segment = segment:gsub("%" .. character, "\\" .. character)
