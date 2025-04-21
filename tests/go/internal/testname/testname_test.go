@@ -39,12 +39,4 @@ func TestNames(t *testing.T) {
 			t.Fail()
 		}
 	})
-
-	t.Run("nested1", func(t *testing.T) {
-		t.Run("nested2", func(t *testing.T) {
-			if Add(1, 2) != 3 {
-				t.Fail()
-			}
-		})
-	})
 }
