@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.3](https://github.com/fredrikaverpil/neotest-golang/compare/v1.10.2...v1.10.3) (2025-04-21)
+
+
+### Bug Fixes
+
+* **convert:** correct regex passed to go test -run for single test execution ([#340](https://github.com/fredrikaverpil/neotest-golang/issues/340)) ([0bfda76](https://github.com/fredrikaverpil/neotest-golang/commit/0bfda76faab1c1e79d279506c99f6b703b19c509))
+
 ## [1.10.2](https://github.com/fredrikaverpil/neotest-golang/compare/v1.10.1...v1.10.2) (2025-02-18)
 
 
