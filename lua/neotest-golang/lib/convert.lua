@@ -25,7 +25,18 @@ function M.to_gotest_regex_pattern(test_name)
   for _, character in ipairs(special_characters) do
     test_name = test_name:gsub("%" .. character, "\\" .. character)
   end
-  return "^" .. test_name .. "$"
+  -- Each segment separated by '/' must be wrapped in an exact regex match.
+  -- From Go docs:
+  --    For tests, the regular expression is split by unbracketed
+  --    slash (/) characters into a sequence of regular expressions, and each
+  --    part of a test's identifier must match the corresponding element in
+  --    the sequence, if any.
+  local segments = {}
+  for segment in string.gmatch(test_name, "[^/]+") do
+    table.insert(segments, "^" .. segment .. "$")
+  end
+
+  return table.concat(segments, "/")
 end
 
 -- Converts the AST-detected Neotest node test name into the 'go test' command

@@ -94,18 +94,38 @@ describe("Full Go test name conversion", function()
   local tree =
     nio.tests.with_async_context(adapter.discover_positions, test_filepath)
 
-  it("escapes parenthesis", function()
-    local expected_subtest_name = '"Test(success)"'
-    local expected_gotest_name = "^TestNames/Test\\(success\\)$"
+  local tests = {
+    {
+      description = "escapes parenthesis",
+      node_index = 7,
+      expected_subtest_name = '"Test(success)"',
+      expected_gotest_name = "^TestNames$/^Test\\(success\\)$",
+    },
+    {
+      description = "wrap single test in exact regex",
+      node_index = 2,
+      expected_subtest_name = "TestNames",
+      expected_gotest_name = "^TestNames$",
+    },
+    {
+      description = "wrap doubly nested test in exact regex",
+      node_index = 10,
+      expected_subtest_name = '"nested2"',
+      expected_gotest_name = "^TestNames$/^nested1$/^nested2$",
+    },
+  }
 
-    -- Act
-    local pos = tree:node(7):data()
-    local test_name = lib.convert.to_gotest_test_name(pos.id)
-    test_name = lib.convert.to_gotest_regex_pattern(test_name)
+  for _, tc in ipairs(tests) do
+    it(tc.description, function()
+      local pos = tree:node(tc.node_index):data()
+      local test_name = lib.convert.to_gotest_test_name(pos.id)
+      test_name = lib.convert.to_gotest_regex_pattern(test_name)
 
-    -- Assert
-    local actual_name = pos.name
-    assert.are.same(expected_subtest_name, actual_name)
-    assert.are.same(vim.inspect(expected_gotest_name), vim.inspect(test_name))
-  end)
+      assert.are.same(tc.expected_subtest_name, pos.name)
+      assert.are.same(
+        vim.inspect(tc.expected_gotest_name),
+        vim.inspect(test_name)
+      )
+    end)
+  end
 end)
