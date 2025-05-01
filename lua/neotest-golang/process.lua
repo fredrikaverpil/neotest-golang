@@ -186,7 +186,7 @@ function M.filter_gotest_output(raw_output, gotest_output, build_failed, runner)
   local function process_output(output)
     local o = {}
     for _, line in ipairs(output) do
-      if line.Action == "output" or line.Action == "build-output" then -- build-output added in Go 1.24
+      if line.Action == "output" or line.Action == "build-output" then -- build-output introduced in Go 1.24
         line.Output = M.colorizer(line.Output)
         table.insert(o, line.Output)
       end
@@ -243,40 +243,44 @@ function M.build_failure_lookup(
   golist_output,
   runner
 )
-  -- vim.notify(vim.inspect(build_failure_output))
-
-  local output = {}
-  if runner == "go" then
-    output = gotest_output
-  elseif runner == "gotestsum" then
-    output = raw_output -- FIXME: will not be able to pick up on 'build-fail' action
-  end
-
   local failed_packages = {}
-  for _, value in pairs(output) do
-    -- go 1.24 introduced 'build-fail' action
-    if value.Action == "build-fail" then
-      local failed_package = vim.split(value.ImportPath, " ")[1]
-      vim.notify(vim.inspect(failed_package))
+
+  local build_fail_found = false
+  for _, value in pairs(gotest_output) do
+    if value.Action == "build-fail" then -- introduced in Go 1.24
+      build_fail_found = true
+      local failed_package = value.ImportPath:gsub("%.test$", "")
       if not vim.tbl_contains(failed_packages, failed_package) then
         table.insert(failed_packages, failed_package)
       end
     end
+  end
 
-    -- if the output starts with '#'
-    if
-      runner == "go"
-      and value.Action == "output"
-      and string.find(value.Output, "#", 1, true)
-    then
-      local failed_package = vim.split(value.Output, " ")[2]
-      if not vim.tbl_contains(failed_packages, failed_package) then
-        table.insert(failed_packages, failed_package)
-      end
-    elseif runner == "gotestsum" and string.find(value, "#", 1, true) then
-      local failed_package = vim.split(value, " ")[2]
-      if not vim.tbl_contains(failed_packages, failed_package) then
-        table.insert(failed_packages, failed_package)
+  if not build_fail_found then
+    -- Go version below 1.24, resort to old behavior
+    local output = {}
+    if runner == "go" then
+      output = gotest_output
+    elseif runner == "gotestsum" then
+      output = raw_output
+    end
+
+    for _, value in pairs(output) do
+      -- if the output starts with '#'
+      if
+        runner == "go"
+        and value.Action == "output"
+        and string.find(value.Output, "#", 1, true)
+      then
+        local failed_package = vim.split(value.Output, " ")[2]
+        if not vim.tbl_contains(failed_packages, failed_package) then
+          table.insert(failed_packages, failed_package)
+        end
+      elseif runner == "gotestsum" and string.find(value, "#", 1, true) then
+        local failed_package = vim.split(value, " ")[2]
+        if not vim.tbl_contains(failed_packages, failed_package) then
+          table.insert(failed_packages, failed_package)
+        end
       end
     end
   end
