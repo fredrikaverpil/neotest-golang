@@ -68,6 +68,10 @@ function M.test_results(spec, result, tree)
   if runner == "go" then
     runner_raw_output = raw_output
   elseif runner == "gotestsum" then
+    if context.test_output_json_filepath == nil then
+      logger.error("Gotestsum JSON output file not found.")
+      return neotest_result
+    end
     runner_raw_output = async.fn.readfile(context.test_output_json_filepath)
   end
   logger.debug({ "Runner '" .. runner .. "', raw output: ", runner_raw_output })
