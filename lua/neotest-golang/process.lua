@@ -183,25 +183,31 @@ end
 --- @param runner string
 --- @return table<string>
 function M.filter_gotest_output(raw_output, gotest_output, build_failed, runner)
-  local o = {}
-
-  if not build_failed or (build_failed and runner == "go") then
-    for _, line in ipairs(gotest_output) do
-      if line.Action == "output" then
+  local function process_output(output)
+    local o = {}
+    for _, line in ipairs(output) do
+      if line.Action == "output" or line.Action == "build-output" then -- build-output introduced in Go 1.24
         line.Output = M.colorizer(line.Output)
         table.insert(o, line.Output)
       end
     end
-  else
-    if build_failed and runner == "gotestsum" then
-      for _, line in ipairs(raw_output) do
-        line = M.colorizer(line)
-        table.insert(o, line)
-      end
-    end
+    return o
   end
 
-  return o
+  if not build_failed then
+    return process_output(gotest_output)
+  elseif build_failed and runner == "go" then
+    return process_output(gotest_output)
+  elseif build_failed and runner == "gotestsum" then
+    local o = process_output(gotest_output)
+    for _, line in ipairs(raw_output) do
+      line = M.colorizer(line)
+      table.insert(o, line)
+    end
+    return o
+  end
+
+  return {}
 end
 
 --- Detect build errors.
@@ -211,7 +217,9 @@ end
 function M.detect_build_errors(result, raw_output)
   if result.code ~= 0 and #raw_output > 0 then
     for _, line in pairs(raw_output) do
-      if string.find(line, "build failed", 1, true) then
+      if string.find(line, "build-fail", 1, true) then -- introduced in Go 1.24
+        return true
+      elseif string.find(line, "build failed", 1, true) then
         return true
       elseif string.find(line, "setup failed", 1, true) then
         return true
@@ -235,31 +243,44 @@ function M.build_failure_lookup(
   golist_output,
   runner
 )
-  -- vim.notify(vim.inspect(build_failure_output))
-
-  local output = {}
-  if runner == "go" then
-    output = gotest_output
-  elseif runner == "gotestsum" then
-    output = raw_output
-  end
-
   local failed_packages = {}
-  for _, value in pairs(output) do
-    -- if the output starts with '#'
-    if
-      runner == "go"
-      and value.Action == "output"
-      and string.find(value.Output, "#", 1, true)
-    then
-      local failed_package = vim.split(value.Output, " ")[2]
+
+  local build_fail_found = false
+  for _, value in pairs(gotest_output) do
+    if value.Action == "build-fail" then -- introduced in Go 1.24
+      build_fail_found = true
+      local failed_package = value.ImportPath:gsub("%.test$", "")
       if not vim.tbl_contains(failed_packages, failed_package) then
         table.insert(failed_packages, failed_package)
       end
-    elseif runner == "gotestsum" and string.find(value, "#", 1, true) then
-      local failed_package = vim.split(value, " ")[2]
-      if not vim.tbl_contains(failed_packages, failed_package) then
-        table.insert(failed_packages, failed_package)
+    end
+  end
+
+  if not build_fail_found then
+    -- Go version is below 1.24 (no build-fail action exists), resort to old behavior
+    local output = {}
+    if runner == "go" then
+      output = gotest_output
+    elseif runner == "gotestsum" then
+      output = raw_output
+    end
+
+    for _, value in pairs(output) do
+      -- if the output starts with '#'
+      if
+        runner == "go"
+        and value.Action == "output"
+        and string.find(value.Output, "#", 1, true)
+      then
+        local failed_package = vim.split(value.Output, " ")[2]
+        if not vim.tbl_contains(failed_packages, failed_package) then
+          table.insert(failed_packages, failed_package)
+        end
+      elseif runner == "gotestsum" and string.find(value, "#", 1, true) then
+        local failed_package = vim.split(value, " ")[2]
+        if not vim.tbl_contains(failed_packages, failed_package) then
+          table.insert(failed_packages, failed_package)
+        end
       end
     end
   end
@@ -436,6 +457,8 @@ function M.decorate_with_go_test_results(res, gotest_output)
         then
           -- NOTE: for some reason, when sanitizing output, the above success case is not hit.
           test_data.status = "passed"
+        elseif line.Action == "build-fail" then -- introduced in Go 1.24
+          test_data.status = "failed"
         elseif line.Action == "fail" then
           test_data.status = "failed"
         end
