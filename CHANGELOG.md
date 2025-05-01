@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.10.3...v1.11.0) (2025-05-01)
+
+
+### Features
+
+* better build error detection (go 1.24) ([#298](https://github.com/fredrikaverpil/neotest-golang/issues/298)) ([2804d04](https://github.com/fredrikaverpil/neotest-golang/commit/2804d04c4d6e9cfa4e4d3e5e1d730ef1ad0fb746))
+
 ## [1.10.3](https://github.com/fredrikaverpil/neotest-golang/compare/v1.10.2...v1.10.3) (2025-04-21)
 
 
