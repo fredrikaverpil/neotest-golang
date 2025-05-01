@@ -457,8 +457,7 @@ function M.decorate_with_go_test_results(res, gotest_output)
         then
           -- NOTE: for some reason, when sanitizing output, the above success case is not hit.
           test_data.status = "passed"
-        elseif line.Action == "build-fail" then
-          line.Output = "WHOHEY BUILD FAIL"
+        elseif line.Action == "build-fail" then -- introduced in Go 1.24
           test_data.status = "failed"
         elseif line.Action == "fail" then
           test_data.status = "failed"
