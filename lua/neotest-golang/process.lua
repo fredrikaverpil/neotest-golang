@@ -257,7 +257,7 @@ function M.build_failure_lookup(
   end
 
   if not build_fail_found then
-    -- Go version below 1.24, resort to old behavior
+    -- Go version is below 1.24 (no build-fail action exists), resort to old behavior
     local output = {}
     if runner == "go" then
       output = gotest_output
