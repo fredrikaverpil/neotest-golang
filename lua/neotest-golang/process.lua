@@ -183,39 +183,31 @@ end
 --- @param runner string
 --- @return table<string>
 function M.filter_gotest_output(raw_output, gotest_output, build_failed, runner)
-  local o = {}
-
-  if not build_failed then
-    for _, line in ipairs(gotest_output) do
-      if line.Action == "output" then
+  local function process_output(output)
+    local o = {}
+    for _, line in ipairs(output) do
+      if line.Action == "output" or line.Action == "build-output" then -- build-output added in Go 1.24
         line.Output = M.colorizer(line.Output)
         table.insert(o, line.Output)
       end
     end
-  elseif build_failed and runner == "go" then
-    for _, line in ipairs(gotest_output) do
-      if line.Action == "build-output" then
-        line.Output = M.colorizer(line.Output)
-        table.insert(o, line.Output)
-      end
-    end
-  else
-    if build_failed and runner == "gotestsum" then
-      for _, line in ipairs(gotest_output) do
-        if line.Action == "build-output" then
-          line.Output = M.colorizer(line.Output)
-          table.insert(o, line.Output)
-        end
-      end
-
-      for _, line in ipairs(raw_output) do
-        line = M.colorizer(line)
-        table.insert(o, line)
-      end
-    end
+    return o
   end
 
-  return o
+  if not build_failed then
+    return process_output(gotest_output)
+  elseif build_failed and runner == "go" then
+    return process_output(gotest_output)
+  elseif build_failed and runner == "gotestsum" then
+    local o = process_output(gotest_output)
+    for _, line in ipairs(raw_output) do
+      line = M.colorizer(line)
+      table.insert(o, line)
+    end
+    return o
+  end
+
+  return {}
 end
 
 --- Detect build errors.
