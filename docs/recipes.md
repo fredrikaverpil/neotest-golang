@@ -202,8 +202,8 @@ If you want to be able to set build tags when invoking neotest, you can simply
 pass them in the `extra_args` table when invoking neotest, e.g.:
 
     ```lua
-    -- Run the closest test adding the "-args -integration" flags to "go test"
-    -- or gotestsum
+    -- Run all tests in the current file, adding the "-args -integration" flags
+    -- to go test/gotestsum
     require('neotest').run.run(
       { vim.fn.expand('%'), extra_args = { "-args" "-integration" } }
     )
