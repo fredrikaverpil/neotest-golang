@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.11.0...v1.11.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* typo ([#349](https://github.com/fredrikaverpil/neotest-golang/issues/349)) ([8f69177](https://github.com/fredrikaverpil/neotest-golang/commit/8f6917774f66dfd90d534c77532f00305e5a7567))
+
 ## [1.11.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.10.3...v1.11.0) (2025-05-01)
 
 
