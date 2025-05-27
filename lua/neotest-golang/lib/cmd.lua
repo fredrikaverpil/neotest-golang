@@ -70,7 +70,11 @@ function M.test_command_in_package(package_or_path, extra_args)
   return cmd, json_filepath
 end
 
-function M.test_command_in_package_with_regexp(package_or_path, regexp, extra_args)
+function M.test_command_in_package_with_regexp(
+  package_or_path, 
+  regexp, 
+  extra_args
+)
   local go_test_required_args = { package_or_path, "-run", regexp }
   local cmd, json_filepath = M.test_command(go_test_required_args, extra_args)
   return cmd, json_filepath
