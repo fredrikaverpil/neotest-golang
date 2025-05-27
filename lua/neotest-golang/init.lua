@@ -103,39 +103,29 @@ function M.Adapter.build_spec(args)
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is also the current working
     -- directory.
-    run_spec = runspec.dir.build(pos)
+    run_spec = runspec.dir.build(pos, args.extra_args)
   elseif pos.type == "dir" then
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is a sub-directory of the current
     -- working directory.
-    run_spec = runspec.dir.build(pos)
+    run_spec = runspec.dir.build(pos, args.extra_args)
   elseif pos.type == "file" then
     -- A runspec is to be created, based on on running all tests in the given
     -- file.
-    run_spec = runspec.file.build(pos, tree, args.strategy)
+    run_spec = runspec.file.build(pos, tree, args.strategy, args.extra_args)
   elseif pos.type == "namespace" then
     -- A runspec is to be created, based on running all tests in the given
     -- namespace.
-    run_spec = runspec.namespace.build(pos)
+    run_spec = runspec.namespace.build(pos, args.extra_args)
   elseif pos.type == "test" then
     -- A runspec is to be created, based on on running the given test.
-    run_spec = runspec.test.build(pos, args.strategy)
+    run_spec = runspec.test.build(pos, args.strategy, args.extra_args)
   else
     logger.error(
       "Unknown Neotest position type, "
         .. "cannot build runspec with position type: "
         .. pos.type
     )
-  end
-
-  -- For the returned run spec, append args.extra_args
-  -- to the run_spec.command field, if provided.
-  if args.extra_args ~= nil then
-    if run_spec ~= nil then
-      for _, extra_arg in ipairs(args.extra_args) do
-        table.insert(run_spec.command, extra_arg)
-      end
-    end
   end
 
   return run_spec

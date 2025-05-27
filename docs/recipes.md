@@ -196,18 +196,31 @@ to set `dap_go_opts`. Full example:
     }
     ```
 
-### Passing build tags when invoking neotest
+### Overriding "go test" arguments when invoking Neotest
 
-If you want to be able to set build tags when invoking neotest, you can simply
-pass them in the `extra_args` table when invoking neotest, e.g.:
+If required, one can override `go_test_args` when invoking Neotest by passing
+overrides in the `extra_args.go_test_args_override` table.
+
+For instance, if you want to run `go test` with the
+`-p=1 -parallel=10 -tags=integration` flags, you could call:
 
     ```lua
-    -- Run all tests in the current file, adding the "-args -integration" flags
-    -- to go test/gotestsum
     require('neotest').run.run(
-      { vim.fn.expand('%'), extra_args = { "-args" "-integration" } }
+      {
+        vim.fn.expand('%'),
+        extra_args = {
+          go_test_args_override = {
+            "-p=1",
+            "-parallel=10",
+            "-tags=integration",
+          },
+        },
+      },
     )
     ```
+
+NOTE: currently, overriding arguments passed to `go list` is not supported but
+could easily be implemented [in a similar way](https://github.com/fredrikaverpil/neotest-golang/pull/348), if needed.
 
 ## Pass arguments as function instead of table
 
