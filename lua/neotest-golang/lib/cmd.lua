@@ -2,6 +2,7 @@
 
 local async = require("neotest.async")
 
+local extraargs = require("neotest-golang.extraargs")
 local json = require("neotest-golang.lib.json")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
@@ -103,7 +104,7 @@ end
 
 function M.go_test(go_test_required_args)
   local cmd = { "go", "test", "-json" }
-  local args = options.get().go_test_args
+  local args = extraargs.get().go_test_args or options.get().go_test_args or {}
   if type(args) == "function" then
     args = args()
   end
@@ -118,7 +119,9 @@ function M.gotestsum(go_test_required_args, json_filepath)
   if type(gotestsum_args) == "function" then
     gotestsum_args = gotestsum_args()
   end
-  local go_test_args = options.get().go_test_args
+  local go_test_args = extraargs.get().go_test_args
+    or options.get().go_test_args
+    or {}
   if type(go_test_args) == "function" then
     go_test_args = go_test_args()
   end
