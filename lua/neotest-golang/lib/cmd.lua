@@ -64,19 +64,19 @@ function M.golist_command()
   return cmd
 end
 
-function M.test_command_in_package(package_or_path, extra_args)
+function M.test_command_in_package(package_or_path)
   local go_test_required_args = { package_or_path }
-  local cmd, json_filepath = M.test_command(go_test_required_args, extra_args)
+  local cmd, json_filepath = M.test_command(go_test_required_args)
   return cmd, json_filepath
 end
 
-function M.test_command_in_package_with_regexp(package_or_path, regexp, extra_args)
+function M.test_command_in_package_with_regexp(package_or_path, regexp)
   local go_test_required_args = { package_or_path, "-run", regexp }
-  local cmd, json_filepath = M.test_command(go_test_required_args, extra_args)
+  local cmd, json_filepath = M.test_command(go_test_required_args)
   return cmd, json_filepath
 end
 
-function M.test_command(go_test_required_args, extra_args)
+function M.test_command(go_test_required_args)
   --- The runner to use for running tests.
   --- @type string
   local runner = M.runner_fallback(options.get().runner)
@@ -90,10 +90,10 @@ function M.test_command(go_test_required_args, extra_args)
   local cmd = {}
 
   if runner == "go" then
-    cmd = M.go_test(go_test_required_args, extra_args)
+    cmd = M.go_test(go_test_required_args)
   elseif runner == "gotestsum" then
     json_filepath = vim.fs.normalize(async.fn.tempname())
-    cmd = M.gotestsum(go_test_required_args, json_filepath, extra_args)
+    cmd = M.gotestsum(go_test_required_args, json_filepath)
   end
 
   logger.info("Test command: " .. table.concat(cmd, " "))
@@ -101,35 +101,32 @@ function M.test_command(go_test_required_args, extra_args)
   return cmd, json_filepath
 end
 
-function M.go_test(go_test_required_args, extra_args)
+function M.go_test(go_test_required_args)
   local cmd = { "go", "test", "-json" }
-  cmd = vim.list_extend(vim.deepcopy(cmd), M.compute_go_test_args(extra_args))
+  local args = options.get().go_test_args
+  if type(args) == "function" then
+    args = args()
+  end
+  cmd = vim.list_extend(vim.deepcopy(cmd), args)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
   return cmd
 end
 
-function M.gotestsum(go_test_required_args, json_filepath, extra_args)
+function M.gotestsum(go_test_required_args, json_filepath)
   local cmd = { "gotestsum", "--jsonfile=" .. json_filepath }
   local gotestsum_args = options.get().gotestsum_args
   if type(gotestsum_args) == "function" then
     gotestsum_args = gotestsum_args()
   end
-  cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_args)
-  cmd = vim.list_extend(vim.deepcopy(cmd), { "--" })
-  cmd = vim.list_extend(vim.deepcopy(cmd), M.compute_go_test_args(extra_args))
-  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
-  return cmd
-end
-
-function M.compute_go_test_args(extra_args)
-  if extra_args ~= nil and extra_args["go_test_args_override"] ~= nil then
-    return extra_args["go_test_args_override"]
-  end
   local go_test_args = options.get().go_test_args
   if type(go_test_args) == "function" then
-    return go_test_args()
+    go_test_args = go_test_args()
   end
-  return go_test_args
+  cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_args)
+  cmd = vim.list_extend(vim.deepcopy(cmd), { "--" })
+  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_args)
+  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
+  return cmd
 end
 
 function M.runner_fallback(executable)

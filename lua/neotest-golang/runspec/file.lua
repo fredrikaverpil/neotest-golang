@@ -11,7 +11,7 @@ local M = {}
 --- @param tree neotest.Tree
 --- @param strategy string
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build(pos, tree, strategy, extra_args)
+function M.build(pos, tree, strategy)
   if vim.tbl_isempty(tree:children()) then
     logger.warn("No tests found in file")
     return M.return_skipped(pos)
@@ -68,11 +68,11 @@ function M.build(pos, tree, strategy, extra_args)
   local json_filepath = nil
   local regexp = M.get_regexp(pos.path)
   if regexp ~= nil then
-    test_cmd, json_filepath = 
-      lib.cmd.test_command_in_package_with_regexp(package_name, regexp, extra_args)
+    test_cmd, json_filepath =
+      lib.cmd.test_command_in_package_with_regexp(package_name, regexp)
   else
     -- fallback: run all tests in the package
-    test_cmd, json_filepath = lib.cmd.test_command_in_package(package_name, extra_args)
+    test_cmd, json_filepath = lib.cmd.test_command_in_package(package_name)
     -- NOTE: could also fall back to running on a per-test basis by using a bare return
   end
 

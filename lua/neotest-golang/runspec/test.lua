@@ -10,7 +10,7 @@ local M = {}
 --- @param pos neotest.Position
 --- @param strategy string
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build(pos, strategy, extra_args)
+function M.build(pos, strategy)
   local pos_path_folderpath = vim.fn.fnamemodify(pos.path, ":h")
 
   local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
@@ -28,8 +28,7 @@ function M.build(pos, strategy, extra_args)
 
   local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(
     pos_path_folderpath,
-    test_name_regex,
-    extra_args
+    test_name_regex
   )
 
   local runspec_strategy = nil
