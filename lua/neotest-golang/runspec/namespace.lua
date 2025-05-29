@@ -25,11 +25,8 @@ function M.build(pos, extra_args)
   local test_name = lib.convert.to_gotest_test_name(pos.id)
   test_name = lib.convert.to_gotest_regex_pattern(test_name)
 
-  local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(
-    pos_path_folderpath, 
-    test_name, 
-    extra_args
-  )
+  local test_cmd, json_filepath = 
+    lib.cmd.test_command_in_package_with_regexp(pos_path_folderpath, test_name, extra_args)
 
   --- @type RunspecContext
   local context = {
