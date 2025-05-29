@@ -196,6 +196,42 @@ to set `dap_go_opts`. Full example:
     }
     ```
 
+### Overriding "go test" arguments when invoking Neotest
+
+If required, one can override `go_test_args` when invoking Neotest by passing
+overrides in the `extra_args.go_test_args` table.
+
+For instance, if you want to run `go test` with the
+`-v -race -count=1 -p=1 -parallel=10 -tags=integration` flags, you could call:
+
+    ```lua
+    require('neotest').run.run(
+      {
+        vim.fn.expand('%'),
+        extra_args = {
+          go_test_args = {
+            "-v",
+            "-race",
+            "-count=1",
+            "-p=1",
+            "-parallel=10",
+            "-tags=integration",
+          },
+        },
+      },
+    )
+    ```
+
+NOTE: the arguments passed when invoking neotest **override** the `go_test_args`
+adapter option, it does not append them. You will most likely want to include
+what you set in your `go_test_args` configuration or the default arguments
+(`-v`, `-race`, `-count=1`) in the `extra_args.go_test_args` table.
+
+NOTE: currently, overriding arguments passed to `go list` is not supported but
+could easily be implemented
+[in a similar way](https://github.com/fredrikaverpil/neotest-golang/pull/348),
+if needed.
+
 ## Pass arguments as function instead of table
 
 Some use cases may require you to pass in dynamically generated arguments during
