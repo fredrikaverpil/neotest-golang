@@ -71,8 +71,8 @@ function M.test_command_in_package(package_or_path, extra_args)
 end
 
 function M.test_command_in_package_with_regexp(
-  package_or_path,
-  regexp,
+  package_or_path, 
+  regexp, 
   extra_args
 )
   local go_test_required_args = { package_or_path, "-run", regexp }
