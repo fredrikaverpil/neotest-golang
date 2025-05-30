@@ -15,7 +15,7 @@ describe("Extra args", function()
   end)
 
   it("Overrides go_test_args in go test command", function()
-    options.set({ runner = "go", go_test_args = { "-foo", "-bar" } })
+    options.setup({ runner = "go", go_test_args = { "-foo", "-bar" } })
     extra_args.set({ go_test_args = { "-baz", "-qux" } })
 
     local command, _ = lib.cmd.test_command({})
@@ -23,7 +23,7 @@ describe("Extra args", function()
   end)
 
   it("Overrides go_test_args in gotestsum command", function()
-    options.set({ runner = "gotestsum", go_test_args = { "-foo", "-bar" } })
+    options.setup({ runner = "gotestsum", go_test_args = { "-foo", "-bar" } })
     extra_args.set({ go_test_args = { "-baz", "-qux" } })
 
     local command, _ = lib.cmd.test_command({})
@@ -36,7 +36,7 @@ describe("Extra args", function()
   end)
 
   it("Defaults to go_test_args in go test", function()
-    options.set({ runner = "go", go_test_args = { "-foo", "-bar" } })
+    options.setup({ runner = "go", go_test_args = { "-foo", "-bar" } })
     extra_args.set({})
 
     local command, _ = lib.cmd.test_command({})
@@ -44,7 +44,7 @@ describe("Extra args", function()
   end)
 
   it("Defaults to go_test_args in gotestsum", function()
-    options.set({ runner = "gotestsum", go_test_args = { "-foo", "-bar" } })
+    options.setup({ runner = "gotestsum", go_test_args = { "-foo", "-bar" } })
     extra_args.set({})
 
     local command, _ = lib.cmd.test_command({})
