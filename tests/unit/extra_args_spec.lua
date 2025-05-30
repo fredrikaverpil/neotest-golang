@@ -14,15 +14,19 @@ describe("Extra args", function()
     assert.are.same({ "-foo", "-bar" }, extra_args.get())
   end)
 
-  it("Overrides options.go_test_args", function()
+  it("Overrides go_test_args in go test command", function()
+    options.setup({ runner = "go", go_test_args = { "-foo", "-bar" } })
     extra_args.set({ go_test_args = { "-baz", "-qux" } })
 
-    options.setup({ runner = "go", go_test_args = { "-foo", "-bar" } })
     local command, _ = lib.cmd.test_command({})
     assert.are.same({ "go", "test", "-json", "-baz", "-qux" }, command)
+  end)
 
+  it("Overrides go_test_args in gotestsum command", function()
     options.setup({ runner = "gotestsum", go_test_args = { "-foo", "-bar" } })
-    command, _ = lib.cmd.test_command({})
+    extra_args.set({ go_test_args = { "-baz", "-qux" } })
+
+    local command, _ = lib.cmd.test_command({})
     -- This parameter, the jsonfile path, contains a random string, let's get rid of it
     table.remove(command, 2)
     assert.are.same(
@@ -31,15 +35,19 @@ describe("Extra args", function()
     )
   end)
 
-  it("Defaults to options.go_test_args", function()
+  it("Defaults to go_test_args in go test", function()
+    options.setup({ runner = "go", go_test_args = { "-foo", "-bar" } })
     extra_args.set({})
 
-    options.setup({ runner = "go", go_test_args = { "-foo", "-bar" } })
     local command, _ = lib.cmd.test_command({})
     assert.are.same({ "go", "test", "-json", "-foo", "-bar" }, command)
+  end)
 
+  it("Defaults to go_test_args in gotestsum", function()
     options.setup({ runner = "gotestsum", go_test_args = { "-foo", "-bar" } })
-    command, _ = lib.cmd.test_command({})
+    extra_args.set({})
+
+    local command, _ = lib.cmd.test_command({})
     -- This parameter, the jsonfile path, contains a random string, let's get rid of it
     table.remove(command, 2)
     assert.are.same(
