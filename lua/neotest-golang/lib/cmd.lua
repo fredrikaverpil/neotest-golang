@@ -108,8 +108,8 @@ function M.go_test(go_test_required_args)
   if type(args) == "function" then
     args = args()
   end
-  cmd = vim.list_extend(vim.deepcopy(cmd), args)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
+  cmd = vim.list_extend(vim.deepcopy(cmd), args)
   return cmd
 end
 
@@ -126,8 +126,8 @@ function M.gotestsum(go_test_required_args, json_filepath)
   end
   cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_args)
   cmd = vim.list_extend(vim.deepcopy(cmd), { "--" })
-  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_args)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
+  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_args)
   return cmd
 end
 
