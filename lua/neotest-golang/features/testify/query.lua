@@ -1,7 +1,10 @@
 --- Helper functions around running Treesitter queries.
 
 local options = require("neotest-golang.options")
-local parsers = require("nvim-treesitter.parsers")
+
+-- NOTE: this import cannot be removed. If removing it, lua tests will fail with:
+-- E5560: nvim_create_augroup must not be called in a fast event context.
+require("nvim-treesitter")
 
 local M = {}
 
