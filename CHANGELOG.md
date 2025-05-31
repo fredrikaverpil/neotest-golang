@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.13.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.12.0...v1.13.0) (2025-05-31)
+
+
+### Features
+
+* treesitter main branch support (for checkhealth) ([#358](https://github.com/fredrikaverpil/neotest-golang/issues/358)) ([4ada6a3](https://github.com/fredrikaverpil/neotest-golang/commit/4ada6a3d2e87920028fbbd5e87ebf9d46d055c82))
+* treesitter main branch support (for testify) ([#355](https://github.com/fredrikaverpil/neotest-golang/issues/355)) ([2b49a53](https://github.com/fredrikaverpil/neotest-golang/commit/2b49a5336cd0f35b181be0ebe457da39feecbaca))
+
 ## [1.12.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.11.1...v1.12.0) (2025-05-31)
 
 
