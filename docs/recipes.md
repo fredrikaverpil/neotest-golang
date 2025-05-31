@@ -164,7 +164,12 @@ show coverage in Neovim.
     }
     ```
 
-## Using build tags
+## Custom test arguments
+
+You can pass custom arguments, such as build tags, into the adapter either by
+supplying a configuration or as keymap/command.
+
+### Using configuration
 
 If you need to set build tags (like e.g. `-tags debug` or `-tags "tag1 tag2"`),
 you need to provide these arguments both in the `go_test_args` and
@@ -196,13 +201,16 @@ to set `dap_go_opts`. Full example:
     }
     ```
 
-### Overriding "go test" arguments when invoking Neotest
+### Using keymap/command
 
-If required, one can override `go_test_args` when invoking Neotest by passing
-overrides in the `extra_args.go_test_args` table.
+One can _override_ `go_test_args` by passing in the `extra_args.go_test_args`
+table. Using this approach, you can set up multiple keymaps or run tests with
+different arguments without restarting Neovim.
 
 For instance, if you want to run `go test` with the
 `-v -race -count=1 -p=1 -parallel=10 -tags=integration` flags, you could call:
+
+!!! example "Extra args"
 
     ```lua
     require('neotest').run.run(
@@ -222,15 +230,12 @@ For instance, if you want to run `go test` with the
     )
     ```
 
-NOTE: the arguments passed when invoking neotest **override** the `go_test_args`
-adapter option, it does not append them. You will most likely want to include
-what you set in your `go_test_args` configuration or the default arguments
-(`-v`, `-race`, `-count=1`) in the `extra_args.go_test_args` table.
-
-NOTE: currently, overriding arguments passed to `go list` is not supported but
-could easily be implemented
-[in a similar way](https://github.com/fredrikaverpil/neotest-golang/pull/348),
-if needed.
+> [!NOTE]
+>
+> Currently, overriding `go list` or DAP arguments via `extra_args` is not
+> currently supported but could easily be implemented
+> [in a similar way](https://github.com/fredrikaverpil/neotest-golang/pull/348),
+> if needed.
 
 ## Pass arguments as function instead of table
 
