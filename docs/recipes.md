@@ -230,12 +230,12 @@ For instance, if you want to run `go test` with the
     )
     ```
 
-> [!NOTE]
->
-> Currently, overriding `go list` or DAP arguments via `extra_args` is not
-> currently supported but could easily be implemented
-> [in a similar way](https://github.com/fredrikaverpil/neotest-golang/pull/348),
-> if needed.
+!!! note "Limited support"
+
+    Currently, overriding `go list` or DAP arguments via `extra_args` is not
+    currently supported but could easily be implemented
+    [in a similar way](https://github.com/fredrikaverpil/neotest-golang/pull/348),
+    if needed.
 
 ## Pass arguments as function instead of table
 
