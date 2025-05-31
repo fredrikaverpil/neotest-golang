@@ -108,8 +108,7 @@ function M.is_plugin_available(plugin)
 end
 
 function M.treesitter_parser_installed(lang)
-  local is_installed = require("nvim-treesitter.parsers").has_parser(lang)
-  if is_installed then
+  if vim.treesitter.language.add(lang) then
     ok("Treesitter parser for " .. lang .. " is installed")
   else
     warn("Treesitter parser for " .. lang .. " is not installed")
