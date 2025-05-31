@@ -67,24 +67,23 @@ end
 
 function M.test_command_in_package(package_or_path)
   local go_test_required_args = { package_or_path }
-  local cmd, json_filepath = M.test_command(go_test_required_args, false)
+  local cmd, json_filepath = M.test_command(go_test_required_args, true)
   return cmd, json_filepath
 end
 
 function M.test_command_in_package_with_regexp(package_or_path, regexp)
   local go_test_required_args = { package_or_path, "-run", regexp }
-  local cmd, json_filepath = M.test_command(go_test_required_args, false)
+  local cmd, json_filepath = M.test_command(go_test_required_args, true)
   return cmd, json_filepath
 end
 
----@param go_test_required_args table<string>
----@param skip_fallback boolean
-function M.test_command(go_test_required_args, skip_fallback)
+---@param go_test_required_args table<string> The required arguments, necessary for the test command.
+---@param fallback boolean Control feedback behavior, used primarily by tests.
+function M.test_command(go_test_required_args, fallback)
   --- The runner to use for running tests.
   --- @type string
   local runner = options.get().runner
-  if not skip_fallback then
-    -- The fallback can be skipped, primarily used for testing.
+  if fallback then
     runner = M.runner_fallback(options.get().runner)
   end
 
