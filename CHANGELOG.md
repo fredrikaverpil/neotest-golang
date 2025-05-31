@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.11.1...v1.12.0) (2025-05-31)
+
+
+### Features
+
+* allow passing build tags when invoking neotest ([#348](https://github.com/fredrikaverpil/neotest-golang/issues/348)) ([ec45664](https://github.com/fredrikaverpil/neotest-golang/commit/ec456641d6892ad2d917b9b690421d8ba8acd649))
+
 ## [1.11.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.11.0...v1.11.1) (2025-05-27)
 
 
