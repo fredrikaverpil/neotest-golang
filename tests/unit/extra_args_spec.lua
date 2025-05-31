@@ -18,7 +18,7 @@ describe("Extra args", function()
     options.setup({ runner = "go", go_test_args = { "-foo", "-bar" } })
     extra_args.set({ go_test_args = { "-baz", "-qux" } })
 
-    local command, _ = lib.cmd.test_command({})
+    local command, _ = lib.cmd.test_command({}, true)
     assert.are.same({ "go", "test", "-json", "-baz", "-qux" }, command)
   end)
 
@@ -26,7 +26,7 @@ describe("Extra args", function()
     options.setup({ runner = "gotestsum", go_test_args = { "-foo", "-bar" } })
     extra_args.set({ go_test_args = { "-baz", "-qux" } })
 
-    local command, _ = lib.cmd.test_command({})
+    local command, _ = lib.cmd.test_command({}, true)
     -- This parameter, the jsonfile path, contains a random string, let's get rid of it
     table.remove(command, 2)
     assert.are.same(
@@ -39,7 +39,7 @@ describe("Extra args", function()
     options.setup({ runner = "go", go_test_args = { "-foo", "-bar" } })
     extra_args.set({})
 
-    local command, _ = lib.cmd.test_command({})
+    local command, _ = lib.cmd.test_command({}, true)
     assert.are.same({ "go", "test", "-json", "-foo", "-bar" }, command)
   end)
 
@@ -47,7 +47,7 @@ describe("Extra args", function()
     options.setup({ runner = "gotestsum", go_test_args = { "-foo", "-bar" } })
     extra_args.set({})
 
-    local command, _ = lib.cmd.test_command({})
+    local command, _ = lib.cmd.test_command({}, true)
     -- This parameter, the jsonfile path, contains a random string, let's get rid of it
     table.remove(command, 2)
     assert.are.same(

@@ -52,9 +52,6 @@ tasks:
   test-plenary:
     desc: Run tests with Neovim and plenary
     cmds:
-      # Mimic gotestsum so that neotest-golang thinks it's available and does not fall back to go tests in unit tests
-      - cmd: touch /usr/local/bin/gotestsum && chmod +x /usr/local/bin/gotestsum
-
       - cmd: nvim --headless --noplugin -i NONE -u tests/bootstrap.lua -c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', timeout = 50000 }"
 
   install:

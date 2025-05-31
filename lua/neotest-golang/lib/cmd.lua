@@ -67,20 +67,26 @@ end
 
 function M.test_command_in_package(package_or_path)
   local go_test_required_args = { package_or_path }
-  local cmd, json_filepath = M.test_command(go_test_required_args)
+  local cmd, json_filepath = M.test_command(go_test_required_args, false)
   return cmd, json_filepath
 end
 
 function M.test_command_in_package_with_regexp(package_or_path, regexp)
   local go_test_required_args = { package_or_path, "-run", regexp }
-  local cmd, json_filepath = M.test_command(go_test_required_args)
+  local cmd, json_filepath = M.test_command(go_test_required_args, false)
   return cmd, json_filepath
 end
 
-function M.test_command(go_test_required_args)
+---@param go_test_required_args table<string>
+---@param skip_fallback boolean
+function M.test_command(go_test_required_args, skip_fallback)
   --- The runner to use for running tests.
   --- @type string
-  local runner = M.runner_fallback(options.get().runner)
+  local runner = options.get().runner
+  if not skip_fallback then
+    -- The fallback can be skipped, primarily used for testing.
+    runner = M.runner_fallback(options.get().runner)
+  end
 
   --- The filepath to write test output JSON to, if using `gotestsum`.
   --- @type string | nil
