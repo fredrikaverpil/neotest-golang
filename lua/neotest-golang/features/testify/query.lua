@@ -54,14 +54,12 @@ function M.run_query_on_file(filepath, query_string)
   local bufnr = vim.api.nvim_create_buf(false, true)
   local content = vim.fn.readfile(filepath)
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
-
   vim.api.nvim_set_option_value("filetype", "go", { buf = bufnr })
 
-  if not parsers.has_parser("go") then
+  local parser = vim.treesitter.get_parser(bufnr, "go", {})
+  if not parser then
     error("Go parser is not available. Please ensure it's installed.")
   end
-
-  local parser = parsers.get_parser(bufnr, "go")
   local tree = parser:parse()[1]
   local root = tree:root()
 
