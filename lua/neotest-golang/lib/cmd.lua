@@ -78,7 +78,7 @@ function M.test_command_in_package_with_regexp(package_or_path, regexp)
 end
 
 ---@param go_test_required_args table<string> The required arguments, necessary for the test command.
----@param fallback boolean Control feedback behavior, used primarily by tests.
+---@param fallback boolean Control runner fallback behavior, used primarily by tests.
 function M.test_command(go_test_required_args, fallback)
   --- The runner to use for running tests.
   --- @type string
