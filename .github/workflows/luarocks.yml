@@ -1,8 +1,5 @@
 name: luarocks
 on:
-  push:
-    tags:
-      - '*'
   release:
     types:
       - created
