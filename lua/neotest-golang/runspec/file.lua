@@ -3,6 +3,7 @@
 local dap = require("neotest-golang.features.dap")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
+local options = require("neotest-golang.options")
 
 local M = {}
 
@@ -84,6 +85,8 @@ function M.build(pos, tree, strategy)
     dap.setup_debugging(pos_path_folderpath)
   end
 
+  local env = options.get().env
+
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
@@ -97,6 +100,7 @@ function M.build(pos, tree, strategy)
     command = test_cmd,
     cwd = pos_path_folderpath,
     context = context,
+    env = env,
   }
 
   if runspec_strategy ~= nil then

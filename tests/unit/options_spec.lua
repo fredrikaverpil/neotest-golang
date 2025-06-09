@@ -15,6 +15,7 @@ describe("Options are set up", function()
       dap_go_opts = {},
       dap_mode = "dap-go",
       dap_manual_config = {},
+      env = {},
       testify_enabled = false,
       testify_operand = "^(s|suite)$",
       testify_import_identifier = "^(suite)$",
@@ -45,6 +46,7 @@ describe("Options are set up", function()
       dap_go_opts = {},
       dap_mode = "dap-go",
       dap_manual_config = {},
+      env = {},
       testify_enabled = false,
       testify_operand = "^(s|suite)$",
       testify_import_identifier = "^(suite)$",
@@ -81,6 +83,9 @@ describe("Options are set up", function()
         return "dap-go"
       end,
       dap_manual_config = function()
+        return {}
+      end,
+      env = function()
         return {}
       end,
       testify_enabled = false,
