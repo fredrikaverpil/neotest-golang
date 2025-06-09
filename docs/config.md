@@ -136,6 +136,14 @@ The configuration to apply if `dap_mode == "manual"`.
 
 The value can also be passed in as a function.
 
+### `env`
+
+Default value: `{}`
+
+A table of environment variables to set when running tests.
+
+The value can also be passed in as a function.
+
 ### `testify_enabled`
 
 Default value: `false`
