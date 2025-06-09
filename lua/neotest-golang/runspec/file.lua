@@ -86,6 +86,9 @@ function M.build(pos, tree, strategy)
   end
 
   local env = options.get().env
+  if type(env) == "function" then
+    env = env()
+  end
 
   --- @type RunspecContext
   local context = {

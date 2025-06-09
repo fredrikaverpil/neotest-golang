@@ -30,6 +30,9 @@ function M.build(pos)
     lib.cmd.test_command_in_package_with_regexp(pos_path_folderpath, test_name)
 
   local env = options.get().env
+  if type(env) == "function" then
+    env = env()
+  end
 
   --- @type RunspecContext
   local context = {

@@ -107,6 +107,9 @@ function M.build(pos)
     lib.cmd.test_command_in_package(package_import_path)
 
   local env = options.get().env
+  if type(env) == "function" then
+    env = env()
+  end
 
   --- @type RunspecContext
   local context = {
