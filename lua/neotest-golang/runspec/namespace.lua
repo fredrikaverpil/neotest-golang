@@ -1,7 +1,9 @@
 --- Helpers to build the command and context around running all tests in a namespace.
 
+local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
+local options = require("neotest-golang.options")
 
 local M = {}
 
@@ -28,6 +30,11 @@ function M.build(pos)
   local test_cmd, json_filepath =
     lib.cmd.test_command_in_package_with_regexp(pos_path_folderpath, test_name)
 
+  local env = extra_args.get().env or options.get().env
+  if type(env) == "function" then
+    env = env()
+  end
+
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
@@ -41,6 +48,7 @@ function M.build(pos)
     command = test_cmd,
     cwd = pos_path_folderpath,
     context = context,
+    env = env,
   }
 
   logger.debug({ "RunSpec:", run_spec })

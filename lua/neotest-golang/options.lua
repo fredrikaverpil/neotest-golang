@@ -14,6 +14,7 @@ local opts = {
   dap_go_opts = {}, -- NOTE: can also be a function
   dap_mode = "dap-go", -- NOTE: or "manual" ; can also be a function
   dap_manual_config = {}, -- NOTE: can also be a function
+  env = {}, -- NOTE: can also be a function
   testify_enabled = false,
   testify_operand = "^(s|suite)$",
   testify_import_identifier = "^(suite)$",

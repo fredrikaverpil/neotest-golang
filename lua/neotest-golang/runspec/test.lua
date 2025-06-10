@@ -1,8 +1,10 @@
 --- Helpers to build the command and context around running a single test.
 
 local dap = require("neotest-golang.features.dap")
+local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
+local options = require("neotest-golang.options")
 
 local M = {}
 
@@ -39,6 +41,11 @@ function M.build(pos, strategy)
     dap.setup_debugging(pos_path_folderpath)
   end
 
+  local env = extra_args.get().env or options.get().env
+  if type(env) == "function" then
+    env = env()
+  end
+
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
@@ -53,6 +60,7 @@ function M.build(pos, strategy)
     command = test_cmd,
     cwd = pos_path_folderpath,
     context = context,
+    env = env,
   }
 
   if runspec_strategy ~= nil then

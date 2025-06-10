@@ -237,6 +237,61 @@ For instance, if you want to run `go test` with the
     [in a similar way](https://github.com/fredrikaverpil/neotest-golang/pull/348),
     if needed.
 
+## Custom environment variables
+
+You can also pass in custom environment variables to the adapter, which will
+be set when running tests. This can be useful for setting up test-specific
+environment variables, such as database connection strings or API keys.
+
+### Using configuration
+
+You can pass in environment variables by providing a table of key-value pairs
+to the `env` option in the adapter configuration.
+
+!!! example "Custom env variables"
+
+    ```lua
+    return {
+      {
+        "nvim-neotest/neotest",
+        config = function()
+          require("neotest").setup({
+            adapters = {
+              require("neotest-golang")({
+                env = {
+                  TEST_VAR1 = "test1",
+                  TEST_VAR2 = "test2",
+                },
+              }),
+            },
+          })
+        end,
+      },
+    }
+    ```
+
+### Using keymap/command
+
+You can also pass in environment variables via the `extra_args.env` table when
+running tests. This allows you to set environment variables dynamically at
+runtime, without needing to restart Neovim.
+
+!!! example "Custom env variables via extra_args"
+
+    ```lua
+    require('neotest').run.run(
+      {
+        vim.fn.expand('%'),
+        extra_args = {
+          env = {
+            TEST_VAR1 = "test1",
+            TEST_VAR2 = "test2",
+          },
+        },
+      },
+    )
+    ```
+
 ## Pass arguments as function instead of table
 
 Some use cases may require you to pass in dynamically generated arguments during

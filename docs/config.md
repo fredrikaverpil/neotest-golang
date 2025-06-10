@@ -136,6 +136,32 @@ The configuration to apply if `dap_mode == "manual"`.
 
 The value can also be passed in as a function.
 
+### `env`
+
+Default value: `{}`
+
+A table of environment variables to set when running tests.
+
+The value can also be passed in as a function.
+
+??? example "Pass environment variables"
+    Provide environment variables like `table<string, string>`:
+    ```lua
+    local config = { -- Specify configuration
+      env = {
+        TEST_VAR1 = "test1",
+        TEST_VAR2 = "test2",
+      },
+    }
+    require("neotest").setup({
+      adapters = {
+        require("neotest-golang")(config), -- Apply configuration
+      },
+    })
+    ```
+!!! tip "Extra args"
+    You can also pass in environment variables via Neotest's `extra_args` feature, see the [recipes](recipes.md) for more info.
+
 ### `testify_enabled`
 
 Default value: `false`
