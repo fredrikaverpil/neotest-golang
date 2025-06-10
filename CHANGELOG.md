@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.13.0...v1.14.0) (2025-06-10)
+
+
+### Features
+
+* add support for passing env vars to neotest runspec ([#361](https://github.com/fredrikaverpil/neotest-golang/issues/361)) ([ad48689](https://github.com/fredrikaverpil/neotest-golang/commit/ad48689add21d7e4cefe09675411b50f53d8d8c2))
+
 ## [1.13.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.12.0...v1.13.0) (2025-05-31)
 
 
