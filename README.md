@@ -16,6 +16,7 @@ Reliable Neotest adapter for running Go tests in Neovim.
 - Monorepo support (detect, run and debug tests in sub-projects).
 - Inline diagnostics.
 - Custom `go test` argument support.
+- Environment variables support.
 - Works great with
   [andythigpen/nvim-coverage](https://github.com/andythigpen/nvim-coverage) for
   displaying coverage in the sign column.
