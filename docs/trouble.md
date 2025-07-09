@@ -110,3 +110,7 @@ more information on this. There's also an excellent article written by
 [@roblaszczak](https://github.com/roblaszczak) posted
 [here](https://threedots.tech/post/go-test-parallelism/) that touches on this
 subject further.
+
+## "Error on launch: Failed to launch"
+
+If you encounter "Error on launch: Failed to launch" in messages/notifications in nvim when you attempt to execute your tests, open up the dap-ui with `:%lua require("dapui").open()`. This should show any underlying errors encountered when nvim-dap tries to build/execute/attach the debugger and should guide you on how to troubleshoot.
