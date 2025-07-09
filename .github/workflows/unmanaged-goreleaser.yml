@@ -1,0 +1,19 @@
+# SAFE TO CUSTOMIZE - This file is copied once and not overwritten during sync
+# Source: https://github.com/fredrikaverpil/github
+
+name: goreleaser
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  ci:
+    uses: fredrikaverpil/github/.github/workflows/goreleaser.yml@main
+    with:
+      go-version-file: go.mod
+    secrets: inherit

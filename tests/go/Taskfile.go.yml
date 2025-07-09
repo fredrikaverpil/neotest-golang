@@ -10,10 +10,10 @@ vars:
   TOOLS_DIR:
     sh: |
       git_root=$(git rev-parse --show-toplevel 2>/dev/null)
-      if [ $? -eq 0 ] && [ -d "$git_root/tools" ]; then
-        echo "$git_root/tools"
+      if [ $? -eq 0 ] && [ -d "$git_root/.tools" ]; then
+        echo "$git_root/.tools"
       else
-        echo "Error: Could not find tools directory in git root" >&2
+        echo "Error: Could not find .tools directory in git root" >&2
         exit 1
       fi
   GO_TOOL_CMD: go tool -modfile={{.TOOLS_DIR}}/go.mod
@@ -44,11 +44,6 @@ tasks:
     cmds:
       - '{{ .GO_TOOL_CMD }} govulncheck ./...'
 
-  gosec:
-    desc: Check for security issues with gosec
-    cmds:
-      - '{{ .GO_TOOL_CMD }} gosec ./...'
-
   go-test:
     desc: Run go test
     aliases: ["test"]
@@ -70,7 +65,7 @@ tasks:
       - find . -name "*.go" | xargs -P $(nproc) gopls check
 
   install-gopls:
-    desc: Install stylua using version from tools/Cargo.toml
+    desc: Install gopls from latest version
     aliases: ["install"]
     cmds:
       - go install golang.org/x/tools/gopls@latest
