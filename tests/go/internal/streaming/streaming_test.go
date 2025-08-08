@@ -2,7 +2,6 @@ package streaming
 
 import (
 	"testing"
-	"time"
 )
 
 func TestFast(t *testing.T) {
@@ -13,7 +12,7 @@ func TestFast(t *testing.T) {
 func TestSlow(t *testing.T) {
 	// This test takes some time
 	t.Log("Slow test starting")
-	time.Sleep(5 * time.Second)
+	// time.Sleep(5 * time.Second)
 	t.Log("Slow test completed")
 }
 
@@ -22,13 +21,13 @@ func TestWithSubtests(t *testing.T) {
 	t.Run("Subtest1", func(t *testing.T) {
 		t.Parallel()
 		t.Log("Subtest 1 running")
-		time.Sleep(2 * time.Second)
+		// time.Sleep(2 * time.Second)
 	})
 
 	t.Run("Subtest2", func(t *testing.T) {
 		t.Parallel()
 		t.Log("Subtest 2 running")
-		time.Sleep(10 * time.Second)
+		// time.Sleep(10 * time.Second)
 	})
 }
 
