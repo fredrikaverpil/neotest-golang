@@ -5,6 +5,7 @@ local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
+local streaming = require("neotest-golang.lib.streaming")
 
 local M = {}
 
@@ -112,70 +113,8 @@ function M.build(pos, tree, strategy)
     run_spec.context.is_dap_active = true
   end
 
-  -- Add streaming support for non-DAP strategies (only works with 'go' runner)
-  local streaming_enabled = options.get().experimental_streaming
-  if type(streaming_enabled) == "function" then
-    streaming_enabled = streaming_enabled()
-  end
-
-  -- Streaming only works with 'go test -json', not with gotestsum
-  local runner = options.get().runner
-  if runner == "gotestsum" then
-    logger.debug(
-      "Streaming disabled: gotestsum writes JSON to file, not stdout"
-    )
-    streaming_enabled = false
-  end
-
-  if streaming_enabled and strategy ~= "dap" then
-    logger.info("Streaming enabled for file runspec with runner: " .. runner)
-    local stream = require("neotest-golang.lib.stream")
-    local parser = stream.new(tree, golist_data)
-    context.is_streaming_active = true
-    -- The stream function should return a function that processes chunks
-    -- Create a fresh parser for streaming
-    local accumulated_results = {}
-    
-    run_spec.stream = function(data)
-      -- Return a function that will be called repeatedly by Neotest
-      return function()
-        -- Call data() to get lines - this should give us new lines each time
-        local lines = data()
-        
-        if not lines then
-          return accumulated_results  -- Return final accumulated results
-        end
-        
-        -- Process the new lines
-        if #lines > 0 then
-          local new_results = parser:process_lines(lines)
-          
-          -- Accumulate results
-          if new_results then
-            for pos_id, result in pairs(new_results) do
-              accumulated_results[pos_id] = result
-            end
-          end
-          
-          -- Always return the accumulated results so far
-          if next(accumulated_results) then
-            return accumulated_results
-          end
-        end
-        
-        return {}  -- Return empty table to indicate we're still processing
-      end
-    end
-  else
-    logger.info(
-      "Streaming NOT enabled. Enabled="
-        .. tostring(streaming_enabled)
-        .. ", Strategy="
-        .. tostring(strategy)
-        .. ", Runner="
-        .. tostring(runner)
-    )
-  end
+  -- Add streaming support for non-DAP strategies
+  run_spec = streaming.setup_streaming(run_spec, tree, golist_data, context, strategy)
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec

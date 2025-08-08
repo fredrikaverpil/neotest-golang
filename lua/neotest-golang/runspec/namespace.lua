@@ -4,6 +4,7 @@ local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
+local streaming = require("neotest-golang.lib.streaming")
 
 local M = {}
 
@@ -52,50 +53,8 @@ function M.build(pos, tree)
     env = env,
   }
 
-  -- Add streaming support (only works with 'go' runner)
-  local streaming_enabled = options.get().experimental_streaming
-  if type(streaming_enabled) == "function" then
-    streaming_enabled = streaming_enabled()
-  end
-  
-  -- Streaming only works with 'go test -json', not with gotestsum
-  local runner = options.get().runner
-  if runner == "gotestsum" then
-    logger.debug("Streaming disabled: gotestsum writes JSON to file, not stdout")
-    streaming_enabled = false
-  end
-  
-  if streaming_enabled and tree then
-    context.is_streaming_active = true
-    local stream = require("neotest-golang.lib.stream")
-    local parser = stream.new(tree, golist_data)
-    local accumulated_results = {}
-    
-    run_spec.stream = function(data)
-      return function()
-        local lines = data()
-        
-        if not lines then
-          return accumulated_results
-        end
-        
-        if #lines > 0 then
-          local new_results = parser:process_lines(lines)
-          if new_results then
-            for pos_id, result in pairs(new_results) do
-              accumulated_results[pos_id] = result
-            end
-          end
-          
-          if next(accumulated_results) then
-            return accumulated_results
-          end
-        end
-        
-        return {}
-      end
-    end
-  end
+  -- Add streaming support
+  run_spec = streaming.setup_streaming(run_spec, tree, golist_data, context)
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec
