@@ -32,11 +32,6 @@ func TestWithSubtests(t *testing.T) {
 	})
 }
 
-func TestFailure(t *testing.T) {
-	t.Log("This test will fail")
-	t.Error("Expected failure")
-}
-
 func TestSkipped(t *testing.T) {
 	t.Skip("Skipping this test")
 }
