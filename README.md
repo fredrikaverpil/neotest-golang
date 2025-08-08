@@ -9,6 +9,7 @@ Reliable Neotest adapter for running Go tests in Neovim.
 - Supports all [Neotest usage](https://github.com/nvim-neotest/neotest#usage).
 - Supports table tests and nested test functions (based on treesitter AST
   parsing).
+- Streaming test results - see tests pass/fail in real-time as they complete.
 - DAP support. Either with
   [leoluz/nvim-dap-go](https://github.com/leoluz/nvim-dap-go) integration or
   custom configuration for debugging of tests using

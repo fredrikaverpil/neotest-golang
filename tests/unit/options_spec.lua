@@ -24,6 +24,7 @@ describe("Options are set up", function()
       warn_test_not_executed = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
+      experimental_streaming = true,
 
       -- experimental
       dev_notifications = false,
@@ -55,6 +56,7 @@ describe("Options are set up", function()
       warn_test_not_executed = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
+      experimental_streaming = true,
 
       -- experimental
       dev_notifications = false,
@@ -96,6 +98,7 @@ describe("Options are set up", function()
       warn_test_not_executed = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
+      experimental_streaming = true,
 
       -- experimental
       runner = "go",

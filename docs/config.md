@@ -287,6 +287,37 @@ this. See `:h vim.log.levels` for all levels.
     This usually corresponds to something like
     `~/.local/state/nvim/neotest-golang.log`.
 
+### `experimental_streaming`
+
+Default value: `true`
+
+Enable streaming of test results. When enabled, test results will be displayed
+as they complete rather than waiting for all tests to finish. This provides
+immediate feedback during test execution, especially useful for long-running
+test suites.
+
+The streaming feature processes `go test -json` output incrementally and updates
+the Neotest UI in real-time as each test passes, fails, or is skipped.
+
+!!! warning "Gotestsum limitation"
+
+    Streaming only works with the `go` runner, not with `gotestsum`. This is because
+    `gotestsum` writes JSON output to a file rather than stdout. If you want to use
+    streaming, set `runner = "go"` in your configuration.
+
+!!! note "Experimental feature"
+
+    This is an experimental feature. While it should work reliably in most cases,
+    you can disable it if you encounter any issues:
+    
+    ```lua
+    local config = {
+        experimental_streaming = false,
+    }
+    ```
+
+The value can also be passed in as a function.
+
 ### `sanitize_output`
 
 Default value: `false`

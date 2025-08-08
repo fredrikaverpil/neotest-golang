@@ -11,8 +11,9 @@ local M = {}
 --- Build runspec for a single test
 --- @param pos neotest.Position
 --- @param strategy string
+--- @param tree neotest.Tree|nil Optional tree for streaming support
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build(pos, strategy)
+function M.build(pos, strategy, tree)
   local pos_path_folderpath = vim.fn.fnamemodify(pos.path, ":h")
 
   local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
@@ -66,6 +67,67 @@ function M.build(pos, strategy)
   if runspec_strategy ~= nil then
     run_spec.strategy = runspec_strategy
     run_spec.context.is_dap_active = true
+  end
+
+  -- Add streaming support for non-DAP strategies (only works with 'go' runner)
+  local streaming_enabled = options.get().experimental_streaming
+  if type(streaming_enabled) == "function" then
+    streaming_enabled = streaming_enabled()
+  end
+  
+  -- Streaming only works with 'go test -json', not with gotestsum
+  local runner = options.get().runner
+  if runner == "gotestsum" then
+    logger.debug("Streaming disabled: gotestsum writes JSON to file, not stdout")
+    streaming_enabled = false
+  end
+  
+  if streaming_enabled and strategy ~= "dap" then
+    logger.debug("Streaming enabled for test runspec, tree provided: " .. tostring(tree ~= nil))
+    context.is_streaming_active = true
+    
+    -- For single test, create a minimal tree if not provided
+    local stream_tree = tree
+    if not stream_tree then
+      -- Create a minimal tree with just this test
+      stream_tree = {
+        iter_nodes = function()
+          return function() end
+        end,
+        data = function()
+          return pos
+        end
+      }
+    end
+    
+    local stream = require("neotest-golang.lib.stream")
+    local parser = stream.new(stream_tree, golist_data)
+    local accumulated_results = {}
+    
+    run_spec.stream = function(data)
+      return function()
+        local lines = data()
+        
+        if not lines then
+          return accumulated_results
+        end
+        
+        if #lines > 0 then
+          local new_results = parser:process_lines(lines)
+          if new_results then
+            for pos_id, result in pairs(new_results) do
+              accumulated_results[pos_id] = result
+            end
+          end
+          
+          if next(accumulated_results) then
+            return accumulated_results
+          end
+        end
+        
+        return {}
+      end
+    end
   end
 
   logger.debug({ "RunSpec:", run_spec })

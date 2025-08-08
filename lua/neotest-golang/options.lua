@@ -23,6 +23,9 @@ local opts = {
   warn_test_not_executed = true,
   log_level = vim.log.levels.WARN,
   sanitize_output = false,
+  
+  -- streaming support: show test results as they complete
+  experimental_streaming = true, -- NOTE: can also be a function
 
   -- experimental, for now undocumented, options
   dev_notifications = false,

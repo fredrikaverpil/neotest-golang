@@ -12,6 +12,7 @@ local options = require("neotest-golang.options")
 --- @field golist_data table<string, string> The 'go list' JSON data (lua table).
 --- @field errors? table<string> Non-gotest errors to show in the final output.
 --- @field is_dap_active boolean? If true, parsing of test output will occur.
+--- @field is_streaming_active boolean? If true, results are provided via streaming.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 
 --- @class TestData
@@ -52,6 +53,17 @@ function M.test_results(spec, result, tree)
       status = "skipped",
     }
     return neotest_result
+  end
+
+  -- ////// RETURN EARLY FOR STREAMING //////
+
+  if context.is_streaming_active then
+    -- When streaming is active, results are provided via the stream callback
+    -- However, we still need to provide final results here as a fallback
+    logger.debug("Processing results in fallback mode (streaming was active)")
+    
+    -- Don't return early - continue to process results normally
+    -- This ensures we have results even if streaming didn't work
   end
 
   -- ////// PROCESS TEST RESULTS FOR ALL POSITIONS (NODES) EXECUTED //////

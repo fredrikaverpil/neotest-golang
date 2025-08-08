@@ -78,8 +78,9 @@ end
 --- 2. Run `go test` from the directory containing the go.mod file.
 --- 3. Use the relative path from the go.mod file to pos.path as the test pattern.
 --- @param pos neotest.Position
+--- @param tree neotest.Tree|nil Optional tree for streaming support
 --- @return neotest.RunSpec | nil
-function M.build(pos)
+function M.build(pos, tree)
   local go_mod_filepath = lib.find.file_upwards("go.mod", pos.path)
   if go_mod_filepath == nil then
     logger.error(
@@ -127,6 +128,51 @@ function M.build(pos)
     context = context,
     env = env,
   }
+
+  -- Add streaming support (only works with 'go' runner)
+  local streaming_enabled = options.get().experimental_streaming
+  if type(streaming_enabled) == "function" then
+    streaming_enabled = streaming_enabled()
+  end
+  
+  -- Streaming only works with 'go test -json', not with gotestsum
+  local runner = options.get().runner
+  if runner == "gotestsum" then
+    logger.debug("Streaming disabled: gotestsum writes JSON to file, not stdout")
+    streaming_enabled = false
+  end
+  
+  if streaming_enabled and tree then
+    context.is_streaming_active = true
+    local stream = require("neotest-golang.lib.stream")
+    local parser = stream.new(tree, golist_data)
+    local accumulated_results = {}
+    
+    run_spec.stream = function(data)
+      return function()
+        local lines = data()
+        
+        if not lines then
+          return accumulated_results
+        end
+        
+        if #lines > 0 then
+          local new_results = parser:process_lines(lines)
+          if new_results then
+            for pos_id, result in pairs(new_results) do
+              accumulated_results[pos_id] = result
+            end
+          end
+          
+          if next(accumulated_results) then
+            return accumulated_results
+          end
+        end
+        
+        return {}
+      end
+    end
+  end
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec

@@ -105,12 +105,12 @@ function M.Adapter.build_spec(args)
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is also the current working
     -- directory.
-    return runspec.dir.build(pos)
+    return runspec.dir.build(pos, tree)
   elseif pos.type == "dir" then
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is a sub-directory of the current
     -- working directory.
-    return runspec.dir.build(pos)
+    return runspec.dir.build(pos, tree)
   elseif pos.type == "file" then
     -- A runspec is to be created, based on on running all tests in the given
     -- file.
@@ -118,10 +118,10 @@ function M.Adapter.build_spec(args)
   elseif pos.type == "namespace" then
     -- A runspec is to be created, based on running all tests in the given
     -- namespace.
-    return runspec.namespace.build(pos)
+    return runspec.namespace.build(pos, tree)
   elseif pos.type == "test" then
     -- A runspec is to be created, based on on running the given test.
-    return runspec.test.build(pos, args.strategy)
+    return runspec.test.build(pos, args.strategy, tree)
   end
 
   logger.error(
