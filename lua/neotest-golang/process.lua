@@ -6,6 +6,7 @@ local async = require("neotest.async")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
+local position_resolver = require("neotest-golang.lib.position_resolver")
 
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
@@ -384,9 +385,7 @@ end
 --- This is an important step, in which we figure out exactly which test output
 --- belongs to which test in the Neotest position tree.
 ---
---- The strategy here is to loop over the Neotest position data, and figure out
---- which position belongs to a specific Go package (using the output from
---- 'go list -json').
+--- Uses the unified position resolver to match positions to Go test output.
 ---
 --- If a test cannot be decorated with Go package/test name data, an association
 --- warning will be shown (see show_warnings).
@@ -400,43 +399,15 @@ function M.decorate_with_go_package_and_test_name(
   golist_output
 )
   for pos_id, test_data in pairs(res) do
-    local match = nil
-    local folderpath = vim.fn.fnamemodify(test_data.neotest_data.path, ":h")
-    local tweaked_pos_id = pos_id:gsub(" ", "_")
-    tweaked_pos_id = tweaked_pos_id:gsub('"', "")
-    tweaked_pos_id = tweaked_pos_id:gsub("::", "/")
-
-    for _, golistline in ipairs(golist_output) do
-      if folderpath == golistline.Dir then
-        for _, gotestline in ipairs(gotest_output) do
-          if gotestline.Action == "run" and gotestline.Test ~= nil then
-            if gotestline.Package == golistline.ImportPath then
-              local pattern = lib.convert.to_lua_pattern(folderpath)
-                .. lib.find.os_path_sep
-                .. "(.-)"
-                .. "/"
-                .. lib.convert.to_lua_pattern(gotestline.Test)
-                .. "$"
-              match = tweaked_pos_id:find(pattern, 1, false)
-
-              if match ~= nil then
-                test_data.gotest_data.pkg = gotestline.Package
-                test_data.gotest_data.name = gotestline.Test
-                break
-              end
-            end
-            if match ~= nil then
-              break
-            end
-          end
-          if match ~= nil then
-            break
-          end
-        end
-        if match ~= nil then
-          break
-        end
-      end
+    local package, test_name = position_resolver.resolve_package_and_test_name(
+      test_data.neotest_data,
+      gotest_output,
+      golist_output
+    )
+    
+    if package and test_name then
+      test_data.gotest_data.pkg = package
+      test_data.gotest_data.name = test_name
     end
   end
 
