@@ -5,6 +5,7 @@ local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
+local runspec_builder = require("neotest-golang.lib.runspec_builder")
 
 local M = {}
 
@@ -78,11 +79,11 @@ function M.build(pos, tree, strategy)
     -- NOTE: could also fall back to running on a per-test basis by using a bare return
   end
 
-  local runspec_strategy = nil
+  local dap_strategy = nil
   if strategy == "dap" then
     dap.assert_dap_prerequisites()
-    runspec_strategy = dap.get_dap_config(pos_path_folderpath, regexp)
-    logger.debug("DAP strategy used: " .. vim.inspect(runspec_strategy))
+    dap_strategy = dap.get_dap_config(pos_path_folderpath, regexp)
+    logger.debug("DAP strategy: " .. vim.inspect(dap_strategy))
     dap.setup_debugging(pos_path_folderpath)
   end
 
@@ -91,26 +92,32 @@ function M.build(pos, tree, strategy)
     env = env()
   end
 
-  --- @type RunspecContext
+  ---@type RunspecContext
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
     test_output_json_filepath = json_filepath,
+    is_dap_active = dap_strategy ~= nil,
   }
 
-  --- @type neotest.RunSpec
+  ---@type neotest.RunSpec
   local run_spec = {
     command = test_cmd,
     cwd = pos_path_folderpath,
     context = context,
     env = env,
+    strategy = dap_strategy,
   }
 
-  if runspec_strategy ~= nil then
-    run_spec.strategy = runspec_strategy
-    run_spec.context.is_dap_active = true
-  end
+  -- Add streaming support
+  run_spec = runspec_builder.setup_streaming(
+    run_spec,
+    tree,
+    golist_data,
+    context,
+    strategy
+  )
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec

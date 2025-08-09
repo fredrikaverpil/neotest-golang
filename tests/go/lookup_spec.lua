@@ -35,6 +35,10 @@ describe("Lookup", function()
         package = "sanitization",
         replacements = {},
       },
+      [folderpath .. "/internal/streaming/streaming_test.go"] = {
+        package = "streaming",
+        replacements = {},
+      },
       [folderpath .. "/internal/subpackage/subpackage2/subpackage2_test.go"] = {
         package = "subpackage2",
         replacements = {},

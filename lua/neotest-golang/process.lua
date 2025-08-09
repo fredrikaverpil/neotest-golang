@@ -3,15 +3,18 @@
 
 local async = require("neotest.async")
 
+local error_processor = require("neotest-golang.lib.error_processor")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
+local position_resolver = require("neotest-golang.lib.position_resolver")
 
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
 --- @field golist_data table<string, string> The 'go list' JSON data (lua table).
 --- @field errors? table<string> Non-gotest errors to show in the final output.
 --- @field is_dap_active boolean? If true, parsing of test output will occur.
+--- @field is_streaming_active boolean? If true, results are provided via streaming.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 
 --- @class TestData
@@ -52,6 +55,17 @@ function M.test_results(spec, result, tree)
       status = "skipped",
     }
     return neotest_result
+  end
+
+  -- ////// RETURN EARLY FOR STREAMING //////
+
+  if context.is_streaming_active then
+    -- When streaming is active, results are provided via the stream callback
+    -- However, we still need to provide final results here as a fallback
+    logger.debug("Processing results in fallback mode (streaming was active)")
+
+    -- Don't return early - continue to process results normally
+    -- This ensures we have results even if streaming didn't work
   end
 
   -- ////// PROCESS TEST RESULTS FOR ALL POSITIONS (NODES) EXECUTED //////
@@ -372,9 +386,7 @@ end
 --- This is an important step, in which we figure out exactly which test output
 --- belongs to which test in the Neotest position tree.
 ---
---- The strategy here is to loop over the Neotest position data, and figure out
---- which position belongs to a specific Go package (using the output from
---- 'go list -json').
+--- Uses the unified position resolver to match positions to Go test output.
 ---
 --- If a test cannot be decorated with Go package/test name data, an association
 --- warning will be shown (see show_warnings).
@@ -388,43 +400,15 @@ function M.decorate_with_go_package_and_test_name(
   golist_output
 )
   for pos_id, test_data in pairs(res) do
-    local match = nil
-    local folderpath = vim.fn.fnamemodify(test_data.neotest_data.path, ":h")
-    local tweaked_pos_id = pos_id:gsub(" ", "_")
-    tweaked_pos_id = tweaked_pos_id:gsub('"', "")
-    tweaked_pos_id = tweaked_pos_id:gsub("::", "/")
+    local package, test_name = position_resolver.resolve_package_and_test_name(
+      test_data.neotest_data,
+      gotest_output,
+      golist_output
+    )
 
-    for _, golistline in ipairs(golist_output) do
-      if folderpath == golistline.Dir then
-        for _, gotestline in ipairs(gotest_output) do
-          if gotestline.Action == "run" and gotestline.Test ~= nil then
-            if gotestline.Package == golistline.ImportPath then
-              local pattern = lib.convert.to_lua_pattern(folderpath)
-                .. lib.find.os_path_sep
-                .. "(.-)"
-                .. "/"
-                .. lib.convert.to_lua_pattern(gotestline.Test)
-                .. "$"
-              match = tweaked_pos_id:find(pattern, 1, false)
-
-              if match ~= nil then
-                test_data.gotest_data.pkg = gotestline.Package
-                test_data.gotest_data.name = gotestline.Test
-                break
-              end
-            end
-            if match ~= nil then
-              break
-            end
-          end
-          if match ~= nil then
-            break
-          end
-        end
-        if match ~= nil then
-          break
-        end
-      end
+    if package and test_name then
+      test_data.gotest_data.pkg = package
+      test_data.gotest_data.name = test_name
     end
   end
 
@@ -477,19 +461,11 @@ function M.decorate_with_go_test_results(res, gotest_output)
             test_filename = vim.fn.fnamemodify(test_filepath, ":t")
           end
 
-          -- search for error message and line number
-          local matched_line_number =
-            string.match(line.Output, test_filename .. ":(%d+):")
-          if matched_line_number ~= nil then
-            local line_number = tonumber(matched_line_number)
-            local message =
-              string.match(line.Output, test_filename .. ":%d+: (.*)")
-            if line_number ~= nil and message ~= nil then
-              table.insert(test_data.errors, {
-                line = line_number - 1, -- neovim lines are 0-indexed
-                message = message,
-              })
-            end
+          -- extract errors from this line of output
+          local error =
+            error_processor.extract_error_from_line(line.Output, test_filename)
+          if error then
+            table.insert(test_data.errors, error)
           end
         end
       end

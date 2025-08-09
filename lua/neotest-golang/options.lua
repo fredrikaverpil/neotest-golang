@@ -24,6 +24,9 @@ local opts = {
   log_level = vim.log.levels.WARN,
   sanitize_output = false,
 
+  -- streaming support: show test results as they complete
+  stream_enabled = false, -- NOTE: can also be a function
+
   -- experimental, for now undocumented, options
   dev_notifications = false,
 }

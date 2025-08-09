@@ -5,6 +5,7 @@ local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
+local runspec_builder = require("neotest-golang.lib.runspec_builder")
 
 local M = {}
 
@@ -78,8 +79,9 @@ end
 --- 2. Run `go test` from the directory containing the go.mod file.
 --- 3. Use the relative path from the go.mod file to pos.path as the test pattern.
 --- @param pos neotest.Position
+--- @param tree neotest.Tree|nil Optional tree for streaming support
 --- @return neotest.RunSpec | nil
-function M.build(pos)
+function M.build(pos, tree)
   local go_mod_filepath = lib.find.file_upwards("go.mod", pos.path)
   if go_mod_filepath == nil then
     logger.error(
@@ -112,7 +114,7 @@ function M.build(pos)
     env = env()
   end
 
-  --- @type RunspecContext
+  ---@type RunspecContext
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
@@ -120,13 +122,17 @@ function M.build(pos)
     test_output_json_filepath = json_filepath,
   }
 
-  --- @type neotest.RunSpec
+  ---@type neotest.RunSpec
   local run_spec = {
     command = test_cmd,
     cwd = pos.path,
     context = context,
     env = env,
   }
+
+  -- Add streaming support
+  run_spec =
+    runspec_builder.setup_streaming(run_spec, tree, golist_data, context)
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec

@@ -5,14 +5,16 @@ local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
+local runspec_builder = require("neotest-golang.lib.runspec_builder")
 
 local M = {}
 
 --- Build runspec for a single test
 --- @param pos neotest.Position
 --- @param strategy string
+--- @param tree neotest.Tree|nil Optional tree for streaming support
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build(pos, strategy)
+function M.build(pos, strategy, tree)
   local pos_path_folderpath = vim.fn.fnamemodify(pos.path, ":h")
 
   local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
@@ -33,11 +35,11 @@ function M.build(pos, strategy)
     test_name_regex
   )
 
-  local runspec_strategy = nil
+  local dap_strategy = nil
   if strategy == "dap" then
     dap.assert_dap_prerequisites()
-    runspec_strategy = dap.get_dap_config(pos_path_folderpath, test_name_regex)
-    logger.debug("DAP strategy used: " .. vim.inspect(runspec_strategy))
+    dap_strategy = dap.get_dap_config(pos_path_folderpath, test_name_regex)
+    logger.debug("DAP strategy: " .. vim.inspect(dap_strategy))
     dap.setup_debugging(pos_path_folderpath)
   end
 
@@ -46,27 +48,34 @@ function M.build(pos, strategy)
     env = env()
   end
 
-  --- @type RunspecContext
+  ---@type RunspecContext
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
     process_test_results = true,
     test_output_json_filepath = json_filepath,
+    is_dap_active = dap_strategy ~= nil,
   }
 
-  --- @type neotest.RunSpec
+  ---@type neotest.RunSpec
   local run_spec = {
     command = test_cmd,
     cwd = pos_path_folderpath,
     context = context,
     env = env,
+    strategy = dap_strategy,
   }
 
-  if runspec_strategy ~= nil then
-    run_spec.strategy = runspec_strategy
-    run_spec.context.is_dap_active = true
-  end
+  -- Add streaming support
+  run_spec = runspec_builder.setup_streaming(
+    run_spec,
+    tree,
+    golist_data,
+    context,
+    strategy,
+    pos
+  )
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec

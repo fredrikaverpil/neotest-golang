@@ -144,23 +144,11 @@ A table of environment variables to set when running tests.
 
 The value can also be passed in as a function.
 
-??? example "Pass environment variables"
-    Provide environment variables like `table<string, string>`:
-    ```lua
-    local config = { -- Specify configuration
-      env = {
-        TEST_VAR1 = "test1",
-        TEST_VAR2 = "test2",
-      },
-    }
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config), -- Apply configuration
-      },
-    })
-    ```
-!!! tip "Extra args"
-    You can also pass in environment variables via Neotest's `extra_args` feature, see the [recipes](recipes.md) for more info.
+??? example "Pass environment variables" Provide environment variables like
+`table<string, string>`:
+`lua     local config = { -- Specify configuration       env = {         TEST_VAR1 = "test1",         TEST_VAR2 = "test2",       },     }     require("neotest").setup({       adapters = {         require("neotest-golang")(config), -- Apply configuration       },     })     `
+!!! tip "Extra args" You can also pass in environment variables via Neotest's
+`extra_args` feature, see the [recipes](recipes.md) for more info.
 
 ### `testify_enabled`
 
@@ -286,6 +274,34 @@ this. See `:h vim.log.levels` for all levels.
 
     This usually corresponds to something like
     `~/.local/state/nvim/neotest-golang.log`.
+
+### `stream_enabled`
+
+Default value: `false`
+
+Enable streaming of test results. When enabled, test results will be displayed
+as they complete rather than waiting for all tests to finish. This provides
+immediate feedback during test execution, especially useful for long-running
+test suites.
+
+**Go runner**: Streams JSON directly from `go test -json` stdout output.
+**Gotestsum runner**: Streams JSON from the output file in real-time using file watching.
+
+Both approaches provide immediate feedback as tests complete, with the Neotest UI
+updating in real-time as each test passes, fails, or is skipped.
+
+!!! tip "Streaming feature"
+
+    This feature provides real-time test result updates. If you encounter any issues,
+    you can disable it:
+
+    ```lua
+    local config = {
+        stream_enabled = false,
+    }
+    ```
+
+The value can also be passed in as a function.
 
 ### `sanitize_output`
 

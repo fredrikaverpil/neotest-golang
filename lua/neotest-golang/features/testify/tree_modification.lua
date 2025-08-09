@@ -124,6 +124,7 @@ function M.merge_duplicate_namespaces(tree)
     M.merge_duplicate_namespaces(child)
   end
 
+  ---@diagnostic disable-next-line: inject-field
   tree._children = new_children
   return tree
 end
@@ -185,6 +186,7 @@ end
 --- @param suite_functions table<string, boolean> A set of known suite functions
 function M.recursive_update(n, replacements, suite_functions)
   M.update_node(n, replacements, suite_functions)
+  ---@diagnostic disable-next-line: inject-field
   n._nodes = M.update_nodes_table(n._nodes, replacements)
   for _, child in ipairs(n:children()) do
     M.recursive_update(child, replacements, suite_functions)
@@ -195,6 +197,7 @@ end
 --- @param n neotest.Tree The node to fix relationships for
 function M.fix_relationships(n)
   for _, child in ipairs(n:children()) do
+    ---@diagnostic disable-next-line: inject-field
     child._parent = n
     M.fix_relationships(child)
   end

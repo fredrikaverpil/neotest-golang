@@ -4,13 +4,15 @@ local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
+local runspec_builder = require("neotest-golang.lib.runspec_builder")
 
 local M = {}
 
---- Build runspec for a single test
+--- Build runspec for a namespace
 --- @param pos neotest.Position
+--- @param tree neotest.Tree|nil Optional tree for streaming support
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build(pos)
+function M.build(pos, tree)
   local pos_path_folderpath =
     string.match(pos.path, "(.+)" .. lib.find.os_path_sep)
 
@@ -35,7 +37,7 @@ function M.build(pos)
     env = env()
   end
 
-  --- @type RunspecContext
+  ---@type RunspecContext
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
@@ -43,13 +45,17 @@ function M.build(pos)
     test_output_json_filepath = json_filepath,
   }
 
-  --- @type neotest.RunSpec
+  ---@type neotest.RunSpec
   local run_spec = {
     command = test_cmd,
     cwd = pos_path_folderpath,
     context = context,
     env = env,
   }
+
+  -- Add streaming support
+  run_spec =
+    runspec_builder.setup_streaming(run_spec, tree, golist_data, context)
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec

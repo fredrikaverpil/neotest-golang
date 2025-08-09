@@ -119,18 +119,22 @@ function M.go_test(go_test_required_args)
 end
 
 function M.gotestsum(go_test_required_args, json_filepath)
+  -- Always use standard gotestsum format with JSON file
   local cmd = { "gotestsum", "--jsonfile=" .. json_filepath }
+
   local gotestsum_args = options.get().gotestsum_args
   if type(gotestsum_args) == "function" then
     gotestsum_args = gotestsum_args()
   end
+  cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_args)
+  cmd = vim.list_extend(vim.deepcopy(cmd), { "--", "-json" })
+
   local go_test_args = extra_args.get().go_test_args
     or options.get().go_test_args
   if type(go_test_args) == "function" then
     go_test_args = go_test_args()
   end
-  cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_args)
-  cmd = vim.list_extend(vim.deepcopy(cmd), { "--" })
+
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_args)
   return cmd
