@@ -1,5 +1,14 @@
 --- Common streaming functionality for neotest-golang.
---- Consolidates streaming setup logic used across all runspecs.
+---
+--- This module consolidates all streaming setup logic used across runspecs,
+--- providing a unified interface for enabling real-time test result streaming.
+---
+--- Key features:
+--- - Centralized streaming compatibility checks (strategy, runner)
+--- - Unified stream parser setup and configuration
+--- - Support for both regular and single-test streaming scenarios
+--- - Automatic fallback when streaming is not supported
+--- - Consistent streaming behavior across all runspec types
 
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")

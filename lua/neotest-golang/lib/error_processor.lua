@@ -1,5 +1,14 @@
 --- Unified error extraction and processing for neotest-golang.
---- Consolidates error processing logic used in both streaming and non-streaming modes.
+---
+--- This module consolidates all error processing logic used in both streaming
+--- and non-streaming modes, providing consistent error extraction and formatting.
+---
+--- Key features:
+--- - Supports multiple error patterns: Go compiler errors, test failures, testify assertions
+--- - Handles both batch processing (full output) and streaming (line-by-line)
+--- - Extracts line numbers and error messages from various Go test output formats
+--- - Provides fallback error messages when specific patterns aren't found
+--- - Consistent error format across streaming and non-streaming modes
 
 local M = {}
 

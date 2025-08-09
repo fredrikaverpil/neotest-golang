@@ -1,5 +1,15 @@
 --- Unified position and test name resolution for neotest-golang.
---- Consolidates logic for converting neotest positions to Go test names and packages.
+--- 
+--- This module consolidates all logic for converting neotest positions to Go test names
+--- and packages. It provides a single source of truth for position matching that works
+--- consistently across both streaming and non-streaming modes.
+---
+--- Key features:
+--- - Converts neotest position IDs to Go test names (handles subtests, quoted names, etc.)
+--- - Resolves Go packages for positions using golist data
+--- - Builds lookup tables for fast position-to-test-name mapping
+--- - Supports multiple fallback strategies for finding positions
+--- - Handles complex subtest naming patterns (TestName/SubTest, TestName::"SubTest", etc.)
 
 local logger = require("neotest-golang.logging")
 local lib = require("neotest-golang.lib")
