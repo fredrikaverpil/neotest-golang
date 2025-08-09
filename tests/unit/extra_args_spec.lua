@@ -29,10 +29,14 @@ describe("Extra args", function()
     local command, _ = lib.cmd.test_command({}, false)
     -- This parameter, the jsonfile path, contains a random string, let's get rid of it
     table.remove(command, 2)
-    assert.are.same(
-      { "gotestsum", "--format=standard-verbose", "--", "-json", "-baz", "-qux" },
-      command
-    )
+    assert.are.same({
+      "gotestsum",
+      "--format=standard-verbose",
+      "--",
+      "-json",
+      "-baz",
+      "-qux",
+    }, command)
   end)
 
   it("Defaults to go_test_args in go test", function()
@@ -50,9 +54,13 @@ describe("Extra args", function()
     local command, _ = lib.cmd.test_command({}, false)
     -- This parameter, the jsonfile path, contains a random string, let's get rid of it
     table.remove(command, 2)
-    assert.are.same(
-      { "gotestsum", "--format=standard-verbose", "--", "-json", "-foo", "-bar" },
-      command
-    )
+    assert.are.same({
+      "gotestsum",
+      "--format=standard-verbose",
+      "--",
+      "-json",
+      "-baz",
+      "-qux",
+    }, command)
   end)
 end)

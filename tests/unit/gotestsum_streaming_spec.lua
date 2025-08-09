@@ -112,25 +112,22 @@ describe("Gotestsum streaming", function()
       assert.is_nil(result.stream)
     end)
 
-    it(
-      "sets up streaming when neotest.lib.files is available",
-      function()
-        options.setup({ stream_enabled = true, runner = "gotestsum" })
-        local run_spec = { command = { "test" } }
+    it("sets up streaming when neotest.lib.files is available", function()
+      options.setup({ stream_enabled = true, runner = "gotestsum" })
+      local run_spec = { command = { "test" } }
 
-        local result = streaming.setup_gotestsum_file_streaming(
-          run_spec,
-          json_filepath,
-          mock_tree,
-          mock_golist_data,
-          mock_context
-        )
+      local result = streaming.setup_gotestsum_file_streaming(
+        run_spec,
+        json_filepath,
+        mock_tree,
+        mock_golist_data,
+        mock_context
+      )
 
-        -- In test environment, neotest.lib.files is available, so streaming should be set up
-        assert.are.same(run_spec, result)
-        assert.is_function(result.stream)
-      end
-    )
+      -- In test environment, neotest.lib.files is available, so streaming should be set up
+      assert.are.same(run_spec, result)
+      assert.is_function(result.stream)
+    end)
   end)
 
   describe("setup_gotestsum_file_streaming_for_single_test", function()
@@ -139,26 +136,23 @@ describe("Gotestsum streaming", function()
     local mock_context = {}
     local json_filepath = "/tmp/test.json"
 
-    it(
-      "sets up streaming when neotest.lib.files is available",
-      function()
-        options.setup({ stream_enabled = true, runner = "gotestsum" })
-        local run_spec = { command = { "test" } }
+    it("sets up streaming when neotest.lib.files is available", function()
+      options.setup({ stream_enabled = true, runner = "gotestsum" })
+      local run_spec = { command = { "test" } }
 
-        local result = streaming.setup_gotestsum_file_streaming_for_single_test(
-          run_spec,
-          json_filepath,
-          nil, -- no tree provided, will create minimal tree
-          mock_golist_data,
-          mock_context,
-          mock_pos
-        )
+      local result = streaming.setup_gotestsum_file_streaming_for_single_test(
+        run_spec,
+        json_filepath,
+        nil, -- no tree provided, will create minimal tree
+        mock_golist_data,
+        mock_context,
+        mock_pos
+      )
 
-        -- Should set up streaming with minimal tree
-        assert.are.same(run_spec, result)
-        assert.is_function(result.stream)
-      end
-    )
+      -- Should set up streaming with minimal tree
+      assert.are.same(run_spec, result)
+      assert.is_function(result.stream)
+    end)
 
     it("handles provided tree correctly", function()
       options.setup({ stream_enabled = true, runner = "gotestsum" })

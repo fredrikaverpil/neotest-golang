@@ -3,11 +3,11 @@
 
 local async = require("neotest.async")
 
+local error_processor = require("neotest-golang.lib.error_processor")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local position_resolver = require("neotest-golang.lib.position_resolver")
-local error_processor = require("neotest-golang.lib.error_processor")
 
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
@@ -63,7 +63,7 @@ function M.test_results(spec, result, tree)
     -- When streaming is active, results are provided via the stream callback
     -- However, we still need to provide final results here as a fallback
     logger.debug("Processing results in fallback mode (streaming was active)")
-    
+
     -- Don't return early - continue to process results normally
     -- This ensures we have results even if streaming didn't work
   end
@@ -405,7 +405,7 @@ function M.decorate_with_go_package_and_test_name(
       gotest_output,
       golist_output
     )
-    
+
     if package and test_name then
       test_data.gotest_data.pkg = package
       test_data.gotest_data.name = test_name
@@ -462,7 +462,8 @@ function M.decorate_with_go_test_results(res, gotest_output)
           end
 
           -- extract errors from this line of output
-          local error = error_processor.extract_error_from_line(line.Output, test_filename)
+          local error =
+            error_processor.extract_error_from_line(line.Output, test_filename)
           if error then
             table.insert(test_data.errors, error)
           end

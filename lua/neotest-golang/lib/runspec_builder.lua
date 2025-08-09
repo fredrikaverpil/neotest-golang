@@ -124,4 +124,3 @@ function M.setup_streaming(run_spec, tree, golist_data, context, strategy, pos)
 end
 
 return M
-

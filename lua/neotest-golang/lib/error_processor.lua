@@ -181,4 +181,3 @@ function M.process_streaming_errors(output_lines, test_filename)
 end
 
 return M
-

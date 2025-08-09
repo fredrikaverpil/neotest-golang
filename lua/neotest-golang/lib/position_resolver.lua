@@ -304,4 +304,3 @@ function M.resolve_package_and_test_name(pos, gotest_output, golist_output)
 end
 
 return M
-

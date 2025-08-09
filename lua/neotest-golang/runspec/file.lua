@@ -111,7 +111,13 @@ function M.build(pos, tree, strategy)
   }
 
   -- Add streaming support
-  run_spec = runspec_builder.setup_streaming(run_spec, tree, golist_data, context, strategy)
+  run_spec = runspec_builder.setup_streaming(
+    run_spec,
+    tree,
+    golist_data,
+    context,
+    strategy
+  )
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec
