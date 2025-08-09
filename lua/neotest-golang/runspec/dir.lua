@@ -132,7 +132,11 @@ function M.build(pos, tree)
 
   -- Add streaming support
   local runner = options.get().runner
+  local logger = require("neotest-golang.logging")
+  logger.warn("🏃 DIR RUNSPEC: Runner = " .. runner .. ", Stream enabled = " .. tostring(options.get().stream_enabled))
+  
   if runner == "gotestsum" then
+    logger.warn("🎯 Using gotestsum file streaming")
     run_spec = streaming.setup_gotestsum_file_streaming(
       run_spec,
       json_filepath,
@@ -141,6 +145,7 @@ function M.build(pos, tree)
       context
     )
   else
+    logger.warn("🎯 Using regular streaming")
     run_spec = streaming.setup_streaming(run_spec, tree, golist_data, context)
   end
 
