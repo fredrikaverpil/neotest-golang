@@ -3,7 +3,9 @@
 
 local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
+local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
+local streaming = require("neotest-golang.lib.streaming")
 
 local M = {}
 
@@ -59,6 +61,67 @@ function M.build_base_runspec(command, cwd, context, env)
     context = context,
     env = env,
   }
+end
+
+--- Setup streaming for a runspec based on runner and strategy
+--- @param run_spec table The runspec to modify
+--- @param tree neotest.Tree|nil The test tree (optional for single test)
+--- @param golist_data table The golist data
+--- @param context table The runspec context
+--- @param strategy string|nil Optional strategy (e.g., "dap")
+--- @param pos neotest.Position|nil Position for single test (used if tree is nil)
+--- @return table The modified runspec with streaming if applicable
+function M.setup_streaming(run_spec, tree, golist_data, context, strategy, pos)
+  local runner = options.get().runner
+  local json_filepath = context.test_output_json_filepath
+  
+  -- For gotestsum runner with JSON file output
+  if runner == "gotestsum" and json_filepath then
+    if pos and not tree then
+      -- Single test without tree
+      return streaming.setup_gotestsum_file_streaming_for_single_test(
+        run_spec,
+        json_filepath,
+        tree,
+        golist_data,
+        context,
+        pos,
+        strategy
+      )
+    else
+      -- Regular streaming with tree
+      return streaming.setup_gotestsum_file_streaming(
+        run_spec,
+        json_filepath,
+        tree,
+        golist_data,
+        context,
+        strategy
+      )
+    end
+  else
+    -- Regular streaming for 'go test -json'
+    if pos and not tree then
+      -- Single test without tree
+      return streaming.setup_streaming_for_single_test(
+        run_spec,
+        tree,
+        golist_data,
+        context,
+        pos,
+        strategy
+      )
+    else
+      -- Regular streaming with tree
+      return streaming.setup_streaming(
+        run_spec,
+        tree,
+        golist_data,
+        context,
+        strategy
+      )
+    end
+  end
 end
 
 return M

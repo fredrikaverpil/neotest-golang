@@ -4,7 +4,7 @@ local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
-local streaming = require("neotest-golang.lib.streaming")
+local runspec_builder = require("neotest-golang.lib.runspec_builder")
 
 local M = {}
 
@@ -54,18 +54,7 @@ function M.build(pos, tree)
   }
 
   -- Add streaming support
-  local runner = options.get().runner
-  if runner == "gotestsum" then
-    run_spec = streaming.setup_gotestsum_file_streaming(
-      run_spec,
-      json_filepath,
-      tree,
-      golist_data,
-      context
-    )
-  else
-    run_spec = streaming.setup_streaming(run_spec, tree, golist_data, context)
-  end
+  run_spec = runspec_builder.setup_streaming(run_spec, tree, golist_data, context)
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec

@@ -61,9 +61,14 @@ function M.new(tree, golist_data)
                 results[pos_id] = res
               end
             end
-          elseif #self.partial_output > 10 then
+          elseif #self.partial_output > 100 then
             -- Clear buffer if it gets too large (likely not JSON)
-            logger.debug("Clearing partial output buffer: " .. table.concat(self.partial_output, ""))
+            -- Use a higher limit to handle legitimately large JSON objects
+            logger.debug("Clearing partial output buffer (exceeded 100 lines): " .. string.sub(table.concat(self.partial_output, ""), 1, 200) .. "...")
+            self.partial_output = {}
+          elseif string.len(combined) > 50000 then
+            -- Also clear if the combined string is getting too large (>50KB)
+            logger.debug("Clearing partial output buffer (exceeded 50KB)")
             self.partial_output = {}
           end
         end
