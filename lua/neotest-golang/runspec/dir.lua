@@ -114,7 +114,7 @@ function M.build(pos, tree)
     env = env()
   end
 
-  --- @type RunspecContext
+  ---@type RunspecContext
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
@@ -122,7 +122,7 @@ function M.build(pos, tree)
     test_output_json_filepath = json_filepath,
   }
 
-  --- @type neotest.RunSpec
+  ---@type neotest.RunSpec
   local run_spec = {
     command = test_cmd,
     cwd = pos.path,
