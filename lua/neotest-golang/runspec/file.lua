@@ -91,12 +91,15 @@ function M.build(pos, tree, strategy)
     env = env()
   end
 
+  local stream, stop_stream = lib.stream.new(json_filepath)
+
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
     test_output_json_filepath = json_filepath,
+    stop_stream = stop_stream,
   }
 
   --- @type neotest.RunSpec
@@ -105,6 +108,7 @@ function M.build(pos, tree, strategy)
     cwd = pos_path_folderpath,
     context = context,
     env = env,
+    stream = stream,
   }
 
   if runspec_strategy ~= nil then
