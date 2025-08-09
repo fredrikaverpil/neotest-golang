@@ -25,7 +25,7 @@ local opts = {
   sanitize_output = false,
   
   -- streaming support: show test results as they complete
-  experimental_streaming = true, -- NOTE: can also be a function
+  experimental_streaming = false, -- NOTE: can also be a function
 
   -- experimental, for now undocumented, options
   dev_notifications = false,
