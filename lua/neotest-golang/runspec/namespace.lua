@@ -10,7 +10,7 @@ local M = {}
 --- Build runspec for a single test
 --- @param pos neotest.Position
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build(pos)
+function M.build(pos, tree)
   local pos_path_folderpath =
     string.match(pos.path, "(.+)" .. lib.find.os_path_sep)
 
@@ -35,7 +35,7 @@ function M.build(pos)
     env = env()
   end
 
-  local stream, stop_stream = lib.stream.new(json_filepath)
+  local stream, stop_stream = lib.stream.new(tree, golist_data, json_filepath)
 
   --- @type RunspecContext
   local context = {
