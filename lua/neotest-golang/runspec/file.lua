@@ -91,7 +91,7 @@ function M.build(pos, tree, strategy)
     env = env()
   end
 
-  local stream, stop_stream = lib.stream.new(json_filepath)
+  local stream, stop_stream = lib.stream.new(tree, golist_data, json_filepath)
 
   --- @type RunspecContext
   local context = {
