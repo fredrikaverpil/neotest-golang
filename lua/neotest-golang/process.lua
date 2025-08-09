@@ -38,6 +38,8 @@ local M = {}
 function M.test_results(spec, result, tree)
   -- TODO: refactor this function into function calls; return_early, process_test_results, override_test_results.
 
+  vim.notify(vim.inspect("Post processing started"))
+
   --- @type RunspecContext
   local context = spec.context
 
@@ -47,8 +49,6 @@ function M.test_results(spec, result, tree)
   --- @type table<string, neotest.Result>
   local neotest_result = {}
 
-  -- ////// RETURN EARLY FOR DAP DEBUGGING //////
-
   if context.is_dap_active then
     -- return early if test result processing is not desired.
     neotest_result[context.pos_id] = {
@@ -56,8 +56,6 @@ function M.test_results(spec, result, tree)
     }
     return neotest_result
   end
-
-  -- ////// PROCESS TEST RESULTS FOR ALL POSITIONS (NODES) EXECUTED //////
 
   --- The runner to use for running tests.
   --- @type string
@@ -85,98 +83,131 @@ function M.test_results(spec, result, tree)
   --- Go test output.
   --- @type table
   local gotest_output = lib.json.decode_from_table(runner_raw_output, true)
-
-  -- detect go list error
-  local golist_failed = false
-  if context.errors ~= nil and #context.errors > 0 then
-    golist_failed = true
+  local lines = {}
+  for _, event in ipairs(gotest_output) do
+    -- TODO: add colorization?
+    if event.Output ~= nil then
+      lines = vim.list_extend(
+        lines,
+        vim.split(event.Output, "\n", { trimempty = true })
+      )
+    end
   end
 
-  -- detect build error
-  local build_failed = M.detect_build_errors(result, raw_output)
-  local build_failure_lookup = {}
-  if build_failed then
-    build_failure_lookup =
-      M.build_failure_lookup(raw_output, gotest_output, golist_output, runner)
+  local accum = {}
+  for _, json_line in ipairs(gotest_output) do
+    accum = lib.stream.process_event(tree, golist_output, accum, json_line)
   end
 
-  --- Internal data structure to store test result data.
-  --- @type table<string, TestData>
-  local res =
-    M.aggregate_data(tree, gotest_output, golist_output, build_failure_lookup)
+  for _, test_data in pairs(accum) do
+    local output_path = vim.fs.normalize(async.fn.tempname())
+    async.fn.writefile(lines, output_path)
 
-  logger.debug({ "Final internal test result data", res })
-
-  -- show various warnings, unless `go list` failed or build failed.
-  if not golist_failed and not build_failed then
-    M.show_warnings(res)
-  end
-
-  -- convert internal test result data into Neotest result.
-  local test_results = M.to_neotest_result(res)
-  for k, v in pairs(test_results) do
-    neotest_result[k] = v
-  end
-
-  -- ////// OVERRIDE TEST RESULTS FOR THE POSITION (NODE) EXECUTED //////
-
-  --- The Neotest position tree node for this execution.
-  --- @type neotest.Position
-  local pos = tree:data()
-
-  --- Test command (e.g. 'go test') status.
-  --- @type neotest.ResultStatus
-  local result_status = nil
-  if build_failed then
-    -- mark as failed if the build failed.
-    result_status = "failed"
-  elseif context.errors ~= nil and #context.errors > 0 then
-    -- mark as failed if a non-gotest error occurred.
-    result_status = "failed"
-  elseif
-    neotest_result[pos.id] and neotest_result[pos.id].status == "skipped"
-  then
-    -- keep the status if it was already decided to be skipped.
-    result_status = "skipped"
-  elseif result.code > 0 then
-    -- mark as failed if the go test command failed.
-    result_status = "failed"
-  elseif result.code == 0 then
-    -- mark as passed if the 'go test' command passed.
-    result_status = "passed"
-  else
-    logger.error(
-      "Unexpected state when determining test status. Exit code was: "
-        .. result.code
-    )
-  end
-
-  -- override the position which was executed with the full
-  -- command execution output.
-  local cmd_output =
-    M.filter_gotest_output(raw_output, gotest_output, build_failed, runner)
-  cmd_output = vim.list_extend(context.errors or {}, cmd_output)
-
-  -- write output to final file.
-  local cmd_output_path = vim.fs.normalize(async.fn.tempname())
-  async.fn.writefile(cmd_output, cmd_output_path)
-
-  -- construct final result for the position.
-  if neotest_result[pos.id] == nil then
-    -- set status and output as none of them have yet to be set.
-    neotest_result[pos.id] = {
-      status = result_status,
-      output = cmd_output_path,
+    return {
+      [test_data.position_id] = {
+        status = test_data.status, -- passed/failed/skipped
+        output = output_path,
+        -- TODO: add short
+        -- TODO: add errors
+      },
     }
-  else
-    -- only override status and output, keep errors.
-    neotest_result[pos.id].status = result_status
-    neotest_result[pos.id].output = cmd_output_path
   end
 
-  logger.debug({ "Final Neotest result data", neotest_result })
+  return {}
 
-  return neotest_result
+  --
+  --
+  -- -- detect go list error
+  -- local golist_failed = false
+  -- if context.errors ~= nil and #context.errors > 0 then
+  --   golist_failed = true
+  -- end
+  --
+  -- -- detect build error
+  -- local build_failed = M.detect_build_errors(result, raw_output)
+  -- local build_failure_lookup = {}
+  -- if build_failed then
+  --   build_failure_lookup =
+  --     M.build_failure_lookup(raw_output, gotest_output, golist_output, runner)
+  -- end
+  --
+  -- --- Internal data structure to store test result data.
+  -- --- @type table<string, TestData>
+  -- local res =
+  --   M.aggregate_data(tree, gotest_output, golist_output, build_failure_lookup)
+  --
+  -- logger.debug({ "Final internal test result data", res })
+  --
+  -- -- show various warnings, unless `go list` failed or build failed.
+  -- if not golist_failed and not build_failed then
+  --   M.show_warnings(res)
+  -- end
+  --
+  -- -- convert internal test result data into Neotest result.
+  -- local test_results = M.to_neotest_result(res)
+  -- for k, v in pairs(test_results) do
+  --   neotest_result[k] = v
+  -- end
+  --
+  -- -- ////// OVERRIDE TEST RESULTS FOR THE POSITION (NODE) EXECUTED //////
+  --
+  -- --- The Neotest position tree node for this execution.
+  -- --- @type neotest.Position
+  -- local pos = tree:data()
+  --
+  -- --- Test command (e.g. 'go test') status.
+  -- --- @type neotest.ResultStatus
+  -- local result_status = nil
+  -- if build_failed then
+  --   -- mark as failed if the build failed.
+  --   result_status = "failed"
+  -- elseif context.errors ~= nil and #context.errors > 0 then
+  --   -- mark as failed if a non-gotest error occurred.
+  --   result_status = "failed"
+  -- elseif
+  --   neotest_result[pos.id] and neotest_result[pos.id].status == "skipped"
+  -- then
+  --   -- keep the status if it was already decided to be skipped.
+  --   result_status = "skipped"
+  -- elseif result.code > 0 then
+  --   -- mark as failed if the go test command failed.
+  --   result_status = "failed"
+  -- elseif result.code == 0 then
+  --   -- mark as passed if the 'go test' command passed.
+  --   result_status = "passed"
+  -- else
+  --   logger.error(
+  --     "Unexpected state when determining test status. Exit code was: "
+  --       .. result.code
+  --   )
+  -- end
+  --
+  -- -- override the position which was executed with the full
+  -- -- command execution output.
+  -- local cmd_output =
+  --   M.filter_gotest_output(raw_output, gotest_output, build_failed, runner)
+  -- cmd_output = vim.list_extend(context.errors or {}, cmd_output)
+  --
+  -- -- write output to final file.
+  -- local cmd_output_path = vim.fs.normalize(async.fn.tempname())
+  -- async.fn.writefile(cmd_output, cmd_output_path)
+  --
+  -- -- construct final result for the position.
+  -- if neotest_result[pos.id] == nil then
+  --   -- set status and output as none of them have yet to be set.
+  --   neotest_result[pos.id] = {
+  --     status = result_status,
+  --     output = cmd_output_path,
+  --   }
+  -- else
+  --   -- only override status and output, keep errors.
+  --   neotest_result[pos.id].status = result_status
+  --   neotest_result[pos.id].output = cmd_output_path
+  -- end
+  --
+  -- logger.debug({ "Final Neotest result data", neotest_result })
+  --
+  -- return neotest_result
 end
 
 --- Filter on the Output-type parts of the 'go test' output.

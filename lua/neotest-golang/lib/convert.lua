@@ -1,6 +1,101 @@
+local logger = require("neotest-golang.logging")
+
 --- Converts one form of data to another.
 
 local M = {}
+
+--- Convert to Neotest position id pattern.
+---@param golist_data table Golist data containing package information
+---@param package_name string The name of the package
+---@param test_name string The name of the test, which can include subtests separated by slashes
+function M.to_position_id_pattern(golist_data, package_name, test_name)
+  -- Example go list -json output:
+  -- { {
+  --     Dir = "/Users/fredrik/code/public/someproject/internal/foo/bar",
+  --     ImportPath = "github.com/fredrikaverpil/someproject/internal/foo/bar",
+  --     Module = {
+  --       GoMod = "/Users/fredrik/code/public/someproject/go.mod"
+  --     },
+  --     Name = "bar",
+  --     TestGoFiles = { "baz.go", "baz_test.go" },
+  --     XTestGoFiles = {}
+  --   } }
+  --
+  -- Example position id:
+  -- '/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go::TestName::"SubTestName"'
+
+  for _, item in ipairs(golist_data) do
+    if item.ImportPath == package_name then
+      -- Found the package, construct the position id
+      local dir = item.Dir
+
+      -- Transform TestName/SubTest_Name into TestName::"SubTest Name"
+      local test_parts = vim.split(test_name, "/", { trimempty = true })
+      for i, part in ipairs(test_parts) do
+        -- add quotes around subtests
+        if i > 1 then
+          test_parts[i] = '"' .. part:gsub("_", " ") .. '"' -- TODO: underscore from `go test` could potentially be an actual underscore
+        end
+      end
+      local test_name_transformed = table.concat(test_parts, "::")
+
+      local dir_escaped = M.to_lua_pattern(dir)
+      local test_name_escaped = M.to_lua_pattern(test_name_transformed)
+      local pattern = dir_escaped .. "/.*%.go::" .. test_name_escaped
+
+      return pattern
+    end
+  end
+
+  logger.error(
+    "Could not find position id pattern for test: "
+      .. test_name
+      .. " in package: "
+      .. package_name
+  )
+end
+
+-- Convert go test name into Neotest position id.
+---@param tree neotest.Tree The Neotest tree structure
+---@param pattern string The pattern to match against position ids
+function M.to_position_id(tree, pattern)
+  -- Search the tree for matching position id
+  for _, node in tree:iter_nodes() do
+    --- @type neotest.Position
+    local pos = node:data()
+    -- outputs:
+    -- {
+    --   id = '/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go::TestName::"SubTestName"',
+    --   name = '"SubTestName"',
+    --   path = "/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go",
+    --   range = { 11, 1, 28, 3 },
+    --   type = "test"
+    -- }
+    -- TODO: also identify for file:
+    -- {
+    --   id = "/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go",
+    --   name = "baz_test.go",
+    --   path = "/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go",
+    --   range = { 0, 0, 30, 0 },
+    --   type = "file"
+    -- }
+    -- TODO: also identify the dir:
+    -- {
+    --   id = "/Users/fredrik/code/public/someproject/internal/foo/bar",
+    --   name = "bar",
+    --   path = "/Users/fredrik/code/public/someproject/internal/foo/bar",
+    --   type = "dir"
+    -- }
+    -- TODO: also idenify for namespace:
+    -- ...
+
+    if pos.id:match(pattern) then
+      return pos.id
+    end
+  end
+
+  logger.error("Could not find position id for pattern: " .. pattern)
+end
 
 -- Converts the test name into a regexp-friendly pattern, for usage in
 -- 'go test'.

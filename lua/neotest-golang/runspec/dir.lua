@@ -79,7 +79,7 @@ end
 --- 3. Use the relative path from the go.mod file to pos.path as the test pattern.
 --- @param pos neotest.Position
 --- @return neotest.RunSpec | nil
-function M.build(pos)
+function M.build(pos, tree)
   local go_mod_filepath = lib.find.file_upwards("go.mod", pos.path)
   if go_mod_filepath == nil then
     logger.error(
@@ -112,7 +112,7 @@ function M.build(pos)
     env = env()
   end
 
-  local stream, stop_stream = lib.stream.new(json_filepath)
+  local stream, stop_stream = lib.stream.new(tree, golist_data, json_filepath)
 
   --- @type RunspecContext
   local context = {

@@ -12,7 +12,7 @@ local M = {}
 --- @param pos neotest.Position
 --- @param strategy string
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build(pos, strategy)
+function M.build(pos, tree, strategy)
   local pos_path_folderpath = vim.fn.fnamemodify(pos.path, ":h")
 
   local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
@@ -46,7 +46,7 @@ function M.build(pos, strategy)
     env = env()
   end
 
-  local stream, stop_stream = lib.stream.new(json_filepath)
+  local stream, stop_stream = lib.stream.new(tree, golist_data, json_filepath)
 
   --- @type RunspecContext
   local context = {
