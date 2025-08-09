@@ -131,7 +131,18 @@ function M.build(pos, tree)
   }
 
   -- Add streaming support
-  run_spec = streaming.setup_streaming(run_spec, tree, golist_data, context)
+  local runner = options.get().runner
+  if runner == "gotestsum" then
+    run_spec = streaming.setup_gotestsum_file_streaming(
+      run_spec,
+      json_filepath,
+      tree,
+      golist_data,
+      context
+    )
+  else
+    run_spec = streaming.setup_streaming(run_spec, tree, golist_data, context)
+  end
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec

@@ -71,7 +71,27 @@ function M.build(pos, strategy, tree)
   end
 
   -- Add streaming support for non-DAP strategies
-  run_spec = streaming.setup_streaming_for_single_test(run_spec, tree, golist_data, context, pos, strategy)
+  local runner = options.get().runner
+  if runner == "gotestsum" then
+    run_spec = streaming.setup_gotestsum_file_streaming_for_single_test(
+      run_spec,
+      json_filepath,
+      tree,
+      golist_data,
+      context,
+      pos,
+      strategy
+    )
+  else
+    run_spec = streaming.setup_streaming_for_single_test(
+      run_spec,
+      tree,
+      golist_data,
+      context,
+      pos,
+      strategy
+    )
+  end
 
   logger.debug({ "RunSpec:", run_spec })
   return run_spec

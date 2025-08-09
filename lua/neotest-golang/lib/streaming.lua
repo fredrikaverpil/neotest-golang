@@ -25,13 +25,8 @@ function M.is_streaming_supported(strategy, runner)
     logger.debug("Streaming disabled: DAP strategy not compatible")
     return false
   end
-  
-  -- Streaming only works with 'go test -json', not with gotestsum
-  if runner == "gotestsum" then
-    logger.debug("Streaming disabled: gotestsum writes JSON to file, not stdout")
-    return false
-  end
-  
+
+  -- Streaming now works with both 'go test -json' and gotestsum
   return true
 end
 
@@ -45,6 +40,93 @@ function M.is_streaming_enabled()
   return streaming_enabled or false
 end
 
+--- Setup file-based streaming for gotestsum
+--- @param run_spec neotest.RunSpec The runspec to modify
+--- @param json_filepath string The JSON file path to stream from
+--- @param tree neotest.Tree|nil The test tree (required for streaming)
+--- @param golist_data table The golist data
+--- @param context table The runspec context to modify
+--- @param strategy string|nil Optional strategy (e.g., "dap")
+--- @return neotest.RunSpec The modified runspec
+function M.setup_gotestsum_file_streaming(
+  run_spec,
+  json_filepath,
+  tree,
+  golist_data,
+  context,
+  strategy
+)
+  local streaming_enabled = M.is_streaming_enabled()
+  local runner = options.get().runner
+
+  if not streaming_enabled then
+    logger.debug("Streaming not enabled in options")
+    return run_spec
+  end
+
+  if not tree then
+    logger.debug("Streaming disabled: no tree provided")
+    return run_spec
+  end
+
+  if not M.is_streaming_supported(strategy, runner) then
+    return run_spec
+  end
+
+  if not json_filepath then
+    logger.debug("Streaming disabled: no JSON file path provided")
+    return run_spec
+  end
+
+  logger.debug("Setting up gotestsum file streaming for: " .. json_filepath)
+  context.is_streaming_active = true
+
+  -- Create stream parser
+  local stream = require("neotest-golang.lib.stream")
+  local parser = stream.new(tree, golist_data)
+  local accumulated_results = {}
+
+  -- Set up neotest file streaming
+  local ok, neotest_files = pcall(require, "neotest.lib.files")
+  if not ok then
+    logger.debug(
+      "neotest.lib.files not available, falling back to non-streaming mode"
+    )
+    return run_spec
+  end
+
+  local stream_lines, stop_stream = neotest_files.stream_lines(json_filepath)
+
+  -- Add stream function to runspec
+  run_spec.stream = function(data)
+    return function()
+      -- Process lines from file stream
+      local lines = stream_lines()
+
+      if not lines then
+        return accumulated_results
+      end
+
+      if #lines > 0 then
+        local new_results = parser:process_lines(lines)
+        if new_results then
+          for pos_id, result in pairs(new_results) do
+            accumulated_results[pos_id] = result
+          end
+        end
+
+        if next(accumulated_results) then
+          return accumulated_results
+        end
+      end
+
+      return {}
+    end
+  end
+
+  return run_spec
+end
+
 --- Setup streaming for a runspec
 --- @param run_spec neotest.RunSpec The runspec to modify
 --- @param tree neotest.Tree|nil The test tree (required for streaming)
@@ -55,38 +137,38 @@ end
 function M.setup_streaming(run_spec, tree, golist_data, context, strategy)
   local streaming_enabled = M.is_streaming_enabled()
   local runner = options.get().runner
-  
+
   if not streaming_enabled then
     logger.debug("Streaming not enabled in options")
     return run_spec
   end
-  
+
   if not tree then
     logger.debug("Streaming disabled: no tree provided")
     return run_spec
   end
-  
+
   if not M.is_streaming_supported(strategy, runner) then
     return run_spec
   end
-  
+
   logger.debug("Setting up streaming for runspec")
   context.is_streaming_active = true
-  
+
   -- Create stream parser
   local stream = require("neotest-golang.lib.stream")
   local parser = stream.new(tree, golist_data)
   local accumulated_results = {}
-  
+
   -- Add stream function to runspec
   run_spec.stream = function(data)
     return function()
       local lines = data()
-      
+
       if not lines then
         return accumulated_results
       end
-      
+
       if #lines > 0 then
         local new_results = parser:process_lines(lines)
         if new_results then
@@ -94,16 +176,16 @@ function M.setup_streaming(run_spec, tree, golist_data, context, strategy)
             accumulated_results[pos_id] = result
           end
         end
-        
+
         if next(accumulated_results) then
           return accumulated_results
         end
       end
-      
+
       return {}
     end
   end
-  
+
   return run_spec
 end
 
@@ -118,8 +200,60 @@ function M.create_minimal_tree(pos)
     end,
     data = function()
       return pos
-    end
+    end,
   }
+end
+
+--- Setup gotestsum file streaming for a single test with optional tree creation
+--- @param run_spec neotest.RunSpec The runspec to modify
+--- @param json_filepath string The JSON file path to stream from
+--- @param tree neotest.Tree|nil The test tree (will create minimal if nil)
+--- @param golist_data table The golist data
+--- @param context table The runspec context to modify
+--- @param pos neotest.Position The test position (used if tree is nil)
+--- @param strategy string|nil Optional strategy (e.g., "dap")
+--- @return neotest.RunSpec The modified runspec
+function M.setup_gotestsum_file_streaming_for_single_test(
+  run_spec,
+  json_filepath,
+  tree,
+  golist_data,
+  context,
+  pos,
+  strategy
+)
+  local streaming_enabled = M.is_streaming_enabled()
+  local runner = options.get().runner
+
+  if not streaming_enabled then
+    logger.debug("Streaming not enabled in options")
+    return run_spec
+  end
+
+  if not M.is_streaming_supported(strategy, runner) then
+    return run_spec
+  end
+
+  -- Create minimal tree if not provided
+  local stream_tree = tree
+  if not stream_tree then
+    logger.debug("Creating minimal tree for single test streaming")
+    stream_tree = M.create_minimal_tree(pos)
+  end
+
+  logger.debug(
+    "Setting up gotestsum file streaming for single test, tree provided: "
+      .. tostring(tree ~= nil)
+  )
+
+  return M.setup_gotestsum_file_streaming(
+    run_spec,
+    json_filepath,
+    stream_tree,
+    golist_data,
+    context,
+    strategy
+  )
 end
 
 --- Setup streaming for a single test with optional tree creation
@@ -130,29 +264,45 @@ end
 --- @param pos neotest.Position The test position (used if tree is nil)
 --- @param strategy string|nil Optional strategy (e.g., "dap")
 --- @return neotest.RunSpec The modified runspec
-function M.setup_streaming_for_single_test(run_spec, tree, golist_data, context, pos, strategy)
+function M.setup_streaming_for_single_test(
+  run_spec,
+  tree,
+  golist_data,
+  context,
+  pos,
+  strategy
+)
   local streaming_enabled = M.is_streaming_enabled()
   local runner = options.get().runner
-  
+
   if not streaming_enabled then
     logger.debug("Streaming not enabled in options")
     return run_spec
   end
-  
+
   if not M.is_streaming_supported(strategy, runner) then
     return run_spec
   end
-  
+
   -- Create minimal tree if not provided
   local stream_tree = tree
   if not stream_tree then
     logger.debug("Creating minimal tree for single test streaming")
     stream_tree = M.create_minimal_tree(pos)
   end
-  
-  logger.debug("Setting up streaming for single test, tree provided: " .. tostring(tree ~= nil))
-  
-  return M.setup_streaming(run_spec, stream_tree, golist_data, context, strategy)
+
+  logger.debug(
+    "Setting up streaming for single test, tree provided: "
+      .. tostring(tree ~= nil)
+  )
+
+  return M.setup_streaming(
+    run_spec,
+    stream_tree,
+    golist_data,
+    context,
+    strategy
+  )
 end
 
 return M
