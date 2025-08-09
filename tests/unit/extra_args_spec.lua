@@ -30,7 +30,7 @@ describe("Extra args", function()
     -- This parameter, the jsonfile path, contains a random string, let's get rid of it
     table.remove(command, 2)
     assert.are.same(
-      { "gotestsum", "--format=standard-verbose", "--", "-baz", "-qux" },
+      { "gotestsum", "--format=standard-verbose", "--", "-json", "-baz", "-qux" },
       command
     )
   end)
@@ -51,7 +51,7 @@ describe("Extra args", function()
     -- This parameter, the jsonfile path, contains a random string, let's get rid of it
     table.remove(command, 2)
     assert.are.same(
-      { "gotestsum", "--format=standard-verbose", "--", "-foo", "-bar" },
+      { "gotestsum", "--format=standard-verbose", "--", "-json", "-foo", "-bar" },
       command
     )
   end)

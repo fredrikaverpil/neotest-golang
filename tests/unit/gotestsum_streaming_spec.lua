@@ -113,7 +113,7 @@ describe("Gotestsum streaming", function()
     end)
 
     it(
-      "falls back to non-streaming when neotest.lib.files not available",
+      "sets up streaming when neotest.lib.files is available",
       function()
         options.setup({ stream_enabled = true, runner = "gotestsum" })
         local run_spec = { command = { "test" } }
@@ -126,9 +126,9 @@ describe("Gotestsum streaming", function()
           mock_context
         )
 
-        -- In test environment, neotest.lib.files is not available, so it should fall back
+        -- In test environment, neotest.lib.files is available, so streaming should be set up
         assert.are.same(run_spec, result)
-        assert.is_nil(result.stream)
+        assert.is_function(result.stream)
       end
     )
   end)
@@ -140,7 +140,7 @@ describe("Gotestsum streaming", function()
     local json_filepath = "/tmp/test.json"
 
     it(
-      "falls back to non-streaming when neotest.lib.files not available",
+      "sets up streaming when neotest.lib.files is available",
       function()
         options.setup({ stream_enabled = true, runner = "gotestsum" })
         local run_spec = { command = { "test" } }
@@ -148,42 +148,34 @@ describe("Gotestsum streaming", function()
         local result = streaming.setup_gotestsum_file_streaming_for_single_test(
           run_spec,
           json_filepath,
-          nil,
+          nil, -- no tree provided, will create minimal tree
           mock_golist_data,
           mock_context,
           mock_pos
         )
 
-        -- In test environment, neotest.lib.files is not available, so it should fall back
+        -- Should set up streaming with minimal tree
         assert.are.same(run_spec, result)
-        assert.is_nil(result.stream)
+        assert.is_function(result.stream)
       end
     )
 
     it("handles provided tree correctly", function()
       options.setup({ stream_enabled = true, runner = "gotestsum" })
       local run_spec = { command = { "test" } }
-      local mock_tree = {
-        iter_nodes = function()
-          return function() end
-        end,
-        data = function()
-          return mock_pos
-        end,
-      }
 
       local result = streaming.setup_gotestsum_file_streaming_for_single_test(
         run_spec,
         json_filepath,
-        mock_tree,
+        mock_tree, -- tree provided
         mock_golist_data,
         mock_context,
         mock_pos
       )
 
-      -- In test environment, neotest.lib.files is not available, so it should fall back
+      -- Should use provided tree and set up streaming
       assert.are.same(run_spec, result)
-      assert.is_nil(result.stream)
+      assert.is_function(result.stream)
     end)
   end)
 
@@ -198,13 +190,13 @@ describe("Gotestsum streaming", function()
     }
     local mock_golist_data = { { ImportPath = "example.com/test" } }
     local mock_context = {}
+    local json_filepath = "/tmp/test.json"
 
-    it("gracefully handles missing neotest.lib.files", function()
+    it("sets up streaming when neotest.lib.files is available", function()
       options.setup({ stream_enabled = true, runner = "gotestsum" })
       local run_spec = { command = { "test" } }
-      local json_filepath = "/tmp/test.json"
 
-      -- This should not error even when neotest.lib.files is not available
+      -- In test environment, neotest.lib.files is available
       local result = streaming.setup_gotestsum_file_streaming(
         run_spec,
         json_filepath,
@@ -213,9 +205,9 @@ describe("Gotestsum streaming", function()
         mock_context
       )
 
-      -- Should fall back to original runspec
+      -- Should set up streaming successfully
       assert.are.same(run_spec, result)
-      assert.is_nil(result.stream)
+      assert.is_function(result.stream)
     end)
 
     it("handles empty json_filepath", function()
@@ -224,12 +216,13 @@ describe("Gotestsum streaming", function()
 
       local result = streaming.setup_gotestsum_file_streaming(
         run_spec,
-        "",
+        "", -- empty json_filepath
         mock_tree,
         mock_golist_data,
         mock_context
       )
 
+      -- Should return unchanged runspec without streaming
       assert.are.same(run_spec, result)
       assert.is_nil(result.stream)
     end)

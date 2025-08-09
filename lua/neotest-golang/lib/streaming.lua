@@ -26,7 +26,7 @@ function M.is_streaming_supported(strategy, runner)
     return false
   end
 
-  -- Streaming now works with both 'go test -json' and gotestsum
+  -- Streaming works with both 'go test -json' and gotestsum
   return true
 end
 
@@ -73,13 +73,12 @@ function M.setup_gotestsum_file_streaming(
     return run_spec
   end
 
-  if not json_filepath then
+  if not json_filepath or json_filepath == "" then
     logger.debug("Streaming disabled: no JSON file path provided")
     return run_spec
   end
 
   logger.debug("Setting up gotestsum file streaming for: " .. json_filepath)
-  logger.warn("🚀 GOTESTSUM STREAMING SETUP STARTED - Runner: " .. runner)
   context.is_streaming_active = true
 
   -- Create stream parser
@@ -87,49 +86,43 @@ function M.setup_gotestsum_file_streaming(
   local parser = stream.new(tree, golist_data)
   local accumulated_results = {}
 
-  -- Set up gotestsum file streaming using the correct neotest.lib access
-  logger.warn("🔧 SETTING UP GOTESTSUM FILE STREAMING")
-  
   -- Access neotest.lib.files through the official API
-  local neotest_lib = require("neotest.lib")
-  local neotest_files = neotest_lib.files
+  local neotest_lib_ok, neotest_lib = pcall(require, "neotest.lib")
+  if not neotest_lib_ok then
+    logger.debug("neotest.lib not available, streaming disabled")
+    return run_spec
+  end
   
-  logger.warn("✅ neotest.lib.files accessed successfully")
+  local neotest_files = neotest_lib.files
+  if not neotest_files then
+    logger.debug("neotest.lib.files not available, streaming disabled")
+    return run_spec
+  end
   
   -- Add stream function that sets up file streaming lazily
   run_spec.stream = function(data)
-    logger.warn("📡 GOTESTSUM STREAM FUNCTION SETUP")
-    
     -- Lazy initialization of file streaming
     local stream_lines, stop_stream
     local file_streaming_initialized = false
     
     -- Return the actual stream function that neotest will call repeatedly
     return function()
-      logger.warn("🔄 GOTESTSUM STREAM FUNCTION CALLED")
-      
       -- Initialize file streaming on first call (when file should exist)
       if not file_streaming_initialized then
-        logger.warn("🔧 Initializing file streaming for: " .. json_filepath)
-        
         -- Check if file exists (non-blocking)
         if vim.fn.filereadable(json_filepath) == 1 then
-          logger.warn("✅ JSON file found, setting up streaming: " .. json_filepath)
-          
           -- Try to set up file streaming
           local stream_ok, stream_err = pcall(function()
             stream_lines, stop_stream = neotest_files.stream_lines(json_filepath)
           end)
           
           if stream_ok then
-            logger.warn("✅ File streaming initialized successfully")
             file_streaming_initialized = true
           else
-            logger.warn("❌ Failed to set up file streaming: " .. tostring(stream_err))
+            logger.debug("Failed to set up file streaming: " .. tostring(stream_err))
             return accumulated_results
           end
         else
-          logger.warn("⏳ JSON file not ready yet: " .. json_filepath)
           return accumulated_results
         end
       end
@@ -145,17 +138,15 @@ function M.setup_gotestsum_file_streaming(
       end)
 
       if not stream_ok then
-        logger.warn("❌ Error reading from file stream: " .. tostring(stream_err))
+        logger.debug("Error reading from file stream: " .. tostring(stream_err))
         return accumulated_results
       end
 
       if not lines then
-        logger.warn("📭 No lines received from stream")
         return accumulated_results
       end
 
       if #lines > 0 then
-        logger.warn("📝 Received " .. #lines .. " lines from stream")
         local parse_ok, new_results = pcall(function()
           return parser:process_lines(lines)
         end)
@@ -165,7 +156,7 @@ function M.setup_gotestsum_file_streaming(
             accumulated_results[pos_id] = result
           end
         elseif not parse_ok then
-          logger.warn("❌ Error processing stream lines: " .. tostring(new_results))
+          logger.debug("Error processing stream lines: " .. tostring(new_results))
         end
 
         if next(accumulated_results) then
