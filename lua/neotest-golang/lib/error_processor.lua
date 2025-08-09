@@ -18,13 +18,14 @@ local M = {}
 --- @return neotest.Error[]
 function M.extract_errors_from_output(output, test_filename)
   local errors = {}
-  
+
   -- Look for failure messages and line numbers in output
   for line in output:gmatch("[^\n]+") do
     -- Skip the RUN and FAIL header lines
     if not line:match("^=== RUN") and not line:match("^--- FAIL") then
       -- Pattern 1: filename.go:line:column: message
-      local file, line_num, message = line:match("([^:]+%.go):(%d+):%d*:?%s*(.+)")
+      local file, line_num, message =
+        line:match("([^:]+%.go):(%d+):%d*:?%s*(.+)")
       if file and line_num then
         table.insert(errors, {
           message = message or line,
@@ -32,7 +33,8 @@ function M.extract_errors_from_output(output, test_filename)
         })
       -- Pattern 2: filename_test.go:line: message (from t.Error/t.Fatal)
       elseif line:match("_test%.go:%d+:") then
-        local test_file, test_line, test_msg = line:match("([^:]+):(%d+):%s*(.+)")
+        local test_file, test_line, test_msg =
+          line:match("([^:]+):(%d+):%s*(.+)")
         if test_file and test_line then
           table.insert(errors, {
             message = test_msg or line,
@@ -41,7 +43,8 @@ function M.extract_errors_from_output(output, test_filename)
         end
       -- Pattern 3: Specific test filename pattern (from process.lua)
       elseif test_filename then
-        local matched_line_number = string.match(line, test_filename .. ":(%d+):")
+        local matched_line_number =
+          string.match(line, test_filename .. ":(%d+):")
         if matched_line_number ~= nil then
           local line_number = tonumber(matched_line_number)
           local message = string.match(line, test_filename .. ":%d+: (.*)")
@@ -62,7 +65,7 @@ function M.extract_errors_from_output(output, test_filename)
       end
     end
   end
-  
+
   -- If no specific errors found but test failed, extract the failure reason
   if #errors == 0 then
     -- Look for assertion failures or other error indicators
@@ -74,7 +77,7 @@ function M.extract_errors_from_output(output, test_filename)
         break
       end
     end
-    
+
     -- Still no errors? Add generic message
     if #errors == 0 and output:match("FAIL") then
       table.insert(errors, {
@@ -82,7 +85,7 @@ function M.extract_errors_from_output(output, test_filename)
       })
     end
   end
-  
+
   return errors
 end
 
@@ -95,7 +98,7 @@ function M.extract_error_from_line(line, test_filename)
   if line:match("^=== RUN") or line:match("^--- FAIL") then
     return nil
   end
-  
+
   -- Pattern 1: filename.go:line:column: message
   local file, line_num, message = line:match("([^:]+%.go):(%d+):%d*:?%s*(.+)")
   if file and line_num then
@@ -104,7 +107,7 @@ function M.extract_error_from_line(line, test_filename)
       line = tonumber(line_num) - 1, -- Convert to 0-based
     }
   end
-  
+
   -- Pattern 2: filename_test.go:line: message (from t.Error/t.Fatal)
   if line:match("_test%.go:%d+:") then
     local test_file, test_line, test_msg = line:match("([^:]+):(%d+):%s*(.+)")
@@ -115,7 +118,7 @@ function M.extract_error_from_line(line, test_filename)
       }
     end
   end
-  
+
   -- Pattern 3: Specific test filename pattern
   if test_filename then
     local matched_line_number = string.match(line, test_filename .. ":(%d+):")
@@ -130,7 +133,7 @@ function M.extract_error_from_line(line, test_filename)
       end
     end
   end
-  
+
   -- Pattern 4: Error Trace: ... (from testify)
   if line:match("Error Trace:") or line:match("Error:") then
     -- Extract the actual error message
@@ -139,14 +142,14 @@ function M.extract_error_from_line(line, test_filename)
       message = error_msg,
     }
   end
-  
+
   -- Pattern 5: Assertion failures
   if line:match("expected") or line:match("got") or line:match("want") then
     return {
       message = vim.trim(line),
     }
   end
-  
+
   return nil
 end
 
@@ -156,14 +159,14 @@ end
 --- @return neotest.Error[]
 function M.process_streaming_errors(output_lines, test_filename)
   local errors = {}
-  
+
   for _, line in ipairs(output_lines) do
     local error = M.extract_error_from_line(line, test_filename)
     if error then
       table.insert(errors, error)
     end
   end
-  
+
   -- If no specific errors found but output contains FAIL, add generic message
   if #errors == 0 then
     local output_text = table.concat(output_lines, "\n")
@@ -173,8 +176,9 @@ function M.process_streaming_errors(output_lines, test_filename)
       })
     end
   end
-  
+
   return errors
 end
 
 return M
+

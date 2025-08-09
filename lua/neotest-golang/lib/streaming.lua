@@ -92,19 +92,19 @@ function M.setup_gotestsum_file_streaming(
     logger.debug("neotest.lib not available, streaming disabled")
     return run_spec
   end
-  
+
   local neotest_files = neotest_lib.files
   if not neotest_files then
     logger.debug("neotest.lib.files not available, streaming disabled")
     return run_spec
   end
-  
+
   -- Add stream function that sets up file streaming lazily
   run_spec.stream = function(data)
     -- Lazy initialization of file streaming
     local stream_lines, stop_stream
     local file_streaming_initialized = false
-    
+
     -- Return the actual stream function that neotest will call repeatedly
     return function()
       -- Initialize file streaming on first call (when file should exist)
@@ -115,19 +115,20 @@ function M.setup_gotestsum_file_streaming(
           if vim.fn.filereadable(json_filepath) ~= 1 then
             return false, "File not yet available"
           end
-          
+
           -- Try to set up file streaming
           local stream_ok, stream_err = pcall(function()
-            stream_lines, stop_stream = neotest_files.stream_lines(json_filepath)
+            stream_lines, stop_stream =
+              neotest_files.stream_lines(json_filepath)
           end)
-          
+
           if not stream_ok then
             return false, "Failed to set up streaming: " .. tostring(stream_err)
           end
-          
+
           return true, nil
         end)
-        
+
         if setup_ok and setup_result == true then
           file_streaming_initialized = true
         elseif setup_ok and setup_result == false then
@@ -135,16 +136,19 @@ function M.setup_gotestsum_file_streaming(
           return accumulated_results
         else
           -- Unexpected error during setup
-          logger.debug("Unexpected error during file streaming setup: " .. tostring(setup_result))
+          logger.debug(
+            "Unexpected error during file streaming setup: "
+              .. tostring(setup_result)
+          )
           return accumulated_results
         end
       end
-      
+
       -- Process lines from file stream
       if not stream_lines then
         return accumulated_results
       end
-      
+
       local lines
       local stream_ok, stream_err = pcall(function()
         lines = stream_lines()
@@ -169,7 +173,9 @@ function M.setup_gotestsum_file_streaming(
             accumulated_results[pos_id] = result
           end
         elseif not parse_ok then
-          logger.debug("Error processing stream lines: " .. tostring(new_results))
+          logger.debug(
+            "Error processing stream lines: " .. tostring(new_results)
+          )
           -- Return accumulated results so far, don't lose progress
           if next(accumulated_results) then
             return accumulated_results
@@ -184,7 +190,7 @@ function M.setup_gotestsum_file_streaming(
       return {}
     end
   end
-  
+
   return run_spec
 end
 
@@ -234,13 +240,15 @@ function M.setup_streaming(run_spec, tree, golist_data, context, strategy)
         local parse_ok, new_results = pcall(function()
           return parser:process_lines(lines)
         end)
-        
+
         if parse_ok and new_results then
           for pos_id, result in pairs(new_results) do
             accumulated_results[pos_id] = result
           end
         elseif not parse_ok then
-          logger.debug("Error processing stream lines: " .. tostring(new_results))
+          logger.debug(
+            "Error processing stream lines: " .. tostring(new_results)
+          )
           -- Return accumulated results so far, don't lose progress
           if next(accumulated_results) then
             return accumulated_results

@@ -3,7 +3,6 @@
 
 local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
-local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local streaming = require("neotest-golang.lib.streaming")
 
@@ -14,12 +13,12 @@ local M = {}
 --- @return table, table|nil golist_data, errors
 function M.get_golist_data(path)
   local golist_data, golist_error = lib.cmd.golist_data(path)
-  
+
   local errors = nil
   if golist_error ~= nil then
     errors = { golist_error }
   end
-  
+
   return golist_data, errors
 end
 
@@ -74,7 +73,7 @@ end
 function M.setup_streaming(run_spec, tree, golist_data, context, strategy, pos)
   local runner = options.get().runner
   local json_filepath = context.test_output_json_filepath
-  
+
   -- For gotestsum runner with JSON file output
   if runner == "gotestsum" and json_filepath then
     if pos and not tree then
@@ -125,3 +124,4 @@ function M.setup_streaming(run_spec, tree, golist_data, context, strategy, pos)
 end
 
 return M
+

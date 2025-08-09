@@ -1,9 +1,9 @@
 --- Streaming JSON parser for go test output.
 --- Processes go test -json output incrementally and converts to neotest results.
 
+local error_processor = require("neotest-golang.lib.error_processor")
 local logger = require("neotest-golang.logging")
 local position_resolver = require("neotest-golang.lib.position_resolver")
-local error_processor = require("neotest-golang.lib.error_processor")
 
 local M = {}
 
@@ -22,26 +22,35 @@ function M.new(tree, golist_data)
   }
 
   -- Build position lookup table
-  parser.position_lookup = position_resolver.build_position_lookup(tree, golist_data)
+  parser.position_lookup =
+    position_resolver.build_position_lookup(tree, golist_data)
 
   --- Process incoming data lines
   --- @param lines string[] Array of output lines
   --- @return table<string, neotest.Result> Partial results
   function parser:process_lines(lines)
     local results = {}
-    
+
     logger.debug("Stream parser: Processing " .. #lines .. " lines")
-    
+
     for _, line in ipairs(lines) do
       -- Skip empty lines
       if line and line ~= "" then
         -- Try to parse as JSON
         local ok, event = pcall(vim.json.decode, line)
         if ok and event then
-          logger.debug("Stream parser: Parsed event - Action=" .. (event.Action or "unknown") .. ", Test=" .. (event.Test or "none"))
+          logger.debug(
+            "Stream parser: Parsed event - Action="
+              .. (event.Action or "unknown")
+              .. ", Test="
+              .. (event.Test or "none")
+          )
           local result = self:process_event(event)
           if result then
-            logger.debug("Stream parser: Generated results for " .. vim.inspect(vim.tbl_keys(result)))
+            logger.debug(
+              "Stream parser: Generated results for "
+                .. vim.inspect(vim.tbl_keys(result))
+            )
             for pos_id, res in pairs(result) do
               results[pos_id] = res
             end
@@ -49,7 +58,7 @@ function M.new(tree, golist_data)
         else
           -- If not valid JSON, might be partial line - buffer it
           table.insert(self.partial_output, line)
-          
+
           -- Try to combine buffered lines
           local combined = table.concat(self.partial_output, "")
           ok, event = pcall(vim.json.decode, combined)
@@ -64,7 +73,11 @@ function M.new(tree, golist_data)
           elseif #self.partial_output > 100 then
             -- Clear buffer if it gets too large (likely not JSON)
             -- Use a higher limit to handle legitimately large JSON objects
-            logger.debug("Clearing partial output buffer (exceeded 100 lines): " .. string.sub(table.concat(self.partial_output, ""), 1, 200) .. "...")
+            logger.debug(
+              "Clearing partial output buffer (exceeded 100 lines): "
+                .. string.sub(table.concat(self.partial_output, ""), 1, 200)
+                .. "..."
+            )
             self.partial_output = {}
           elseif string.len(combined) > 50000 then
             -- Also clear if the combined string is getting too large (>50KB)
@@ -74,7 +87,7 @@ function M.new(tree, golist_data)
         end
       end
     end
-    
+
     return results
   end
 
@@ -85,26 +98,29 @@ function M.new(tree, golist_data)
     local action = event.Action
     local test_name = event.Test
     local package = event.Package
-    
+
     if not action then
       return nil
     end
-    
+
     -- Skip package-level events (no test name)
     if not test_name then
       -- Could handle package start/fail events here if needed
       return nil
     end
-    
 
-    
     -- Find position ID using unified resolver
-    local pos_id = position_resolver.find_position_id(self.position_lookup, self.tree, package, test_name)
-    
+    local pos_id = position_resolver.find_position_id(
+      self.position_lookup,
+      self.tree,
+      package,
+      test_name
+    )
+
     if not pos_id then
       return nil
     end
-    
+
     -- Cache the lookup for future events
     local test_id = position_resolver.build_test_identifier(package, test_name)
     if test_id then
@@ -113,19 +129,19 @@ function M.new(tree, golist_data)
     if test_name then
       self.position_lookup[test_name] = pos_id
     end
-    
+
     -- Initialize output buffer for this test if needed
     if not self.test_outputs[pos_id] then
       self.test_outputs[pos_id] = {}
     end
-    
+
     -- Process based on action type
     if action == "run" then
       -- Test started running
       return {
         [pos_id] = {
           status = "running",
-        }
+        },
       }
     elseif action == "output" then
       -- Accumulate output
@@ -139,7 +155,7 @@ function M.new(tree, golist_data)
         [pos_id] = {
           status = "passed",
           short = table.concat(self.test_outputs[pos_id] or {}, ""),
-        }
+        },
       }
     elseif action == "fail" then
       -- Test failed
@@ -150,7 +166,7 @@ function M.new(tree, golist_data)
           status = "failed",
           short = output,
           errors = errors,
-        }
+        },
       }
     elseif action == "skip" then
       -- Test skipped
@@ -158,18 +174,14 @@ function M.new(tree, golist_data)
         [pos_id] = {
           status = "skipped",
           short = table.concat(self.test_outputs[pos_id] or {}, ""),
-        }
+        },
       }
     end
-    
+
     return nil
   end
 
   return parser
 end
-
-
-
-
 
 return M
