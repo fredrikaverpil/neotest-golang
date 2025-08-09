@@ -95,24 +95,57 @@ function M.setup_gotestsum_file_streaming(
     return run_spec
   end
 
-  local stream_lines, stop_stream = neotest_files.stream_lines(json_filepath)
+  -- Check if file path is valid
+  if not json_filepath or json_filepath == "" then
+    logger.debug("Invalid JSON file path, falling back to non-streaming mode")
+    return run_spec
+  end
+
+  local stream_lines, stop_stream
+  local stream_ok, stream_err = pcall(function()
+    stream_lines, stop_stream = neotest_files.stream_lines(json_filepath)
+  end)
+
+  if not stream_ok then
+    logger.debug(
+      "Failed to set up file streaming: "
+        .. tostring(stream_err)
+        .. ", falling back to non-streaming mode"
+    )
+    return run_spec
+  end
 
   -- Add stream function to runspec
   run_spec.stream = function(data)
     return function()
-      -- Process lines from file stream
-      local lines = stream_lines()
+      -- Process lines from file stream with error handling
+      local lines
+      local stream_ok, stream_err = pcall(function()
+        lines = stream_lines()
+      end)
+
+      if not stream_ok then
+        logger.debug("Error reading from file stream: " .. tostring(stream_err))
+        return accumulated_results
+      end
 
       if not lines then
         return accumulated_results
       end
 
       if #lines > 0 then
-        local new_results = parser:process_lines(lines)
-        if new_results then
+        local parse_ok, new_results = pcall(function()
+          return parser:process_lines(lines)
+        end)
+
+        if parse_ok and new_results then
           for pos_id, result in pairs(new_results) do
             accumulated_results[pos_id] = result
           end
+        elseif not parse_ok then
+          logger.debug(
+            "Error processing stream lines: " .. tostring(new_results)
+          )
         end
 
         if next(accumulated_results) then

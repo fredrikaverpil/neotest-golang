@@ -187,20 +187,21 @@ describe("Gotestsum streaming", function()
     end)
   end)
 
-  describe("fallback behavior", function()
+  describe("error handling and fallback behavior", function()
+    local mock_tree = {
+      iter_nodes = function()
+        return function() end
+      end,
+      data = function()
+        return { id = "test_pos" }
+      end,
+    }
+    local mock_golist_data = { { ImportPath = "example.com/test" } }
+    local mock_context = {}
+
     it("gracefully handles missing neotest.lib.files", function()
       options.setup({ stream_enabled = true, runner = "gotestsum" })
       local run_spec = { command = { "test" } }
-      local mock_tree = {
-        iter_nodes = function()
-          return function() end
-        end,
-        data = function()
-          return { id = "test_pos" }
-        end,
-      }
-      local mock_golist_data = { { ImportPath = "example.com/test" } }
-      local mock_context = {}
       local json_filepath = "/tmp/test.json"
 
       -- This should not error even when neotest.lib.files is not available
@@ -213,6 +214,38 @@ describe("Gotestsum streaming", function()
       )
 
       -- Should fall back to original runspec
+      assert.are.same(run_spec, result)
+      assert.is_nil(result.stream)
+    end)
+
+    it("handles empty json_filepath", function()
+      options.setup({ stream_enabled = true, runner = "gotestsum" })
+      local run_spec = { command = { "test" } }
+
+      local result = streaming.setup_gotestsum_file_streaming(
+        run_spec,
+        "",
+        mock_tree,
+        mock_golist_data,
+        mock_context
+      )
+
+      assert.are.same(run_spec, result)
+      assert.is_nil(result.stream)
+    end)
+
+    it("handles nil json_filepath", function()
+      options.setup({ stream_enabled = true, runner = "gotestsum" })
+      local run_spec = { command = { "test" } }
+
+      local result = streaming.setup_gotestsum_file_streaming(
+        run_spec,
+        nil,
+        mock_tree,
+        mock_golist_data,
+        mock_context
+      )
+
       assert.are.same(run_spec, result)
       assert.is_nil(result.stream)
     end)

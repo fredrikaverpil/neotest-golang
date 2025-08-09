@@ -284,14 +284,11 @@ as they complete rather than waiting for all tests to finish. This provides
 immediate feedback during test execution, especially useful for long-running
 test suites.
 
-The streaming feature processes `go test -json` output incrementally and updates
-the Neotest UI in real-time as each test passes, fails, or is skipped.
+**Go runner**: Streams JSON directly from `go test -json` stdout output.
+**Gotestsum runner**: Streams JSON from the output file in real-time using file watching.
 
-!!! warning "Gotestsum limitation"
-
-    Streaming only works with the `go` runner, not with `gotestsum`. This is because
-    `gotestsum` writes JSON output to a file rather than stdout. If you want to use
-    streaming, set `runner = "go"` in your configuration.
+Both approaches provide immediate feedback as tests complete, with the Neotest UI
+updating in real-time as each test passes, fails, or is skipped.
 
 !!! tip "Streaming feature"
 
