@@ -7,6 +7,7 @@ local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local position_resolver = require("neotest-golang.lib.position_resolver")
+local error_processor = require("neotest-golang.lib.error_processor")
 
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
@@ -460,19 +461,10 @@ function M.decorate_with_go_test_results(res, gotest_output)
             test_filename = vim.fn.fnamemodify(test_filepath, ":t")
           end
 
-          -- search for error message and line number
-          local matched_line_number =
-            string.match(line.Output, test_filename .. ":(%d+):")
-          if matched_line_number ~= nil then
-            local line_number = tonumber(matched_line_number)
-            local message =
-              string.match(line.Output, test_filename .. ":%d+: (.*)")
-            if line_number ~= nil and message ~= nil then
-              table.insert(test_data.errors, {
-                line = line_number - 1, -- neovim lines are 0-indexed
-                message = message,
-              })
-            end
+          -- extract errors from this line of output
+          local error = error_processor.extract_error_from_line(line.Output, test_filename)
+          if error then
+            table.insert(test_data.errors, error)
           end
         end
       end

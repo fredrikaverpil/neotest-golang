@@ -3,6 +3,7 @@
 
 local logger = require("neotest-golang.logging")
 local position_resolver = require("neotest-golang.lib.position_resolver")
+local error_processor = require("neotest-golang.lib.error_processor")
 
 local M = {}
 
@@ -138,7 +139,7 @@ function M.new(tree, golist_data)
     elseif action == "fail" then
       -- Test failed
       local output = table.concat(self.test_outputs[pos_id] or {}, "")
-      local errors = M.extract_errors_from_output(output)
+      local errors = error_processor.extract_errors_from_output(output)
       return {
         [pos_id] = {
           status = "failed",
@@ -164,64 +165,6 @@ end
 
 
 
---- Extract error information from test output
---- @param output string
---- @return neotest.Error[]
-function M.extract_errors_from_output(output)
-  local errors = {}
-  
-  -- Look for failure messages and line numbers in output
-  for line in output:gmatch("[^\n]+") do
-    -- Skip the RUN and FAIL header lines
-    if not line:match("^=== RUN") and not line:match("^--- FAIL") then
-      -- Pattern 1: filename.go:line:column: message
-      local file, line_num, message = line:match("([^:]+%.go):(%d+):%d*:?%s*(.+)")
-      if file and line_num then
-        table.insert(errors, {
-          message = message or line,
-          line = tonumber(line_num) - 1, -- Convert to 0-based
-        })
-      -- Pattern 2: filename_test.go:line: message (from t.Error/t.Fatal)
-      elseif line:match("_test%.go:%d+:") then
-        local test_file, test_line, test_msg = line:match("([^:]+):(%d+):%s*(.+)")
-        if test_file and test_line then
-          table.insert(errors, {
-            message = test_msg or line,
-            line = tonumber(test_line) - 1,
-          })
-        end
-      -- Pattern 3: Error Trace: ... (from testify)
-      elseif line:match("Error Trace:") or line:match("Error:") then
-        -- Extract the actual error message
-        local error_msg = line:match("Error:%s*(.+)") or line
-        table.insert(errors, {
-          message = error_msg,
-        })
-      end
-    end
-  end
-  
-  -- If no specific errors found but test failed, extract the failure reason
-  if #errors == 0 then
-    -- Look for assertion failures or other error indicators
-    for line in output:gmatch("[^\n]+") do
-      if line:match("expected") or line:match("got") or line:match("want") then
-        table.insert(errors, {
-          message = vim.trim(line),
-        })
-        break
-      end
-    end
-    
-    -- Still no errors? Add generic message
-    if #errors == 0 and output:match("FAIL") then
-      table.insert(errors, {
-        message = "Test failed - see output for details",
-      })
-    end
-  end
-  
-  return errors
-end
+
 
 return M
