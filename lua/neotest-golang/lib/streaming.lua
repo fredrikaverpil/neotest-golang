@@ -38,7 +38,7 @@ end
 --- Check if streaming is enabled in options
 --- @return boolean
 function M.is_streaming_enabled()
-  local streaming_enabled = options.get().experimental_streaming
+  local streaming_enabled = options.get().stream_enabled
   if type(streaming_enabled) == "function" then
     streaming_enabled = streaming_enabled()
   end

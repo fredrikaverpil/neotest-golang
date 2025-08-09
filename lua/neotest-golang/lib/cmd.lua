@@ -119,21 +119,29 @@ function M.go_test(go_test_required_args)
 end
 
 function M.gotestsum(go_test_required_args, json_filepath)
-  local streaming_enabled = options.get().experimental_streaming
+  local streaming_enabled = options.get().stream_enabled
   if type(streaming_enabled) == "function" then
     streaming_enabled = streaming_enabled()
   end
-  
+
   local cmd = {}
-  
+
   if streaming_enabled then
     -- For streaming, use raw command mode to get JSON on stdout
-    cmd = { "gotestsum", "--raw-command", "--jsonfile=" .. json_filepath, "--", "go", "test", "-json" }
+    cmd = {
+      "gotestsum",
+      "--raw-command",
+      "--jsonfile=" .. json_filepath,
+      "--",
+      "go",
+      "test",
+      "-json",
+    }
     -- For streaming mode, we don't add gotestsum_args since we're using raw command mode
   else
     -- Original behavior - use standard gotestsum format (no JSON file needed for basic usage)
     cmd = { "gotestsum", "--jsonfile=" .. json_filepath }
-    
+
     local gotestsum_args = options.get().gotestsum_args
     if type(gotestsum_args) == "function" then
       gotestsum_args = gotestsum_args()
@@ -141,13 +149,13 @@ function M.gotestsum(go_test_required_args, json_filepath)
     cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_args)
     cmd = vim.list_extend(vim.deepcopy(cmd), { "--" })
   end
-  
+
   local go_test_args = extra_args.get().go_test_args
     or options.get().go_test_args
   if type(go_test_args) == "function" then
     go_test_args = go_test_args()
   end
-  
+
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_args)
   return cmd

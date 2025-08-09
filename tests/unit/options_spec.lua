@@ -24,7 +24,7 @@ describe("Options are set up", function()
       warn_test_not_executed = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
-      experimental_streaming = false,
+      stream_enabled = false,
 
       -- experimental
       dev_notifications = false,
@@ -56,7 +56,7 @@ describe("Options are set up", function()
       warn_test_not_executed = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
-      experimental_streaming = false,
+      stream_enabled = false,
 
       -- experimental
       dev_notifications = false,
@@ -90,6 +90,10 @@ describe("Options are set up", function()
       env = function()
         return {}
       end,
+      runner = "go",
+      gotestsum_args = function()
+        return { "--format=standard-verbose" }
+      end,
       testify_enabled = false,
       testify_operand = "^(s|suite)$",
       testify_import_identifier = "^(suite)$",
@@ -98,13 +102,9 @@ describe("Options are set up", function()
       warn_test_not_executed = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
-      experimental_streaming = false,
+      stream_enabled = false,
 
       -- experimental
-      runner = "go",
-      gotestsum_args = function()
-        return { "--format=standard-verbose" }
-      end,
       dev_notifications = false,
     }
     options.setup(expected_options)
