@@ -6,5 +6,6 @@ M.find = require("neotest-golang.lib.find")
 M.json = require("neotest-golang.lib.json")
 M.sanitize = require("neotest-golang.lib.sanitize")
 M.string = require("neotest-golang.lib.string")
+M.stream = require("neotest-golang.lib.stream")
 
 return M

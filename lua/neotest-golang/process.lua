@@ -13,6 +13,7 @@ local options = require("neotest-golang.options")
 --- @field errors? table<string> Non-gotest errors to show in the final output.
 --- @field is_dap_active boolean? If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
+--- @field stop_stream fun() Stops the stream of test output.
 
 --- @class TestData
 --- @field status neotest.ResultStatus
@@ -39,6 +40,8 @@ function M.test_results(spec, result, tree)
 
   --- @type RunspecContext
   local context = spec.context
+
+  spec.context.stop_stream()
 
   --- Final Neotest results, the way Neotest wants it returned.
   --- @type table<string, neotest.Result>
