@@ -3,6 +3,7 @@ local json = require("neotest-golang.lib.json")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 
+local async = require("neotest.async")
 local neotest_lib = require("neotest.lib")
 
 local M = {}
@@ -58,14 +59,12 @@ function M.new(tree, golist_data, json_filepath)
       end
 
       for _, test_data in pairs(accum) do
-        if test_data.status == "passed" then
-          results[test_data.position_id] = {
-            status = test_data.status, -- passed/failed/skipped
-            output = test_data.output,
-            -- TODO: add short
-            -- TODO: add errors
-          }
-        end
+        results[test_data.position_id] = {
+          status = test_data.status,
+          output = test_data.output_path,
+          -- TODO: add short
+          -- TODO: add errors
+        }
       end
 
       -- TODO: only return a result when a test has a status (pass/fail/skip), otherwise return {}
@@ -140,7 +139,7 @@ function M.process_event(tree, golist_data, accum, e)
   -- TODO: do we want to do something with 'start' status?
 
   -- Indicate test started/running.
-  if e.Action == "run" and e.Test ~= nil then
+  if e.Action == "run" and e.Package ~= nil and e.Test ~= nil then
     local id = to_test_id(e.Package, e.Test)
     accum[id] = { status = "running", output = "" }
     if e.Output ~= nil then
@@ -149,25 +148,97 @@ function M.process_event(tree, golist_data, accum, e)
   end
 
   -- Record output for test.
-  if e.Action == "output" and e.Test ~= nil and e.Output ~= nil then
+  if
+    e.Action == "output"
+    and e.Package ~= nil
+    and e.Test ~= nil
+    and e.Output ~= nil
+  then
     local id = to_test_id(e.Package, e.Test)
-    accum[id].output = accum[id].output .. "\n" .. e.Output
+    accum[id].output = accum[id].output .. e.Output
   end
 
   -- Register passing test.
-  if e.Action == "pass" and e.Test ~= nil then
+  if
+    (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
+    and e.Package ~= nil
+    and e.Test ~= nil
+  then
     local id = to_test_id(e.Package, e.Test)
-    accum[id].status = "passed"
+    if e.Action == "pass" then
+      accum[id].status = "passed"
+    elseif e.Action == "fail" then
+      accum[id].status = "failed"
+    else
+      accum[id].status = "skipped"
+    end
     if e.Output ~= nil then
-      accum[id].output = accum[id].output .. "\n" .. e.Output
+      accum[id].output = accum[id].output .. e.Output
     end
 
+    local output_path = vim.fs.normalize(async.fn.tempname())
+    async.fn.writefile(
+      vim.split(accum[id].output, "\n", { trimempty = true }),
+      output_path
+    )
+    accum[id].output_path = output_path
+
     local pattern =
-      convert.to_position_id_testpattern(golist_data, e.Package, e.Test)
-    local pos_id = M.find_position_id_for_test(tree, pattern)
-    if pos_id then
-      accum[id].position_id = pos_id
+      convert.to_test_position_id_pattern(golist_data, e.Package, e.Test)
+    if pattern then
+      local pos_id = M.find_position_id_for_test(tree, pattern)
+      if pos_id then
+        accum[id].position_id = pos_id
+      else
+        logger.error(
+          "Unable to find position id for passed test: "
+            .. e.Package
+            .. "::"
+            .. e.Test
+        )
+      end
+    else
+      logger.error(
+        "Unable to construct position id from passed test: "
+          .. e.Package
+          .. "::"
+          .. e.Test
+      )
     end
+  end
+
+  -- Indicate package started/running.
+  if e.Action == "start" and e.Package ~= nil and e.Test == nil then
+    local id = e.Package
+    accum[id] = { status = "running", output = "" }
+    if e.Output ~= nil then
+      accum[id].output = e.Output
+    end
+  end
+
+  -- Record output for package.
+  if e.Action == "output" and e.Package ~= nil and e.Test == nil then
+    local id = e.Package
+    if e.Output ~= nil then
+      accum[id].output = accum[id].output .. e.Output
+    end
+  end
+
+  -- Register passing package.
+  if e.Action == "pass" and e.Package ~= nil and e.Test == nil then
+    local id = e.Package
+    accum[id].status = "passed"
+    accum[id].position_id = convert.to_dir_position_id(golist_data, e.Package)
+    if e.Output ~= nil then
+      accum[id].output = accum[id].output .. e.Output
+    end
+
+    local output_path = vim.fs.normalize(async.fn.tempname())
+    async.fn.writefile(
+      vim.split(accum[id].output, "\n", { trimempty = true }),
+      output_path
+    )
+    accum[id].output_path = output_path
   end
 
   return accum

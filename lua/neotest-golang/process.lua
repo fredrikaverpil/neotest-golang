@@ -38,10 +38,11 @@ local M = {}
 function M.test_results(spec, result, tree)
   -- TODO: refactor this function into function calls; return_early, process_test_results, override_test_results.
 
-  vim.notify(vim.inspect("Post processing started"))
-
   --- @type RunspecContext
   local context = spec.context
+
+  --- @type neotest.Position
+  local pos = tree:data()
 
   spec.context.stop_stream()
 
@@ -83,37 +84,29 @@ function M.test_results(spec, result, tree)
   --- Go test output.
   --- @type table
   local gotest_output = lib.json.decode_from_table(runner_raw_output, true)
-  local lines = {}
-  for _, event in ipairs(gotest_output) do
-    -- TODO: add colorization?
-    if event.Output ~= nil then
-      lines = vim.list_extend(
-        lines,
-        vim.split(event.Output, "\n", { trimempty = true })
-      )
-    end
-  end
 
   local accum = {}
   for _, json_line in ipairs(gotest_output) do
     accum = lib.stream.process_event(tree, golist_output, accum, json_line)
   end
 
-  for _, test_data in pairs(accum) do
-    local output_path = vim.fs.normalize(async.fn.tempname())
-    async.fn.writefile(lines, output_path)
+  ---@type table<string, neotest.Result>
+  local results = {}
 
-    return {
-      [test_data.position_id] = {
-        status = test_data.status, -- passed/failed/skipped
-        output = output_path,
-        -- TODO: add short
-        -- TODO: add errors
-      },
+  for _, test_data in pairs(accum) do
+    results[test_data.position_id] = {
+      status = test_data.status,
+      output = test_data.output_path,
+      -- TODO: add short
+      -- TODO: add errors
     }
+
+    if pos.id == test_data.position_id and result.code ~= 0 then
+      results[test_data.position_id].status = "failed"
+    end
   end
 
-  return {}
+  return results
 
   --
   --
