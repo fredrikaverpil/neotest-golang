@@ -8,8 +8,8 @@ local M = {}
 ---@param golist_data table Golist data containing package information
 ---@param package_name string The name of the package
 ---@param test_name string The name of the test, which can include subtests separated by slashes
----@return string The pattern for matching against a test's position id in the neotest tree
-function M.to_position_id_testpattern(golist_data, package_name, test_name)
+---@return string? The pattern for matching against a test's position id in the neotest tree
+function M.to_test_position_id_pattern(golist_data, package_name, test_name)
   -- Example go list -json output:
   -- { {
   --     Dir = "/Users/fredrik/code/public/someproject/internal/foo/bar",
@@ -43,6 +43,7 @@ function M.to_position_id_testpattern(golist_data, package_name, test_name)
       local dir_escaped = M.to_lua_pattern(dir)
       local test_name_escaped = M.to_lua_pattern(test_name_transformed)
       local pattern = dir_escaped .. "/.*%.go::" .. test_name_escaped
+      -- TODO: add ^ and $ to mark exact pattern ...?
 
       return pattern
     end
@@ -54,6 +55,21 @@ function M.to_position_id_testpattern(golist_data, package_name, test_name)
       .. " in package: "
       .. package_name
   )
+end
+
+--- Convert to Neotest position id pattern.
+---@param golist_data table Golist data containing package information
+---@param package_name string The name of the package
+---@return string? The pattern for matching against a test's position id in the neotest tree
+function M.to_dir_position_id(golist_data, package_name)
+  for _, item in ipairs(golist_data) do
+    if item.ImportPath == package_name then
+      -- Found the package, construct the position id
+      local pos_id = item.Dir
+      return pos_id
+    end
+  end
+  logger.error("Could not find position id for package: " .. package_name)
 end
 
 -- Converts the test name into a regexp-friendly pattern, for usage in
