@@ -102,7 +102,7 @@ function M.process_event(tree, golist_data, accum, e)
     local id = to_test_id(e.Package, e.Test)
     accum[id].status = "passed"
     if e.Output ~= nil then
-      accum[id].output = e.Output
+      accum[id].output = accum[id].output .. "\n" .. e.Output
     end
 
     local pattern =
