@@ -48,13 +48,6 @@ function M.to_test_position_id_pattern(golist_data, package_name, test_name)
       return pattern
     end
   end
-
-  logger.error(
-    "Could not find position id pattern for test: "
-      .. test_name
-      .. " in package: "
-      .. package_name
-  )
 end
 
 --- Convert to Neotest position id pattern.
