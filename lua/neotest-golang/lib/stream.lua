@@ -60,9 +60,13 @@ function M.new(tree, golist_data, json_filepath)
 
       for _, test_data in pairs(accum) do
         if test_data.position_id ~= nil then
+          -- NOTE: for faster feedback, do not write output yet?
+          -- local o = vim.split(test_data.output, "\n", { trimempty = true })
+          -- async.fn.writefile(o, test_data.output_path)
+
           results[test_data.position_id] = {
             status = test_data.status,
-            output = test_data.output_path,
+            -- output = test_data.output_path,
             -- TODO: add short
             -- TODO: add errors
           }
@@ -174,12 +178,7 @@ function M.process_event(tree, golist_data, accum, e)
       accum[id].output = accum[id].output .. e.Output
     end
 
-    local output_path = vim.fs.normalize(vim.fn.tempname())
-    async.fn.writefile(
-      vim.split(accum[id].output, "\n", { trimempty = true }),
-      output_path
-    )
-    accum[id].output_path = output_path
+    accum[id].output_path = vim.fs.normalize(async.fn.tempname())
 
     local pattern =
       convert.to_test_position_id_pattern(golist_data, e.Package, e.Test)
@@ -188,7 +187,7 @@ function M.process_event(tree, golist_data, accum, e)
       if pos_id then
         accum[id].position_id = pos_id
       else
-        logger.warn(
+        logger.debug(
           "Unable to find position id for passed test: "
             .. e.Package
             .. "::"
@@ -241,12 +240,7 @@ function M.process_event(tree, golist_data, accum, e)
       accum[id].output = accum[id].output .. e.Output
     end
 
-    local output_path = vim.fs.normalize(vim.fn.tempname())
-    async.fn.writefile(
-      vim.split(accum[id].output, "\n", { trimempty = true }),
-      output_path
-    )
-    accum[id].output_path = output_path
+    accum[id].output_path = vim.fs.normalize(async.fn.tempname())
   end
 
   return accum

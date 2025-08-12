@@ -95,6 +95,9 @@ function M.test_results(spec, result, tree)
 
   for _, test_data in pairs(accum) do
     if test_data.position_id ~= nil then
+      local o = vim.split(test_data.output, "\n", { trimempty = true })
+      async.fn.writefile(o, test_data.output_path)
+
       results[test_data.position_id] = {
         status = test_data.status,
         output = test_data.output_path,
