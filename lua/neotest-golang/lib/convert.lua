@@ -8,7 +8,8 @@ local M = {}
 ---@param golist_data table Golist data containing package information
 ---@param package_name string The name of the package
 ---@param test_name string The name of the test, which can include subtests separated by slashes
-function M.to_position_id_pattern(golist_data, package_name, test_name)
+---@return string The pattern for matching against a test's position id in the neotest tree
+function M.to_position_id_testpattern(golist_data, package_name, test_name)
   -- Example go list -json output:
   -- { {
   --     Dir = "/Users/fredrik/code/public/someproject/internal/foo/bar",
@@ -53,48 +54,6 @@ function M.to_position_id_pattern(golist_data, package_name, test_name)
       .. " in package: "
       .. package_name
   )
-end
-
--- Convert go test name into Neotest position id.
----@param tree neotest.Tree The Neotest tree structure
----@param pattern string The pattern to match against position ids
-function M.to_position_id(tree, pattern)
-  -- Search the tree for matching position id
-  for _, node in tree:iter_nodes() do
-    --- @type neotest.Position
-    local pos = node:data()
-    -- outputs:
-    -- {
-    --   id = '/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go::TestName::"SubTestName"',
-    --   name = '"SubTestName"',
-    --   path = "/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go",
-    --   range = { 11, 1, 28, 3 },
-    --   type = "test"
-    -- }
-    -- TODO: also identify for file:
-    -- {
-    --   id = "/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go",
-    --   name = "baz_test.go",
-    --   path = "/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go",
-    --   range = { 0, 0, 30, 0 },
-    --   type = "file"
-    -- }
-    -- TODO: also identify the dir:
-    -- {
-    --   id = "/Users/fredrik/code/public/someproject/internal/foo/bar",
-    --   name = "bar",
-    --   path = "/Users/fredrik/code/public/someproject/internal/foo/bar",
-    --   type = "dir"
-    -- }
-    -- TODO: also idenify for namespace:
-    -- ...
-
-    if pos.id:match(pattern) then
-      return pos.id
-    end
-  end
-
-  logger.error("Could not find position id for pattern: " .. pattern)
 end
 
 -- Converts the test name into a regexp-friendly pattern, for usage in

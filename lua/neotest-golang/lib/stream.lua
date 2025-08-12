@@ -76,6 +76,63 @@ function M.new(tree, golist_data, json_filepath)
   return stream, stop_stream
 end
 
+-- Find position id in neotest tree, given pattern.
+---@param tree neotest.Tree The Neotest tree structure
+---@param test_pattern string The pattern to match against position ids
+---@return string|nil The position id, if any.
+function M.find_position_id_for_test(tree, test_pattern)
+  -- Search the tree for matching position id
+  for _, node in tree:iter_nodes() do
+    --- @type neotest.Position
+    local pos = node:data()
+
+    -- Test pattern:
+    -- {
+    --   id = '/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go::TestName::"SubTestName"',
+    --   name = '"SubTestName"',
+    --   path = "/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go",
+    --   range = { 11, 1, 28, 3 },
+    --   type = "test"
+    -- }
+    if pos.id:match(test_pattern) and pos.type == "test" then
+      return pos.id
+    end
+
+    -- Namespace pattern:
+    -- (same as test pattern?)
+
+    -- File pattern:
+    -- {
+    --   id = "/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go",
+    --   name = "baz_test.go",
+    --   path = "/Users/fredrik/code/public/someproject/internal/foo/bar/baz_test.go",
+    --   range = { 0, 0, 30, 0 },
+    --   type = "file"
+    -- }
+    -- local file_pattern = pattern:match("^(.-)::")
+    -- if pos.id:match(file_pattern) and pos.type == "file" then
+    --   return pos.id
+    -- end
+
+    -- Dir pattern:
+    -- {
+    --   id = "/Users/fredrik/code/public/someproject/internal/foo/bar",
+    --   name = "bar",
+    --   path = "/Users/fredrik/code/public/someproject/internal/foo/bar",
+    --   type = "dir"
+    -- }
+    --   local file_path = pattern:match("^(.-)::")
+    --   local dir_pattern = file_path and file_path:match("(.+)/[^/]+$")
+    --   if dir_pattern and pos.id:match(dir_pattern) and pos.type == "dir" then
+    --     return pos.id
+    --   end
+  end
+
+  logger.error(
+    "Could not find test's position id for pattern: " .. test_pattern
+  )
+end
+
 --- Process a single event from the test output.
 --- @param accum table Accumulated test data.
 --- @param e table The event data.
@@ -91,13 +148,13 @@ function M.process_event(tree, golist_data, accum, e)
     end
   end
 
-  -- Record output.
+  -- Record output for test.
   if e.Action == "output" and e.Test ~= nil and e.Output ~= nil then
     local id = to_test_id(e.Package, e.Test)
     accum[id].output = accum[id].output .. "\n" .. e.Output
   end
 
-  -- Passed test.
+  -- Register passing test.
   if e.Action == "pass" and e.Test ~= nil then
     local id = to_test_id(e.Package, e.Test)
     accum[id].status = "passed"
@@ -106,8 +163,11 @@ function M.process_event(tree, golist_data, accum, e)
     end
 
     local pattern =
-      convert.to_position_id_pattern(golist_data, e.Package, e.Test)
-    accum[id].position_id = convert.to_position_id(tree, pattern)
+      convert.to_position_id_testpattern(golist_data, e.Package, e.Test)
+    local pos_id = M.find_position_id_for_test(tree, pattern)
+    if pos_id then
+      accum[id].position_id = pos_id
+    end
   end
 
   return accum
