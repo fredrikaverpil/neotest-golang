@@ -225,9 +225,19 @@ function M.process_event(tree, golist_data, accum, e)
   end
 
   -- Register passing package.
-  if e.Action == "pass" and e.Package ~= nil and e.Test == nil then
+  if
+    (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
+    and e.Package ~= nil
+    and e.Test == nil
+  then
     local id = e.Package
-    accum[id].status = "passed"
+    if e.Action == "pass" then
+      accum[id].status = "passed"
+    elseif e.Action == "fail" then
+      accum[id].status = "failed"
+    else
+      accum[id].status = "skipped"
+    end
     accum[id].position_id = convert.to_dir_position_id(golist_data, e.Package)
     if e.Output ~= nil then
       accum[id].output = accum[id].output .. e.Output
