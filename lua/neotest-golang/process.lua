@@ -94,12 +94,14 @@ function M.test_results(spec, result, tree)
   local results = {}
 
   for _, test_data in pairs(accum) do
-    results[test_data.position_id] = {
-      status = test_data.status,
-      output = test_data.output_path,
-      -- TODO: add short
-      -- TODO: add errors
-    }
+    if test_data.position_id ~= nil then
+      results[test_data.position_id] = {
+        status = test_data.status,
+        output = test_data.output_path,
+        -- TODO: add short
+        -- TODO: add errors
+      }
+    end
 
     if pos.id == test_data.position_id and result.code ~= 0 then
       results[test_data.position_id].status = "failed"

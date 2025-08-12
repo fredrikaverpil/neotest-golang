@@ -59,12 +59,14 @@ function M.new(tree, golist_data, json_filepath)
       end
 
       for _, test_data in pairs(accum) do
-        results[test_data.position_id] = {
-          status = test_data.status,
-          output = test_data.output_path,
-          -- TODO: add short
-          -- TODO: add errors
-        }
+        if test_data.position_id ~= nil then
+          results[test_data.position_id] = {
+            status = test_data.status,
+            output = test_data.output_path,
+            -- TODO: add short
+            -- TODO: add errors
+          }
+        end
       end
 
       -- TODO: only return a result when a test has a status (pass/fail/skip), otherwise return {}
@@ -126,10 +128,6 @@ function M.find_position_id_for_test(tree, test_pattern)
     --     return pos.id
     --   end
   end
-
-  logger.error(
-    "Could not find test's position id for pattern: " .. test_pattern
-  )
 end
 
 --- Process a single event from the test output.
@@ -176,7 +174,7 @@ function M.process_event(tree, golist_data, accum, e)
       accum[id].output = accum[id].output .. e.Output
     end
 
-    local output_path = vim.fs.normalize(async.fn.tempname())
+    local output_path = vim.fs.normalize(vim.fn.tempname())
     async.fn.writefile(
       vim.split(accum[id].output, "\n", { trimempty = true }),
       output_path
@@ -190,7 +188,7 @@ function M.process_event(tree, golist_data, accum, e)
       if pos_id then
         accum[id].position_id = pos_id
       else
-        logger.error(
+        logger.warn(
           "Unable to find position id for passed test: "
             .. e.Package
             .. "::"
@@ -199,10 +197,10 @@ function M.process_event(tree, golist_data, accum, e)
       end
     else
       logger.error(
-        "Unable to construct position id from passed test: "
-          .. e.Package
-          .. "::"
+        "Could not find position id pattern for test: "
           .. e.Test
+          .. " in package: "
+          .. e.Package
       )
     end
   end
@@ -243,7 +241,7 @@ function M.process_event(tree, golist_data, accum, e)
       accum[id].output = accum[id].output .. e.Output
     end
 
-    local output_path = vim.fs.normalize(async.fn.tempname())
+    local output_path = vim.fs.normalize(vim.fn.tempname())
     async.fn.writefile(
       vim.split(accum[id].output, "\n", { trimempty = true }),
       output_path
