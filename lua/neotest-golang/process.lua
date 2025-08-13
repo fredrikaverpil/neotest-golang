@@ -91,25 +91,36 @@ function M.test_results(spec, result, tree)
   end
 
   ---@type table<string, neotest.Result>
+  local results = M.process_accumulated_test_data(accum, true)
+  return results
+end
+
+--- Process internal test data.
+---@param accum table<string, string> The accumulated test data to process -- TODO: add proper type
+---@param write boolean Whether to write each position's output file
+function M.process_accumulated_test_data(accum, write)
+  ---@type table<string, neotest.Result>
   local results = {}
 
   for _, test_data in pairs(accum) do
     if test_data.position_id ~= nil then
-      local o =
-        vim.split(M.colorizer(test_data.output), "\n", { trimempty = true })
-      async.fn.writefile(o, test_data.output_path)
-
       results[test_data.position_id] = {
         status = test_data.status,
-        output = test_data.output_path,
         -- TODO: add short
         -- TODO: add errors
       }
+
+      if write then
+        local o =
+          vim.split(M.colorizer(test_data.output), "\n", { trimempty = true })
+        async.fn.writefile(o, test_data.output_path)
+        results[test_data.position_id].output = test_data.output_path
+      end
     end
 
-    if pos.id == test_data.position_id and result.code ~= 0 then
-      results[test_data.position_id].status = "failed"
-    end
+    -- if pos.id == test_data.position_id and result.code ~= 0 then
+    --   results[test_data.position_id].status = "failed"
+    -- end
   end
 
   return results
