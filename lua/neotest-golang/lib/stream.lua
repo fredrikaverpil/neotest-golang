@@ -55,7 +55,7 @@ function M.new(tree, golist_data, json_filepath)
         accum = M.process_event(tree, golist_data, accum, json_line)
       end
 
-      results = process.process_accumulated_test_data(accum, false)
+      results = process.process_accumulated_test_data(accum, true)
       return results
     end
   end
@@ -142,7 +142,7 @@ function M.process_event(tree, golist_data, accum, e)
     accum[id].output = accum[id].output .. e.Output
   end
 
-  -- Register passing test.
+  -- Register test results.
   if
     (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
     and e.Package ~= nil
@@ -168,7 +168,10 @@ function M.process_event(tree, golist_data, accum, e)
       local pos_id = M.find_position_id_for_test(tree, pattern)
       if pos_id then
         accum[id].position_id = pos_id
+
+        return accum
       else
+        -- TODO: it would be better to store these in a list instead.
         logger.debug(
           "Unable to find position id for passed test: "
             .. e.Package
@@ -203,7 +206,7 @@ function M.process_event(tree, golist_data, accum, e)
     end
   end
 
-  -- Register passing package.
+  -- Register package results.
   if
     (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
     and e.Package ~= nil
@@ -223,6 +226,8 @@ function M.process_event(tree, golist_data, accum, e)
     end
 
     accum[id].output_path = vim.fs.normalize(async.fn.tempname())
+
+    return accum
   end
 
   return accum
