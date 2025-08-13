@@ -112,20 +112,37 @@ function M.process_event(tree, golist_data, accum, e)
   return accum
 end
 
+function M.register_output(accum, e, id)
+  if e.Output then
+    accum[id].output = accum[id].output .. e.Output
+
+    -- search for error message and line number
+    local matched_line_number = string.match(e.Output, "go:(%d+):")
+    if matched_line_number ~= nil then
+      local line_number = tonumber(matched_line_number)
+      local message = string.match(e.Output, "go:%d+: (.*)")
+      if line_number ~= nil and message ~= nil then
+        table.insert(accum[id].errors, {
+          line = line_number - 1, -- neovim lines are 0-indexed
+          message = message,
+        })
+      end
+    end
+  end
+
+  return accum
+end
+
 function M.process_package(tree, golist_data, accum, e, id)
   -- Indicate package started/running.
   if not accum[id] and (e.Action == "start" or e.Action == "run") then
-    accum[id] = { status = "running", output = "" }
-    if e.Output then
-      accum[id].output = e.Output
-    end
+    accum[id] = { status = "running", output = "", errors = {} }
+    accum = M.register_output(accum, e, id)
   end
 
   -- Record output for package.
   if accum[e.Package].status == "running" and e.Action == "output" then
-    if e.Output then
-      accum[id].output = accum[id].output .. e.Output
-    end
+    accum = M.register_output(accum, e, id)
   end
 
   -- Register package results.
@@ -142,9 +159,7 @@ function M.process_package(tree, golist_data, accum, e, id)
     end
     accum[id].position_id =
       lib.convert.to_dir_position_id(golist_data, e.Package)
-    if e.Output then
-      accum[id].output = accum[id].output .. e.Output
-    end
+    accum = M.register_output(accum, e, id)
     accum[id].output_path = vim.fs.normalize(async.fn.tempname())
   end
   return accum
@@ -153,15 +168,13 @@ end
 function M.process_test(tree, golist_data, accum, e, id)
   -- Indicate test started/running.
   if not accum[id] and e.Action == "run" then
-    accum[id] = { status = "running", output = "" }
-    if e.Output ~= nil then
-      accum[id].output = e.Output
-    end
+    accum[id] = { status = "running", output = "", errors = {} }
+    accum = M.register_output(accum, e, id)
   end
 
   -- Record output for test.
-  if accum[id].status == "running" and e.Action == "output" and e.Output then
-    accum[id].output = accum[id].output .. e.Output
+  if accum[id].status == "running" and e.Action == "output" then
+    accum = M.register_output(accum, e, id)
   end
 
   -- Register test results.
@@ -176,9 +189,7 @@ function M.process_test(tree, golist_data, accum, e, id)
     else
       accum[id].status = "skipped"
     end
-    if e.Output then
-      accum[id].output = accum[id].output .. e.Output
-    end
+    accum = M.register_output(accum, e, id)
     accum[id].output_path = vim.fs.normalize(async.fn.tempname())
     local pattern =
       lib.convert.to_test_position_id_pattern(golist_data, e.Package, e.Test)
@@ -208,8 +219,7 @@ function M.process_test(tree, golist_data, accum, e, id)
 end
 
 --- Process internal test data.
----@param accum table<string, string> The accumulated test data to process -- TODO: add proper type
----@param write boolean Whether to write each position's output file
+---@param accum table The accumulated test data to process -- TODO: add proper type
 function M.process_accumulated_test_data(accum)
   ---@type table<string, neotest.Result>
   local results = {}
@@ -228,8 +238,8 @@ function M.process_accumulated_test_data(accum)
       results[test_data.position_id] = {
         status = test_data.status,
         output = test_data.output_path,
+        errors = test_data.errors,
         -- TODO: add short
-        -- TODO: add errors
       }
     end
 
