@@ -195,7 +195,9 @@ function M.process_test(tree, golist_data, accum, e, id)
       accum[id].status = "skipped"
     end
     accum = M.register_output(accum, e, id)
-    accum = M.find_errors(accum, id)
+    if accum[id].status == "failed" then
+      accum = M.find_errors(accum, id)
+    end
     accum[id].output_path = vim.fs.normalize(async.fn.tempname())
     local pattern =
       lib.convert.to_test_position_id_pattern(golist_data, e.Package, e.Test)
