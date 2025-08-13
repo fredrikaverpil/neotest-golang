@@ -55,7 +55,7 @@ function M.new(tree, golist_data, json_filepath)
         accum = M.process_event(tree, golist_data, accum, json_line)
       end
 
-      results = process.process_accumulated_test_data(accum, true)
+      results = process.process_accumulated_test_data(accum)
       return results
     end
   end
@@ -147,8 +147,10 @@ function M.process_event(tree, golist_data, accum, e)
     (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
     and e.Package ~= nil
     and e.Test ~= nil
+    and accum[to_test_id(e.Package, e.Test)].status == "running"
   then
     local id = to_test_id(e.Package, e.Test)
+
     if e.Action == "pass" then
       accum[id].status = "passed"
     elseif e.Action == "fail" then
@@ -211,6 +213,7 @@ function M.process_event(tree, golist_data, accum, e)
     (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
     and e.Package ~= nil
     and e.Test == nil
+    and accum[e.Package].status == "running"
   then
     local id = e.Package
     if e.Action == "pass" then
