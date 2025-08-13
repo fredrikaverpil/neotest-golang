@@ -115,12 +115,18 @@ end
 function M.register_output(accum, e, id)
   if e.Output then
     accum[id].output = accum[id].output .. e.Output
+  end
+  return accum
+end
 
+function M.find_errors(accum, id)
+  local outputs = vim.split(accum[id].output, "\n", { trimempty = true })
+  for _, output in ipairs(outputs) do
     -- search for error message and line number
-    local matched_line_number = string.match(e.Output, "go:(%d+):")
+    local matched_line_number = string.match(output, "go:(%d+):")
     if matched_line_number ~= nil then
       local line_number = tonumber(matched_line_number)
-      local message = string.match(e.Output, "go:%d+: (.*)")
+      local message = string.match(output, "go:%d+: (.*)")
       if line_number ~= nil and message ~= nil then
         table.insert(accum[id].errors, {
           line = line_number - 1, -- neovim lines are 0-indexed
@@ -129,7 +135,6 @@ function M.register_output(accum, e, id)
       end
     end
   end
-
   return accum
 end
 
@@ -190,6 +195,7 @@ function M.process_test(tree, golist_data, accum, e, id)
       accum[id].status = "skipped"
     end
     accum = M.register_output(accum, e, id)
+    accum = M.find_errors(accum, id)
     accum[id].output_path = vim.fs.normalize(async.fn.tempname())
     local pattern =
       lib.convert.to_test_position_id_pattern(golist_data, e.Package, e.Test)
