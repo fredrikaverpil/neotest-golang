@@ -35,11 +35,9 @@ function M.new(tree, golist_data, json_filepath)
   --- Stream function.
   ---@param data function A function that returns a table of strings, each representing a line of JSON output.
   local function stream(data)
-    local tree = tree
-    local golist_data = golist_data
+    local process = require("neotest-golang.process") -- TODO: fix circular dependency
     local json_lines = {}
     local accum = {}
-
     ---@type table<string, neotest.Result>
     local results = {}
 
@@ -58,22 +56,7 @@ function M.new(tree, golist_data, json_filepath)
         end
       end
 
-      for _, test_data in pairs(accum) do
-        if test_data.position_id ~= nil then
-          -- NOTE: for faster feedback, do not write output yet?
-          -- local o = vim.split(test_data.output, "\n", { trimempty = true })
-          -- async.fn.writefile(o, test_data.output_path)
-
-          results[test_data.position_id] = {
-            status = test_data.status,
-            -- output = test_data.output_path,
-            -- TODO: add short
-            -- TODO: add errors
-          }
-        end
-      end
-
-      -- TODO: only return a result when a test has a status (pass/fail/skip), otherwise return {}
+      results = process.process_accumulated_test_data(accum, false)
       return results
     end
   end
