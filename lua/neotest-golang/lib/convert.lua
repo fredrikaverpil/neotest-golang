@@ -35,7 +35,9 @@ function M.to_test_position_id_pattern(golist_data, package_name, test_name)
       for i, part in ipairs(test_parts) do
         -- add quotes around subtests
         if i > 1 then
-          test_parts[i] = '"' .. part:gsub("_", " ") .. '"' -- TODO: underscore from `go test` could potentially be an actual underscore
+          -- TODO: underscore from `go test` could potentially be an actual underscore
+          -- TODO: multiple subtests needs to be supported
+          test_parts[i] = '"' .. part:gsub("_", " ") .. '"'
         end
       end
       local test_name_transformed = table.concat(test_parts, "::")
