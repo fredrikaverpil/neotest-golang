@@ -49,11 +49,10 @@ function M.new(tree, golist_data, json_filepath)
         lines = stream_data() -- capture from stream
       end
 
-      for _, line in ipairs(lines) do
-        json_lines = vim.list_extend(json_lines, json.decode_from_string(line))
-        for _, json_line in ipairs(json_lines) do
-          accum = M.process_event(tree, golist_data, accum, json_line)
-        end
+      json_lines = json.decode_from_table(lines, true)
+
+      for _, json_line in ipairs(json_lines) do
+        accum = M.process_event(tree, golist_data, accum, json_line)
       end
 
       results = process.process_accumulated_test_data(accum, false)
