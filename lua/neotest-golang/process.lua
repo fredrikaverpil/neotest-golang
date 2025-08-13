@@ -15,19 +15,6 @@ local options = require("neotest-golang.options")
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 --- @field stop_stream fun() Stops the stream of test output.
 
---- @class TestData
---- @field status neotest.ResultStatus
---- @field short? string Shortened output string
---- @field errors? neotest.Error[]
---- @field neotest_data neotest.Position
---- @field gotest_data GoTestData
---- @field duplicate_test_detected boolean
-
---- @class GoTestData
---- @field name string Go test name.
---- @field pkg string Go package.
---- @field output? string[] Go test output.
-
 local M = {}
 
 --- Process the results from the test command.
