@@ -104,7 +104,7 @@ end
 
 function M.register_output(accum, e, id)
   if e.Output then
-    accum[id].output = accum[id].output .. e.Output
+    accum[id].output = accum[id].output .. M.colorizer(e.Output)
   end
   return accum
 end
