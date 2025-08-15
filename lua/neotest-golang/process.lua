@@ -285,18 +285,41 @@ function M.colorizer(text)
     return text
   end
 
-  if string.find(text, "FAIL") then
-    text = text:gsub("^", "[31m"):gsub("$", "[0m") -- red
-  elseif string.find(text, "PASS") then
-    text = text:gsub("^", "[32m"):gsub("$", "[0m") -- green
-  elseif string.find(text, "WARN") then
-    text = text:gsub("^", "[33m"):gsub("$", "[0m") -- yellow
-  elseif string.find(text, "RUN") then
-    text = text:gsub("^", "[34m"):gsub("$", "[0m") -- blue
-  elseif string.find(text, "SKIP") then
-    text = text:gsub("^", "[35m"):gsub("$", "[0m") -- purple
+  local original_text = text
+  local trailing_newline = ""
+
+  -- Check for and strip trailing newline to ensure reset code is before it
+  if text:sub(-1) == "\n" then
+    trailing_newline = "\n"
+    text = text:sub(1, -2) -- Remove the trailing newline for processing
   end
-  return text
+
+  local color_applied = false
+
+  if string.find(text, "FAIL") then
+    text = text:gsub("^", "[31m") .. "[0m" -- red
+    color_applied = true
+  elseif string.find(text, "PASS") then
+    text = text:gsub("^", "[32m") .. "[0m" -- green
+    color_applied = true
+  elseif string.find(text, "WARN") then
+    text = text:gsub("^", "[33m") .. "[0m" -- yellow
+    color_applied = true
+  elseif string.find(text, "RUN") then
+    text = text:gsub("^", "[34m") .. "[0m" -- blue
+    color_applied = true
+  elseif string.find(text, "SKIP") then
+    text = text:gsub("^", "[35m") .. "[0m" -- purple
+    color_applied = true
+  end
+
+  -- Re-append the trailing newline if it was originally present and color was applied
+  if color_applied then
+    return text .. trailing_newline
+  else
+    -- If no color was applied, return the original text with its newline intact
+    return original_text
+  end
 end
 
 -- Find position id in neotest tree, given pattern.
