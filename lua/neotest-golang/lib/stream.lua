@@ -1,5 +1,6 @@
 local json = require("neotest-golang.lib.json")
 local logger = require("neotest-golang.logging")
+local mapping = require("neotest-golang.lib.mapping")
 local options = require("neotest-golang.options")
 
 local neotest_lib = require("neotest.lib")
@@ -34,6 +35,14 @@ function M.new(tree, golist_data, json_filepath)
     ---@type table<string, neotest.Result>
     local results = {}
 
+    -- Build position lookup table once for O(1) mapping performance
+    local position_lookup = mapping.build_position_lookup(tree, golist_data)
+    logger.debug(
+      "Built position lookup with "
+        .. vim.tbl_count(position_lookup)
+        .. " mappings"
+    )
+
     return function()
       local lines = {}
       if options.get().runner == "go" then
@@ -45,7 +54,13 @@ function M.new(tree, golist_data, json_filepath)
       json_lines = json.decode_from_table(lines, true)
 
       for _, json_line in ipairs(json_lines) do
-        accum = process.process_event(tree, golist_data, accum, json_line)
+        accum = process.process_event(
+          tree,
+          golist_data,
+          accum,
+          json_line,
+          position_lookup
+        )
       end
 
       results = process.process_accumulated_test_data(accum)
