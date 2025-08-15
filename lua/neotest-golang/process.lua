@@ -277,24 +277,24 @@ function M.full_output_processing(tree, result, gotest_output, results)
   return results
 end
 
---- Colorize the test output based on the test result.
+--- Colorize the line of text given.
 ---
 --- It will colorize the test output line based on the test result (PASS - green, FAIL - red, SKIP - yellow).
---- @param output string
---- @return string
-function M.colorizer(output)
-  if not options.get().colorize_test_output == true or not output then
-    return output
+--- @param text string The line of text to parse for colorization
+--- @return string The colorized line of text (if colorization is enabled)
+function M.colorizer(text)
+  if not options.get().colorize_test_output == true or not text then
+    return text
   end
 
-  if string.find(output, "FAIL") then
-    output = output:gsub("^", "[31m"):gsub("$", "[0m")
-  elseif string.find(output, "PASS") then
-    output = output:gsub("^", "[32m"):gsub("$", "[0m")
-  elseif string.find(output, "SKIP") then
-    output = output:gsub("^", "[33m"):gsub("$", "[0m")
+  if string.find(text, "FAIL") then
+    text = text:gsub("^", "[31m"):gsub("$", "[0m")
+  elseif string.find(text, "PASS") then
+    text = text:gsub("^", "[32m"):gsub("$", "[0m")
+  elseif string.find(text, "SKIP") then
+    text = text:gsub("^", "[33m"):gsub("$", "[0m")
   end
-  return output
+  return text
 end
 
 -- Find position id in neotest tree, given pattern.
