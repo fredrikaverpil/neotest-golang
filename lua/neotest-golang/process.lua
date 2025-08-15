@@ -85,37 +85,6 @@ function M.test_results(spec, result, tree)
   return results
 end
 
---- Opportunity below to analyze based on full test output.
-function M.full_output_processing(tree, result, gotest_output, results)
-  local pos = tree:data()
-
-  -- Set status from full test output
-  if not results[pos.id] then
-    -- TODO: add better detection of status here, like analyzing output
-    results[pos.id] = { status = "passed" }
-  end
-  if result.code ~= 0 then
-    results[pos.id].status = "failed"
-  end
-
-  --- Set output from full test output
-  ---@type string[]
-  local full_output = {}
-  for _, e in ipairs(gotest_output) do
-    if e.Output then
-      local lines =
-        vim.split(M.colorizer(e.Output), "\n", { trimempty = true })
-      for _, line in ipairs(lines) do
-        table.insert(full_output, line)
-      end
-    end
-  end
-  results[pos.id].output = vim.fs.normalize(async.fn.tempname())
-  async.fn.writefile(full_output, results[pos.id].output)
-
-  return results
-end
-
 --- Process a single event from the test output.
 --- @param accum table Accumulated test data.
 --- @param e table The event data.
@@ -276,6 +245,36 @@ function M.process_accumulated_test_data(accum)
     --   results[test_data.position_id].status = "failed"
     -- end
   end
+
+  return results
+end
+
+--- Opportunity below to analyze based on full test output.
+function M.full_output_processing(tree, result, gotest_output, results)
+  local pos = tree:data()
+
+  -- Set status from full test output
+  if not results[pos.id] then
+    -- TODO: add better detection of status here, like analyzing output
+    results[pos.id] = { status = "passed" }
+  end
+  if result.code ~= 0 then
+    results[pos.id].status = "failed"
+  end
+
+  --- Set output from full test output
+  ---@type string[]
+  local full_output = {}
+  for _, e in ipairs(gotest_output) do
+    if e.Output then
+      local lines = vim.split(M.colorizer(e.Output), "\n", { trimempty = true })
+      for _, line in ipairs(lines) do
+        table.insert(full_output, line)
+      end
+    end
+  end
+  results[pos.id].output = vim.fs.normalize(async.fn.tempname())
+  async.fn.writefile(full_output, results[pos.id].output)
 
   return results
 end
