@@ -66,21 +66,23 @@ function M.test_results(spec, result, tree)
   logger.debug({ "Runner '" .. runner .. "', raw output: ", runner_raw_output })
 
   --- The 'go list -json' output, converted into a lua table.
-  local golist_output = context.golist_data
+  -- local golist_output = context.golist_data
 
   --- Go test output.
   --- @type table
   local gotest_output = lib.json.decode_from_table(runner_raw_output, true)
 
-  local accum = {}
-  for _, json_line in ipairs(gotest_output) do
-    accum = M.process_event(tree, golist_output, accum, json_line)
-  end
-
   ---@type table<string, neotest.Result>
-  local results = M.process_accumulated_test_data(accum)
+  local results = require("neotest-golang.lib.stream").cached_results -- TODO: fix circular dependency
+  results[pos.id] = M.node_results(result, gotest_output)
 
-  results = M.full_output_processing(tree, result, gotest_output, results)
+  -- Log tests wich were not populated into the results
+  for _, node in tree:iter_nodes() do
+    local pos_ = node:data()
+    if results[pos_.id] == nil then
+      logger.debug("Test data not populated for: " .. vim.inspect(pos.id))
+    end
+  end
 
   return results
 end
@@ -248,16 +250,10 @@ function M.process_accumulated_test_data(accum)
 end
 
 --- Opportunity below to analyze based on full test output.
-function M.full_output_processing(tree, result, gotest_output, results)
-  local pos = tree:data()
-
-  -- Set status from full test output
-  if not results[pos.id] then
-    -- TODO: add better detection of status here, like analyzing output
-    results[pos.id] = { status = "passed" }
-  end
+function M.node_results(result, gotest_output)
+  local status = "passed"
   if result.code ~= 0 then
-    results[pos.id].status = "failed"
+    status = "failed"
   end
 
   --- Set output from full test output
@@ -271,10 +267,11 @@ function M.full_output_processing(tree, result, gotest_output, results)
       end
     end
   end
-  results[pos.id].output = vim.fs.normalize(async.fn.tempname())
-  async.fn.writefile(full_output, results[pos.id].output)
 
-  return results
+  local output = vim.fs.normalize(async.fn.tempname())
+  async.fn.writefile(full_output, output)
+
+  return { status = status, output = output }
 end
 
 --- Colorize the line of text given.
