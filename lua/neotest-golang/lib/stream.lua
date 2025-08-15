@@ -6,14 +6,14 @@ local neotest_lib = require("neotest.lib")
 
 local M = {}
 
+M.cached_results = {}
+
 --- Contstructor for new stream.
 --- @param golist_data table Golist data containing package information
 ---@param json_filepath string|nil Path to the JSON output file
 ---@return function, function
 function M.new(tree, golist_data, json_filepath)
-  -- vim.notify(vim.inspect("New stream!"))
-
-  M.accumulated_test_data = {} -- reset
+  M.cached_results = {} -- reset
   local stream_data = function() end -- no-op
   local stop_stream = function() end -- no-op
   if options.get().runner == "gotestsum" then
@@ -49,6 +49,11 @@ function M.new(tree, golist_data, json_filepath)
       end
 
       results = process.process_accumulated_test_data(accum)
+
+      for pos_id, result in pairs(results) do
+        M.cached_results[pos_id] = result
+      end
+
       return results
     end
   end
