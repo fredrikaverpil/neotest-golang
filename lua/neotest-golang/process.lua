@@ -278,8 +278,6 @@ function M.full_output_processing(tree, result, gotest_output, results)
 end
 
 --- Colorize the line of text given.
----
---- It will colorize the test output line based on the test result (PASS - green, FAIL - red, SKIP - yellow).
 --- @param text string The line of text to parse for colorization
 --- @return string The colorized line of text (if colorization is enabled)
 function M.colorizer(text)
@@ -288,11 +286,15 @@ function M.colorizer(text)
   end
 
   if string.find(text, "FAIL") then
-    text = text:gsub("^", "[31m"):gsub("$", "[0m")
+    text = text:gsub("^", "[31m"):gsub("$", "[0m") -- red
   elseif string.find(text, "PASS") then
-    text = text:gsub("^", "[32m"):gsub("$", "[0m")
+    text = text:gsub("^", "[32m"):gsub("$", "[0m") -- green
+  elseif string.find(text, "WARN") then
+    text = text:gsub("^", "[33m"):gsub("$", "[0m") -- yellow
+  elseif string.find(text, "RUN") then
+    text = text:gsub("^", "[34m"):gsub("$", "[0m") -- blue
   elseif string.find(text, "SKIP") then
-    text = text:gsub("^", "[33m"):gsub("$", "[0m")
+    text = text:gsub("^", "[35m"):gsub("$", "[0m") -- purple
   end
   return text
 end
