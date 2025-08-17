@@ -82,7 +82,7 @@ function M.test_results(spec, result, tree)
   for _, node in tree:iter_nodes() do
     local pos_ = node:data()
     if results[pos_.id] == nil then
-      logger.debug("Test data not populated for: " .. vim.inspect(pos.id))
+      logger.debug("Test data not populated for: " .. vim.inspect(pos_.id))
     end
   end
 
@@ -236,6 +236,92 @@ function M.process_accumulated_test_data(accum)
     -- if pos.id == test_data.position_id and result.code ~= 0 then
     --   results[test_data.position_id].status = "failed"
     -- end
+  end
+
+  return results
+end
+
+--- Populate file nodes with aggregated results from their child tests
+--- @param tree neotest.Tree The neotest tree structure
+--- @param results table<string, neotest.Result> Current results
+--- @return table<string, neotest.Result> Updated results with file node data
+function M.populate_file_nodes(tree, results)
+  for _, node in tree:iter_nodes() do
+    local pos = node:data()
+
+    if pos.type == "file" and not results[pos.id] then
+      -- Collect all child test results for this file
+      local child_tests = {}
+      local file_status = "passed"
+      local has_tests = false
+      local all_errors = {}
+
+      for _, child_node in tree:iter_nodes() do
+        local child_pos = child_node:data()
+        local child_result = results[child_pos.id]
+
+        -- Check if this test belongs to this file
+        if
+          child_pos.type == "test"
+          and child_result
+          and child_pos.path == pos.path
+        then
+          has_tests = true
+          table.insert(child_tests, child_result)
+
+          -- Aggregate status (failed > skipped > passed)
+          if child_result.status == "failed" then
+            file_status = "failed"
+          elseif
+            child_result.status == "skipped" and file_status ~= "failed"
+          then
+            file_status = "skipped"
+          end
+
+          -- Collect errors
+          if child_result.errors then
+            vim.list_extend(all_errors, child_result.errors)
+          end
+        end
+      end
+
+      if has_tests then
+        -- Create combined output file
+        local combined_output = {}
+        table.insert(combined_output, "=== File: " .. pos.path .. " ===")
+        table.insert(combined_output, "")
+
+        for _, child_result in ipairs(child_tests) do
+          if child_result.output then
+            -- Read child test output
+            local child_output_lines = async.fn.readfile(child_result.output)
+            vim.list_extend(combined_output, child_output_lines)
+            table.insert(combined_output, "") -- separator
+          end
+        end
+
+        -- Write combined output to file
+        local file_output_path = vim.fs.normalize(async.fn.tempname())
+        async.fn.writefile(combined_output, file_output_path)
+
+        -- Create file node result
+        results[pos.id] = {
+          status = file_status,
+          output = file_output_path,
+          errors = all_errors,
+        }
+
+        logger.debug(
+          "Populated file node "
+            .. pos.id
+            .. " with status: "
+            .. file_status
+            .. " from "
+            .. #child_tests
+            .. " child tests"
+        )
+      end
+    end
   end
 
   return results
