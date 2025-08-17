@@ -210,7 +210,7 @@ end
 
 --- Process internal test data.
 ---@param accum table The accumulated test data to process -- TODO: add proper type
-function M.process_accumulated_test_data(accum)
+function M.make_results(accum)
   ---@type table<string, neotest.Result>
   local results = {}
 
