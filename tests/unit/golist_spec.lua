@@ -1,8 +1,3 @@
-local log = require("plenary.log").new({
-  plugin = "neotest-golang",
-  level = "debug",
-})
-
 local lib = require("neotest-golang.lib")
 
 local function convert_path_separators(path)
