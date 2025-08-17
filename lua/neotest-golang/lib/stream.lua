@@ -63,7 +63,10 @@ function M.new(tree, golist_data, json_filepath)
         )
       end
 
-      results = process.process_accumulated_test_data(accum)
+      results = process.make_results(accum)
+
+      -- Populate file nodes with aggregated results during streaming (simple approach)
+      results = process.populate_file_nodes(tree, results)
 
       for pos_id, result in pairs(results) do
         M.cached_results[pos_id] = result
