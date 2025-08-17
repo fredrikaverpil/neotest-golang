@@ -1,18 +1,18 @@
-local mapping = require("neotest-golang.lib.mapping")
+local lib = require("neotest-golang.lib")
 
 describe("mapping module", function()
   describe("pos_id_to_go_test_name", function()
     it("converts simple test names", function()
       local pos_id = "/path/to/pkg/file_test.go::TestName"
       local expected = "TestName"
-      local result = mapping.pos_id_to_go_test_name(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
     it("converts test with single subtest", function()
       local pos_id = '/path/to/pkg/file_test.go::TestName::"SubTest"'
       local expected = "TestName/SubTest"
-      local result = mapping.pos_id_to_go_test_name(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
@@ -20,7 +20,7 @@ describe("mapping module", function()
       local pos_id =
         '/path/to/pkg/file_test.go::TestName::"SubTest1"::"NestedSubTest"'
       local expected = "TestName/SubTest1/NestedSubTest"
-      local result = mapping.pos_id_to_go_test_name(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
@@ -28,7 +28,7 @@ describe("mapping module", function()
       local pos_id =
         '/path/to/pkg/file_test.go::TestName::"Sub Test With Spaces"'
       local expected = "TestName/Sub_Test_With_Spaces"
-      local result = mapping.pos_id_to_go_test_name(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
@@ -36,7 +36,7 @@ describe("mapping module", function()
       local pos_id =
         '/path/to/pkg/file_test.go::TestMain::"Level1"::"Level2"::"Level3"::"Level4"'
       local expected = "TestMain/Level1/Level2/Level3/Level4"
-      local result = mapping.pos_id_to_go_test_name(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
@@ -44,13 +44,13 @@ describe("mapping module", function()
       local pos_id =
         '/path/to/pkg/file_test.go::TestName::"SubTest with & symbols!"'
       local expected = "TestName/SubTest_with_&_symbols!"
-      local result = mapping.pos_id_to_go_test_name(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
     it("returns nil for invalid position IDs", function()
       local pos_id = "/path/to/pkg/file_test.go" -- No :: separator
-      local result = mapping.pos_id_to_go_test_name(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.is_nil(result)
     end)
   end)
@@ -59,28 +59,28 @@ describe("mapping module", function()
     it("converts simple test names", function()
       local go_test_name = "TestName"
       local expected = "TestName"
-      local result = mapping.go_test_name_to_pos_format(go_test_name)
+      local result = lib.convert.go_test_name_to_pos_format(go_test_name)
       assert.are.equal(expected, result)
     end)
 
     it("converts test with single subtest", function()
       local go_test_name = "TestName/SubTest"
       local expected = 'TestName::"SubTest"'
-      local result = mapping.go_test_name_to_pos_format(go_test_name)
+      local result = lib.convert.go_test_name_to_pos_format(go_test_name)
       assert.are.equal(expected, result)
     end)
 
     it("converts test with nested subtests", function()
       local go_test_name = "TestName/SubTest1/NestedSubTest"
       local expected = 'TestName::"SubTest1"::"NestedSubTest"'
-      local result = mapping.go_test_name_to_pos_format(go_test_name)
+      local result = lib.convert.go_test_name_to_pos_format(go_test_name)
       assert.are.equal(expected, result)
     end)
 
     it("converts underscores back to spaces in subtests", function()
       local go_test_name = "TestName/Sub_Test_With_Spaces"
       local expected = 'TestName::"Sub Test With Spaces"'
-      local result = mapping.go_test_name_to_pos_format(go_test_name)
+      local result = lib.convert.go_test_name_to_pos_format(go_test_name)
       assert.are.equal(expected, result)
     end)
   end)
@@ -95,7 +95,8 @@ describe("mapping module", function()
       }
 
       local expected = "example.com/repo/pkg/subdir"
-      local result = mapping.file_path_to_import_path(file_path, import_to_dir)
+      local result =
+        lib.convert.file_path_to_import_path(file_path, import_to_dir)
       assert.are.equal(expected, result)
     end)
 
@@ -105,7 +106,8 @@ describe("mapping module", function()
         ["example.com/repo/pkg"] = "/path/to/pkg",
       }
 
-      local result = mapping.file_path_to_import_path(file_path, import_to_dir)
+      local result =
+        lib.convert.file_path_to_import_path(file_path, import_to_dir)
       assert.is_nil(result)
     end)
 
@@ -113,7 +115,8 @@ describe("mapping module", function()
       local file_path = "invalid_path" -- No directory separator
       local import_to_dir = {}
 
-      local result = mapping.file_path_to_import_path(file_path, import_to_dir)
+      local result =
+        lib.convert.file_path_to_import_path(file_path, import_to_dir)
       assert.is_nil(result)
     end)
   end)
@@ -135,7 +138,7 @@ describe("mapping module", function()
       local expected = "/path/to/pkg/file_test.go::TestName"
 
       local result =
-        mapping.get_position_id(lookup_table, package_name, test_name)
+        lib.convert.get_position_id(lookup_table, package_name, test_name)
       assert.are.equal(expected, result)
     end)
 
@@ -145,7 +148,7 @@ describe("mapping module", function()
       local expected = '/path/to/pkg/file_test.go::TestMain::"Level1"::"Level2"'
 
       local result =
-        mapping.get_position_id(lookup_table, package_name, test_name)
+        lib.convert.get_position_id(lookup_table, package_name, test_name)
       assert.are.equal(expected, result)
     end)
 
@@ -154,7 +157,7 @@ describe("mapping module", function()
       local test_name = "UnknownTest"
 
       local result =
-        mapping.get_position_id(lookup_table, package_name, test_name)
+        lib.convert.get_position_id(lookup_table, package_name, test_name)
       assert.is_nil(result)
     end)
   end)
@@ -213,7 +216,8 @@ describe("mapping module", function()
     end)
 
     it("builds lookup table from tree and golist data", function()
-      local result = mapping.build_position_lookup(mock_tree, mock_golist_data)
+      local result =
+        lib.mapping.build_position_lookup(mock_tree, mock_golist_data)
 
       -- Should have entries for test nodes only
       assert.are.equal(
@@ -238,7 +242,8 @@ describe("mapping module", function()
         end,
       }
 
-      local result = mapping.build_position_lookup(empty_tree, mock_golist_data)
+      local result =
+        lib.mapping.build_position_lookup(empty_tree, mock_golist_data)
       assert.are.same({}, result)
     end)
   end)
@@ -260,14 +265,14 @@ describe("mapping module", function()
         for _, test_case in ipairs(test_cases) do
           -- Test pos -> go -> pos
           local go_result =
-            mapping.pos_id_to_go_test_name("file.go::" .. test_case.pos)
+            lib.convert.pos_id_to_go_test_name("file.go::" .. test_case.pos)
           assert.are.equal(
             test_case.go,
             go_result,
             "pos->go conversion failed for " .. test_case.pos
           )
 
-          local pos_result = mapping.go_test_name_to_pos_format(go_result)
+          local pos_result = lib.convert.go_test_name_to_pos_format(go_result)
           assert.are.equal(
             test_case.pos,
             pos_result,
@@ -275,7 +280,8 @@ describe("mapping module", function()
           )
 
           -- Test go -> pos -> go
-          local pos_result2 = mapping.go_test_name_to_pos_format(test_case.go)
+          local pos_result2 =
+            lib.convert.go_test_name_to_pos_format(test_case.go)
           assert.are.equal(
             test_case.pos,
             pos_result2,
@@ -283,7 +289,7 @@ describe("mapping module", function()
           )
 
           local go_result2 =
-            mapping.pos_id_to_go_test_name("file.go::" .. pos_result2)
+            lib.convert.pos_id_to_go_test_name("file.go::" .. pos_result2)
           assert.are.equal(
             test_case.go,
             go_result2,

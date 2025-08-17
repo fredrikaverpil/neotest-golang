@@ -5,7 +5,6 @@ local async = require("neotest.async")
 
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
-local mapping = require("neotest-golang.lib.mapping")
 local options = require("neotest-golang.options")
 
 --- @class RunspecContext
@@ -196,7 +195,8 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
     accum[id].output_path = vim.fs.normalize(async.fn.tempname())
 
     -- Use fast O(1) lookup
-    local pos_id = mapping.get_position_id(position_lookup, e.Package, e.Test)
+    local pos_id =
+      lib.convert.get_position_id(position_lookup, e.Package, e.Test)
     if pos_id then
       accum[id].position_id = pos_id
     else
