@@ -485,9 +485,15 @@ function M.decorate_with_go_test_results(res, gotest_output)
             local message =
               string.match(line.Output, test_filename .. ":%d+: (.*)")
             if line_number ~= nil and message ~= nil then
+              -- Check if this is a t.Log hint or an actual error
+              local is_hint =
+                lib.hint.is_test_log_hint(line.Output, test_filename)
+              
+              -- Add with appropriate severity
               table.insert(test_data.errors, {
                 line = line_number - 1, -- neovim lines are 0-indexed
                 message = message,
+                severity = is_hint and vim.diagnostic.severity.HINT or vim.diagnostic.severity.ERROR,
               })
             end
           end
