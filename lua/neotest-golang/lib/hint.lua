@@ -65,10 +65,7 @@ function M.extract_hints_from_output(lines, test_filename)
     end
   end
 
-  vim.notify("Extracted hints:" .. #hints, vim.log.levels.WARN)
-
   return hints
 end
 
 return M
-
