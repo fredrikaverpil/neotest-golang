@@ -2,29 +2,34 @@ describe("find_errors integration", function()
   local process = require("neotest-golang.process")
 
   it(
-    "should correctly differentiate hints from errors in find_errors",
+    "should correctly differentiate hints from errors using streaming events",
     function()
-      -- Mock accumulated test data with sample output
+      -- Initialize accumulator with empty errors array
+      local test_id = "test_package::TestExample"
       local accum = {
-        ["test_package::TestExample"] = {
+        [test_id] = {
           status = "running",
-          output = table.concat({
-            "=== RUN   TestExample",
-            "go:8: This is a test log message",
-            "go:12: Starting computation",
-            "go:15: panic: something went wrong",
-            "go:20: Debug info about test state",
-            "go:25: Expected value 42, but got 24",
-            "go:30: Cleanup complete",
-            "--- FAIL: TestExample (0.01s)",
-          }, "\n"),
+          output = "",
           errors = {},
         },
       }
 
-      -- Run find_errors
-      local result = process.find_errors(accum, "test_package::TestExample")
-      local errors = result["test_package::TestExample"].errors
+      -- Simulate streaming events with individual lines that contain go: patterns
+      local streaming_events = {
+        "go:8: This is a test log message\n",
+        "go:12: Starting computation\n",
+        "go:15: panic: something went wrong\n",
+        "go:20: Debug info about test state\n",
+        "go:25: Expected value 42, but got 24\n",
+        "go:30: Cleanup complete\n",
+      }
+
+      -- Process each streaming event individually
+      for _, event_output in ipairs(streaming_events) do
+        accum = process.find_errors_in_event(accum, test_id, event_output)
+      end
+
+      local errors = accum[test_id].errors
 
       -- Should have 6 diagnostic entries total
       assert.equals(6, #errors)
@@ -56,24 +61,61 @@ describe("find_errors integration", function()
     end
   )
 
-  it("should handle output with no go: patterns", function()
+  it("should handle streaming events with no go: patterns", function()
+    local test_id = "test_package::TestSimple"
     local accum = {
-      ["test_package::TestSimple"] = {
+      [test_id] = {
         status = "running",
-        output = table.concat({
-          "=== RUN   TestSimple",
-          "Running test...",
-          "Test completed successfully",
-          "--- PASS: TestSimple (0.00s)",
-        }, "\n"),
+        output = "",
         errors = {},
       },
     }
 
-    local result = process.find_errors(accum, "test_package::TestSimple")
-    local errors = result["test_package::TestSimple"].errors
+    -- Simulate streaming events with no go: patterns
+    local streaming_events = {
+      "=== RUN   TestSimple\n",
+      "Running test...\n",
+      "Test completed successfully\n",
+      "--- PASS: TestSimple (0.00s)\n",
+    }
+
+    -- Process each streaming event individually
+    for _, event_output in ipairs(streaming_events) do
+      accum = process.find_errors_in_event(accum, test_id, event_output)
+    end
+
+    local errors = accum[test_id].errors
 
     -- Should have no diagnostic entries
     assert.equals(0, #errors)
   end)
+
+  it(
+    "should prevent duplicate errors when processing same event multiple times",
+    function()
+      local test_id = "test_package::TestDuplicate"
+      local accum = {
+        [test_id] = {
+          status = "running",
+          output = "",
+          errors = {},
+        },
+      }
+
+      local duplicate_event = "go:42: This error should only appear once\n"
+
+      -- Process the same event multiple times
+      accum = process.find_errors_in_event(accum, test_id, duplicate_event)
+      accum = process.find_errors_in_event(accum, test_id, duplicate_event)
+      accum = process.find_errors_in_event(accum, test_id, duplicate_event)
+
+      local errors = accum[test_id].errors
+
+      -- Should only have 1 error despite processing 3 times
+      assert.equals(1, #errors)
+      assert.equals(41, errors[1].line) -- 0-indexed, so line 42 becomes 41
+      assert.equals("This error should only appear once", errors[1].message)
+      assert.equals(vim.diagnostic.severity.HINT, errors[1].severity)
+    end
+  )
 end)
