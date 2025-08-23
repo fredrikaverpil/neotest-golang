@@ -113,7 +113,19 @@ function M.process_event(tree, golist_data, accum, e, position_lookup)
   end
 
   if e.Package and e.Test then
-    local id = e.Package .. "::" .. e.Test
+    local lookup_key = e.Package .. "::" .. e.Test
+    local pos_id = position_lookup[lookup_key]
+
+    local id
+    if pos_id then
+      -- Use the actual pos_id from lookup (contains file path)
+      id = pos_id
+    else
+      -- Fallback to the synthetic ID
+      id = lookup_key
+      logger.debug("Test not found in lookup, using synthetic ID: " .. id)
+    end
+
     accum = M.process_test(tree, golist_data, accum, e, id, position_lookup)
   end
 
@@ -136,33 +148,64 @@ end
 
 --- Register diagnostics for a test/package
 --- @param accum TestAccumulator
---- @param id string Test/package ID
+--- @param id string Test/package ID (may be pos_id or synthetic ID)
 --- @param event_output string Event output text
 --- @return TestAccumulator
 function M.register_diagnostics(accum, id, event_output)
   local lines = vim.split(event_output, "\n", { trimempty = true })
+
+  -- Extract the test file's filename if the ID is a pos_id
+  local test_filename = M.extract_filename_from_pos_id(id)
+
   for _, line in ipairs(lines) do
     -- Use optimized single-pass pattern matching
     local diagnostic = lib.patterns.parse_diagnostic_line(line)
     if diagnostic then
-      -- Check for duplicates before adding
-      local error_exists = false
-      for _, existing_error in ipairs(accum[id].errors) do
-        if
-          existing_error.line == diagnostic.line_number - 1
-          and existing_error.message == diagnostic.message
-        then
-          error_exists = true
-          break
+      -- Filter diagnostics by filename if we have both filenames
+      local should_include_diagnostic = true
+      if test_filename and diagnostic.filename then
+        -- Only include diagnostic if it belongs to the test file
+        should_include_diagnostic = (diagnostic.filename == test_filename)
+        if not should_include_diagnostic then
+          logger.trace(
+            "Filtering out diagnostic from "
+              .. diagnostic.filename
+              .. " (test file: "
+              .. test_filename
+              .. "): "
+              .. diagnostic.message
+          )
         end
+      elseif not test_filename then
+        -- If we can't determine the test filename (synthetic ID), log but include all diagnostics
+        logger.debug(
+          "Cannot filter diagnostics for synthetic ID: "
+            .. id
+            .. ", including diagnostic from "
+            .. (diagnostic.filename or "unknown")
+        )
       end
 
-      if not error_exists then
-        table.insert(accum[id].errors, {
-          line = diagnostic.line_number - 1,
-          message = diagnostic.message,
-          severity = diagnostic.severity,
-        })
+      if should_include_diagnostic then
+        -- Check for duplicates before adding
+        local error_exists = false
+        for _, existing_error in ipairs(accum[id].errors) do
+          if
+            existing_error.line == diagnostic.line_number - 1
+            and existing_error.message == diagnostic.message
+          then
+            error_exists = true
+            break
+          end
+        end
+
+        if not error_exists then
+          table.insert(accum[id].errors, {
+            line = diagnostic.line_number - 1,
+            message = diagnostic.message,
+            severity = diagnostic.severity,
+          })
+        end
       end
     end
   end
@@ -243,7 +286,6 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
     accum = M.register_output(accum, e, id)
     accum[id].output_path = vim.fs.normalize(async.fn.tempname())
 
-    -- Use fast O(1) lookup
     local pos_id =
       lib.convert.get_position_id(position_lookup, e.Package, e.Test)
     if pos_id then
@@ -449,6 +491,24 @@ function M.colorizer(text)
     -- If no color was applied, return the original text with its newline intact
     return original_text
   end
+end
+
+--- Extract the filename from a neotest position ID
+--- @param pos_id string Position ID like "/path/to/file.go::TestName" or synthetic ID like "github.com/pkg::TestName"
+--- @return string|nil Filename like "file.go" or nil if not a file path
+function M.extract_filename_from_pos_id(pos_id)
+  if not pos_id then
+    return nil
+  end
+
+  -- Check if it looks like a file path (contains "/" and ends with ".go")
+  local file_path = pos_id:match("^([^:]+)")
+  if file_path and file_path:match("%.go$") and file_path:match("/") then
+    -- Extract just the filename from the full path
+    return file_path:match("([^/]+)$")
+  end
+
+  return nil
 end
 
 return M
