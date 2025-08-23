@@ -121,38 +121,27 @@ end
 function M.register_diagnostics(accum, id, event_output)
   local lines = vim.split(event_output, "\n", { trimempty = true })
   for _, line in ipairs(lines) do
-    -- search for error message and line number - support both "go:N:" and "filename.go:N:" formats
-    local matched_line_number = string.match(line, "go:(%d+):")
-      or string.match(line, "%s*[%w_%-%.]+%.go:(%d+):")
-    if matched_line_number ~= nil then
-      local line_number = tonumber(matched_line_number)
-      local message = string.match(line, "go:%d+: (.*)")
-        or string.match(line, "%s*[%w_%-%.]+%.go:%d+: (.*)")
-      if line_number ~= nil and message ~= nil then
-        -- Check if this is a t.Log hint or an actual error
-        local is_hint = lib.diagnostics.is_test_log_hint(line)
-        local severity = is_hint and vim.diagnostic.severity.HINT
-          or vim.diagnostic.severity.ERROR
-
-        -- Check for duplicates before adding
-        local error_exists = false
-        for _, existing_error in ipairs(accum[id].errors) do
-          if
-            existing_error.line == line_number - 1
-            and existing_error.message == message
-          then
-            error_exists = true
-            break
-          end
+    -- Use optimized single-pass pattern matching
+    local diagnostic = lib.patterns.parse_diagnostic_line(line)
+    if diagnostic then
+      -- Check for duplicates before adding
+      local error_exists = false
+      for _, existing_error in ipairs(accum[id].errors) do
+        if
+          existing_error.line == diagnostic.line_number - 1
+          and existing_error.message == diagnostic.message
+        then
+          error_exists = true
+          break
         end
+      end
 
-        if not error_exists then
-          table.insert(accum[id].errors, {
-            line = line_number - 1,
-            message = message,
-            severity = severity,
-          })
-        end
+      if not error_exists then
+        table.insert(accum[id].errors, {
+          line = diagnostic.line_number - 1,
+          message = diagnostic.message,
+          severity = diagnostic.severity,
+        })
       end
     end
   end
