@@ -9,7 +9,7 @@ describe("hint detection functionality", function()
     }
 
     for _, line in ipairs(test_lines) do
-      local is_hint = lib.hint.is_test_log_hint(line)
+      local is_hint = lib.diagnostics.is_test_log_hint(line)
       assert.is_true(
         is_hint,
         "Expected line to be identified as hint: " .. line
@@ -27,7 +27,7 @@ describe("hint detection functionality", function()
     }
 
     for _, line in ipairs(test_lines) do
-      local is_hint = lib.hint.is_test_log_hint(line)
+      local is_hint = lib.diagnostics.is_test_log_hint(line)
       assert.is_false(
         is_hint,
         "Expected line to be identified as error: " .. line
@@ -42,7 +42,7 @@ describe("hint detection functionality", function()
       "go:24: Expected 1+1 to equal 3, but it equals 2",
     }
 
-    local hints = lib.hint.extract_hints_from_output(test_output)
+    local hints = lib.diagnostics.extract_hints_from_output(test_output)
 
     -- Should extract 2 hints (first two lines) and ignore the error (third line)
     assert.equals(2, #hints)
@@ -68,7 +68,7 @@ describe("hint detection functionality", function()
       "go:25: Debug information logged",
     }
 
-    local hints = lib.hint.extract_hints_from_output(test_output)
+    local hints = lib.diagnostics.extract_hints_from_output(test_output)
 
     -- Should only extract lines 5, 15, and 25 as hints
     assert.equals(3, #hints)

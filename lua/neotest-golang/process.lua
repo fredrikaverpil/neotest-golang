@@ -111,24 +111,26 @@ end
 
 function M.register_output(accum, e, id)
   if e.Output then
-    accum = M.find_errors_in_event(accum, id, e.Output)
+    accum = M.register_diagnostics(accum, id, e.Output)
     local colorized_output = M.colorizer(e.Output)
     accum[id].output = accum[id].output .. colorized_output
   end
   return accum
 end
 
-function M.find_errors_in_event(accum, id, event_output)
+function M.register_diagnostics(accum, id, event_output)
   local lines = vim.split(event_output, "\n", { trimempty = true })
   for _, line in ipairs(lines) do
-    -- search for error message and line number
+    -- search for error message and line number - support both "go:N:" and "filename.go:N:" formats
     local matched_line_number = string.match(line, "go:(%d+):")
+      or string.match(line, "%s*[%w_%-%.]+%.go:(%d+):")
     if matched_line_number ~= nil then
       local line_number = tonumber(matched_line_number)
       local message = string.match(line, "go:%d+: (.*)")
+        or string.match(line, "%s*[%w_%-%.]+%.go:%d+: (.*)")
       if line_number ~= nil and message ~= nil then
         -- Check if this is a t.Log hint or an actual error
-        local is_hint = lib.hint.is_test_log_hint(line)
+        local is_hint = lib.diagnostics.is_test_log_hint(line)
         local severity = is_hint and vim.diagnostic.severity.HINT
           or vim.diagnostic.severity.ERROR
 
@@ -370,8 +372,6 @@ function M.node_results(results_data, result, gotest_output)
 
   local output = vim.fs.normalize(async.fn.tempname())
   async.fn.writefile(full_output, output)
-
-  vim.notify(vim.inspect(results_data.errors))
 
   return { status = status, output = output, errors = results_data.errors }
 end

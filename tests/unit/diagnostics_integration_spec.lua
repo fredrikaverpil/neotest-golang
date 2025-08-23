@@ -26,7 +26,7 @@ describe("find_errors integration", function()
 
       -- Process each streaming event individually
       for _, event_output in ipairs(streaming_events) do
-        accum = process.find_errors_in_event(accum, test_id, event_output)
+        accum = process.register_diagnostics(accum, test_id, event_output)
       end
 
       local errors = accum[test_id].errors
@@ -81,7 +81,7 @@ describe("find_errors integration", function()
 
     -- Process each streaming event individually
     for _, event_output in ipairs(streaming_events) do
-      accum = process.find_errors_in_event(accum, test_id, event_output)
+      accum = process.register_diagnostics(accum, test_id, event_output)
     end
 
     local errors = accum[test_id].errors
@@ -105,9 +105,9 @@ describe("find_errors integration", function()
       local duplicate_event = "go:42: This error should only appear once\n"
 
       -- Process the same event multiple times
-      accum = process.find_errors_in_event(accum, test_id, duplicate_event)
-      accum = process.find_errors_in_event(accum, test_id, duplicate_event)
-      accum = process.find_errors_in_event(accum, test_id, duplicate_event)
+      accum = process.register_diagnostics(accum, test_id, duplicate_event)
+      accum = process.register_diagnostics(accum, test_id, duplicate_event)
+      accum = process.register_diagnostics(accum, test_id, duplicate_event)
 
       local errors = accum[test_id].errors
 
@@ -118,4 +118,75 @@ describe("find_errors integration", function()
       assert.equals(vim.diagnostic.severity.HINT, errors[1].severity)
     end
   )
+
+  it("should handle real-world Go file patterns like spanner output", function()
+    local test_id = "test_package::TestSpanner"
+    local accum = {
+      [test_id] = {
+        status = "running",
+        output = "",
+        errors = {},
+      },
+    }
+
+    -- Simulate real spanner test output with file-specific patterns
+    local spanner_events = {
+      "database_dispatch_test.go:25: using emulator from environment\n",
+      "database_dispatch_test.go:25: emulator host: 0.0.0.0:40405\n",
+      'emulator.go:157: database: name:"projects/spanner-aip-go/instances/emulator-test"\n',
+      "some-file_test.go:99: panic: connection failed\n",
+    }
+
+    -- Process each streaming event individually
+    for _, event_output in ipairs(spanner_events) do
+      accum = process.register_diagnostics(accum, test_id, event_output)
+    end
+
+    local errors = accum[test_id].errors
+
+    -- Should have 4 diagnostic entries total
+    assert.equals(4, #errors)
+
+    -- Check that spanner logs are properly identified as hints
+    local hint_lines = {}
+    local error_lines = {}
+
+    for _, err in ipairs(errors) do
+      if err.severity == vim.diagnostic.severity.HINT then
+        table.insert(hint_lines, { line = err.line + 1, message = err.message })
+      else
+        table.insert(
+          error_lines,
+          { line = err.line + 1, message = err.message }
+        )
+      end
+    end
+
+    -- Should have 3 hints and 1 error
+    assert.equals(3, #hint_lines)
+    assert.equals(1, #error_lines)
+
+    -- Verify specific spanner messages are detected as hints
+    local hint_messages = {}
+    for _, hint in ipairs(hint_lines) do
+      table.insert(hint_messages, hint.message)
+    end
+
+    assert.is_true(
+      vim.tbl_contains(hint_messages, "using emulator from environment")
+    )
+    assert.is_true(
+      vim.tbl_contains(hint_messages, "emulator host: 0.0.0.0:40405")
+    )
+    assert.is_true(
+      vim.tbl_contains(
+        hint_messages,
+        'database: name:"projects/spanner-aip-go/instances/emulator-test"'
+      )
+    )
+
+    -- Verify panic is detected as error
+    assert.equals("panic: connection failed", error_lines[1].message)
+    assert.equals(99, error_lines[1].line)
+  end)
 end)
