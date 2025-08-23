@@ -54,6 +54,7 @@ function M.new(tree, golist_data, json_filepath)
       json_lines = json.decode_from_table(lines, true)
 
       for _, json_line in ipairs(json_lines) do
+        --- @type TestAccumulator
         accum = process.process_event(
           tree,
           golist_data,
