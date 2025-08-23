@@ -84,7 +84,7 @@ end
 
 --- Parse Go test output line and classify as hint or error
 --- @param line string The line to parse
---- @return table|nil Diagnostic data with {line_number, message, severity} or nil if no match
+--- @return table|nil Diagnostic data with {filename, line_number, message, severity} or nil if no match
 function M.parse_diagnostic_line(line)
   local parsed = M.parse_go_output_line(line)
   if not parsed then
@@ -96,6 +96,7 @@ function M.parse_diagnostic_line(line)
     or vim.diagnostic.severity.ERROR
 
   return {
+    filename = parsed.filename,
     line_number = parsed.line_number,
     message = parsed.message,
     severity = severity,
@@ -103,4 +104,3 @@ function M.parse_diagnostic_line(line)
 end
 
 return M
-
