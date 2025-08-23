@@ -3,16 +3,28 @@ describe("pattern matching performance", function()
 
   it("should correctly parse various Go output formats", function()
     local test_cases = {
-      { line = "go:123: This is a debug message", expected = { line_number = 123, message = "This is a debug message" } },
-      { line = "database_test.go:456: using emulator", expected = { line_number = 456, message = "using emulator" } },
-      { line = "  file_test.go:789: indented message", expected = { line_number = 789, message = "indented message" } },
-      { line = "go:42: panic: something went wrong", expected = { line_number = 42, message = "panic: something went wrong" } },
+      {
+        line = "go:123: This is a debug message",
+        expected = { line_number = 123, message = "This is a debug message" },
+      },
+      {
+        line = "database_test.go:456: using emulator",
+        expected = { line_number = 456, message = "using emulator" },
+      },
+      {
+        line = "  file_test.go:789: indented message",
+        expected = { line_number = 789, message = "indented message" },
+      },
+      {
+        line = "go:42: panic: something went wrong",
+        expected = { line_number = 42, message = "panic: something went wrong" },
+      },
       { line = "invalid line format", expected = nil },
     }
 
     for _, case in ipairs(test_cases) do
       local result = patterns.parse_diagnostic_line(case.line)
-      
+
       if case.expected then
         assert.is_not_nil(result, "Should parse: " .. case.line)
         assert.equals(case.expected.line_number, result.line_number)
@@ -28,7 +40,10 @@ describe("pattern matching performance", function()
       { message = "Debug information logged", expected_hint = true },
       { message = "Test completed successfully", expected_hint = true },
       { message = "panic: nil pointer dereference", expected_hint = false },
-      { message = "assertion failed: values don't match", expected_hint = false },
+      {
+        message = "assertion failed: values don't match",
+        expected_hint = false,
+      },
       { message = "expected 42 but got 24", expected_hint = false },
       { message = "error: connection failed", expected_hint = false },
       { message = "FAIL: test assertion failed", expected_hint = false },
@@ -45,11 +60,11 @@ describe("pattern matching performance", function()
     -- Test that our new single-pass approach produces correct results
     local test_lines = {
       "go:8: This is a test log message",
-      "go:15: panic: something went wrong", 
+      "go:15: panic: something went wrong",
       "database_test.go:25: using emulator from environment",
       "go:30: Debug info about test state",
     }
-    
+
     local results = {}
     for _, line in ipairs(test_lines) do
       local diagnostic = patterns.parse_diagnostic_line(line)
@@ -61,10 +76,10 @@ describe("pattern matching performance", function()
         })
       end
     end
-    
+
     -- Should have 4 diagnostics
     assert.equals(4, #results)
-    
+
     -- Check that hints and errors are classified correctly
     local hints = {}
     local errors = {}
@@ -75,10 +90,10 @@ describe("pattern matching performance", function()
         table.insert(errors, result.line + 1)
       end
     end
-    
+
     assert.equals(3, #hints) -- lines 8, 25, 30
     assert.equals(1, #errors) -- line 15 (panic)
-    
+
     assert.is_true(vim.tbl_contains(hints, 8))
     assert.is_true(vim.tbl_contains(hints, 25))
     assert.is_true(vim.tbl_contains(hints, 30))
