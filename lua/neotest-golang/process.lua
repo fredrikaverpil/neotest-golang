@@ -15,7 +15,7 @@ local options = require("neotest-golang.options")
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 --- @field stop_stream fun() Stops the stream of test output.
 
---- @alias TestAccumulator table<string, { status: "running"|neotest.ResultStatus, output: string, errors: table[], position_id?: string, output_path?: string }>
+--- @alias TestAccumulator table<string, { pos_id: string|nil, status: neotest.ResultStatus, output: string, errors: table[], position_id?: string, output_path?: string }>
 
 --- @class GoTestEvent
 --- @field Time? string ISO 8601 timestamp when the event occurred
@@ -113,19 +113,7 @@ function M.process_event(tree, golist_data, accum, e, position_lookup)
   end
 
   if e.Package and e.Test then
-    local lookup_key = e.Package .. "::" .. e.Test
-    local pos_id = position_lookup[lookup_key]
-
-    local id
-    if pos_id then
-      -- Use the actual pos_id from lookup (contains file path)
-      id = pos_id
-    else
-      -- Fallback to the synthetic ID
-      id = lookup_key
-      logger.debug("Test not found in lookup, using synthetic ID: " .. id)
-    end
-
+    local id = e.Package .. "::" .. e.Test
     accum = M.process_test(tree, golist_data, accum, e, id, position_lookup)
   end
 
@@ -155,7 +143,7 @@ function M.register_diagnostics(accum, id, event_output)
   local lines = vim.split(event_output, "\n", { trimempty = true })
 
   -- Extract the test file's filename if the ID is a pos_id
-  local test_filename = M.extract_filename_from_pos_id(id)
+  local test_filename = M.extract_filename_from_pos_id(accum[id].pos_id)
 
   for _, line in ipairs(lines) do
     -- Use optimized single-pass pattern matching
@@ -167,7 +155,7 @@ function M.register_diagnostics(accum, id, event_output)
         -- Only include diagnostic if it belongs to the test file
         should_include_diagnostic = (diagnostic.filename == test_filename)
         if not should_include_diagnostic then
-          logger.trace(
+          logger.debug(
             "Filtering out diagnostic from "
               .. diagnostic.filename
               .. " (test file: "
@@ -262,7 +250,13 @@ end
 function M.process_test(tree, golist_data, accum, e, id, position_lookup)
   -- Indicate test started/running.
   if not accum[id] and e.Action == "run" then
-    accum[id] = { status = "running", output = "", errors = {} }
+    local pos_id = position_lookup[id]
+    accum[id] = {
+      pos_id = pos_id, -- could be nil if test was not found by AST parsing
+      status = "running",
+      output = "",
+      errors = {},
+    }
     accum = M.register_output(accum, e, id)
   end
 
@@ -445,7 +439,11 @@ function M.node_results(results_data, result, gotest_output)
   local output = vim.fs.normalize(async.fn.tempname())
   async.fn.writefile(full_output, output)
 
-  return { status = status, output = output, errors = results_data.errors }
+  return {
+    status = status,
+    output = output,
+    errors = results_data and results_data.errors or {},
+  }
 end
 
 --- Colorize the line of text given.
