@@ -95,7 +95,11 @@ function M.test_results(spec, result, tree)
   for _, node in tree:iter_nodes() do
     local pos_ = node:data()
     if results[pos_.id] == nil then
-      vim.notify("Test data not populated for: " .. vim.inspect(pos_.id), vim.log.levels.WARN, {group = "neotest-golang"})
+      vim.notify(
+        "Test data not populated for: " .. vim.inspect(pos_.id),
+        vim.log.levels.WARN,
+        { group = "neotest-golang" }
+      )
     end
   end
 
