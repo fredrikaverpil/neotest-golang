@@ -1,70 +1,35 @@
+local patterns = require("neotest-golang.lib.patterns")
+
 local M = {}
 
 --- Checks if the given line contains t.Log or t.Logf output (should be treated as hint)
+--- Now uses optimized pattern parsing
 ---@param line string
 ---@return boolean
 function M.is_test_log_hint(line)
-  if not line then
+  local diagnostic = patterns.parse_diagnostic_line(line)
+  if not diagnostic then
     return false
   end
-
-  -- Check if it matches test output format: "go:line: message" or "filename.go:line: message"
-  local message = line:match("go:%d+: (.*)")
-    or line:match("%s*[%w_%-%.]+%.go:%d+: (.*)")
-  if not message then
-    return false
-  end
-
-  -- Check if message contains typical error/failure indicators
-  local error_indicators = {
-    "panic:",
-    "fatal error:",
-    "expected.*but.*got",
-    "expected.*but.*",
-    "expected.*actual",
-    "assertion failed",
-    "test.*failed",
-    "error:",
-    "fail:",
-    "FAIL:",
-    "--- FAIL:",
-    "runtime error:",
-    "nil pointer dereference",
-    "index out of range",
-    "slice bounds out of range",
-  }
-
-  local lower_message = message:lower()
-  for _, indicator in ipairs(error_indicators) do
-    if lower_message:match(indicator:lower()) then
-      return false
-    end
-  end
-
-  return true
+  
+  return diagnostic.severity == vim.diagnostic.severity.HINT
 end
 
 --- Extract hint diagnostics from test output lines
+--- Now uses optimized single-pass pattern matching
 ---@param lines table<string>
 ---@return table<{line: number, message: string, severity: number}>
 function M.extract_hints_from_output(lines)
   local hints = {}
 
   for _, line in ipairs(lines) do
-    if M.is_test_log_hint(line) then
-      -- Support both "go:line: message" and "filename.go:line: message" formats
-      local line_number, message = line:match("go:(%d+): (.*)")
-      if not line_number then
-        line_number, message = line:match("%s*[%w_%-%.]+%.go:(%d+): (.*)")
-      end
-
-      if line_number and message then
-        table.insert(hints, {
-          line = tonumber(line_number) - 1, -- neovim lines are 0-indexed
-          message = message,
-          severity = vim.diagnostic.severity.HINT,
-        })
-      end
+    local diagnostic = patterns.parse_diagnostic_line(line)
+    if diagnostic and diagnostic.severity == vim.diagnostic.severity.HINT then
+      table.insert(hints, {
+        line = diagnostic.line_number - 1, -- neovim lines are 0-indexed
+        message = diagnostic.message,
+        severity = diagnostic.severity,
+      })
     end
   end
 
