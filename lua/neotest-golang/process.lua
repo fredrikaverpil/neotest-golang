@@ -109,7 +109,7 @@ end
 function M.process_event(tree, golist_data, accum, e, position_lookup)
   if e.Package then
     local id = e.Package
-    accum = M.process_package(tree, golist_data, accum, e, id, position_lookup)
+    accum = M.process_package(tree, golist_data, accum, e, id)
   end
 
   if e.Package and e.Test then
@@ -127,7 +127,6 @@ end
 --- @return TestAccumulator
 function M.register_output(accum, e, id)
   if e.Output then
-    accum = M.register_diagnostics(accum, id, e.Output)
     local colorized_output = M.colorizer(e.Output)
     accum[id].output = accum[id].output .. colorized_output
   end
@@ -143,7 +142,7 @@ function M.register_diagnostics(accum, id, event_output)
   local lines = vim.split(event_output, "\n", { trimempty = true })
 
   -- Extract the test file's filename if the ID is a pos_id
-  local test_filename = M.extract_filename_from_pos_id(accum[id].pos_id)
+  local test_filename = M.extract_filename_from_pos_id(accum[id].position_id)
 
   for _, line in ipairs(lines) do
     -- Use optimized single-pass pattern matching
@@ -206,14 +205,11 @@ end
 --- @param accum TestAccumulator Accumulated test data
 --- @param e GoTestEvent The event data
 --- @param id string Package ID
---- @param position_lookup table<string, string> Position lookup table for O(1) mapping
 --- @return TestAccumulator
-function M.process_package(tree, golist_data, accum, e, id, position_lookup)
+function M.process_package(tree, golist_data, accum, e, id)
   -- Indicate package started/running.
   if not accum[id] and (e.Action == "start" or e.Action == "run") then
-    local pos_id = position_lookup[id]
     accum[id] = {
-      pos_id = pos_id, -- could be nil
       status = "running",
       output = "",
       errors = {},
@@ -257,9 +253,7 @@ end
 function M.process_test(tree, golist_data, accum, e, id, position_lookup)
   -- Indicate test started/running.
   if not accum[id] and e.Action == "run" then
-    local pos_id = position_lookup[id]
     accum[id] = {
-      pos_id = pos_id, -- could be nil if test was not found by AST parsing
       status = "running",
       output = "",
       errors = {},
@@ -300,6 +294,54 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
   return accum
 end
 
+--- Process diagnostics from complete test output (deferred for performance)
+--- @param test_data table Test data with accumulated output
+--- @return table[] Array of diagnostic errors
+function M.process_diagnostics_from_output(test_data)
+  if not test_data.output or test_data.output == "" then
+    return {}
+  end
+
+  local errors = {}
+  local lines = vim.split(test_data.output, "\n", { trimempty = true })
+
+  -- Extract the test file's filename if the ID is a pos_id
+  local test_filename = M.extract_filename_from_pos_id(test_data.position_id)
+
+  local error_set = {}
+
+  for _, line in ipairs(lines) do
+    -- Use optimized single-pass pattern matching
+    local diagnostic = lib.patterns.parse_diagnostic_line(line)
+    if diagnostic then
+      -- Filter diagnostics by filename if we have both filenames
+      local should_include_diagnostic = true
+      if test_filename and diagnostic.filename then
+        -- Only include diagnostic if it belongs to the test file
+        should_include_diagnostic = (diagnostic.filename == test_filename)
+      end
+
+      if should_include_diagnostic then
+        -- Create a unique key for duplicate detection
+        local error_key = (diagnostic.line_number - 1)
+          .. ":"
+          .. diagnostic.message
+
+        if not error_set[error_key] then
+          error_set[error_key] = true
+          table.insert(errors, {
+            line = diagnostic.line_number - 1,
+            message = diagnostic.message,
+            severity = diagnostic.severity,
+          })
+        end
+      end
+    end
+  end
+
+  return errors
+end
+
 --- Process internal test data.
 ---@param accum TestAccumulator The accumulated test data to process
 ---@return table<string, neotest.Result>
@@ -309,6 +351,8 @@ function M.make_results(accum)
 
   for _, test_data in pairs(accum) do
     if test_data.position_id ~= nil then
+      test_data.errors = M.process_diagnostics_from_output(test_data)
+
       local uv = vim.loop
       local stat = uv.fs_stat(test_data.output_path)
       if not stat then
