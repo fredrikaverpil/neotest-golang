@@ -72,10 +72,11 @@ function M.test_results(spec, result, tree)
   --- @type table
   local gotest_output = lib.json.decode_from_table(runner_raw_output, true)
 
+  -- Re-register cached results.
   ---@type table<string, neotest.Result>
   local results = require("neotest-golang.lib.stream").cached_results -- TODO: fix circular dependency
   require("neotest-golang.lib.stream").cached_results = {} -- clear cache
-  results[pos.id] = M.node_results(result, gotest_output)
+  results[pos.id] = M.node_results(results[pos.id], result, gotest_output) -- register root node result
 
   -- Log tests wich were not populated into the results
   for _, node in tree:iter_nodes() do
@@ -117,17 +118,24 @@ function M.register_output(accum, e, id)
 end
 
 function M.find_errors(accum, id)
-  local outputs = vim.split(accum[id].output, "\n", { trimempty = true })
-  for _, output in ipairs(outputs) do
+  local lines = vim.split(accum[id].output, "\n", { trimempty = true })
+  for _, line in ipairs(lines) do
     -- search for error message and line number
-    local matched_line_number = string.match(output, "go:(%d+):")
+    local matched_line_number = string.match(line, "go:(%d+):")
     if matched_line_number ~= nil then
       local line_number = tonumber(matched_line_number)
-      local message = string.match(output, "go:%d+: (.*)")
+      local message = string.match(line, "go:%d+: (.*)")
       if line_number ~= nil and message ~= nil then
+        -- Check if this is a t.Log hint or an actual error
+        local is_hint = lib.hint.is_test_log_hint(line)
+        if is_hint then
+          vim.notify(vim.inspect("is hint " .. message), vim.log.levels.INFO)
+        end
         table.insert(accum[id].errors, {
           line = line_number - 1, -- neovim lines are 0-indexed
           message = message,
+          severity = is_hint and vim.diagnostic.severity.HINT
+            or vim.diagnostic.severity.ERROR,
         })
       end
     end
@@ -328,7 +336,7 @@ function M.populate_file_nodes(tree, results)
 end
 
 --- Opportunity below to analyze based on full test output.
-function M.node_results(result, gotest_output)
+function M.node_results(results_data, result, gotest_output)
   local status = "passed"
   if result.code ~= 0 then
     status = "failed"
@@ -349,7 +357,9 @@ function M.node_results(result, gotest_output)
   local output = vim.fs.normalize(async.fn.tempname())
   async.fn.writefile(full_output, output)
 
-  return { status = status, output = output }
+  vim.notify(vim.inspect(results_data.errors))
+
+  return { status = status, output = output, errors = results_data.errors }
 end
 
 --- Colorize the line of text given.
