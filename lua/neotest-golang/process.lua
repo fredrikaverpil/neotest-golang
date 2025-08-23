@@ -109,7 +109,7 @@ end
 function M.process_event(tree, golist_data, accum, e, position_lookup)
   if e.Package then
     local id = e.Package
-    accum = M.process_package(tree, golist_data, accum, e, id)
+    accum = M.process_package(tree, golist_data, accum, e, id, position_lookup)
   end
 
   if e.Package and e.Test then
@@ -206,11 +206,18 @@ end
 --- @param accum TestAccumulator Accumulated test data
 --- @param e GoTestEvent The event data
 --- @param id string Package ID
+--- @param position_lookup table<string, string> Position lookup table for O(1) mapping
 --- @return TestAccumulator
-function M.process_package(tree, golist_data, accum, e, id)
+function M.process_package(tree, golist_data, accum, e, id, position_lookup)
   -- Indicate package started/running.
   if not accum[id] and (e.Action == "start" or e.Action == "run") then
-    accum[id] = { status = "running", output = "", errors = {} }
+    local pos_id = position_lookup[id]
+    accum[id] = {
+      pos_id = pos_id, -- could be nil
+      status = "running",
+      output = "",
+      errors = {},
+    }
     accum = M.register_output(accum, e, id)
   end
 
