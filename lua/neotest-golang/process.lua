@@ -88,11 +88,14 @@ function M.test_results(spec, result, tree)
   require("neotest-golang.lib.stream").cached_results = {} -- clear cache
   results[pos.id] = M.node_results(results[pos.id], result, gotest_output) -- register root node result
 
+  -- Populate file nodes with aggregated results
+  results = M.populate_file_nodes(tree, results)
+
   -- Log tests wich were not populated into the results
   for _, node in tree:iter_nodes() do
     local pos_ = node:data()
     if results[pos_.id] == nil then
-      logger.debug("Test data not populated for: " .. vim.inspect(pos_.id))
+      vim.notify("Test data not populated for: " .. vim.inspect(pos_.id), vim.log.levels.WARN, {group = "neotest-golang"})
     end
   end
 
