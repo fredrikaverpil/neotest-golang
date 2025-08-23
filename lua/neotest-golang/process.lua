@@ -111,14 +111,15 @@ end
 
 function M.register_output(accum, e, id)
   if e.Output then
-    accum[id].output = accum[id].output .. M.colorizer(e.Output)
-    accum = M.find_errors(accum, id)
+    accum = M.find_errors_in_event(accum, id, e.Output)
+    local colorized_output = M.colorizer(e.Output)
+    accum[id].output = accum[id].output .. colorized_output
   end
   return accum
 end
 
-function M.find_errors(accum, id)
-  local lines = vim.split(accum[id].output, "\n", { trimempty = true })
+function M.find_errors_in_event(accum, id, event_output)
+  local lines = vim.split(event_output, "\n", { trimempty = true })
   for _, line in ipairs(lines) do
     -- search for error message and line number
     local matched_line_number = string.match(line, "go:(%d+):")
@@ -128,15 +129,28 @@ function M.find_errors(accum, id)
       if line_number ~= nil and message ~= nil then
         -- Check if this is a t.Log hint or an actual error
         local is_hint = lib.hint.is_test_log_hint(line)
-        if is_hint then
-          vim.notify(vim.inspect("is hint " .. message), vim.log.levels.INFO)
+        local severity = is_hint and vim.diagnostic.severity.HINT
+          or vim.diagnostic.severity.ERROR
+
+        -- Check for duplicates before adding
+        local error_exists = false
+        for _, existing_error in ipairs(accum[id].errors) do
+          if
+            existing_error.line == line_number - 1
+            and existing_error.message == message
+          then
+            error_exists = true
+            break
+          end
         end
-        table.insert(accum[id].errors, {
-          line = line_number - 1, -- neovim lines are 0-indexed
-          message = message,
-          severity = is_hint and vim.diagnostic.severity.HINT
-            or vim.diagnostic.severity.ERROR,
-        })
+
+        if not error_exists then
+          table.insert(accum[id].errors, {
+            line = line_number - 1,
+            message = message,
+            severity = severity,
+          })
+        end
       end
     end
   end
