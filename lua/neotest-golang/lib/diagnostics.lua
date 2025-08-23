@@ -8,9 +8,9 @@ function M.is_test_log_hint(line)
     return false
   end
 
-  -- Check if it matches test output format: "go:line: message"
-  local pattern = "go:%d+: (.*)"
-  local message = line:match(pattern)
+  -- Check if it matches test output format: "go:line: message" or "filename.go:line: message"
+  local message = line:match("go:%d+: (.*)")
+    or line:match("%s*[%w_%-%.]+%.go:%d+: (.*)")
   if not message then
     return false
   end
@@ -52,8 +52,11 @@ function M.extract_hints_from_output(lines)
 
   for _, line in ipairs(lines) do
     if M.is_test_log_hint(line) then
-      local pattern = "go:(%d+): (.*)"
-      local line_number, message = line:match(pattern)
+      -- Support both "go:line: message" and "filename.go:line: message" formats
+      local line_number, message = line:match("go:(%d+): (.*)")
+      if not line_number then
+        line_number, message = line:match("%s*[%w_%-%.]+%.go:(%d+): (.*)")
+      end
 
       if line_number and message then
         table.insert(hints, {
