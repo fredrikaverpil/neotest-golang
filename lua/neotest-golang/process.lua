@@ -15,6 +15,16 @@ local options = require("neotest-golang.options")
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 --- @field stop_stream fun() Stops the stream of test output.
 
+--- @alias TestAccumulator table<string, { status: "running"|neotest.ResultStatus, output: string, errors: table[], position_id?: string, output_path?: string }>
+
+--- @class GoTestEvent
+--- @field Time? string ISO 8601 timestamp when the event occurred
+--- @field Action "run"|"pause"|"cont"|"pass"|"bench"|"fail"|"output"|"skip"|"start" Test action
+--- @field Package? string Package name being tested
+--- @field Test? string Test name (present when Action relates to a specific test)
+--- @field Elapsed? number Time elapsed in seconds
+--- @field Output? string Output text (present when Action is "output")
+
 local M = {}
 
 --- Process the results from the test command.
@@ -92,9 +102,10 @@ end
 --- Process a single event from the test output.
 --- @param tree neotest.Tree The neotest tree structure
 --- @param golist_data table The 'go list -json' output
---- @param accum table Accumulated test data.
---- @param e table The event data.
+--- @param accum TestAccumulator Accumulated test data.
+--- @param e GoTestEvent The event data.
 --- @param position_lookup table<string, string> Position lookup table for O(1) mapping
+--- @return TestAccumulator
 function M.process_event(tree, golist_data, accum, e, position_lookup)
   if e.Package then
     local id = e.Package
@@ -109,6 +120,11 @@ function M.process_event(tree, golist_data, accum, e, position_lookup)
   return accum
 end
 
+--- Register output for a test/package
+--- @param accum TestAccumulator
+--- @param e GoTestEvent Event data
+--- @param id string Test/package ID
+--- @return TestAccumulator
 function M.register_output(accum, e, id)
   if e.Output then
     accum = M.register_diagnostics(accum, id, e.Output)
@@ -118,6 +134,11 @@ function M.register_output(accum, e, id)
   return accum
 end
 
+--- Register diagnostics for a test/package
+--- @param accum TestAccumulator
+--- @param id string Test/package ID
+--- @param event_output string Event output text
+--- @return TestAccumulator
 function M.register_diagnostics(accum, id, event_output)
   local lines = vim.split(event_output, "\n", { trimempty = true })
   for _, line in ipairs(lines) do
@@ -148,6 +169,13 @@ function M.register_diagnostics(accum, id, event_output)
   return accum
 end
 
+--- Process package events
+--- @param tree neotest.Tree The neotest tree structure
+--- @param golist_data table The 'go list -json' output
+--- @param accum TestAccumulator Accumulated test data
+--- @param e GoTestEvent The event data
+--- @param id string Package ID
+--- @return TestAccumulator
 function M.process_package(tree, golist_data, accum, e, id)
   -- Indicate package started/running.
   if not accum[id] and (e.Action == "start" or e.Action == "run") then
@@ -180,6 +208,14 @@ function M.process_package(tree, golist_data, accum, e, id)
   return accum
 end
 
+--- Process test events
+--- @param tree neotest.Tree The neotest tree structure
+--- @param golist_data table The 'go list -json' output
+--- @param accum TestAccumulator Accumulated test data
+--- @param e GoTestEvent The event data
+--- @param id string Test ID
+--- @param position_lookup table<string, string> Position lookup table for O(1) mapping
+--- @return TestAccumulator
 function M.process_test(tree, golist_data, accum, e, id, position_lookup)
   -- Indicate test started/running.
   if not accum[id] and e.Action == "run" then
@@ -222,7 +258,8 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
 end
 
 --- Process internal test data.
----@param accum table The accumulated test data to process -- TODO: add proper type
+---@param accum TestAccumulator The accumulated test data to process
+---@return table<string, neotest.Result>
 function M.make_results(accum)
   ---@type table<string, neotest.Result>
   local results = {}
@@ -341,6 +378,10 @@ function M.populate_file_nodes(tree, results)
 end
 
 --- Opportunity below to analyze based on full test output.
+--- @param results_data table Previous results data
+--- @param result neotest.StrategyResult Test execution result
+--- @param gotest_output GoTestEvent[] Array of go test JSON events
+--- @return neotest.Result
 function M.node_results(results_data, result, gotest_output)
   local status = "passed"
   if result.code ~= 0 then

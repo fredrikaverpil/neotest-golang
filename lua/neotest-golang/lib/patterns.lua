@@ -4,7 +4,6 @@ local M = {}
 --- Optimized to extract all needed information in single operations
 
 --- Error indicators that classify a message as error vs hint
---- Using hash lookup for O(1) performance instead of iterative matching
 M.error_indicators = {
   ["panic:"] = true,
   ["fatal error:"] = true,
@@ -93,7 +92,8 @@ function M.parse_diagnostic_line(line)
   end
 
   local is_hint = M.is_hint_message(parsed.message)
-  local severity = is_hint and vim.diagnostic.severity.HINT or vim.diagnostic.severity.ERROR
+  local severity = is_hint and vim.diagnostic.severity.HINT
+    or vim.diagnostic.severity.ERROR
 
   return {
     line_number = parsed.line_number,
@@ -103,3 +103,4 @@ function M.parse_diagnostic_line(line)
 end
 
 return M
+

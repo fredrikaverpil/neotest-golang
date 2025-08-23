@@ -11,7 +11,7 @@ function M.is_test_log_hint(line)
   if not diagnostic then
     return false
   end
-  
+
   return diagnostic.severity == vim.diagnostic.severity.HINT
 end
 
