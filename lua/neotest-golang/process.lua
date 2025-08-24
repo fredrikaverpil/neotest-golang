@@ -17,7 +17,7 @@ local options = require("neotest-golang.options")
 
 -- TODO:: do not mix neotest.Result fields with custom fields. Make clear separation.
 --
---- @alias TestAccumulator table<string, { status: neotest.ResultStatus, output: string, errors: table[], position_id?: string, output_path?: string, }>
+--- @alias TestAccumulator table<string, { status: neotest.ResultStatus, output: string, errors: table[], position_id?: string, output_parts: table[], output_path?: string, }>
 
 --- @class GoTestEvent
 --- @field Time? string ISO 8601 timestamp when the event occurred
@@ -210,17 +210,18 @@ function M.process_package(tree, golist_data, accum, e, id)
     accum[id] = {
       status = "running",
       output = "",
+      output_parts = {},
       errors = {},
     }
     if e.Output then
-      accum[id].output = accum[id].output .. e.Output -- TODO: use table concat for performance for all output accum
+      table.insert(accum[id].output_parts, e.Output)
     end
   end
 
   -- Record output for package.
   if accum[e.Package].status == "running" and e.Action == "output" then
     if e.Output then
-      accum[id].output = accum[id].output .. e.Output
+      table.insert(accum[id].output_parts, e.Output)
     end
   end
 
@@ -239,7 +240,7 @@ function M.process_package(tree, golist_data, accum, e, id)
 
     if e.Output then
       -- NOTE: this does not ever happen, it seems.
-      accum[id].output = accum[id].output .. e.Output
+      table.insert(accum[id].output_parts, e.Output)
     end
 
     accum[id].position_id =
@@ -263,17 +264,18 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
     accum[id] = {
       status = "running",
       output = "",
+      output_parts = {},
       errors = {},
     }
     if e.Output then
-      accum[id].output = accum[id].output .. e.Output
+      table.insert(accum[id].output_parts, e.Output)
     end
   end
 
   -- Record output for test.
   if accum[id].status == "running" and e.Action == "output" then
     if e.Output then
-      accum[id].output = accum[id].output .. e.Output
+      table.insert(accum[id].output_parts, e.Output)
     end
   end
 
@@ -292,7 +294,7 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
 
     if e.Output then
       -- NOTE: this does not ever happen, it seems.
-      accum[id].output = accum[id].output .. e.Output
+      table.insert(accum[id].output_parts, e.Output)
     end
 
     local pos_id =
@@ -356,30 +358,108 @@ function M.process_diagnostics_from_output(test_data)
   return errors
 end
 
---- Process internal test data.
+--- Process diagnostics from output parts (optimized version)
+--- @param test_data table Test data with output_parts table
+--- @return table[] Array of diagnostic errors
+function M.process_diagnostics_from_parts(test_data)
+  if not test_data.output_parts or #test_data.output_parts == 0 then
+    return {}
+  end
+
+  local errors = {}
+  local test_filename = M.extract_filename_from_pos_id(test_data.position_id)
+  local error_set = {}
+
+  -- Process each output part directly
+  for _, part in ipairs(test_data.output_parts) do
+    if part then
+      -- Handle multi-line parts by splitting if needed
+      local lines = vim.split(part, "\n", { trimempty = true })
+      for _, line in ipairs(lines) do
+        -- Use optimized single-pass pattern matching
+        local diagnostic = lib.patterns.parse_diagnostic_line(line)
+        if diagnostic then
+          -- Filter diagnostics by filename if we have both filenames
+          local should_include_diagnostic = true
+          if test_filename and diagnostic.filename then
+            -- Only include diagnostic if it belongs to the test file
+            should_include_diagnostic = (diagnostic.filename == test_filename)
+          end
+
+          if should_include_diagnostic then
+            -- Create a unique key for duplicate detection
+            local error_key = (diagnostic.line_number - 1)
+              .. ":"
+              .. diagnostic.message
+
+            if not error_set[error_key] then
+              error_set[error_key] = true
+              table.insert(errors, {
+                line = diagnostic.line_number - 1,
+                message = diagnostic.message,
+                severity = diagnostic.severity,
+              })
+            end
+          end
+        end
+      end
+    end
+  end
+
+  return errors
+end
+
+--- Process internal test data into Neotest results for stream.
 ---@param accum TestAccumulator The accumulated test data to process
 ---@return table<string, neotest.Result>
 -- TODO: this is part of streaming hot path. To be optimized.
-function M.make_results(accum)
+function M.make_stream_results(accum)
   ---@type table<string, neotest.Result>
   local results = {}
 
   for _, test_data in pairs(accum) do
     if test_data.position_id ~= nil then
       if test_data.output_path == nil then
-        -- NOTE: processing has not been done yet.
+        -- NOTE: finalizing has not been done yet for this position id.
         -- TODO: use explicit variable to denote processing state done/pending rather than output_path presence.
-        test_data.errors = M.process_diagnostics_from_output(test_data)
 
+        -- Use optimized diagnostics processing if output_parts available
+        if test_data.output_parts then
+          test_data.errors = M.process_diagnostics_from_parts(test_data)
+        else
+          -- Fallback to original method for backward compatibility
+          test_data.errors = M.process_diagnostics_from_output(test_data)
+        end
+
+        -- PERF: this causes re-writing of output file later, when full output processing is performed.
+        -- TODO: move this back to process_test / process_package
         test_data.output_path = vim.fs.normalize(async.fn.tempname())
+        vim.notify(
+          vim.inspect("Output path set for " .. test_data.position_id),
+          vim.log.levels.DEBUG,
+          { group = "neotest-golang" }
+        )
 
         local uv = vim.loop
         local stat = uv.fs_stat(test_data.output_path)
         if not stat then
           -- does not exist, let's write it
-          local o =
-            vim.split(M.colorizer(test_data.output), "\n", { trimempty = true })
-          async.fn.writefile(o, test_data.output_path)
+          if test_data.output_parts then
+            -- Use optimized colorization and write directly
+            local output_lines = M.colorize_parts(test_data.output_parts)
+            async.fn.writefile(output_lines, test_data.output_path)
+            -- Clean up parts to save memory
+            test_data.output_parts = nil
+            -- TODO: remove, as it is not needed anymore
+            -- else
+            --   -- Fallback to original method for backward compatibility
+            --   local colorized = vim.split(
+            --     M.colorizer(test_data.output),
+            --     "\n",
+            --     { trimempty = true }
+            --   )
+            --   async.fn.writefile(colorized, test_data.output_path)
+          end
         end
       end
 
@@ -497,16 +577,16 @@ function M.node_results(results_data, result, gotest_output)
   end
 
   --- Set output from full test output
-  ---@type string[]
-  local full_output = {}
+  -- Collect all output parts first
+  local output_parts = {}
   for _, e in ipairs(gotest_output) do
     if e.Output then
-      local lines = vim.split(M.colorizer(e.Output), "\n", { trimempty = true })
-      for _, line in ipairs(lines) do
-        table.insert(full_output, line)
-      end
+      table.insert(output_parts, e.Output)
     end
   end
+
+  -- Single-pass colorization of all parts
+  local full_output = M.colorize_parts(output_parts)
 
   local output = vim.fs.normalize(async.fn.tempname())
   async.fn.writefile(full_output, output)
@@ -518,49 +598,61 @@ function M.node_results(results_data, result, gotest_output)
   }
 end
 
---- Colorize the line of text given.
---- @param text string The line of text to parse for colorization
---- @return string The colorized line of text (if colorization is enabled)
-function M.colorizer(text)
-  if not options.get().colorize_test_output == true or not text then
-    return text
+--- Colorize output parts (optimized version)
+--- @param output_parts table[] Array of output strings
+--- @return table[] Array of colorized lines ready for file output
+function M.colorize_parts(output_parts)
+  if not options.get().colorize_test_output == true or not output_parts then
+    -- If colorization disabled, still need to split into lines for file output
+    local lines = {}
+    for _, part in ipairs(output_parts) do
+      if part then
+        local part_lines = vim.split(part, "\n", { trimempty = true })
+        vim.list_extend(lines, part_lines)
+      end
+    end
+    return lines
   end
 
-  local original_text = text
-  local trailing_newline = ""
+  local colorized_lines = {}
 
-  -- Check for and strip trailing newline to ensure reset code is before it
-  if text:sub(-1) == "\n" then
-    trailing_newline = "\n"
-    text = text:sub(1, -2) -- Remove the trailing newline for processing
+  for _, part in ipairs(output_parts) do
+    if part then
+      -- Split part into lines if it contains newlines
+      local lines = vim.split(part, "\n", { trimempty = true })
+      for _, line in ipairs(lines) do
+        -- Apply colorization logic (same as current function)
+        local colorized_line = line
+        local color_applied = false
+
+        if string.find(line, "FAIL") then
+          colorized_line = "\27[31m" .. line .. "\27[0m" -- red
+          color_applied = true
+        elseif string.find(line, "PASS") then
+          colorized_line = "\27[32m" .. line .. "\27[0m" -- green
+          color_applied = true
+        elseif string.find(line, "WARN") then
+          colorized_line = "\27[33m" .. line .. "\27[0m" -- yellow
+          color_applied = true
+        elseif string.find(line, "RUN") then
+          colorized_line = "\27[34m" .. line .. "\27[0m" -- blue
+          color_applied = true
+        elseif string.find(line, "SKIP") then
+          colorized_line = "\27[35m" .. line .. "\27[0m" -- purple
+          color_applied = true
+        end
+
+        -- Only use colorized version if color was applied, otherwise use original line
+        if color_applied then
+          table.insert(colorized_lines, colorized_line)
+        else
+          table.insert(colorized_lines, line)
+        end
+      end
+    end
   end
 
-  local color_applied = false
-
-  if string.find(text, "FAIL") then
-    text = text:gsub("^", "[31m") .. "[0m" -- red
-    color_applied = true
-  elseif string.find(text, "PASS") then
-    text = text:gsub("^", "[32m") .. "[0m" -- green
-    color_applied = true
-  elseif string.find(text, "WARN") then
-    text = text:gsub("^", "[33m") .. "[0m" -- yellow
-    color_applied = true
-  elseif string.find(text, "RUN") then
-    text = text:gsub("^", "[34m") .. "[0m" -- blue
-    color_applied = true
-  elseif string.find(text, "SKIP") then
-    text = text:gsub("^", "[35m") .. "[0m" -- purple
-    color_applied = true
-  end
-
-  -- Re-append the trailing newline if it was originally present and color was applied
-  if color_applied then
-    return text .. trailing_newline
-  else
-    -- If no color was applied, return the original text with its newline intact
-    return original_text
-  end
+  return colorized_lines
 end
 
 --- Extract the filename from a neotest position ID
