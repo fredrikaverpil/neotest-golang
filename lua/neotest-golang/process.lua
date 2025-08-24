@@ -431,8 +431,6 @@ function M.make_stream_results(accum)
           test_data.errors = M.process_diagnostics_from_output(test_data)
         end
 
-        -- PERF: this causes re-writing of output file later, when full output processing is performed.
-        -- TODO: move this back to process_test / process_package
         test_data.output_path = vim.fs.normalize(async.fn.tempname())
 
         local uv = vim.loop
