@@ -64,7 +64,7 @@ function M.new(tree, golist_data, json_filepath)
         )
       end
 
-      results = process.make_results(accum)
+      results = process.make_stream_results(accum)
 
       for pos_id, result in pairs(results) do
         M.cached_results[pos_id] = result
