@@ -291,7 +291,7 @@ end
 
 --- Process diagnostics from output parts (optimized version)
 --- @param test_entry TestEntry Test entry with metadata containing output_parts
---- @return table[] Array of diagnostic errors
+--- @return neotest.Error[] Array of diagnostic errors
 function M.process_diagnostics_from_parts(test_entry)
   if
     not test_entry.metadata.output_parts
@@ -300,6 +300,7 @@ function M.process_diagnostics_from_parts(test_entry)
     return {}
   end
 
+  ---@type neotest.Error[]
   local errors = {}
   local test_filename =
     M.extract_filename_from_pos_id(test_entry.metadata.position_id)
