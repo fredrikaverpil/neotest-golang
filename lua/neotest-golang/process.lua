@@ -15,7 +15,9 @@ local options = require("neotest-golang.options")
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 --- @field stop_stream fun() Stops the stream of test output.
 
---- @alias TestAccumulator table<string, { pos_id: string|nil, status: neotest.ResultStatus, output: string, errors: table[], position_id?: string, output_path?: string }>
+-- TODO:: do not mix neotest.Result fields with custom fields. Make clear separation.
+--
+--- @alias TestAccumulator table<string, { status: neotest.ResultStatus, output: string, errors: table[], position_id?: string, output_path?: string, }>
 
 --- @class GoTestEvent
 --- @field Time? string ISO 8601 timestamp when the event occurred
@@ -113,6 +115,7 @@ end
 --- @param e GoTestEvent The event data.
 --- @param position_lookup table<string, string> Position lookup table for O(1) mapping
 --- @return TestAccumulator
+-- TODO: this is part of streaming hot path. To be optimized.
 function M.process_event(tree, golist_data, accum, e, position_lookup)
   if e.Package then
     local id = e.Package
@@ -244,7 +247,6 @@ function M.process_package(tree, golist_data, accum, e, id)
     accum[id].position_id =
       lib.convert.to_dir_position_id(golist_data, e.Package)
     accum = M.register_output(accum, e, id)
-    accum[id].output_path = vim.fs.normalize(async.fn.tempname())
   end
   return accum
 end
@@ -286,7 +288,6 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
       accum[id].status = "skipped"
     end
     accum = M.register_output(accum, e, id)
-    accum[id].output_path = vim.fs.normalize(async.fn.tempname())
 
     local pos_id =
       lib.convert.get_position_id(position_lookup, e.Package, e.Test)
@@ -352,21 +353,28 @@ end
 --- Process internal test data.
 ---@param accum TestAccumulator The accumulated test data to process
 ---@return table<string, neotest.Result>
+-- TODO: this is part of streaming hot path. To be optimized.
 function M.make_results(accum)
   ---@type table<string, neotest.Result>
   local results = {}
 
   for _, test_data in pairs(accum) do
     if test_data.position_id ~= nil then
-      test_data.errors = M.process_diagnostics_from_output(test_data)
+      if test_data.output_path == nil then
+        -- NOTE: processing has not been done yet.
+        -- TODO: use explicit variable to denote processing state done/pending rather than output_path presence.
+        test_data.errors = M.process_diagnostics_from_output(test_data)
 
-      local uv = vim.loop
-      local stat = uv.fs_stat(test_data.output_path)
-      if not stat then
-        -- does not exist, let's write it
-        local o =
-          vim.split(M.colorizer(test_data.output), "\n", { trimempty = true })
-        async.fn.writefile(o, test_data.output_path)
+        test_data.output_path = vim.fs.normalize(async.fn.tempname())
+
+        local uv = vim.loop
+        local stat = uv.fs_stat(test_data.output_path)
+        if not stat then
+          -- does not exist, let's write it
+          local o =
+            vim.split(M.colorizer(test_data.output), "\n", { trimempty = true })
+          async.fn.writefile(o, test_data.output_path)
+        end
       end
 
       results[test_data.position_id] = {
