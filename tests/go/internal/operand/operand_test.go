@@ -8,6 +8,7 @@ func (dummy) Run(string, func(t *testing.T)) {}
 
 func Test_Run(t *testing.T) {
 	t.Run("find me", func(t *testing.T) {
+		t.Log("HELLO")
 	})
 
 	x := dummy{}
