@@ -230,10 +230,7 @@ function M.process_diagnostics_from_parts(test_data)
   end
 
   local errors = {}
-  -- TODO: move process/function into lib?
-  local process = require("neotest-golang.process") -- TODO: fix circular dependency
-  local test_filename =
-    process.extract_filename_from_pos_id(test_data.position_id)
+  local test_filename = M.extract_filename_from_pos_id(test_data.position_id)
   local error_set = {}
 
   -- Process each output part directly
@@ -318,6 +315,24 @@ function M.make_stream_results(accum)
   end
 
   return results
+end
+
+--- Extract the filename from a neotest position ID
+--- @param pos_id string Position ID like "/path/to/file.go::TestName" or synthetic ID like "github.com/pkg::TestName"
+--- @return string|nil Filename like "file.go" or nil if not a file path
+function M.extract_filename_from_pos_id(pos_id)
+  if not pos_id then
+    return nil
+  end
+
+  -- Check if it looks like a file path (contains "/" and ends with ".go")
+  local file_path = pos_id:match("^([^:]+)")
+  if file_path and file_path:match("%.go$") and file_path:match("/") then
+    -- Extract just the filename from the full path
+    return file_path:match("([^/]+)$")
+  end
+
+  return nil
 end
 
 return M
