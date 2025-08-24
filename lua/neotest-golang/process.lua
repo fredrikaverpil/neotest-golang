@@ -130,19 +130,6 @@ function M.process_event(tree, golist_data, accum, e, position_lookup)
   return accum
 end
 
---- Register output for a test/package
---- @param accum TestAccumulator
---- @param e GoTestEvent Event data
---- @param id string Test/package ID
---- @return TestAccumulator
-function M.register_output(accum, e, id)
-  if e.Output then
-    local colorized_output = M.colorizer(e.Output)
-    accum[id].output = accum[id].output .. colorized_output
-  end
-  return accum
-end
-
 --- Register diagnostics for a test/package
 --- @param accum TestAccumulator
 --- @param id string Test/package ID (may be pos_id or synthetic ID)
@@ -224,12 +211,16 @@ function M.process_package(tree, golist_data, accum, e, id)
       output = "",
       errors = {},
     }
-    accum = M.register_output(accum, e, id)
+    if e.Output then
+      accum[id].output = accum[id].output .. e.Output -- TODO: use table concat for performance for all output accum
+    end
   end
 
   -- Record output for package.
   if accum[e.Package].status == "running" and e.Action == "output" then
-    accum = M.register_output(accum, e, id)
+    if e.Output then
+      accum[id].output = accum[id].output .. e.Output
+    end
   end
 
   -- Register package results.
@@ -246,7 +237,9 @@ function M.process_package(tree, golist_data, accum, e, id)
     end
     accum[id].position_id =
       lib.convert.to_dir_position_id(golist_data, e.Package)
-    accum = M.register_output(accum, e, id)
+    if e.Output then
+      accum[id].output = accum[id].output .. e.Output
+    end
   end
   return accum
 end
@@ -267,12 +260,16 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
       output = "",
       errors = {},
     }
-    accum = M.register_output(accum, e, id)
+    if e.Output then
+      accum[id].output = accum[id].output .. e.Output
+    end
   end
 
   -- Record output for test.
   if accum[id].status == "running" and e.Action == "output" then
-    accum = M.register_output(accum, e, id)
+    if e.Output then
+      accum[id].output = accum[id].output .. e.Output
+    end
   end
 
   -- Register test results.
@@ -287,7 +284,10 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
     else
       accum[id].status = "skipped"
     end
-    accum = M.register_output(accum, e, id)
+
+    if e.Output then
+      accum[id].output = accum[id].output .. e.Output
+    end
 
     local pos_id =
       lib.convert.get_position_id(position_lookup, e.Package, e.Test)
