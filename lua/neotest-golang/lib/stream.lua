@@ -9,11 +9,20 @@ local patterns = require("neotest-golang.lib.patterns")
 local async = require("neotest.async")
 local neotest_lib = require("neotest.lib")
 
+local M = {}
+
+---@enum processingStatus
+M.ProcessingStatus = {
+  streaming = "streaming",
+  status_detected = "status_detected",
+}
+
 --- Internal test metadata, required for processing.
 --- @class TestMetadata
 --- @field position_id? string The neotest position ID for this test
---- @field output_parts table[] Raw output parts collected during streaming
+--- @field output_parts string[] Raw output parts collected during streaming
 --- @field output_path? string Path to the finalized output file
+--- @field status? processingStatus Whether the test result has been finalized
 
 --- The accumulated test data. This holds both the Neotest result for the test and also internal metadata.
 --- @class TestEntry
@@ -28,8 +37,6 @@ local neotest_lib = require("neotest.lib")
 --- @field Test? string Test name (present when Action relates to a specific test)
 --- @field Elapsed? number Time elapsed in seconds
 --- @field Output? string Output text (present when Action is "output")
-
-local M = {}
 
 ---@type table<string, neotest.Result>
 M.cached_results = {}
@@ -74,7 +81,7 @@ function M.new(tree, golist_data, json_filepath)
       if options.get().runner == "go" then
         lines = data() -- capture from stdout
       elseif options.get().runner == "gotestsum" then
-        lines = stream_data() -- capture from stream
+        lines = stream_data() or {} -- capture from stream
       end
 
       json_lines = json.decode_from_table(lines, true)
@@ -119,7 +126,7 @@ end
 -- TODO: this is part of streaming hot path. To be optimized.
 function M.process_event(tree, golist_data, accum, e, position_lookup)
   if e.Package then
-    local id = e.Package
+    local id = e.Package or "UNKNOWN_PACKAGE"
     accum = M.process_package(tree, golist_data, accum, e, id)
   end
 
@@ -144,11 +151,12 @@ function M.process_package(tree, golist_data, accum, e, id)
   if not accum[id] and (e.Action == "start" or e.Action == "run") then
     accum[id] = {
       result = {
-        status = "running",
+        status = "skipped",
         output = "",
         errors = {},
       },
       metadata = {
+        status = "streaming",
         output_parts = {},
       },
     }
@@ -158,14 +166,18 @@ function M.process_package(tree, golist_data, accum, e, id)
   end
 
   -- Record output for package.
-  if accum[e.Package].result.status == "running" and e.Action == "output" then
+  if
+    accum[e.Package].metadata.status == "streaming" and e.Action == "output"
+  then
     if e.Output then
       table.insert(accum[id].metadata.output_parts, e.Output)
     end
   end
 
   -- Record build output for test (introduced in Go 1.24).
-  if accum[id].result.status == "running" and e.Action == "build-output" then
+  if
+    accum[id].metadata.status == "streaming" and e.Action == "build-output"
+  then
     vim.notify(vim.inspect(e)) -- TODO: what to do with build-output?
     -- NOTE: "build-fail" message indicate build error.
     if e.Output then
@@ -175,7 +187,7 @@ function M.process_package(tree, golist_data, accum, e, id)
 
   -- Register package results.
   if
-    accum[e.Package].result.status == "running"
+    accum[e.Package].metadata.status == "streaming"
     and (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
   then
     if e.Action == "pass" then
@@ -185,6 +197,8 @@ function M.process_package(tree, golist_data, accum, e, id)
     else
       accum[id].result.status = "skipped"
     end
+
+    accum[id].metadata.status = "status_detected"
 
     if e.Output then
       -- NOTE: this does not ever happen, it seems.
@@ -211,11 +225,12 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
   if not accum[id] and e.Action == "run" then
     accum[id] = {
       result = {
-        status = "running",
+        status = "skipped",
         output = "",
         errors = {},
       },
       metadata = {
+        status = "streaming",
         output_parts = {},
       },
     }
@@ -225,14 +240,14 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
   end
 
   -- Record output for test.
-  if accum[id].result.status == "running" and e.Action == "output" then
+  if accum[id].metadata.status == "streaming" and e.Action == "output" then
     if e.Output then
       table.insert(accum[id].metadata.output_parts, e.Output)
     end
   end
 
   -- Record build output for test (introduced in Go 1.24).
-  if accum[id].result.status == "running" and e.Action == "build-output" then
+  if accum[id].metadata.status == "streaming" and e.Action == "build-output" then
     vim.notify(vim.inspect(e)) -- TODO: what to do with build-output?
     -- NOTE: "build-fail" message indicate build error.
     if e.Output then
@@ -242,7 +257,7 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
 
   -- Register test results.
   if
-    accum[id].result.status == "running"
+    accum[id].metadata.status == "streaming"
     and (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
   then
     if e.Action == "pass" then
@@ -252,6 +267,8 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
     else
       accum[id].result.status = "skipped"
     end
+
+    accum[id].metadata.status = "status_detected"
 
     if e.Output then
       -- NOTE: this does not ever happen, it seems.
@@ -368,9 +385,6 @@ function M.make_stream_results(accum)
         errors = test_entry.result.errors,
         -- TODO: add short
       }
-      if test_entry.result.short then
-        result.short = test_entry.result.short
-      end
 
       results[test_entry.metadata.position_id] = result
     end
