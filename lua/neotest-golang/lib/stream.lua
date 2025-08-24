@@ -9,15 +9,18 @@ local patterns = require("neotest-golang.lib.patterns")
 local async = require("neotest.async")
 local neotest_lib = require("neotest.lib")
 
+--- Internal test metadata, required for processing.
 --- @class TestMetadata
 --- @field position_id? string The neotest position ID for this test
 --- @field output_parts table[] Raw output parts collected during streaming
 --- @field output_path? string Path to the finalized output file
 
+--- The accumulated test data. This holds both the Neotest result for the test and also internal metadata.
 --- @class TestEntry
 --- @field result neotest.Result The neotest result data
 --- @field metadata TestMetadata Custom metadata for processing
 
+--- The `go test -json` event structure.
 --- @class GoTestEvent
 --- @field Time? string ISO 8601 timestamp when the event occurred
 --- @field Action "start"|"run"|"output"|"build-output"|"skip"|"fail"|"pass" Test action
