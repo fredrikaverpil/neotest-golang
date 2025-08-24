@@ -434,11 +434,6 @@ function M.make_stream_results(accum)
         -- PERF: this causes re-writing of output file later, when full output processing is performed.
         -- TODO: move this back to process_test / process_package
         test_data.output_path = vim.fs.normalize(async.fn.tempname())
-        vim.notify(
-          vim.inspect("Output path set for " .. test_data.position_id),
-          vim.log.levels.DEBUG,
-          { group = "neotest-golang" }
-        )
 
         local uv = vim.loop
         local stat = uv.fs_stat(test_data.output_path)
