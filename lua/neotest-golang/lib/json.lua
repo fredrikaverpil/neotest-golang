@@ -10,6 +10,7 @@ local M = {}
 --- @param tbl table
 --- @param construct_invalid boolean
 --- @return table
+-- TODO: this is part of streaming hot path. To be optimized.
 function M.decode_from_table(tbl, construct_invalid)
   local jsonlines = {}
   for _, line in ipairs(tbl) do
