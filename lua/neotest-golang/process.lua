@@ -203,6 +203,7 @@ end
 --- @param e GoTestEvent The event data
 --- @param id string Package ID
 --- @return TestAccumulator
+-- TODO: this is part of streaming hot path. To be optimized.
 function M.process_package(tree, golist_data, accum, e, id)
   -- Indicate package started/running.
   if not accum[id] and (e.Action == "start" or e.Action == "run") then
@@ -235,11 +236,14 @@ function M.process_package(tree, golist_data, accum, e, id)
     else
       accum[id].status = "skipped"
     end
-    accum[id].position_id =
-      lib.convert.to_dir_position_id(golist_data, e.Package)
+
     if e.Output then
+      -- NOTE: this does not ever happen, it seems.
       accum[id].output = accum[id].output .. e.Output
     end
+
+    accum[id].position_id =
+      lib.convert.to_dir_position_id(golist_data, e.Package)
   end
   return accum
 end
@@ -252,6 +256,7 @@ end
 --- @param id string Test ID
 --- @param position_lookup table<string, string> Position lookup table for O(1) mapping
 --- @return TestAccumulator
+-- TODO: this is part of streaming hot path. To be optimized.
 function M.process_test(tree, golist_data, accum, e, id, position_lookup)
   -- Indicate test started/running.
   if not accum[id] and e.Action == "run" then
@@ -286,6 +291,7 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
     end
 
     if e.Output then
+      -- NOTE: this does not ever happen, it seems.
       accum[id].output = accum[id].output .. e.Output
     end
 
