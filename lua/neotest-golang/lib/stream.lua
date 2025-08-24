@@ -66,6 +66,18 @@ function M.new(tree, golist_data, json_filepath)
 
       results = process.make_stream_results(accum)
 
+      -- TODO: optimize caching:
+      -- 1. Direct cache population in make_stream_results:
+      --    M.cached_results = process.make_stream_results_and_cache(accum, M.cached_results)
+      -- 2. Eliminate intermediate results table (eliminates the pairs loop).
+      -- 3. Lazy file writing?
+      --    - Defer file writing until final test_results() phase (maybe opt-in to write during stream?)
+      --    - Keep output_parts in memory during streaming.
+      --    - Write files only when actually needed (reduces i/o).
+      -- 4. Cache transfer instead of clear:
+      --    Instead of: load -> clear -> rebuild
+      --    Do: transfer ownership
+      --    local results = M.transfer_cached_results() -- returns and clears in one operation
       for pos_id, result in pairs(results) do
         M.cached_results[pos_id] = result
       end

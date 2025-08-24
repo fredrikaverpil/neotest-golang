@@ -29,7 +29,7 @@ local options = require("neotest-golang.options")
 
 local M = {}
 
---- Process the results from the test command.
+--- Process the complete test output from the test command.
 --- @param spec neotest.RunSpec
 --- @param result neotest.StrategyResult
 --- @param tree neotest.Tree
@@ -93,7 +93,7 @@ function M.test_results(spec, result, tree)
   -- Populate file nodes with aggregated results
   results = M.populate_file_nodes(tree, results)
 
-  -- Log tests wich were not populated into the results
+  -- NOTE: Log tests wich were not populated into the results, during rewrite/debugging.
   for _, node in tree:iter_nodes() do
     local pos_ = node:data()
     if results[pos_.id] == nil then
@@ -438,22 +438,11 @@ function M.make_stream_results(accum)
         local uv = vim.loop
         local stat = uv.fs_stat(test_data.output_path)
         if not stat then
-          -- does not exist, let's write it
+          -- file does not exist, let's write it
           if test_data.output_parts then
-            -- Use optimized colorization and write directly
             local output_lines = M.colorize_parts(test_data.output_parts)
             async.fn.writefile(output_lines, test_data.output_path)
-            -- Clean up parts to save memory
-            test_data.output_parts = nil
-            -- TODO: remove, as it is not needed anymore
-            -- else
-            --   -- Fallback to original method for backward compatibility
-            --   local colorized = vim.split(
-            --     M.colorizer(test_data.output),
-            --     "\n",
-            --     { trimempty = true }
-            --   )
-            --   async.fn.writefile(colorized, test_data.output_path)
+            test_data.output_parts = nil -- clean up parts to save memory
           end
         end
       end
@@ -465,10 +454,6 @@ function M.make_stream_results(accum)
         -- TODO: add short
       }
     end
-
-    -- if pos.id == test_data.position_id and result.code ~= 0 then
-    --   results[test_data.position_id].status = "failed"
-    -- end
   end
 
   return results
@@ -478,6 +463,7 @@ end
 --- @param tree neotest.Tree The neotest tree structure
 --- @param results table<string, neotest.Result> Current results
 --- @return table<string, neotest.Result> Updated results with file node data
+-- NOTE: this is intense, so cannot be part of streaming hot path.
 function M.populate_file_nodes(tree, results)
   for _, node in tree:iter_nodes() do
     local pos = node:data()
