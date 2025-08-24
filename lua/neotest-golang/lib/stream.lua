@@ -1,8 +1,12 @@
+local colorize = require("neotest-golang.lib.colorize")
+local convert = require("neotest-golang.lib.convert")
 local json = require("neotest-golang.lib.json")
 local logger = require("neotest-golang.logging")
 local mapping = require("neotest-golang.lib.mapping")
 local options = require("neotest-golang.options")
+local patterns = require("neotest-golang.lib.patterns")
 
+local async = require("neotest.async")
 local neotest_lib = require("neotest.lib")
 
 local M = {}
@@ -29,7 +33,6 @@ function M.new(tree, golist_data, json_filepath)
   --- Stream function.
   ---@param data function A function that returns a table of strings, each representing a line of JSON output.
   local function stream(data)
-    local process = require("neotest-golang.process") -- TODO: fix circular dependency
     local json_lines = {}
     local accum = {}
     ---@type table<string, neotest.Result>
@@ -55,16 +58,11 @@ function M.new(tree, golist_data, json_filepath)
 
       for _, json_line in ipairs(json_lines) do
         --- @type TestAccumulator
-        accum = process.process_event(
-          tree,
-          golist_data,
-          accum,
-          json_line,
-          position_lookup
-        )
+        accum =
+          M.process_event(tree, golist_data, accum, json_line, position_lookup)
       end
 
-      results = process.make_stream_results(accum)
+      results = M.make_stream_results(accum)
 
       -- TODO: optimize caching:
       -- 1. Direct cache population in make_stream_results:
@@ -87,6 +85,239 @@ function M.new(tree, golist_data, json_filepath)
   end
 
   return stream, stop_stream
+end
+
+--- Process a single event from the test output.
+--- @param tree neotest.Tree The neotest tree structure
+--- @param golist_data table The 'go list -json' output
+--- @param accum TestAccumulator Accumulated test data.
+--- @param e GoTestEvent The event data.
+--- @param position_lookup table<string, string> Position lookup table for O(1) mapping
+--- @return TestAccumulator
+-- TODO: this is part of streaming hot path. To be optimized.
+function M.process_event(tree, golist_data, accum, e, position_lookup)
+  if e.Package then
+    local id = e.Package
+    accum = M.process_package(tree, golist_data, accum, e, id)
+  end
+
+  if e.Package and e.Test then
+    local id = e.Package .. "::" .. e.Test
+    accum = M.process_test(tree, golist_data, accum, e, id, position_lookup)
+  end
+
+  return accum
+end
+
+--- Process package events
+--- @param tree neotest.Tree The neotest tree structure
+--- @param golist_data table The 'go list -json' output
+--- @param accum TestAccumulator Accumulated test data
+--- @param e GoTestEvent The event data
+--- @param id string Package ID
+--- @return TestAccumulator
+-- TODO: this is part of streaming hot path. To be optimized.
+function M.process_package(tree, golist_data, accum, e, id)
+  -- Indicate package started/running.
+  if not accum[id] and (e.Action == "start" or e.Action == "run") then
+    accum[id] = {
+      status = "running",
+      output = "",
+      output_parts = {},
+      errors = {},
+    }
+    if e.Output then
+      table.insert(accum[id].output_parts, e.Output)
+    end
+  end
+
+  -- Record output for package.
+  if accum[e.Package].status == "running" and e.Action == "output" then
+    if e.Output then
+      table.insert(accum[id].output_parts, e.Output)
+    end
+  end
+
+  -- Register package results.
+  if
+    accum[e.Package].status == "running"
+    and (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
+  then
+    if e.Action == "pass" then
+      accum[id].status = "passed"
+    elseif e.Action == "fail" then
+      accum[id].status = "failed"
+    else
+      accum[id].status = "skipped"
+    end
+
+    if e.Output then
+      -- NOTE: this does not ever happen, it seems.
+      table.insert(accum[id].output_parts, e.Output)
+    end
+
+    accum[id].position_id = convert.to_dir_position_id(golist_data, e.Package)
+  end
+  return accum
+end
+
+--- Process test events
+--- @param tree neotest.Tree The neotest tree structure
+--- @param golist_data table The 'go list -json' output
+--- @param accum TestAccumulator Accumulated test data
+--- @param e GoTestEvent The event data
+--- @param id string Test ID
+--- @param position_lookup table<string, string> Position lookup table for O(1) mapping
+--- @return TestAccumulator
+-- TODO: this is part of streaming hot path. To be optimized.
+function M.process_test(tree, golist_data, accum, e, id, position_lookup)
+  -- Indicate test started/running.
+  if not accum[id] and e.Action == "run" then
+    accum[id] = {
+      status = "running",
+      output = "",
+      output_parts = {},
+      errors = {},
+    }
+    if e.Output then
+      table.insert(accum[id].output_parts, e.Output)
+    end
+  end
+
+  -- Record output for test.
+  if accum[id].status == "running" and e.Action == "output" then
+    if e.Output then
+      table.insert(accum[id].output_parts, e.Output)
+    end
+  end
+
+  -- Register test results.
+  if
+    accum[id].status == "running"
+    and (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
+  then
+    if e.Action == "pass" then
+      accum[id].status = "passed"
+    elseif e.Action == "fail" then
+      accum[id].status = "failed"
+    else
+      accum[id].status = "skipped"
+    end
+
+    if e.Output then
+      -- NOTE: this does not ever happen, it seems.
+      table.insert(accum[id].output_parts, e.Output)
+    end
+
+    local pos_id = convert.get_position_id(position_lookup, e.Package, e.Test)
+    if pos_id then
+      accum[id].position_id = pos_id
+    else
+      logger.debug(
+        "Unable to find position id for test: " .. e.Package .. "::" .. e.Test
+      )
+    end
+  end
+  return accum
+end
+
+--- Process diagnostics from output parts (optimized version)
+--- @param test_data table Test data with output_parts table
+--- @return table[] Array of diagnostic errors
+function M.process_diagnostics_from_parts(test_data)
+  if not test_data.output_parts or #test_data.output_parts == 0 then
+    return {}
+  end
+
+  local errors = {}
+  -- TODO: move process/function into lib?
+  local process = require("neotest-golang.process") -- TODO: fix circular dependency
+  local test_filename =
+    process.extract_filename_from_pos_id(test_data.position_id)
+  local error_set = {}
+
+  -- Process each output part directly
+  for _, part in ipairs(test_data.output_parts) do
+    if part then
+      -- Handle multi-line parts by splitting if needed
+      local lines = vim.split(part, "\n", { trimempty = true })
+      for _, line in ipairs(lines) do
+        -- Use optimized single-pass pattern matching
+        local diagnostic = patterns.parse_diagnostic_line(line)
+        if diagnostic then
+          -- Filter diagnostics by filename if we have both filenames
+          local should_include_diagnostic = true
+          if test_filename and diagnostic.filename then
+            -- Only include diagnostic if it belongs to the test file
+            should_include_diagnostic = (diagnostic.filename == test_filename)
+          end
+
+          if should_include_diagnostic then
+            -- Create a unique key for duplicate detection
+            local error_key = (diagnostic.line_number - 1)
+              .. ":"
+              .. diagnostic.message
+
+            if not error_set[error_key] then
+              error_set[error_key] = true
+              table.insert(errors, {
+                line = diagnostic.line_number - 1,
+                message = diagnostic.message,
+                severity = diagnostic.severity,
+              })
+            end
+          end
+        end
+      end
+    end
+  end
+
+  return errors
+end
+
+--- Process internal test data into Neotest results for stream.
+---@param accum TestAccumulator The accumulated test data to process
+---@return table<string, neotest.Result>
+-- TODO: this is part of streaming hot path. To be optimized.
+function M.make_stream_results(accum)
+  ---@type table<string, neotest.Result>
+  local results = {}
+
+  for _, test_data in pairs(accum) do
+    if test_data.position_id ~= nil then
+      if test_data.output_path == nil then
+        -- NOTE: finalizing has not been done yet for this position id.
+        -- TODO: use explicit variable to denote processing state done/pending rather than output_path presence.
+
+        -- Use optimized diagnostics processing if output_parts available
+        if test_data.output_parts then
+          test_data.errors = M.process_diagnostics_from_parts(test_data)
+        end
+
+        test_data.output_path = vim.fs.normalize(async.fn.tempname())
+
+        local uv = vim.loop
+        local stat = uv.fs_stat(test_data.output_path)
+        if not stat then
+          -- file does not exist, let's write it
+          if test_data.output_parts then
+            local output_lines = colorize.colorize_parts(test_data.output_parts)
+            async.fn.writefile(output_lines, test_data.output_path)
+            test_data.output_parts = nil -- clean up parts to save memory
+          end
+        end
+      end
+
+      results[test_data.position_id] = {
+        status = test_data.status,
+        output = test_data.output_path,
+        errors = test_data.errors,
+        -- TODO: add short
+      }
+    end
+  end
+
+  return results
 end
 
 return M

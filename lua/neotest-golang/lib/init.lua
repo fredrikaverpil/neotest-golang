@@ -1,5 +1,6 @@
 local M = {}
 
+M.colorize = require("neotest-golang.lib.colorize")
 M.convert = require("neotest-golang.lib.convert")
 M.cmd = require("neotest-golang.lib.cmd")
 M.find = require("neotest-golang.lib.find")
