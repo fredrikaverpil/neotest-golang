@@ -76,6 +76,9 @@ function M.test_results(spec, result, tree)
   ---@type table<string, neotest.Result>
   local results = require("neotest-golang.lib.stream").cached_results -- TODO: fix circular dependency
   require("neotest-golang.lib.stream").cached_results = {} -- clear cache
+
+  vim.notify(vim.inspect(results))
+
   results[pos.id] = M.node_results(results[pos.id], result, gotest_output) -- register root node result
 
   -- Populate file nodes with aggregated results
