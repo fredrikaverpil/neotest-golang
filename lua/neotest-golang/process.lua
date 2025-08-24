@@ -15,18 +15,6 @@ local options = require("neotest-golang.options")
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 --- @field stop_stream fun() Stops the stream of test output.
 
--- TODO:: do not mix neotest.Result fields with custom fields. Make clear separation.
---
---- @alias TestAccumulator table<string, { status: neotest.ResultStatus, output: string, errors: table[], position_id?: string, output_parts: table[], output_path?: string, }>
-
---- @class GoTestEvent
---- @field Time? string ISO 8601 timestamp when the event occurred
---- @field Action "run"|"pause"|"cont"|"pass"|"bench"|"fail"|"output"|"skip"|"start" Test action
---- @field Package? string Package name being tested
---- @field Test? string Test name (present when Action relates to a specific test)
---- @field Elapsed? number Time elapsed in seconds
---- @field Output? string Output text (present when Action is "output")
-
 local M = {}
 
 --- Process the complete test output from the test command.

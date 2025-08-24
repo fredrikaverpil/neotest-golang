@@ -9,6 +9,18 @@ local patterns = require("neotest-golang.lib.patterns")
 local async = require("neotest.async")
 local neotest_lib = require("neotest.lib")
 
+-- TODO:: do not mix neotest.Result fields with custom fields. Make clear separation.
+--
+--- @alias TestAccumulator table<string, { status: neotest.ResultStatus, output: string, errors: table[], position_id?: string, output_parts: table[], output_path?: string, }>
+
+--- @class GoTestEvent
+--- @field Time? string ISO 8601 timestamp when the event occurred
+--- @field Action "run"|"pause"|"cont"|"pass"|"bench"|"fail"|"output"|"skip"|"start" Test action
+--- @field Package? string Package name being tested
+--- @field Test? string Test name (present when Action relates to a specific test)
+--- @field Elapsed? number Time elapsed in seconds
+--- @field Output? string Output text (present when Action is "output")
+
 local M = {}
 
 M.cached_results = {}
@@ -34,6 +46,8 @@ function M.new(tree, golist_data, json_filepath)
   ---@param data function A function that returns a table of strings, each representing a line of JSON output.
   local function stream(data)
     local json_lines = {}
+
+    ---@type TestAccumulator
     local accum = {}
     ---@type table<string, neotest.Result>
     local results = {}
