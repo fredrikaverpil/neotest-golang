@@ -152,6 +152,15 @@ function M.process_package(tree, golist_data, accum, e, id)
     end
   end
 
+  -- Record build output for test (introduced in Go 1.24).
+  if accum[id].status == "running" and e.Action == "build-output" then
+    vim.notify(vim.inspect(e)) -- TODO: what to do with build-output?
+    -- NOTE: "build-fail" message indicate build error.
+    if e.Output then
+      table.insert(accum[id].output_parts, e.Output)
+    end
+  end
+
   -- Register package results.
   if
     accum[e.Package].status == "running"
@@ -200,6 +209,15 @@ function M.process_test(tree, golist_data, accum, e, id, position_lookup)
 
   -- Record output for test.
   if accum[id].status == "running" and e.Action == "output" then
+    if e.Output then
+      table.insert(accum[id].output_parts, e.Output)
+    end
+  end
+
+  -- Record build output for test (introduced in Go 1.24).
+  if accum[id].status == "running" and e.Action == "build-output" then
+    vim.notify(vim.inspect(e)) -- TODO: what to do with build-output?
+    -- NOTE: "build-fail" message indicate build error.
     if e.Output then
       table.insert(accum[id].output_parts, e.Output)
     end
