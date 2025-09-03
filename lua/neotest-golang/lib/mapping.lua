@@ -1,15 +1,13 @@
 local convert = require("neotest-golang.lib.convert")
 local logger = require("neotest-golang.logging")
-
---- Fast position mapping between go test output and neotest tree positions.
---- Eliminates regex pattern matching with O(1) lookups.
+local options = require("neotest-golang.options")
 
 local M = {}
 
---- Build a bidirectional lookup table between go test keys and neotest position IDs
---- @param tree neotest.Tree The neotest tree structure
---- @param golist_data table The 'go list -json' output
---- @return table<string, string> Lookup table: go_test_key -> pos_id
+---Build a bidirectional lookup table between internal `go test` keys its corresponding neotest position IDs.
+---@param tree neotest.Tree The neotest tree structure
+---@param golist_data table The 'go list -json' output
+---@return table<string, string> Lookup table: go_test_key -> pos_id
 function M.build_position_lookup(tree, golist_data)
   local lookup = {}
   local stats = { processed = 0, mapped = 0, failed = 0 }
@@ -32,23 +30,46 @@ function M.build_position_lookup(tree, golist_data)
         convert.file_path_to_import_path(pos.path, import_to_dir)
 
       -- Extract go test name from position ID
-      local go_test_name = convert.pos_id_to_go_test_name(pos.id)
+      local go_test_name = convert.pos_id_to_go_test_name2(pos.id)
 
       if package_import and go_test_name then
         local internal_key = package_import .. "::" .. go_test_name
         lookup[internal_key] = pos.id
         stats.mapped = stats.mapped + 1
-
-        logger.trace("Mapped: " .. internal_key .. " -> " .. pos.id)
+        logger.debug("Mapped: " .. internal_key .. " -> " .. pos.id)
       else
         stats.failed = stats.failed + 1
-        logger.debug("Failed to map position: " .. pos.id)
+        if options.get().dev_notifications then
+          logger.warn("Failed to map position: " .. pos.id)
+        else
+          logger.debug("Failed to map position: " .. pos.id)
+        end
       end
     end
   end
 
   logger.debug("Position mapping stats:" .. vim.inspect(stats))
   return lookup
+end
+
+---Convert from test event Get position ID from go test event using lookup
+---@param lookup table<string, string> The position lookup table
+---@param package_import string Go package import path
+---@param test_name string Go test name (may include slashes for subtests)
+---@return string|nil Position ID or nil if not found
+function M.get_pos_id(lookup, package_import, test_name)
+  local internal_key = package_import .. "::" .. test_name
+  local pos_id = lookup[internal_key]
+
+  if not pos_id then
+    if options.get().dev_notifications then
+      logger.warn("No position found for: " .. internal_key)
+    else
+      logger.debug("No position found for: " .. internal_key)
+    end
+  end
+
+  return pos_id
 end
 
 return M

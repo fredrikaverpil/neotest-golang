@@ -1,5 +1,5 @@
 describe("pattern matching performance", function()
-  local patterns = require("neotest-golang.lib.patterns")
+  local diagnostics = require("neotest-golang.lib.diagnostics")
 
   it("should correctly parse various Go output formats", function()
     local test_cases = {
@@ -23,7 +23,7 @@ describe("pattern matching performance", function()
     }
 
     for _, case in ipairs(test_cases) do
-      local result = patterns.parse_diagnostic_line(case.line)
+      local result = diagnostics.parse_diagnostic_line(case.line)
 
       if case.expected then
         assert.is_not_nil(result, "Should parse: " .. case.line)
@@ -51,7 +51,7 @@ describe("pattern matching performance", function()
     }
 
     for _, case in ipairs(test_cases) do
-      local is_hint = patterns.is_hint_message(case.message)
+      local is_hint = diagnostics.is_hint_message(case.message)
       assert.equals(case.expected_hint, is_hint, "Message: " .. case.message)
     end
   end)
@@ -67,7 +67,7 @@ describe("pattern matching performance", function()
 
     local results = {}
     for _, line in ipairs(test_lines) do
-      local diagnostic = patterns.parse_diagnostic_line(line)
+      local diagnostic = diagnostics.parse_diagnostic_line(line)
       if diagnostic then
         table.insert(results, {
           line = diagnostic.line_number - 1, -- 0-indexed for neovim

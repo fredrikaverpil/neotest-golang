@@ -1,6 +1,19 @@
 describe("hint detection functionality", function()
   local lib = require("neotest-golang.lib")
 
+  --- Checks if the given line contains t.Log or t.Logf output (should be treated as hint)
+  --- Now uses optimized pattern parsing
+  ---@param line string
+  ---@return boolean
+  local function is_test_log_hint(line)
+    local diagnostic = lib.diagnostics.parse_diagnostic_line(line)
+    if not diagnostic then
+      return false
+    end
+
+    return diagnostic.severity == vim.diagnostic.severity.HINT
+  end
+
   it("should identify t.Log messages as hints", function()
     local test_lines = {
       "go:8: This is a t.Log message - should be treated as hint, not error",
@@ -9,7 +22,7 @@ describe("hint detection functionality", function()
     }
 
     for _, line in ipairs(test_lines) do
-      local is_hint = lib.diagnostics.is_test_log_hint(line)
+      local is_hint = is_test_log_hint(line)
       assert.is_true(
         is_hint,
         "Expected line to be identified as hint: " .. line
@@ -27,7 +40,7 @@ describe("hint detection functionality", function()
     }
 
     for _, line in ipairs(test_lines) do
-      local is_hint = lib.diagnostics.is_test_log_hint(line)
+      local is_hint = is_test_log_hint(line)
       assert.is_false(
         is_hint,
         "Expected line to be identified as error: " .. line
