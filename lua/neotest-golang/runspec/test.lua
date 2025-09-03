@@ -25,7 +25,7 @@ function M.build(pos, tree, strategy)
     table.insert(errors, golist_error)
   end
 
-  local test_name = lib.convert.to_gotest_test_name(pos.id)
+  local test_name = lib.convert.pos_id_to_gotest_test_name(pos.id)
   local test_name_regex = lib.convert.to_gotest_regex_pattern(test_name)
 
   local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(

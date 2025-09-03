@@ -1,12 +1,9 @@
 local logger = require("neotest-golang.logging")
-
---- Converts one form of data to another.
+local options = require("neotest-golang.options")
 
 local M = {}
 
--- REMOVED: to_test_position_id_pattern - replaced by mapping.lua O(1) lookup
-
---- Convert to Neotest position id pattern.
+---Convert to Neotest position id pattern.
 ---@param golist_data table Golist data containing package information
 ---@param package_name string The name of the package
 ---@return string? The pattern for matching against a test's position id in the neotest tree
@@ -62,7 +59,8 @@ end
 -- test name format.
 ---@param pos_id string
 ---@return string
-function M.to_gotest_test_name(pos_id)
+-- FIX: duplicate function
+function M.pos_id_to_gotest_test_name(pos_id)
   -- construct the test name
   local test_name = pos_id
   -- Remove the path before ::
@@ -77,10 +75,12 @@ function M.to_gotest_test_name(pos_id)
   return test_name
 end
 
---- Convert neotest position ID to go test name format
---- @param pos_id string Neotest position ID like "/path/file.go::TestName::"SubTest"::"Nested""
---- @return string|nil Go test name like "TestName/SubTest/Nested" or nil if invalid
-function M.pos_id_to_go_test_name(pos_id)
+---Convert neotest position ID to go test name format
+---@param pos_id string Neotest position ID like "/path/file.go::TestName::"SubTest"::"Nested""
+---@return string|nil Go test name like "TestName/SubTest/Nested" or nil if invalid
+-- TODO: this is part of streaming hot path. To be optimized.
+-- FIX: duplicate function
+function M.pos_id_to_go_test_name2(pos_id)
   -- Extract everything after the first ::
   local test_part = pos_id:match("::(.*)")
   if not test_part then
@@ -105,48 +105,10 @@ function M.pos_id_to_go_test_name(pos_id)
   return table.concat(go_test_parts, "/")
 end
 
---- Convert file path to Go import path using directory mapping
---- @param file_path string Full path to test file
---- @param import_to_dir table<string, string> Mapping of import paths to directories
---- @return string|nil Import path or nil if not found
-function M.file_path_to_import_path(file_path, import_to_dir)
-  -- Get the directory containing the file
-  local file_dir = file_path:match("(.+)/[^/]+$")
-  if not file_dir then
-    return nil
-  end
-
-  -- Find matching import path
-  for import_path, dir in pairs(import_to_dir) do
-    if dir == file_dir then
-      return import_path
-    end
-  end
-
-  logger.debug("No import path found for directory: " .. file_dir)
-  return nil
-end
-
---- Get position ID from go test event using O(1) lookup
---- @param lookup table<string, string> The position lookup table
---- @param package_name string Go package import path
---- @param test_name string Go test name (may include slashes for subtests)
---- @return string|nil Position ID or nil if not found
-function M.get_position_id(lookup, package_name, test_name)
-  local internal_key = package_name .. "::" .. test_name
-  local pos_id = lookup[internal_key]
-
-  if not pos_id then
-    logger.debug("No position found for: " .. internal_key)
-  end
-
-  return pos_id
-end
-
---- Convert go test name to neotest position ID format (reverse of pos_id_to_go_test_name)
---- @param go_test_name string Go test name like "TestName/SubTest/Nested"
---- @return string Neotest format like "TestName::"SubTest"::"Nested""
-function M.go_test_name_to_pos_format(go_test_name)
+---Convert go test name to neotest position ID format (reverse of pos_id_to_go_test_name)
+---@param go_test_name string Go test name like "TestName/SubTest/Nested"
+---@return string Neotest format like "TestName::"SubTest"::"Nested""
+function M.go_test_name_to_pos_id(go_test_name)
   local parts = vim.split(go_test_name, "/", { trimempty = true })
   local pos_parts = {}
 
@@ -162,6 +124,51 @@ function M.go_test_name_to_pos_format(go_test_name)
   end
 
   return table.concat(pos_parts, "::")
+end
+
+---Convert file path to Go import path using directory mapping
+---@param file_path string Full path to test file
+---@param import_to_dir table<string, string> Mapping of import paths to directories
+---@return string|nil Import path or nil if not found
+-- TODO: this is part of streaming hot path. To be optimized.
+function M.file_path_to_import_path(file_path, import_to_dir)
+  -- Get the directory containing the file
+  local file_dir = file_path:match("(.+)/[^/]+$")
+  if not file_dir then
+    return nil
+  end
+
+  -- Find matching import path
+  for import_path, dir in pairs(import_to_dir) do
+    if dir == file_dir then
+      return import_path
+    end
+  end
+
+  if options.get().dev_notifications then
+    logger.warn("No import path found for directory: " .. file_dir)
+  else
+    logger.debug("No import path found for directory: " .. file_dir)
+  end
+  return nil
+end
+
+---Convert Neotest position ID to Go test filename
+---@param pos_id string Position ID like "/path/to/file_test.go::TestName" or synthetic ID like "github.com/pkg::TestName"
+---@return string|nil Filename like "file_test.go" or nil if not a file path
+function M.pos_id_to_filename(pos_id)
+  if not pos_id then
+    return nil
+  end
+
+  -- Check if it looks like a file path (contains "/" and ends with ".go")
+  local file_path = pos_id:match("^([^:]+)")
+  if file_path and file_path:match("%.go$") and file_path:match("/") then
+    -- Extract just the filename from the full path
+    return file_path:match("([^/]+)$")
+  end
+
+  return nil
 end
 
 return M
