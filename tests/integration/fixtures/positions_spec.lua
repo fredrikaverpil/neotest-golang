@@ -27,7 +27,7 @@ describe("Discovery of test positions", function()
   it("Discover OK", function()
     -- Arrange
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/position_discovery/positions_test.go"
+      .. "/tests/go/internal/positions/positions_test.go"
     if vim.fn.has("win32") == 1 then
       test_filepath = normalize_windows_path(test_filepath)
     end

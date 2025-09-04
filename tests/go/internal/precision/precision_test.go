@@ -1,4 +1,4 @@
-package treesitter_precision
+package precision
 
 import "testing"
 

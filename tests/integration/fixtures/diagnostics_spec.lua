@@ -5,7 +5,7 @@ local options = require("neotest-golang.options")
 local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
 local real_execution = dofile(real_execution_path)
 
-describe("Integration: diagnostic_classification", function()
+describe("Integration: diagnostics", function()
   it("executes tests with diagnostic messages without breaking", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 

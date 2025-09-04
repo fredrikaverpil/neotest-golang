@@ -1,0 +1,5 @@
+describe("Basic functionality", function()
+  it("should do basic math", function()
+    assert.are.equal(2, 1 + 1)
+  end)
+end)

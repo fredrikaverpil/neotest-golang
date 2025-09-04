@@ -5,12 +5,12 @@ local options = require("neotest-golang.options")
 local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
 local real_execution = dofile(real_execution_path)
 
-describe("Integration: package_naming", function()
+describe("Integration: package naming", function()
   it("handles blackbox and whitebox package naming", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/package_naming/blackbox_test.go"
+      .. "/tests/go/internal/naming/blackbox_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     local tree, results = real_execution.execute_adapter_direct(test_filepath)
@@ -34,11 +34,11 @@ describe("Integration: package_naming", function()
   it("supports both internal and external testing patterns", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 
-    -- Test both blackbox and whitebox files in the package_naming directory
+    -- Test both blackbox and whitebox files in the naming directory
     local blackbox_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/package_naming/blackbox_test.go"
+      .. "/tests/go/internal/naming/blackbox_test.go"
     local whitebox_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/package_naming/whitebox_test.go"
+      .. "/tests/go/internal/naming/whitebox_test.go"
 
     blackbox_filepath = real_execution.normalize_path(blackbox_filepath)
     whitebox_filepath = real_execution.normalize_path(whitebox_filepath)

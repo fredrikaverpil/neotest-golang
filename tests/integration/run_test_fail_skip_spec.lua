@@ -11,7 +11,7 @@ describe("Integration: fail/skip paths", function()
 
     -- Use the file that contains failing tests
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/test_state_behaviors/mixed/fail_skip_test.go"
+      .. "/tests/go/internal/behaviors/mixed/fail_skip_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     -- Execute all tests in this file (which includes failures)
@@ -31,7 +31,7 @@ describe("Integration: fail/skip paths", function()
 
     -- Use a file that contains only passing tests
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/test_state_behaviors/passing/fail_skip_passing_test.go"
+      .. "/tests/go/internal/behaviors/passing/fail_skip_passing_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     -- Execute all tests in this file (all passing)
@@ -51,7 +51,7 @@ describe("Integration: fail/skip paths", function()
 
     -- Use a file that contains only skipped tests
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/test_state_behaviors/skipping/fail_skip_skipping_test.go"
+      .. "/tests/go/internal/behaviors/skipping/fail_skip_skipping_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     -- Execute all tests in this file (all skipped)
@@ -71,7 +71,7 @@ describe("Integration: fail/skip paths", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/test_state_behaviors/mixed/fail_skip_test.go"
+      .. "/tests/go/internal/behaviors/mixed/fail_skip_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     -- Execute all tests to get full output

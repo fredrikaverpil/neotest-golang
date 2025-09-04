@@ -1,4 +1,4 @@
-package special_characters
+package specialchars
 
 import "testing"
 

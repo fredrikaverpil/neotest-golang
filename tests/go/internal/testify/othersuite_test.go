@@ -1,4 +1,4 @@
-package testify_suites
+package testify
 
 // Basic imports
 import (

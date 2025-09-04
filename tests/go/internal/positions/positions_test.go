@@ -1,4 +1,4 @@
-package position_discovery
+package positions
 
 import (
 	"os"

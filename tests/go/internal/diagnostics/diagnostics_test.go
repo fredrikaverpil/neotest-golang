@@ -1,4 +1,4 @@
-package diagnostic_classification
+package diagnostics
 
 import "testing"
 

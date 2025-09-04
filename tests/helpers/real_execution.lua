@@ -124,16 +124,17 @@ end
 --- @param expected_status string Expected status ("passed", "failed", "skipped")
 function M.assert_test_status(results, pos_id, expected_status)
   assert(results[pos_id], "No result found for position: " .. pos_id)
-  assert.are.equal(
-    expected_status,
-    results[pos_id].status,
-    "Test "
-      .. pos_id
-      .. " expected "
-      .. expected_status
-      .. " but got "
-      .. tostring(results[pos_id].status)
-  )
+  local actual_status = results[pos_id].status
+  if actual_status ~= expected_status then
+    error(
+      "Test "
+        .. pos_id
+        .. " expected "
+        .. expected_status
+        .. " but got "
+        .. tostring(actual_status)
+    )
+  end
 end
 
 --- Assert that test output contains expected content

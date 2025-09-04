@@ -25,7 +25,8 @@ tasks:
     desc: Format Lua files with stylua
     cmds:
       - task: ensure-stylua
-      - stylua --config-path stylua.toml --check .
+      - stylua --config-path stylua.toml .
+      - git diff --color=always --exit-code
 
   install-stylua:
     desc: Install stylua using version from .tools/Cargo.toml

@@ -1,0 +1,58 @@
+name: nvim-busted
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  busted:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        version: [stable, nightly]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake unzip curl git libreadline-dev
+      
+      - name: Install Neovim plugins
+        run: |
+          mkdir -p ~/.local/share/nvim/site/pack/vendor/start
+          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
+          git clone --depth 1 https://github.com/nvim-neotest/neotest ~/.local/share/nvim/site/pack/vendor/start/neotest
+          git clone --depth 1 https://github.com/nvim-neotest/nvim-nio ~/.local/share/nvim/site/pack/vendor/start/nvim-nio
+          ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
+      
+      - name: Setup Lua and Luarocks
+        uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+      
+      - name: Setup Luarocks
+        uses: leafo/gh-actions-luarocks@v4
+      
+      - name: Install busted
+        run: |
+          luarocks init
+          luarocks config --scope project lua_version 5.1
+          luarocks install busted 2.2.0
+      
+      - name: Setup Neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.version }}
+      
+      - name: Neovim version
+        run: nvim --version
+      
+      - name: Run tests
+        run: luarocks test --local

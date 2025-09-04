@@ -42,17 +42,17 @@ tasks:
   test:
     desc: Run test task from all taskfiles
     cmds:
-      - cmd: task -t {{.TASKFILE}} test
-        for:
-          var: TASKFILES
-          split: "\n"
-          as: TASKFILE
-      - task: test-plenary
+      # - cmd: task -t {{.TASKFILE}} test
+      #   for:
+      #     var: TASKFILES
+      #     split: "\n"
+      #     as: TASKFILE
+      - task: test-busted
 
-  test-plenary:
-    desc: Run tests with Neovim and plenary
+  test-busted:
+    desc: Run tests with busted via lazy.nvim minit
     cmds:
-      - cmd: nvim --headless --noplugin -i NONE -u tests/bootstrap.lua -c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', timeout = 50000 }"
+      - cmd: nvim -l ./tests/busted.lua spec
 
   install:
     desc: Run install task from all taskfiles

@@ -5,12 +5,12 @@ local options = require("neotest-golang.options")
 local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
 local real_execution = dofile(real_execution_path)
 
-describe("Integration: treesitter_precision", function()
+describe("Integration: precision", function()
   it("executes treesitter precision tests without breaking", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/treesitter_precision/treesitter_precision_test.go"
+      .. "/tests/go/internal/precision/precision_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     local tree, results = real_execution.execute_adapter_direct(test_filepath)
@@ -36,7 +36,7 @@ describe("Integration: treesitter_precision", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/treesitter_precision/treesitter_precision_test.go"
+      .. "/tests/go/internal/precision/precision_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     local tree, results = real_execution.execute_adapter_direct(test_filepath)

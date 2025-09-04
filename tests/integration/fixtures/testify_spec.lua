@@ -31,7 +31,7 @@ describe("With testify_enabled=false", function()
   it("Discover test functions", function()
     -- Arrange
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/testify_suites/positions_test.go"
+      .. "/tests/go/internal/testify/positions_test.go"
     if vim.fn.has("win32") == 1 then
       test_filepath = normalize_windows_path(test_filepath)
     end
@@ -87,7 +87,7 @@ describe("With testify_enabled=true", function()
   it("Discover namespaces, test methods and test function", function()
     -- Arrange
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/testify_suites/positions_test.go"
+      .. "/tests/go/internal/testify/positions_test.go"
     if vim.fn.has("win32") == 1 then
       test_filepath = normalize_windows_path(test_filepath)
     end

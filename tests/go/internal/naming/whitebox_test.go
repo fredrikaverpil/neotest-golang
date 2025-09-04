@@ -1,4 +1,4 @@
-package package_naming
+package naming
 
 import "testing"
 
