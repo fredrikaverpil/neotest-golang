@@ -85,9 +85,9 @@ function M.test_results(spec, result, tree)
   if options.get().warn_test_results_missing then
     local missing = {}
     for _, node in tree:iter_nodes() do
-      local pos_ = node:data()
-      if results[pos_.id] == nil then
-        table.insert(missing, vim.inspect(pos_.id))
+      local node_pos = node:data()
+      if results[node_pos.id] == nil then
+        table.insert(missing, vim.inspect(node_pos.id))
       end
     end
     if #missing > 0 then
