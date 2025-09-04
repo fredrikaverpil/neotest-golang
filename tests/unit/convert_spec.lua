@@ -28,6 +28,40 @@ describe("Convert pos_id to go test name", function()
       lib.convert.pos_id_to_go_test_name(input)
     )
   end)
+
+  it("supports mixed case with space", function()
+    local input = '/path/file.go::TestNames::"Mixed case with space"'
+    assert.are_equal(
+      "TestNames/Mixed_case_with_space",
+      lib.convert.pos_id_to_go_test_name(input)
+    )
+  end)
+
+  it("supports special characters", function()
+    local input =
+      '/path/file.go::TestNames::"Period . comma , and apostrophy \' are ok to use"'
+    assert.are_equal(
+      "TestNames/Period_._comma_,_and_apostrophy_'_are_ok_to_use",
+      lib.convert.pos_id_to_go_test_name(input)
+    )
+  end)
+
+  it("supports brackets", function()
+    local input = '/path/file.go::TestNames::"Brackets [1] (2) {3} are ok"'
+    assert.are_equal(
+      "TestNames/Brackets_[1]_(2)_{3}_are_ok",
+      lib.convert.pos_id_to_go_test_name(input)
+    )
+  end)
+
+  it("supports regexp characters", function()
+    local input =
+      '/path/file.go::TestNames::"Regexp characters like ( ) [ ] { } - | ? + * ^ $ are ok"'
+    assert.are_equal(
+      "TestNames/Regexp_characters_like_(_)_[_]_{_}_-_|_?_+_*_^_$_are_ok",
+      lib.convert.pos_id_to_go_test_name(input)
+    )
+  end)
 end)
 
 describe("Convert go test name to pos_id", function()
@@ -109,6 +143,29 @@ describe("Convert go test name to pos_id (special cases)", function()
     assert.are_equal(
       'TestNames::"Test(success)"',
       lib.convert.go_test_name_to_pos_id(input)
+    )
+  end)
+end)
+
+describe("Convert go test name to regex pattern", function()
+  it("wrap single test in exact regex", function()
+    local input = "TestNames"
+    assert.are_equal("^TestNames$", lib.convert.to_gotest_regex_pattern(input))
+  end)
+
+  it("escapes parenthesis and anchors segments", function()
+    local input = "TestNames/Test(success)"
+    assert.are_equal(
+      "^TestNames$/^Test\\(success\\)$",
+      lib.convert.to_gotest_regex_pattern(input)
+    )
+  end)
+
+  it("wrap doubly nested test in exact regex", function()
+    local input = "TestNames/nested1/nested2"
+    assert.are_equal(
+      "^TestNames$/^nested1$/^nested2$",
+      lib.convert.to_gotest_regex_pattern(input)
     )
   end)
 end)
