@@ -17,14 +17,40 @@ function M.init()
     ["nvim-treesitter"] = {
       url = "https://github.com/nvim-treesitter/nvim-treesitter",
     },
-    neotest = { url = "https://github.com/nvim-neotest/neotest" },
+    neotest = {
+      url = "https://github.com/nvim-neotest/neotest",
+      hash = "cd1bccbe80772c70732b43f1b95addab2083067a",
+    },
   }
   for plugin, data in pairs(plugins) do
     local plugin_path = site_dir .. "/pack/deps/start/" .. plugin
     if vim.fn.isdirectory(plugin_path) ~= 1 then
+      print("Cloning " .. plugin .. "...")
       os.execute("git clone " .. data.url .. " " .. plugin_path)
+      if data.hash then
+        print("Checking out hash " .. data.hash .. " for " .. plugin)
+        os.execute("cd " .. plugin_path .. " && git checkout " .. data.hash)
+      end
     else
       print("Plugin " .. plugin .. " already downloaded")
+      if data.hash then
+        -- Verify we're on the right hash
+        local current_hash =
+          io.popen("cd " .. plugin_path .. " && git rev-parse HEAD")
+            :read("*a")
+            :gsub("%s+", "")
+        if current_hash ~= data.hash then
+          print("Updating " .. plugin .. " to hash " .. data.hash)
+          os.execute(
+            "cd "
+              .. plugin_path
+              .. " && git fetch && git checkout "
+              .. data.hash
+          )
+        else
+          print("Plugin " .. plugin .. " already on correct hash")
+        end
+      end
     end
     print("Adding to runtimepath: " .. plugin_path)
     vim.opt.runtimepath:append(plugin_path)
@@ -32,6 +58,9 @@ function M.init()
 
   print("Runtime path: " .. vim.inspect(vim.opt.runtimepath:get()))
   print("Package path: " .. package.path)
+
+  -- Add project root to runtime path so we can require our adapter
+  vim.opt.runtimepath:append(".")
 
   -- Check availability
   require("plenary")
@@ -44,6 +73,31 @@ function M.init()
     auto_install = true,
     sync_install = true,
   })
+
+  -- Initialize Neotest with our golang adapter
+  print("Initializing Neotest with golang adapter...")
+  local adapter = require("neotest-golang")
+  require("neotest").setup({
+    adapters = {
+      adapter({
+        -- Configure for test environment
+        runner = "go",
+        go_test_args = { "-v", "-race", "-count=1" },
+        colorize_test_output = false,
+        warn_test_results_missing = false,
+        -- Don't set env here as it might cause issues
+      }),
+    },
+    -- Use integrated strategy for real execution
+    default_strategy = "integrated",
+    -- Enable discovery for our test Go files
+    discovery = {
+      enabled = true,
+    },
+    -- Disable logging during tests to avoid noise
+    log_level = vim.log.levels.WARN,
+  })
+  print("Neotest initialized successfully!")
 
   -- Check if PlenaryBustedDirectory command is available
   vim.cmd([[runtime plugin/plenary.vim]])

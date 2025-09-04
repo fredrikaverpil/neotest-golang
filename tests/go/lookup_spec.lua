@@ -27,6 +27,18 @@ describe("Lookup", function()
         package = "diagnostics",
         replacements = {},
       },
+      [folderpath .. "/internal/fail_skip/fail_skip_test.go"] = {
+        package = "fail_skip",
+        replacements = {},
+      },
+      [folderpath .. "/internal/fail_skip_passing/fail_skip_passing_test.go"] = {
+        package = "fail_skip_passing",
+        replacements = {},
+      },
+      [folderpath .. "/internal/fail_skip_skipping/fail_skip_skipping_test.go"] = {
+        package = "fail_skip_skipping",
+        replacements = {},
+      },
       [folderpath .. "/internal/operand/operand_test.go"] = {
         package = "operand",
         replacements = {},

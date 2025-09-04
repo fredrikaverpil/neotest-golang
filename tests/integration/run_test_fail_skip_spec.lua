@@ -1,172 +1,94 @@
 local _ = require("plenary")
-local adapter = require("neotest-golang")
-local nio = require("nio")
 local options = require("neotest-golang.options")
 
-local function normalize_windows_path(path)
-  if vim.fn.has("win32") == 1 then
-    return path:gsub("/", "\\")
-  end
-  return path
-end
-
-local function encode(tbl)
-  return vim.json.encode(tbl)
-end
-
-local function lines_for(pkg, test_name, action)
-  if action == "fail" then
-    return {
-      encode({
-        Time = "2025-01-01T00:00:00Z",
-        Action = "run",
-        Package = pkg,
-        Test = test_name,
-      }),
-      encode({
-        Time = "2025-01-01T00:00:01Z",
-        Action = "output",
-        Package = pkg,
-        Test = test_name,
-        Output = "=== RUN   " .. test_name,
-      }),
-      encode({
-        Time = "2025-01-01T00:00:02Z",
-        Action = "output",
-        Package = pkg,
-        Test = test_name,
-        Output = "file_test.go:10: assertion failed",
-      }),
-      encode({
-        Time = "2025-01-01T00:00:03Z",
-        Action = "fail",
-        Package = pkg,
-        Test = test_name,
-        Elapsed = 0.001,
-      }),
-      encode({
-        Time = "2025-01-01T00:00:04Z",
-        Action = "fail",
-        Package = pkg,
-        Elapsed = 0.002,
-      }),
-    }
-  elseif action == "skip" then
-    return {
-      encode({
-        Time = "2025-01-01T00:00:00Z",
-        Action = "run",
-        Package = pkg,
-        Test = test_name,
-      }),
-      encode({
-        Time = "2025-01-01T00:00:01Z",
-        Action = "output",
-        Package = pkg,
-        Test = test_name,
-        Output = "=== RUN   " .. test_name,
-      }),
-      encode({
-        Time = "2025-01-01T00:00:02Z",
-        Action = "skip",
-        Package = pkg,
-        Test = test_name,
-        Elapsed = 0.001,
-      }),
-      encode({
-        Time = "2025-01-01T00:00:03Z",
-        Action = "skip",
-        Package = pkg,
-        Elapsed = 0.002,
-      }),
-    }
-  end
-end
+-- Load our real execution helper
+local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
+local real_execution = dofile(real_execution_path)
 
 describe("Integration: fail/skip paths", function()
-  it("marks skipped test at the test node (file remains passed)", function()
+  it("file reports failed status when containing failing tests", function()
+    options.set({ runner = "go", warn_test_results_missing = false })
+
+    -- Use the file that contains failing tests
+    local test_filepath = vim.uv.cwd()
+      .. "/tests/go/internal/fail_skip/fail_skip_test.go"
+    test_filepath = real_execution.normalize_path(test_filepath)
+
+    -- Execute all tests in this file (which includes failures)
+    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+
+    -- File-level should be marked as failed when containing failing tests
+    local file_pos_id = test_filepath
+    assert.is_truthy(results[file_pos_id])
+    assert.are.equal("failed", results[file_pos_id].status)
+
+    -- Should have output
+    assert.is_truthy(results[file_pos_id].output)
+  end)
+
+  it("file reports passed status when containing only passing tests", function()
+    options.set({ runner = "go", warn_test_results_missing = false })
+
+    -- Use a file that contains only passing tests
+    local test_filepath = vim.uv.cwd()
+      .. "/tests/go/internal/fail_skip_passing/fail_skip_passing_test.go"
+    test_filepath = real_execution.normalize_path(test_filepath)
+
+    -- Execute all tests in this file (all passing)
+    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+
+    -- File-level should be marked as passed when containing only passing tests
+    local file_pos_id = test_filepath
+    assert.is_truthy(results[file_pos_id])
+    assert.are.equal("passed", results[file_pos_id].status)
+
+    -- Should have output
+    assert.is_truthy(results[file_pos_id].output)
+  end)
+
+  it("file reports passed status when containing only skipped tests", function()
+    options.set({ runner = "go", warn_test_results_missing = false })
+
+    -- Use a file that contains only skipped tests
+    local test_filepath = vim.uv.cwd()
+      .. "/tests/go/internal/fail_skip_skipping/fail_skip_skipping_test.go"
+    test_filepath = real_execution.normalize_path(test_filepath)
+
+    -- Execute all tests in this file (all skipped)
+    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+
+    -- File-level should be marked as passed when containing only skipped tests
+    -- (This is because Go treats skipped tests as non-failures)
+    local file_pos_id = test_filepath
+    assert.is_truthy(results[file_pos_id])
+    assert.are.equal("passed", results[file_pos_id].status)
+
+    -- Should have output
+    assert.is_truthy(results[file_pos_id].output)
+  end)
+
+  it("output contains evidence of test execution for failed tests", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/positions/positions_test.go"
-    test_filepath = normalize_windows_path(test_filepath)
+      .. "/tests/go/internal/fail_skip/fail_skip_test.go"
+    test_filepath = real_execution.normalize_path(test_filepath)
 
-    local tree =
-      nio.tests.with_async_context(adapter.discover_positions, test_filepath)
-
-    local import_path =
-      "github.com/fredrikaverpil/neotest-golang/internal/positions"
-    local test_name = "TestTopLevel"
-    local test_pos_id = test_filepath .. "::" .. test_name
-
-    local run_spec = adapter.build_spec({ tree = tree })
-    assert.is_truthy(run_spec)
-
-    local lines = lines_for(import_path, test_name, "skip")
-
-    local emitted = run_spec.stream(function()
-      return lines
-    end)()
-    assert.is_truthy(emitted)
-
-    local output_path = vim.fs.normalize(vim.fn.tempname())
-    vim.fn.writefile(lines, output_path)
-
-    local results = nio.tests.with_async_context(
-      adapter.results,
-      run_spec,
-      { code = 0, output = output_path },
-      tree
-    )
-
-    assert.is_truthy(results[test_pos_id])
-    assert.are.equal("skipped", results[test_pos_id].status)
+    -- Execute all tests to get full output
+    local tree, results = real_execution.execute_adapter_direct(test_filepath)
 
     local file_pos_id = test_filepath
     assert.is_truthy(results[file_pos_id])
-    -- With only one test skipped in the file, overall may still be passed depending on other tests in file.
-    -- We assert presence rather than forcing exact status here to keep this stable across fixtures.
-    assert.is_truthy(results[file_pos_id].status)
-  end)
+    assert.is_truthy(results[file_pos_id].output)
 
-  it("marks failing test at the test node", function()
-    options.set({ runner = "go", warn_test_results_missing = false })
+    -- Read the output and verify it contains evidence of different test outcomes
+    local output_lines = vim.fn.readfile(results[file_pos_id].output)
+    local output_text = table.concat(output_lines, "\n")
 
-    local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/positions/positions_test.go"
-    test_filepath = normalize_windows_path(test_filepath)
+    -- Should contain evidence of tests running
+    assert.is_true(output_text:len() > 0, "Output should not be empty")
 
-    local tree =
-      nio.tests.with_async_context(adapter.discover_positions, test_filepath)
-
-    local import_path =
-      "github.com/fredrikaverpil/neotest-golang/internal/positions"
-    local test_name = "TestTopLevel"
-    local test_pos_id = test_filepath .. "::" .. test_name
-
-    local run_spec = adapter.build_spec({ tree = tree })
-    assert.is_truthy(run_spec)
-
-    local lines = lines_for(import_path, test_name, "fail")
-
-    local emitted = run_spec.stream(function()
-      return lines
-    end)()
-    assert.is_truthy(emitted)
-
-    local output_path = vim.fs.normalize(vim.fn.tempname())
-    vim.fn.writefile(lines, output_path)
-
-    local results = nio.tests.with_async_context(
-      adapter.results,
-      run_spec,
-      { code = 1, output = output_path },
-      tree
-    )
-
-    assert.is_truthy(results[test_pos_id])
-    assert.are.equal("failed", results[test_pos_id].status)
-
-    -- File-level aggregation is tested in dedicated unit specs.
+    -- The file overall should be failed since it contains failing tests
+    assert.are.equal("failed", results[file_pos_id].status)
   end)
 end)
