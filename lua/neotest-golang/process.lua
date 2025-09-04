@@ -82,15 +82,12 @@ function M.test_results(spec, result, tree)
   -- Populate file nodes with aggregated results
   results = M.populate_file_nodes(tree, results)
 
-  -- NOTE: Log tests wich were not populated into the results, during rewrite/debugging.
-  for _, node in tree:iter_nodes() do
-    local pos_ = node:data()
-    if results[pos_.id] == nil then
-      vim.notify(
-        "Test data not populated for: " .. vim.inspect(pos_.id),
-        vim.log.levels.WARN,
-        { group = "neotest-golang" }
-      )
+  if options.get().warn_test_results_missing then
+    for _, node in tree:iter_nodes() do
+      local pos_ = node:data()
+      if results[pos_.id] == nil then
+        logger.warn("Test data not populated for: " .. vim.inspect(pos_.id))
+      end
     end
   end
 

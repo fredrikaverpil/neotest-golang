@@ -19,8 +19,9 @@ local opts = {
   testify_operand = "^(s|suite)$",
   testify_import_identifier = "^(suite)$",
   colorize_test_output = true,
-  warn_test_name_dupes = true,
-  warn_test_not_executed = true,
+  warn_test_name_dupes = true, -- TODO: not implemented yet
+  warn_test_not_executed = true, -- TODO: not implemented yet
+  warn_test_results_missing = true,
   log_level = vim.log.levels.WARN,
   sanitize_output = false,
 

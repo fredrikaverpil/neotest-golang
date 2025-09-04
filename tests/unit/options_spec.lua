@@ -22,6 +22,7 @@ describe("Options are set up", function()
       colorize_test_output = true,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
+      warn_test_results_missing = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
 
@@ -53,6 +54,7 @@ describe("Options are set up", function()
       colorize_test_output = false,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
+      warn_test_results_missing = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
 
@@ -94,6 +96,7 @@ describe("Options are set up", function()
       colorize_test_output = true,
       warn_test_name_dupes = true,
       warn_test_not_executed = true,
+      warn_test_results_missing = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
 
