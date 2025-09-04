@@ -5,14 +5,14 @@ describe("mapping module", function()
     it("converts simple test names", function()
       local pos_id = "/path/to/pkg/file_test.go::TestName"
       local expected = "TestName"
-      local result = lib.convert.pos_id_to_go_test_name2(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
     it("converts test with single subtest", function()
       local pos_id = '/path/to/pkg/file_test.go::TestName::"SubTest"'
       local expected = "TestName/SubTest"
-      local result = lib.convert.pos_id_to_go_test_name2(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
@@ -20,7 +20,7 @@ describe("mapping module", function()
       local pos_id =
         '/path/to/pkg/file_test.go::TestName::"SubTest1"::"NestedSubTest"'
       local expected = "TestName/SubTest1/NestedSubTest"
-      local result = lib.convert.pos_id_to_go_test_name2(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
@@ -28,7 +28,7 @@ describe("mapping module", function()
       local pos_id =
         '/path/to/pkg/file_test.go::TestName::"Sub Test With Spaces"'
       local expected = "TestName/Sub_Test_With_Spaces"
-      local result = lib.convert.pos_id_to_go_test_name2(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
@@ -36,7 +36,7 @@ describe("mapping module", function()
       local pos_id =
         '/path/to/pkg/file_test.go::TestMain::"Level1"::"Level2"::"Level3"::"Level4"'
       local expected = "TestMain/Level1/Level2/Level3/Level4"
-      local result = lib.convert.pos_id_to_go_test_name2(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
@@ -44,13 +44,13 @@ describe("mapping module", function()
       local pos_id =
         '/path/to/pkg/file_test.go::TestName::"SubTest with & symbols!"'
       local expected = "TestName/SubTest_with_&_symbols!"
-      local result = lib.convert.pos_id_to_go_test_name2(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.are.equal(expected, result)
     end)
 
     it("returns nil for invalid position IDs", function()
       local pos_id = "/path/to/pkg/file_test.go" -- No :: separator
-      local result = lib.convert.pos_id_to_go_test_name2(pos_id)
+      local result = lib.convert.pos_id_to_go_test_name(pos_id)
       assert.is_nil(result)
     end)
   end)
@@ -265,7 +265,7 @@ describe("mapping module", function()
         for _, test_case in ipairs(test_cases) do
           -- Test pos -> go -> pos
           local go_result =
-            lib.convert.pos_id_to_go_test_name2("file.go::" .. test_case.pos)
+            lib.convert.pos_id_to_go_test_name("file.go::" .. test_case.pos)
           assert.are.equal(
             test_case.go,
             go_result,
@@ -288,7 +288,7 @@ describe("mapping module", function()
           )
 
           local go_result2 =
-            lib.convert.pos_id_to_go_test_name2("file.go::" .. pos_result2)
+            lib.convert.pos_id_to_go_test_name("file.go::" .. pos_result2)
           assert.are.equal(
             test_case.go,
             go_result2,

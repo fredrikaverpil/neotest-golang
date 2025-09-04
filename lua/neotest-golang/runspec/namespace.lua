@@ -24,7 +24,11 @@ function M.build(pos, tree)
     table.insert(errors, golist_error)
   end
 
-  local test_name = lib.convert.pos_id_to_gotest_test_name(pos.id)
+  local test_name = lib.convert.pos_id_to_go_test_name(pos.id)
+  if not test_name then
+    logger.error("Could not determine test name for position id: " .. pos.id)
+    return nil
+  end
   test_name = lib.convert.to_gotest_regex_pattern(test_name)
 
   local test_cmd, json_filepath =
