@@ -163,9 +163,11 @@ describe("mapping module", function()
   end)
 
   describe("build_position_lookup", function()
-    local mock_tree, mock_golist_data
+    local mock_tree, mock_golist_data, deep_pos_id
 
     before_each(function()
+      deep_pos_id =
+        '/path/to/pkg/file_test.go::TestMain::"Level1"::"Level2"::"Level3"'
       -- Mock tree structure with test nodes
       local nodes = {
         {
@@ -182,6 +184,15 @@ describe("mapping module", function()
             return {
               type = "test",
               id = '/path/to/pkg/file_test.go::TestName::"SubTest"',
+              path = "/path/to/pkg/file_test.go",
+            }
+          end,
+        },
+        {
+          data = function()
+            return {
+              type = "test",
+              id = deep_pos_id,
               path = "/path/to/pkg/file_test.go",
             }
           end,
@@ -231,6 +242,31 @@ describe("mapping module", function()
 
       -- Should not have entry for file node
       assert.is_nil(result["example.com/repo/pkg::"])
+    end)
+
+    it("adds prefix keys for subtests mapping to deepest node", function()
+      local result =
+        lib.mapping.build_position_lookup(mock_tree, mock_golist_data)
+
+      -- Deep node exact mapping
+      assert.are.equal(
+        deep_pos_id,
+        result["example.com/repo/pkg::TestMain/Level1/Level2/Level3"]
+      )
+
+      -- Intermediate prefixes should map as well
+      assert.are.equal(
+        deep_pos_id,
+        result["example.com/repo/pkg::TestMain/Level1/Level2"]
+      )
+      assert.are.equal(
+        deep_pos_id,
+        result["example.com/repo/pkg::TestMain/Level1"]
+      )
+
+      -- Top-level prefix should already exist; must not overwrite an existing top-level test if present
+      -- but ensure it has some mapping. Here, TestMain top-level isn't separately present, so it should map to deep_pos_id
+      assert.are.equal(deep_pos_id, result["example.com/repo/pkg::TestMain"])
     end)
 
     it("handles empty tree", function()
