@@ -63,9 +63,13 @@ function M.get_pos_id(lookup, package_import, test_name)
 
   if not pos_id then
     if options.get().dev_notifications then
-      logger.warn("No position found for: " .. internal_key)
+      logger.warn(
+        "Test was executed but not detected by Neotest: " .. internal_key
+      )
     else
-      logger.debug("No position found for: " .. internal_key)
+      logger.debug(
+        "Test was executed but not detected by Neotest: " .. internal_key
+      )
     end
   end
 
