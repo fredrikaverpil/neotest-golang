@@ -74,8 +74,8 @@ function M.test_results(spec, result, tree)
 
   -- Re-register cached results.
   ---@type table<string, neotest.Result>
-  local results = require("neotest-golang.lib.stream").cached_results -- TODO: fix circular dependency
-  require("neotest-golang.lib.stream").cached_results = {} -- clear cache
+  local results = lib.stream.cached_results
+  lib.stream.cached_results = {} -- clear cache
 
   results[pos.id] = M.node_results(results[pos.id], result, gotest_output) -- register root node result
 
