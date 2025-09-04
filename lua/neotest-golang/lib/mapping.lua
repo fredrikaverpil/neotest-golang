@@ -20,23 +20,25 @@ function M.build_position_lookup(tree, golist_data)
     end
   end
 
+  -- First pass: collect all test nodes with their resolved package + go test name
+  ---@type { package_import: string, go_test_name: string, pos_id: string }[]
+  local collected = {}
+
   for _, node in tree:iter_nodes() do
     local pos = node:data()
     if pos.type == "test" then
       stats.processed = stats.processed + 1
 
-      -- Extract package import path from file path
       local package_import =
         convert.file_path_to_import_path(pos.path, import_to_dir)
-
-      -- Extract go test name from position ID
       local go_test_name = convert.pos_id_to_go_test_name(pos.id)
 
       if package_import and go_test_name then
-        local internal_key = package_import .. "::" .. go_test_name
-        lookup[internal_key] = pos.id
-        stats.mapped = stats.mapped + 1
-        logger.debug("Mapped: " .. internal_key .. " -> " .. pos.id)
+        table.insert(collected, {
+          package_import = package_import,
+          go_test_name = go_test_name,
+          pos_id = pos.id,
+        })
       else
         stats.failed = stats.failed + 1
         if options.get().dev_notifications then
@@ -44,6 +46,36 @@ function M.build_position_lookup(tree, golist_data)
         else
           logger.debug("Failed to map position: " .. pos.id)
         end
+      end
+    end
+  end
+
+  -- Helper to add mapping without overwriting existing keys
+  local function add_mapping(key, pos_id)
+    if not lookup[key] then
+      lookup[key] = pos_id
+      stats.mapped = stats.mapped + 1
+      logger.debug("Mapped: " .. key .. " -> " .. pos_id)
+    end
+  end
+
+  -- Second pass: add exact mappings for all tests
+  for _, item in ipairs(collected) do
+    local key = item.package_import .. "::" .. item.go_test_name
+    add_mapping(key, item.pos_id)
+  end
+
+  -- Third pass: for tests with subtests, add prefix keys for each subtest level
+  for _, item in ipairs(collected) do
+    local segments =
+      vim.split(item.go_test_name, "/", { plain = true, trimempty = true })
+    if #segments > 1 then
+      local prefix = nil
+      for i, seg in ipairs(segments) do
+        prefix = (i == 1) and seg or (prefix .. "/" .. seg)
+        local key = item.package_import .. "::" .. prefix
+        -- Do not overwrite existing exact mappings (e.g., top-level test nodes)
+        add_mapping(key, item.pos_id)
       end
     end
   end
