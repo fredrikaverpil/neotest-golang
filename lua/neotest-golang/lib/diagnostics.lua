@@ -25,62 +25,6 @@ M.assertion_patterns = {
 ---Captures both "go:123: message" and "filename.go:123: message" formats
 M.go_output_pattern = "^%s*([%w_%-%.]*go):(%d+): (.*)"
 
----Process diagnostics.
----@param test_entry TestEntry Test entry with metadata containing output_parts
----@return neotest.Error[] Array of diagnostic errors
-function M.process_diagnostics(test_entry)
-  if
-    not test_entry.metadata.output_parts
-    or #test_entry.metadata.output_parts == 0
-  then
-    return {}
-  end
-
-  ---@type neotest.Error[]
-  local errors = {}
-  local test_filename =
-    convert.pos_id_to_filename(test_entry.metadata.position_id)
-  local error_set = {}
-
-  -- Process each output part directly
-  for _, part in ipairs(test_entry.metadata.output_parts) do
-    if part then
-      -- Handle multi-line parts by splitting if needed
-      local lines = vim.split(part, "\n", { trimempty = true })
-      for _, line in ipairs(lines) do
-        -- Use optimized single-pass pattern matching
-        local diagnostic = M.parse_diagnostic_line(line)
-        if diagnostic then
-          -- Filter diagnostics by filename if we have both filenames
-          local should_include_diagnostic = true
-          if test_filename and diagnostic.filename then
-            -- Only include diagnostic if it belongs to the test file
-            should_include_diagnostic = (diagnostic.filename == test_filename)
-          end
-
-          if should_include_diagnostic then
-            -- Create a unique key for duplicate detection
-            local error_key = (diagnostic.line_number - 1)
-              .. ":"
-              .. diagnostic.message
-
-            if not error_set[error_key] then
-              error_set[error_key] = true
-              table.insert(errors, {
-                line = diagnostic.line_number - 1,
-                message = diagnostic.message,
-                severity = diagnostic.severity,
-              })
-            end
-          end
-        end
-      end
-    end
-  end
-
-  return errors
-end
-
 ---Parse Go test output line and classify as hint or error
 ---@param line string The line to parse
 ---@return table|nil Diagnostic data with {filename, line_number, message, severity} or nil if no match
@@ -154,25 +98,60 @@ function M.is_hint_message(message)
   return true
 end
 
----Extract hint diagnostics from test output lines
----Now uses optimized single-pass pattern matching
----@param lines table<string>
----@return table<{line: number, message: string, severity: number}>
-function M.extract_hints_from_output(lines)
-  local hints = {}
+---Process diagnostics.
+---@param test_entry TestEntry Test entry with metadata containing output_parts
+---@return neotest.Error[] Array of diagnostic errors
+function M.process_diagnostics(test_entry)
+  if
+    not test_entry.metadata.output_parts
+    or #test_entry.metadata.output_parts == 0
+  then
+    return {}
+  end
 
-  for _, line in ipairs(lines) do
-    local diagnostic = M.parse_diagnostic_line(line)
-    if diagnostic and diagnostic.severity == vim.diagnostic.severity.HINT then
-      table.insert(hints, {
-        line = diagnostic.line_number - 1, -- neovim lines are 0-indexed
-        message = diagnostic.message,
-        severity = diagnostic.severity,
-      })
+  ---@type neotest.Error[]
+  local errors = {}
+  local test_filename =
+    convert.pos_id_to_filename(test_entry.metadata.position_id)
+  local error_set = {}
+
+  -- Process each output part directly
+  for _, part in ipairs(test_entry.metadata.output_parts) do
+    if part then
+      -- Handle multi-line parts by splitting if needed
+      local lines = vim.split(part, "\n", { trimempty = true })
+      for _, line in ipairs(lines) do
+        -- Use optimized single-pass pattern matching
+        local diagnostic = M.parse_diagnostic_line(line)
+        if diagnostic then
+          -- Filter diagnostics by filename if we have both filenames
+          local should_include_diagnostic = true
+          if test_filename and diagnostic.filename then
+            -- Only include diagnostic if it belongs to the test file
+            should_include_diagnostic = (diagnostic.filename == test_filename)
+          end
+
+          if should_include_diagnostic then
+            -- Create a unique key for duplicate detection
+            local error_key = (diagnostic.line_number - 1)
+              .. ":"
+              .. diagnostic.message
+
+            if not error_set[error_key] then
+              error_set[error_key] = true
+              table.insert(errors, {
+                line = diagnostic.line_number - 1,
+                message = diagnostic.message,
+                severity = diagnostic.severity,
+              })
+            end
+          end
+        end
+      end
     end
   end
 
-  return hints
+  return errors
 end
 
 return M

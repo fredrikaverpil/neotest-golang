@@ -59,13 +59,17 @@ function M.build_position_lookup(tree, golist_data)
     end
   end
 
+  -- Track exact keys to avoid creating phantom prefix mappings
+  local exact_keys = {}
+
   -- Second pass: add exact mappings for all tests
   for _, item in ipairs(collected) do
     local key = item.package_import .. "::" .. item.go_test_name
     add_mapping(key, item.pos_id)
+    exact_keys[key] = true
   end
 
-  -- Third pass: for tests with subtests, add prefix keys for each subtest level
+  -- Third pass: only add prefix keys if that exact test node exists in the tree
   for _, item in ipairs(collected) do
     local segments =
       vim.split(item.go_test_name, "/", { plain = true, trimempty = true })
@@ -74,8 +78,10 @@ function M.build_position_lookup(tree, golist_data)
       for i, seg in ipairs(segments) do
         prefix = (i == 1) and seg or (prefix .. "/" .. seg)
         local key = item.package_import .. "::" .. prefix
-        -- Do not overwrite existing exact mappings (e.g., top-level test nodes)
-        add_mapping(key, item.pos_id)
+        if exact_keys[key] then
+          -- Do not overwrite existing exact mappings (e.g., top-level test nodes)
+          add_mapping(key, item.pos_id)
+        end
       end
     end
   end
