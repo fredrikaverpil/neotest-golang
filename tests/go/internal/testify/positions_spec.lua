@@ -6,6 +6,10 @@ local lib = require("neotest-golang.lib")
 local options = require("neotest-golang.options")
 local testify = require("neotest-golang.features.testify")
 
+local function normalize_windows_path(path)
+  return path:gsub("/", "\\")
+end
+
 local function compareIgnoringKeys(t1, t2, ignoreKeys)
   local function copyTable(t, ignoreKeys)
     local copy = {}
@@ -21,10 +25,6 @@ local function compareIgnoringKeys(t1, t2, ignoreKeys)
     return copy
   end
   return copyTable(t1, ignoreKeys), copyTable(t2, ignoreKeys)
-end
-
-local function normalize_windows_path(path)
-  return path:gsub("/", "\\")
 end
 
 describe("With testify_enabled=false", function()
