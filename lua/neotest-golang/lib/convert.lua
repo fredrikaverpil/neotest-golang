@@ -18,8 +18,7 @@ function M.to_dir_position_id(golist_data, package_name)
   logger.error("Could not find position id for package: " .. package_name)
 end
 
--- Converts the test name into a regexp-friendly pattern, for usage in
--- 'go test'.
+-- Converts the test name into a regexp-friendly pattern, for usage in 'go test'.
 ---@param test_name string
 ---@return string
 function M.to_gotest_regex_pattern(test_name)
@@ -55,71 +54,62 @@ function M.to_gotest_regex_pattern(test_name)
   return table.concat(segments, "/")
 end
 
--- Converts the AST-detected Neotest node test name into the 'go test' command
--- test name format.
----@param pos_id string
----@return string
--- FIX: duplicate function
-function M.pos_id_to_gotest_test_name(pos_id)
-  -- construct the test name
-  local test_name = pos_id
-  -- Remove the path before ::
-  test_name = test_name:match("::(.*)$")
-  -- Replace :: with /
-  test_name = test_name:gsub("::", "/")
-  -- Remove double quotes (single quotes are supported)
-  test_name = test_name:gsub('"', "")
-  -- Replace any spaces with _
-  test_name = test_name:gsub(" ", "_")
-
-  return test_name
-end
-
----Convert neotest position ID to go test name format
----@param pos_id string Neotest position ID like "/path/file.go::TestName::"SubTest"::"Nested""
+---Convert AST-detected Neotest position ID to `go test` test name format
+---@param pos_id string Neotest position ID like /path/file.go::TestName::"SubTest"::"Nested"
 ---@return string|nil Go test name like "TestName/SubTest/Nested" or nil if invalid
 -- TODO: this is part of streaming hot path. To be optimized.
--- FIX: duplicate function
-function M.pos_id_to_go_test_name2(pos_id)
+function M.pos_id_to_go_test_name(pos_id)
+  -- Validate input
+  if type(pos_id) ~= "string" then
+    return nil
+  end
+
   -- Extract everything after the first ::
   local test_part = pos_id:match("::(.*)")
   if not test_part then
     return nil
   end
 
-  -- Split by :: to handle nested subtests
-  local parts = vim.split(test_part, "::", { trimempty = true })
+  local parts = vim.split(test_part, "::", { plain = true, trimempty = true })
   local go_test_parts = {}
 
-  for i, part in ipairs(parts) do
-    if i == 1 then
-      -- Main test name (no quotes)
+  for idx, part in ipairs(parts) do
+    -- Trim surrounding whitespace
+    part = part:gsub("^%s*(.-)%s*$", "%1")
+    if idx == 1 then
+      -- Preserve main test name exactly as provided by Neotest AST-parsing
       table.insert(go_test_parts, part)
     else
-      -- Sub-test name: remove quotes and convert spaces to underscores
-      local subtest = part:gsub('^"', ""):gsub('"$', ""):gsub(" ", "_")
-      table.insert(go_test_parts, subtest)
+      -- Sub-test name: strip surrounding quotes, unescape inner quotes, normalize whitespace to underscore
+      local sub = part:gsub('^"(.*)"$', "%1")
+      sub = sub:gsub('\\"', '"')
+      sub = sub:gsub("%s+", "_")
+      table.insert(go_test_parts, sub)
     end
   end
 
   return table.concat(go_test_parts, "/")
 end
 
----Convert go test name to neotest position ID format (reverse of pos_id_to_go_test_name)
+---Convert `go test` test name to Neotest position ID format
 ---@param go_test_name string Go test name like "TestName/SubTest/Nested"
----@return string Neotest format like "TestName::"SubTest"::"Nested""
+---@return string Neotest format like TestName::"SubTest"::"Nested"
 function M.go_test_name_to_pos_id(go_test_name)
-  local parts = vim.split(go_test_name, "/", { trimempty = true })
+  local parts = vim.split(go_test_name, "/", { plain = true, trimempty = true })
   local pos_parts = {}
+  local idx = 0
 
-  for i, part in ipairs(parts) do
-    if i == 1 then
-      -- Main test name (no quotes)
-      table.insert(pos_parts, part)
-    else
-      -- Sub-test: add quotes and convert underscores to spaces
-      local subtest = '"' .. part:gsub("_", " ") .. '"'
-      table.insert(pos_parts, subtest)
+  for _, part in ipairs(parts) do
+    if part ~= "" then
+      idx = idx + 1
+      if idx == 1 then
+        -- Main test name (no quotes)
+        table.insert(pos_parts, part)
+      else
+        -- Sub-test: add quotes and convert underscores to spaces
+        local subtest = '"' .. part:gsub("_", " ") .. '"'
+        table.insert(pos_parts, subtest)
+      end
     end
   end
 

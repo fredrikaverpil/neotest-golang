@@ -30,7 +30,7 @@ function M.build_position_lookup(tree, golist_data)
         convert.file_path_to_import_path(pos.path, import_to_dir)
 
       -- Extract go test name from position ID
-      local go_test_name = convert.pos_id_to_go_test_name2(pos.id)
+      local go_test_name = convert.pos_id_to_go_test_name(pos.id)
 
       if package_import and go_test_name then
         local internal_key = package_import .. "::" .. go_test_name

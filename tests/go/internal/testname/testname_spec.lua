@@ -18,7 +18,7 @@ describe("Neotest position to Go test name", function()
 
     -- Act
     local pos = tree:node(3):data()
-    local actual_go_test_name = lib.convert.pos_id_to_gotest_test_name(pos.id)
+    local actual_go_test_name = lib.convert.pos_id_to_go_test_name(pos.id)
 
     -- Assert
     local actual_name = pos.name
@@ -37,7 +37,7 @@ describe("Neotest position to Go test name", function()
 
     -- Act
     local pos = tree:node(4):data()
-    local actual_go_test_name = lib.convert.pos_id_to_gotest_test_name(pos.id)
+    local actual_go_test_name = lib.convert.pos_id_to_go_test_name(pos.id)
 
     -- Assert
     local actual_name = pos.name
@@ -54,7 +54,7 @@ describe("Neotest position to Go test name", function()
 
     -- Act
     local pos = tree:node(5):data()
-    local actual_go_test_name = lib.convert.pos_id_to_gotest_test_name(pos.id)
+    local actual_go_test_name = lib.convert.pos_id_to_go_test_name(pos.id)
 
     -- Assert
     local actual_name = pos.name
@@ -73,7 +73,7 @@ describe("Neotest position to Go test name", function()
 
     -- Act
     local pos = tree:node(8):data()
-    local actual_go_test_name = lib.convert.pos_id_to_gotest_test_name(pos.id)
+    local actual_go_test_name = lib.convert.pos_id_to_go_test_name(pos.id)
 
     -- Assert
     local actual_name = pos.name
@@ -118,7 +118,10 @@ describe("Full Go test name conversion", function()
   for _, tc in ipairs(tests) do
     it(tc.description, function()
       local pos = tree:node(tc.node_index):data()
-      local test_name = lib.convert.pos_id_to_gotest_test_name(pos.id)
+      local test_name = lib.convert.pos_id_to_go_test_name(pos.id)
+      if not test_name then
+        error("Could not determine test name for position id: " .. pos.id)
+      end
       test_name = lib.convert.to_gotest_regex_pattern(test_name)
 
       assert.are.same(tc.expected_subtest_name, pos.name)
