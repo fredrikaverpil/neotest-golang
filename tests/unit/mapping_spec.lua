@@ -244,30 +244,24 @@ describe("mapping module", function()
       assert.is_nil(result["example.com/repo/pkg::"])
     end)
 
-    it("adds prefix keys for subtests mapping to deepest node", function()
-      local result =
-        lib.mapping.build_position_lookup(mock_tree, mock_golist_data)
+    it(
+      "does not add phantom prefix keys for non-existent parent tests",
+      function()
+        local result =
+          lib.mapping.build_position_lookup(mock_tree, mock_golist_data)
 
-      -- Deep node exact mapping
-      assert.are.equal(
-        deep_pos_id,
-        result["example.com/repo/pkg::TestMain/Level1/Level2/Level3"]
-      )
+        -- Deep node exact mapping remains
+        assert.are.equal(
+          deep_pos_id,
+          result["example.com/repo/pkg::TestMain/Level1/Level2/Level3"]
+        )
 
-      -- Intermediate prefixes should map as well
-      assert.are.equal(
-        deep_pos_id,
-        result["example.com/repo/pkg::TestMain/Level1/Level2"]
-      )
-      assert.are.equal(
-        deep_pos_id,
-        result["example.com/repo/pkg::TestMain/Level1"]
-      )
-
-      -- Top-level prefix should already exist; must not overwrite an existing top-level test if present
-      -- but ensure it has some mapping. Here, TestMain top-level isn't separately present, so it should map to deep_pos_id
-      assert.are.equal(deep_pos_id, result["example.com/repo/pkg::TestMain"])
-    end)
+        -- Intermediate and top-level prefixes should NOT map when corresponding nodes do not exist
+        assert.is_nil(result["example.com/repo/pkg::TestMain/Level1/Level2"])
+        assert.is_nil(result["example.com/repo/pkg::TestMain/Level1"])
+        assert.is_nil(result["example.com/repo/pkg::TestMain"])
+      end
+    )
 
     it("handles empty tree", function()
       local empty_tree = {

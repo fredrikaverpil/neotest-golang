@@ -23,6 +23,10 @@ describe("Lookup", function()
       end
     end
     local expected_lookup = {
+      [folderpath .. "/internal/diagnostics/diagnostics_test.go"] = {
+        package = "diagnostics",
+        replacements = {},
+      },
       [folderpath .. "/internal/operand/operand_test.go"] = {
         package = "operand",
         replacements = {},

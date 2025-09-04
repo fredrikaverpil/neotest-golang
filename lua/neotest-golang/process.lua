@@ -82,16 +82,22 @@ function M.test_results(spec, result, tree)
   -- Populate file nodes with aggregated results
   results = M.populate_file_nodes(tree, results)
 
-  if options.get().warn_test_results_missing then
-    local missing = {}
-    for _, node in tree:iter_nodes() do
-      local node_pos = node:data()
-      if results[node_pos.id] == nil then
-        table.insert(missing, vim.inspect(node_pos.id))
-      end
+  -- Track missing results
+  local missing = {}
+  for _, node in tree:iter_nodes() do
+    local node_pos = node:data()
+    if results[node_pos.id] == nil then
+      table.insert(missing, vim.inspect(node_pos.id))
     end
-    if #missing > 0 then
+  end
+  if #missing > 0 then
+    if options.get().warn_test_results_missing then
       logger.warn(
+        "Test results not populated for the following Neotest positions:\n"
+          .. table.concat(missing, "\n")
+      )
+    else
+      logger.debug(
         "Test results not populated for the following Neotest positions:\n"
           .. table.concat(missing, "\n")
       )

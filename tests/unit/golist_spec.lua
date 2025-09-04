@@ -35,10 +35,23 @@ describe("go list output from internal", function()
     local internal_filepath = vim.uv.cwd() .. "/tests/go/internal"
     local output =
       lib.cmd.golist_data(convert_path_separators(internal_filepath))
-    local first_entry = output[3]
+
+    -- Find the positions package entry by ImportPath (order-agnostic)
+    local positions_import =
+      "github.com/fredrikaverpil/neotest-golang/internal/positions"
+    local found
+    for _, pkg in ipairs(output) do
+      if pkg.ImportPath == positions_import then
+        found = pkg
+        break
+      end
+    end
+
+    assert.is_truthy(found)
+
     local expected = {
       Dir = convert_path_separators(internal_filepath .. "/positions"),
-      ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/positions",
+      ImportPath = positions_import,
       Module = {
         GoMod = convert_path_separators(tests_filepath .. "/go.mod"),
       },
@@ -47,8 +60,8 @@ describe("go list output from internal", function()
       XTestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
     }
 
-    assert.are_same(vim.inspect(expected), vim.inspect(first_entry))
-    assert.are_same(expected, first_entry)
+    assert.are_same(vim.inspect(expected), vim.inspect(found))
+    assert.are_same(expected, found)
   end)
 end)
 
