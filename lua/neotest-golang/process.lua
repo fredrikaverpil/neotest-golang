@@ -83,11 +83,18 @@ function M.test_results(spec, result, tree)
   results = M.populate_file_nodes(tree, results)
 
   if options.get().warn_test_results_missing then
+    local missing = {}
     for _, node in tree:iter_nodes() do
       local pos_ = node:data()
       if results[pos_.id] == nil then
-        logger.warn("Test data not populated for: " .. vim.inspect(pos_.id))
+        table.insert(missing, vim.inspect(pos_.id))
       end
+    end
+    if #missing > 0 then
+      logger.warn(
+        "Test results not populated for the following Neotest positions:\n"
+          .. table.concat(missing, "\n")
+      )
     end
   end
 
