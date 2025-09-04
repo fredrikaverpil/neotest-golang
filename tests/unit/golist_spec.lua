@@ -36,9 +36,9 @@ describe("go list output from internal", function()
     local output =
       lib.cmd.golist_data(convert_path_separators(internal_filepath))
 
-    -- Find the positions package entry by ImportPath (order-agnostic)
+    -- Find the position_discovery package entry by ImportPath (order-agnostic)
     local positions_import =
-      "github.com/fredrikaverpil/neotest-golang/internal/positions"
+      "github.com/fredrikaverpil/neotest-golang/internal/position_discovery"
     local found
     for _, pkg in ipairs(output) do
       if pkg.ImportPath == positions_import then
@@ -50,12 +50,12 @@ describe("go list output from internal", function()
     assert.is_truthy(found)
 
     local expected = {
-      Dir = convert_path_separators(internal_filepath .. "/positions"),
+      Dir = convert_path_separators(internal_filepath .. "/position_discovery"),
       ImportPath = positions_import,
       Module = {
         GoMod = convert_path_separators(tests_filepath .. "/go.mod"),
       },
-      Name = "positions",
+      Name = "position_discovery",
       TestGoFiles = { "positions_test.go" },
       XTestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
     }
@@ -65,20 +65,21 @@ describe("go list output from internal", function()
   end)
 end)
 
-describe("go list output from internal/positions", function()
+describe("go list output from internal/position_discovery", function()
   it("contains expected keys/values", function()
     local tests_filepath = vim.uv.cwd() .. "/tests/go"
-    local positions_filepath = vim.uv.cwd() .. "/tests/go/internal/positions"
+    local positions_filepath = vim.uv.cwd()
+      .. "/tests/go/internal/position_discovery"
     local output =
       lib.cmd.golist_data(convert_path_separators(positions_filepath))
     local first_entry = output[1]
     local expected = {
       Dir = convert_path_separators(positions_filepath),
-      ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/positions",
+      ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/position_discovery",
       Module = {
         GoMod = convert_path_separators(tests_filepath .. "/go.mod"),
       },
-      Name = "positions",
+      Name = "position_discovery",
       TestGoFiles = { "positions_test.go" },
       XTestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
     }
@@ -88,16 +89,16 @@ describe("go list output from internal/positions", function()
   end)
 end)
 
-describe("go list output from internal/subpackage", function()
+describe("go list output from internal/nested_packages", function()
   it("contains expected keys/values", function()
     local tests_filepath = vim.uv.cwd() .. "/tests/go"
-    local filepath = vim.uv.cwd() .. "/tests/go/internal/subpackage"
+    local filepath = vim.uv.cwd() .. "/tests/go/internal/nested_packages"
     local output = lib.cmd.golist_data(convert_path_separators(filepath))
     local first_entry = output
     local expected = {
       {
         Dir = convert_path_separators(filepath .. "/subpackage2"),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/subpackage/subpackage2",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/nested_packages/subpackage2",
         Module = {
           GoMod = convert_path_separators(tests_filepath .. "/go.mod"),
         },
@@ -107,7 +108,7 @@ describe("go list output from internal/subpackage", function()
       },
       {
         Dir = convert_path_separators(filepath .. "/subpackage2/subpackage3"),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/subpackage/subpackage2/subpackage3",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/nested_packages/subpackage2/subpackage3",
         Module = {
           GoMod = convert_path_separators(tests_filepath .. "/go.mod"),
         },
@@ -122,22 +123,22 @@ describe("go list output from internal/subpackage", function()
   end)
 end)
 
-describe("go list output from internal/x", function()
+describe("go list output from internal/package_naming", function()
   it("contains expected keys/values", function()
     local tests_filepath = vim.uv.cwd() .. "/tests/go"
-    local filepath = vim.uv.cwd() .. "/tests/go/internal/x"
+    local filepath = vim.uv.cwd() .. "/tests/go/internal/package_naming"
     local output = lib.cmd.golist_data(convert_path_separators(filepath))
     local first_entry = output
     local expected = {
       {
         Dir = convert_path_separators(filepath),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/x",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/package_naming",
         Module = {
           GoMod = convert_path_separators(tests_filepath .. "/go.mod"),
         },
-        Name = "x",
-        TestGoFiles = { "xtest_whitebox_test.go" },
-        XTestGoFiles = { "xtest_blackbox_test.go" }, -- NOTE: added here because of custom `go list -f` command
+        Name = "package_naming",
+        TestGoFiles = { "whitebox_test.go" },
+        XTestGoFiles = { "blackbox_test.go" }, -- NOTE: added here because of custom `go list -f` command
       },
     }
 
@@ -146,22 +147,22 @@ describe("go list output from internal/x", function()
   end)
 end)
 
-describe("go list output from internal/x", function()
+describe("go list output from internal/package_naming", function()
   it("contains TestGoFiles and XTestGoFiles", function()
     local tests_filepath = vim.uv.cwd() .. "/tests/go"
-    local filepath = vim.uv.cwd() .. "/tests/go/internal/x"
+    local filepath = vim.uv.cwd() .. "/tests/go/internal/package_naming"
     local output = lib.cmd.golist_data(convert_path_separators(filepath))
     local first_entry = output
     local expected = {
       {
         Dir = convert_path_separators(filepath),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/x",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/package_naming",
         Module = {
           GoMod = convert_path_separators(tests_filepath .. "/go.mod"),
         },
-        Name = "x",
-        TestGoFiles = { "xtest_whitebox_test.go" },
-        XTestGoFiles = { "xtest_blackbox_test.go" }, -- NOTE: added here because of custom `go list -f` command
+        Name = "package_naming",
+        TestGoFiles = { "whitebox_test.go" },
+        XTestGoFiles = { "blackbox_test.go" }, -- NOTE: added here because of custom `go list -f` command
       },
     }
 
@@ -170,21 +171,21 @@ describe("go list output from internal/x", function()
   end)
 end)
 
-describe("go list output from internal/two", function()
+describe("go list output from internal/multifile", function()
   it("contains two TestGoFiles", function()
     local tests_filepath = vim.uv.cwd() .. "/tests/go"
-    local filepath = vim.uv.cwd() .. "/tests/go/internal/two"
+    local filepath = vim.uv.cwd() .. "/tests/go/internal/multifile"
     local output = lib.cmd.golist_data(convert_path_separators(filepath))
     local first_entry = output
     local expected = {
       {
         Dir = convert_path_separators(filepath),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/two",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/multifile",
         Module = {
           GoMod = convert_path_separators(tests_filepath .. "/go.mod"),
         },
-        Name = "two",
-        TestGoFiles = { "one_test.go", "two_test.go" },
+        Name = "multifile",
+        TestGoFiles = { "first_file_test.go", "second_file_test.go" },
         XTestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
       },
     }
@@ -194,20 +195,20 @@ describe("go list output from internal/two", function()
   end)
 end)
 
-describe("go list output from internal/notest", function()
+describe("go list output from internal/no_tests_package", function()
   it("contains no tests", function()
     local tests_filepath = vim.uv.cwd() .. "/tests/go"
-    local filepath = vim.uv.cwd() .. "/tests/go/internal/notest"
+    local filepath = vim.uv.cwd() .. "/tests/go/internal/no_tests_package"
     local output = lib.cmd.golist_data(convert_path_separators(filepath))
     local first_entry = output
     local expected = {
       {
         Dir = convert_path_separators(filepath),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/notest",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/no_tests_package",
         Module = {
           GoMod = convert_path_separators(tests_filepath .. "/go.mod"),
         },
-        Name = "notest",
+        Name = "no_tests_package",
         TestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
         XTestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
       },
