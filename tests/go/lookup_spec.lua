@@ -24,72 +24,72 @@ describe("Lookup", function()
     end
     local expected_lookup = {
       [folderpath .. "/internal/diagnostics/diagnostics_test.go"] = {
-        package = "diagnostics",
+        package = "diagnostic_classification",
         replacements = {},
       },
-      [folderpath .. "/internal/fail_skip/fail_skip_test.go"] = {
-        package = "fail_skip",
+      [folderpath .. "/internal/test_state_behaviors/mixed/fail_skip_test.go"] = {
+        package = "mixed",
         replacements = {},
       },
-      [folderpath .. "/internal/fail_skip_passing/fail_skip_passing_test.go"] = {
-        package = "fail_skip_passing",
+      [folderpath .. "/internal/test_state_behaviors/passing/fail_skip_passing_test.go"] = {
+        package = "passing",
         replacements = {},
       },
-      [folderpath .. "/internal/fail_skip_skipping/fail_skip_skipping_test.go"] = {
-        package = "fail_skip_skipping",
+      [folderpath .. "/internal/test_state_behaviors/skipping/fail_skip_skipping_test.go"] = {
+        package = "skipping",
         replacements = {},
       },
-      [folderpath .. "/internal/operand/operand_test.go"] = {
-        package = "operand",
+      [folderpath .. "/internal/treesitter_precision/treesitter_precision_test.go"] = {
+        package = "treesitter_precision",
         replacements = {},
       },
-      [folderpath .. "/internal/positions/positions_test.go"] = {
-        package = "positions",
+      [folderpath .. "/internal/position_discovery/positions_test.go"] = {
+        package = "position_discovery",
         replacements = {},
       },
-      [folderpath .. "/internal/sanitization/sanitize_test.go"] = {
-        package = "sanitization",
+      [folderpath .. "/internal/output_sanitization/output_sanitization_test.go"] = {
+        package = "output_sanitization",
         replacements = {},
       },
-      [folderpath .. "/internal/subpackage/subpackage2/subpackage2_test.go"] = {
+      [folderpath .. "/internal/nested_packages/subpackage2/subpackage2_test.go"] = {
         package = "subpackage2",
         replacements = {},
       },
-      [folderpath .. "/internal/subpackage/subpackage2/subpackage3/subpackage3_test.go"] = {
+      [folderpath .. "/internal/nested_packages/subpackage2/subpackage3/subpackage3_test.go"] = {
         package = "subpackage3",
         replacements = {},
       },
-      [folderpath .. "/internal/testify/othersuite_test.go"] = {
-        package = "testify",
+      [folderpath .. "/internal/testify_suites/othersuite_test.go"] = {
+        package = "testify_suites",
         replacements = {
           OtherTestSuite = "TestOtherTestSuite",
         },
       },
-      [folderpath .. "/internal/testify/positions_test.go"] = {
-        package = "testify",
+      [folderpath .. "/internal/testify_suites/positions_test.go"] = {
+        package = "testify_suites",
         replacements = {
           ExampleTestSuite = "TestExampleTestSuite",
           ExampleTestSuite2 = "TestExampleTestSuite2",
         },
       },
-      [folderpath .. "/internal/testname/testname_test.go"] = {
-        package = "testname",
+      [folderpath .. "/internal/special_characters/special_characters_test.go"] = {
+        package = "special_characters",
         replacements = {},
       },
-      [folderpath .. "/internal/two/one_test.go"] = {
-        package = "two",
+      [folderpath .. "/internal/multifile/first_file_test.go"] = {
+        package = "multifile",
         replacements = {},
       },
-      [folderpath .. "/internal/two/two_test.go"] = {
-        package = "two",
+      [folderpath .. "/internal/multifile/second_file_test.go"] = {
+        package = "multifile",
         replacements = {},
       },
-      [folderpath .. "/internal/x/xtest_blackbox_test.go"] = {
-        package = "x_test",
+      [folderpath .. "/internal/package_naming/blackbox_test.go"] = {
+        package = "package_naming_test",
         replacements = {},
       },
-      [folderpath .. "/internal/x/xtest_whitebox_test.go"] = {
-        package = "x",
+      [folderpath .. "/internal/package_naming/whitebox_test.go"] = {
+        package = "package_naming",
         replacements = {},
       },
     }

@@ -18,7 +18,7 @@ describe("Integration (DAP): results are skipped", function()
     options.set({ runner = "go", dap_mode = "manual" })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/positions/positions_test.go"
+      .. "/tests/go/internal/position_discovery/positions_test.go"
     test_filepath = normalize_windows_path(test_filepath)
 
     -- Discover and pick a single test node
