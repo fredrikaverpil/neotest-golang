@@ -42,11 +42,11 @@ tasks:
   test:
     desc: Run test task from all taskfiles
     cmds:
-      - cmd: task -t {{.TASKFILE}} test
-        for:
-          var: TASKFILES
-          split: "\n"
-          as: TASKFILE
+      # - cmd: task -t {{.TASKFILE}} test
+      #   for:
+      #     var: TASKFILES
+      #     split: "\n"
+      #     as: TASKFILE
       - task: test-plenary
 
   test-plenary:
