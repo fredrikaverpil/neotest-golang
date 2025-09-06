@@ -48,19 +48,28 @@ end
 -- Add current project to runtimepath
 vim.opt.runtimepath:append(".")
 
--- Add busted lua path for require statements (only use local luarocks installation)
-local local_luarocks_path = ".tests/luarocks/share/lua/5.1"
-package.path = local_luarocks_path
-  .. "/?.lua;"
-  .. local_luarocks_path
-  .. "/?/init.lua;"
-  .. package.path
+-- Add busted lua path for require statements with fallback paths
+local busted_paths = {
+  ".tests/luarocks/share/lua/5.1",  -- Local installation (preferred)
+  vim.fn.expand("~/.luarocks/share/lua/5.1"),  -- User installation
+  "/usr/local/share/lua/5.1",  -- System installation
+}
 
--- Add luarocks cpath for binary modules (only use local installation)
-local local_luarocks_cpath = ".tests/luarocks/lib/lua/5.1"
-package.cpath = local_luarocks_cpath
-  .. "/?.so;"
-  .. package.cpath
+local busted_cpaths = {
+  ".tests/luarocks/lib/lua/5.1",  -- Local installation (preferred) 
+  vim.fn.expand("~/.luarocks/lib/lua/5.1"),  -- User installation
+  "/usr/local/lib/lua/5.1",  -- System installation
+}
+
+-- Build package path with all potential busted locations
+for _, lua_path in ipairs(busted_paths) do
+  package.path = lua_path .. "/?.lua;" .. lua_path .. "/?/init.lua;" .. package.path
+end
+
+-- Build package cpath with all potential busted locations
+for _, lua_cpath in ipairs(busted_cpaths) do
+  package.cpath = lua_cpath .. "/?.so;" .. package.cpath
+end
 
 print("Final runtime path: " .. vim.inspect(vim.opt.runtimepath:get()))
 print("Package path: " .. package.path)
@@ -70,7 +79,22 @@ local success, busted_runner = pcall(require, "busted.runner")
 if not success then
   print("Error: Could not load busted.runner module")
   print("Error details: " .. tostring(busted_runner))
-  os.exit(1)
+  print("Tried these busted paths:")
+  for _, path in ipairs(busted_paths) do
+    print("  " .. path)
+  end
+  print("Current package.path: " .. package.path)
+  
+  -- Try alternative busted loading approaches
+  print("Attempting alternative busted loading...")
+  success, busted_runner = pcall(require, "busted")
+  if success and busted_runner.runner then
+    busted_runner = busted_runner.runner
+    print("Successfully loaded busted via alternative method")
+  else
+    print("Failed to load busted via alternative method")
+    os.exit(1)
+  end
 end
 
 -- Load required modules (nvim-nio has different require path)
