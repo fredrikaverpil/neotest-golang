@@ -2,7 +2,7 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 -- Load real execution helper
-local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
+local real_execution_path = vim.uv.cwd() .. "/spec/helpers/real_execution.lua"
 local real_execution = dofile(real_execution_path)
 
 describe("Integration: specialchars", function()

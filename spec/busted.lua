@@ -13,8 +13,7 @@ require("lazy.minit").busted({
     {
       "nvim-neotest/neotest",
       lazy = true,
-      -- commit = "52fca6717ef972113ddd6ca223e30ad0abb2800c", -- BUG: https://github.com/nvim-neotest/neotest/issues/531
-      branch = "fix/subprocess/load-adapters", -- FIX: this fixes the above bug for now
+      branch = "fix/subprocess/load-adapters", -- TODO: use default branch when merged
       dependencies = {
         "nvim-neotest/nvim-nio",
         "nvim-lua/plenary.nvim",
@@ -22,40 +21,11 @@ require("lazy.minit").busted({
         "nvim-treesitter/nvim-treesitter",
 
         "MisanthropicBit/neotest-busted",
-        -- "nvim-neotest/neotest-plenary",
-        "nvim-neotest/neotest-vim-test",
       },
     },
     { dir = "." },
   },
 })
-
--- Install go parser for treesitter
-require("nvim-treesitter.configs").setup({
-  ensure_installed = { "go" },
-  auto_install = true,
-  sync_install = true,
-})
-
--- Give treesitter some time and attempt manual install
-vim.cmd("sleep 100m")
-pcall(function()
-  require("nvim-treesitter.install").install("go")
-end)
-
--- Copy the parser from luarocks installation to nvim-treesitter
-local parser_source = vim.env.LAZY_STDPATH
-  .. "/data/nvim-fredrik/lazy-rocks/neotest-golang/lib/lua/5.1/parser/go.so"
-local parser_dest = vim.env.LAZY_STDPATH
-  .. "/data/nvim-fredrik/lazy/nvim-treesitter/parser/go.so"
-pcall(function()
-  local uv = vim.uv or vim.loop
-  local source_stat = uv.fs_stat(parser_source)
-  if source_stat then
-    local content = assert(io.open(parser_source, "rb")):read("*all")
-    assert(io.open(parser_dest, "wb")):write(content)
-  end
-end)
 
 -- Set PATH to include luarocks bin
 vim.env.PATH = vim.env.HOME .. "/.luarocks/bin:" .. vim.env.PATH

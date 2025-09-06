@@ -52,7 +52,12 @@ tasks:
   test-busted:
     desc: Run tests with busted via lazy.nvim minit
     cmds:
-      - cmd: nvim -l ./tests/busted.lua spec
+      - cmd: nvim -l ./spec/busted.lua spec
+
+  test-clean:
+    desc: Run tests with busted via lazy.nvim minit
+    cmds:
+      - cmd: rm -rf .tests
 
   install:
     desc: Run install task from all taskfiles
