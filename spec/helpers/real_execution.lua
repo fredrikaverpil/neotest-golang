@@ -55,28 +55,26 @@ function M.execute_adapter_direct(file_path, test_pattern)
 
     print("Process created, waiting for completion...")
 
-    -- Wait for completion with timeout
-    local timeout = 60000 -- 60 seconds for debugging
+    -- Wait for completion with timeout using vim.wait (CI-compatible)
+    local timeout = 30000 -- 30 seconds timeout for CI compatibility
     local start_time = vim.uv.now()
 
-    while not process.is_complete() and (vim.uv.now() - start_time) < timeout do
-      nio.sleep(500) -- Sleep 500ms for debugging
+    -- Use vim.wait with status printing callback - this is CI-safe
+    local success = vim.wait(timeout, function()
+      -- Print status updates every 5 seconds
       local elapsed = math.floor((vim.uv.now() - start_time) / 1000)
-      if elapsed % 5 == 0 then
-        print(
-          "Still waiting for process completion... elapsed:",
-          elapsed,
-          "seconds"
-        )
+      if elapsed > 0 and elapsed % 5 == 0 then
+        print("Still waiting for process completion... elapsed:", elapsed, "seconds")
       end
-    end
+      return process.is_complete()
+    end, 500) -- Check every 500ms for reasonable responsiveness
 
-    if not process.is_complete() then
-      print("Process timed out after 60 seconds, stopping...")
+    if not success or not process.is_complete() then
+      print("Process timed out after 30 seconds, stopping...")
       if process.stop then
         process.stop()
       end
-      error("Test execution timed out after 60 seconds")
+      error("Test execution timed out after 30 seconds")
     end
 
     print("Process completed successfully")
