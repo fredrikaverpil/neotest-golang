@@ -79,19 +79,23 @@ function M.execute_adapter_direct(file_path, test_pattern)
 
     print("Process completed successfully")
 
-    -- Get the result - the integrated strategy result() method returns the exit code
-    local exit_code = process.result and process.result() or 1
-    local output_path = process.output and process.output() or nil
-
-    print("Exit code:", exit_code, "Output path:", output_path)
-
-    local result = {
-      code = exit_code,
-      output = output_path,
-    }
-
-    return result
+    -- Return the process object instead of calling result() here
+    -- This avoids async I/O operations inside the nio.tests context
+    return process
   end)
+
+  assert(strategy_result, "Failed to get strategy result")
+
+  -- Call result() and output() OUTSIDE the async context to avoid CI hangs
+  local exit_code = strategy_result.result and strategy_result.result() or 1
+  local output_path = strategy_result.output and strategy_result.output() or nil
+
+  print("Exit code:", exit_code, "Output path:", output_path)
+
+  local result = {
+    code = exit_code,
+    output = output_path,
+  }
 
   assert(strategy_result, "Failed to get strategy result")
 
@@ -99,11 +103,11 @@ function M.execute_adapter_direct(file_path, test_pattern)
   local results = nio.tests.with_async_context(
     adapter.results,
     run_spec,
-    strategy_result,
+    result,
     tree
   )
 
-  return tree, results, run_spec, strategy_result
+  return tree, results, run_spec, result
 end
 
 --- Normalize Windows paths for cross-platform testing
