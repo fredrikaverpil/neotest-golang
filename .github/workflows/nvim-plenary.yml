@@ -1,0 +1,38 @@
+name: nvim
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  plenary:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        version: [stable, nightly]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: .tests
+          key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ hashFiles('tests/minimal_init.lua') }}-${{ hashFiles('tests/bootstrap.lua') }}
+      - name: Neovim setup
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.version }}
+      - name: Neovim version
+        run: nvim --version
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          # repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests
+        run: task test-plenary
