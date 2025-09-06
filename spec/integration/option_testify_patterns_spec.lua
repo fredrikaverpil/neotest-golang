@@ -6,12 +6,12 @@ local testify = require("neotest-golang.features.testify")
 
 describe("Integration: Custom Testify Patterns", function()
   local original_options
-  
+
   before_each(function()
     -- Save original options
     original_options = vim.deepcopy(options.get())
   end)
-  
+
   after_each(function()
     -- Reset options to original state
     if original_options then
@@ -78,7 +78,7 @@ describe("Integration: Custom Testify Patterns", function()
       )
     end)
 
-    -- Should not crash and handle gracefully 
+    -- Should not crash and handle gracefully
     assert.is_true(
       success,
       "Should handle invalid regex patterns gracefully without crashing"

@@ -15,12 +15,12 @@ end
 
 describe("Integration (DAP): results are skipped", function()
   local original_options
-  
+
   before_each(function()
     -- Save original options
     original_options = vim.deepcopy(options.get())
   end)
-  
+
   after_each(function()
     -- Reset options to original state
     if original_options then
