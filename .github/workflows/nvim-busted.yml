@@ -55,7 +55,6 @@ jobs:
           mkdir -p .tests/luarocks
           luarocks init
           luarocks config --scope project lua_version 5.1
-          luarocks config --scope project rocks_trees .tests/luarocks
           luarocks install --tree .tests/luarocks busted 2.2.0
       
       - name: Setup Neovim
