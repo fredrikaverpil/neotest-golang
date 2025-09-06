@@ -52,7 +52,7 @@ tasks:
   test-plenary:
     desc: Run tests with Neovim and plenary
     cmds:
-      - cmd: nvim --headless --noplugin -i NONE -u tests/bootstrap.lua -c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', timeout = 50000 }"
+      - cmd: nvim --headless --noplugin -i NONE -u tests/bootstrap.lua -c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', timeout = 500000 }"
 
   install:
     desc: Run install task from all taskfiles

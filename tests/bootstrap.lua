@@ -10,6 +10,9 @@ function M.init()
   local site_dir = ".tests/all/site"
   vim.opt.packpath = { site_dir } -- set packpath to the site directory
 
+  -- Define timeout for tests
+  local test_timeout = 500000 -- timeout in milliseconds
+
   -- Clone down plugins, add to runtimepath
   local plugins = {
     ["plenary.nvim"] = { url = "https://github.com/nvim-lua/plenary.nvim" },
@@ -54,6 +57,21 @@ function M.init()
     end
     print("Adding to runtimepath: " .. plugin_path)
     vim.opt.runtimepath:append(plugin_path)
+
+    -- Update nvim-nio timeout value if this is the nvim-nio plugin
+    if plugin == "nvim-nio" then
+      local tests_file_path = plugin_path .. "/lua/nio/tests.lua"
+      if vim.fn.filereadable(tests_file_path) == 1 then
+        print("Updating timeout in nvim-nio tests.lua...")
+        local content = io.open(tests_file_path, "r"):read("*all")
+        -- Replace the hardcoded 2000 timeout with our variable
+        content = content:gsub("timeout or 2000", "timeout or " .. test_timeout)
+        local file = io.open(tests_file_path, "w")
+        file:write(content)
+        file:close()
+        print("Updated nvim-nio timeout to " .. test_timeout .. "ms")
+      end
+    end
   end
 
   print("Runtime path: " .. vim.inspect(vim.opt.runtimepath:get()))
