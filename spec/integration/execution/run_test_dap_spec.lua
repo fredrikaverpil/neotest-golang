@@ -14,6 +14,20 @@ end
 -- We do not require dap-go installed by using dap_mode="manual" which has no dependency
 
 describe("Integration (DAP): results are skipped", function()
+  local original_options
+  
+  before_each(function()
+    -- Save original options
+    original_options = vim.deepcopy(options.get())
+  end)
+  
+  after_each(function()
+    -- Reset options to original state
+    if original_options then
+      options.setup(original_options)
+    end
+  end)
+
   it("returns skipped for DAP strategy without parsing output", function()
     options.set({ runner = "go", dap_mode = "manual" })
 

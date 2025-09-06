@@ -2,6 +2,20 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 describe("Integration (gotestsum): basic execution test", function()
+  local original_options
+  
+  before_each(function()
+    -- Save original options
+    original_options = vim.deepcopy(options.get())
+  end)
+  
+  after_each(function()
+    -- Reset options to original state
+    if original_options then
+      options.setup(original_options)
+    end
+  end)
+
   it("gotestsum command generation and execution", function()
     -- Check if gotestsum is available
     if vim.fn.executable("gotestsum") == 0 then

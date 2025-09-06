@@ -5,6 +5,20 @@ local options = require("neotest-golang.options")
 local testify = require("neotest-golang.features.testify")
 
 describe("Integration: Custom Testify Patterns", function()
+  local original_options
+  
+  before_each(function()
+    -- Save original options
+    original_options = vim.deepcopy(options.get())
+  end)
+  
+  after_each(function()
+    -- Reset options to original state
+    if original_options then
+      options.setup(original_options)
+    end
+  end)
+
   it("supports custom testify_operand pattern", function()
     -- Temporarily skipped due to plenary scandir access issues in CI - #373
     -- TODO: Fix this test once plenary hanging issue is resolved

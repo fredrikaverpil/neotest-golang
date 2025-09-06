@@ -4,6 +4,24 @@ local lib = require("neotest-golang.lib")
 local options = require("neotest-golang.options")
 
 describe("Extra args", function()
+  local original_options
+  
+  before_each(function()
+    -- Save original options
+    original_options = vim.deepcopy(options.get())
+    -- Clear any previous extra args
+    extra_args.set({})
+  end)
+  
+  after_each(function()
+    -- Reset options to original state
+    if original_options then
+      options.setup(original_options)
+    end
+    -- Clear extra args
+    extra_args.set({})
+  end)
+
   it("Can't be nil even if set to nil", function()
     extra_args.set(nil)
     assert.are.same({}, extra_args.get())
