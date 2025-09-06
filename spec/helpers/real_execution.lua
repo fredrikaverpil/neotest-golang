@@ -55,47 +55,24 @@ function M.execute_adapter_direct(file_path, test_pattern)
 
     print("Process created, waiting for completion...")
 
-    -- Wait for completion with timeout using vim.wait (CI-compatible)
-    local timeout = 30000 -- 30 seconds timeout for CI compatibility
-    local start_time = vim.uv.now()
+    -- Let the integrated strategy handle the waiting - don't manually wait
+    -- The strategy's result() method is blocking and will wait for completion
 
-    -- Use vim.wait with status printing callback - this is CI-safe
-    local success = vim.wait(timeout, function()
-      -- Print status updates every 5 seconds
-      local elapsed = math.floor((vim.uv.now() - start_time) / 1000)
-      if elapsed > 0 and elapsed % 5 == 0 then
-        print("Still waiting for process completion... elapsed:", elapsed, "seconds")
-      end
-      return process.is_complete()
-    end, 500) -- Check every 500ms for reasonable responsiveness
-
-    if not success or not process.is_complete() then
-      print("Process timed out after 30 seconds, stopping...")
-      if process.stop then
-        process.stop()
-      end
-      error("Test execution timed out after 30 seconds")
-    end
+    -- Get the result - this is a blocking call that waits for process completion
+    -- The integrated strategy handles timeouts internally
+    local exit_code = process.result and process.result() or 1
+    local output_path = process.output and process.output() or nil
 
     print("Process completed successfully")
+    print("Exit code:", exit_code, "Output path:", output_path)
 
-    -- Return the process object instead of calling result() here
-    -- This avoids async I/O operations inside the nio.tests context
-    return process
+    local result = {
+      code = exit_code,
+      output = output_path,
+    }
+
+    return result
   end)
-
-  assert(strategy_result, "Failed to get strategy result")
-
-  -- Call result() and output() OUTSIDE the async context to avoid CI hangs
-  local exit_code = strategy_result.result and strategy_result.result() or 1
-  local output_path = strategy_result.output and strategy_result.output() or nil
-
-  print("Exit code:", exit_code, "Output path:", output_path)
-
-  local result = {
-    code = exit_code,
-    output = output_path,
-  }
 
   assert(strategy_result, "Failed to get strategy result")
 
