@@ -27,6 +27,7 @@ local plugins = {
   ["neotest-busted"] = {
     url = "https://github.com/MisanthropicBit/neotest-busted",
   },
+  ["utf8.nvim"] = { url = "https://github.com/uga-rosa/utf8.nvim" },
 }
 
 for plugin, data in pairs(plugins) do

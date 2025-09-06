@@ -18,6 +18,7 @@ function M.init()
       url = "https://github.com/nvim-treesitter/nvim-treesitter",
     },
     neotest = { url = "https://github.com/nvim-neotest/neotest" },
+    ["utf8.nvim"] = { url = "https://github.com/uga-rosa/utf8.nvim" },
   }
   for plugin, data in pairs(plugins) do
     local plugin_path = site_dir .. "/pack/deps/start/" .. plugin

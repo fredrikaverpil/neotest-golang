@@ -29,10 +29,7 @@ function M.execute_adapter_direct(file_path, test_pattern)
 
   -- Execute command directly using vim.system instead of integrated strategy
   -- This avoids the async timeout issues in busted while maintaining functionality
-  print(
-    "About to create process with command:",
-    vim.inspect(run_spec.command)
-  )
+  print("About to create process with command:", vim.inspect(run_spec.command))
   print("Working directory:", run_spec.cwd)
 
   -- Use vim.system for direct process execution (Neovim 0.10+)
@@ -46,7 +43,7 @@ function M.execute_adapter_direct(file_path, test_pattern)
 
   -- Execute synchronously to avoid async issues
   local process_result = vim.system(run_spec.command, process_opts):wait()
-  
+
   print("Process completed successfully")
   print("Exit code:", process_result.code, "Signal:", process_result.signal)
 
