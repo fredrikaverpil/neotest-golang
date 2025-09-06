@@ -27,54 +27,37 @@ function M.execute_adapter_direct(file_path, test_pattern)
   assert(run_spec, "Failed to build run spec for " .. file_path)
   assert(run_spec.command, "Run spec should have a command")
 
-  -- Execute the command using Neotest's integrated strategy
-  local strategy = require("neotest.client.strategies.integrated")
-  local strategy_result = nil
+  -- Execute command directly using vim.system instead of integrated strategy
+  -- This avoids the async timeout issues in busted while maintaining functionality
+  print(
+    "About to create process with command:",
+    vim.inspect(run_spec.command)
+  )
+  print("Working directory:", run_spec.cwd)
 
-  -- Use nio.tests.with_async_context to properly handle async execution
-  strategy_result = nio.tests.with_async_context(function()
-    -- Configure the strategy if not already configured
-    if not run_spec.strategy then
-      run_spec.strategy = {} -- Default strategy config
-    end
+  -- Use vim.system for direct process execution (Neovim 0.10+)
+  local process_opts = {
+    cwd = run_spec.cwd,
+    env = run_spec.env,
+    timeout = 30000, -- 30 second timeout
+  }
 
-    -- Clear env if it's causing issues
-    if run_spec.env and vim.tbl_isempty(run_spec.env) then
-      run_spec.env = nil
-    end
+  print("Process created, waiting for completion...")
 
-    print(
-      "About to create process with command:",
-      vim.inspect(run_spec.command)
-    )
-    print("Working directory:", run_spec.cwd)
+  -- Execute synchronously to avoid async issues
+  local process_result = vim.system(run_spec.command, process_opts):wait()
+  
+  print("Process completed successfully")
+  print("Exit code:", process_result.code, "Signal:", process_result.signal)
 
-    -- Create process using the strategy
-    local process = strategy(run_spec)
-    assert(process, "Failed to create process")
+  -- Create a temporary file for the output like integrated strategy does
+  local output_file = vim.fn.tempname()
+  vim.fn.writefile(vim.split(process_result.stdout or "", "\n"), output_file)
 
-    print("Process created, waiting for completion...")
-
-    -- Let the integrated strategy handle the waiting - don't manually wait
-    -- The strategy's result() method is blocking and will wait for completion
-
-    -- Get the result - this is a blocking call that waits for process completion
-    -- The integrated strategy handles timeouts internally
-    local exit_code = process.result and process.result() or 1
-    local output_path = process.output and process.output() or nil
-
-    print("Process completed successfully")
-    print("Exit code:", exit_code, "Output path:", output_path)
-
-    local result = {
-      code = exit_code,
-      output = output_path,
-    }
-
-    return result
-  end)
-
-  assert(strategy_result, "Failed to get strategy result")
+  local strategy_result = {
+    code = process_result.code,
+    output = output_file,
+  }
 
   -- Process results through adapter
   local results = nio.tests.with_async_context(
