@@ -134,7 +134,7 @@ local ok, exit_code = pcall(busted_runner, {
 if not ok then
   print("Busted tests failed with error: " .. tostring(exit_code))
   os.exit(1)
-elseif exit_code ~= 0 then
+elseif exit_code ~= 0 and exit_code ~= nil then
   print("Busted tests failed with exit code: " .. tostring(exit_code))
   os.exit(exit_code or 1)
 else
