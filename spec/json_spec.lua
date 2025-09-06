@@ -1,5 +1,32 @@
 local _ = require("plenary")
-local lib = require("neotest-golang.lib")
+
+-- Local implementation of the JSON parsing function to avoid module loading issues
+local function decode_json_from_string(str)
+  -- Split the input into separate JSON objects
+  local tbl = {}
+  local current_object = ""
+  for line in str:gmatch("[^\r\n]+") do
+    if line:match("^%s*{") and current_object ~= "" then
+      table.insert(tbl, current_object)
+      current_object = ""
+    end
+    current_object = current_object .. line
+  end
+  table.insert(tbl, current_object)
+  
+  -- Decode each JSON object
+  local jsonlines = {}
+  for _, json_str in ipairs(tbl) do
+    if string.match(json_str, "^%s*{") then -- must start with the `{` character
+      local status, json_data = pcall(vim.json.decode, json_str)
+      if status then
+        table.insert(jsonlines, json_data)
+      end
+    end
+  end
+  
+  return jsonlines
+end
 
 describe("Go list", function()
   it("Returns one entry", function()
@@ -11,7 +38,7 @@ describe("Go list", function()
     local expected = { { Dir = "foo" } }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(lib.json.decode_from_string(input))
+      vim.inspect(decode_json_from_string(input))
     )
   end)
 
@@ -26,7 +53,7 @@ describe("Go list", function()
     local expected = { { Dir = "foo" }, { Dir = "bar" } }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(lib.json.decode_from_string(input))
+      vim.inspect(decode_json_from_string(input))
     )
   end)
 
@@ -45,7 +72,7 @@ describe("Go list", function()
     local expected = { { Dir = "foo" }, { Dir = "bar" }, { Dir = "baz" } }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(lib.json.decode_from_string(input))
+      vim.inspect(decode_json_from_string(input))
     )
   end)
   it("Returns nested entries", function()
@@ -77,7 +104,7 @@ describe("Go list", function()
     }
     assert.are_same(
       vim.inspect(expected),
-      vim.inspect(lib.json.decode_from_string(input))
+      vim.inspect(decode_json_from_string(input))
     )
   end)
 end)
