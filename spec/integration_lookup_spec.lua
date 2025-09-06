@@ -13,7 +13,7 @@ describe("Lookup", function()
     -- Save original testify setting
     local original_options = options.get()
     local original_testify_enabled = original_options.testify_enabled
-    
+
     -- Arrange
     options.set({ testify_enabled = true }) -- enable testify
     local folderpath = vim.uv.cwd() .. "/tests/go"
@@ -113,7 +113,7 @@ describe("Lookup", function()
     local lookup = testify.lookup.get_lookup()
     assert.are.same(vim.inspect(expected_lookup), vim.inspect(lookup))
     assert.are.same(expected_lookup, lookup)
-    
+
     -- Cleanup: restore original testify setting
     options.set({ testify_enabled = original_testify_enabled })
   end)

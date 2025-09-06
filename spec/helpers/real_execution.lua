@@ -77,12 +77,8 @@ function M.execute_adapter_direct(file_path, test_pattern)
   assert(strategy_result, "Failed to get strategy result")
 
   -- Process results through adapter
-  local results = nio.tests.with_async_context(
-    adapter.results,
-    run_spec,
-    result,
-    tree
-  )
+  local results =
+    nio.tests.with_async_context(adapter.results, run_spec, result, tree)
 
   return tree, results, run_spec, result
 end

@@ -12,7 +12,7 @@ describe("Options are set up", function()
       testify_enabled = false,
       env = {},
     })
-    
+
     local expected_options = {
       runner = "go",
       go_test_args = {

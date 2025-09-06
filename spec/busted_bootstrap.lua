@@ -50,20 +50,24 @@ vim.opt.runtimepath:append(".")
 
 -- Add busted lua path for require statements with fallback paths
 local busted_paths = {
-  ".tests/luarocks/share/lua/5.1",  -- Local installation (preferred)
-  vim.fn.expand("~/.luarocks/share/lua/5.1"),  -- User installation
-  "/usr/local/share/lua/5.1",  -- System installation
+  ".tests/luarocks/share/lua/5.1", -- Local installation (preferred)
+  vim.fn.expand("~/.luarocks/share/lua/5.1"), -- User installation
+  "/usr/local/share/lua/5.1", -- System installation
 }
 
 local busted_cpaths = {
-  ".tests/luarocks/lib/lua/5.1",  -- Local installation (preferred) 
-  vim.fn.expand("~/.luarocks/lib/lua/5.1"),  -- User installation
-  "/usr/local/lib/lua/5.1",  -- System installation
+  ".tests/luarocks/lib/lua/5.1", -- Local installation (preferred)
+  vim.fn.expand("~/.luarocks/lib/lua/5.1"), -- User installation
+  "/usr/local/lib/lua/5.1", -- System installation
 }
 
 -- Build package path with all potential busted locations
 for _, lua_path in ipairs(busted_paths) do
-  package.path = lua_path .. "/?.lua;" .. lua_path .. "/?/init.lua;" .. package.path
+  package.path = lua_path
+    .. "/?.lua;"
+    .. lua_path
+    .. "/?/init.lua;"
+    .. package.path
 end
 
 -- Build package cpath with all potential busted locations
@@ -84,7 +88,7 @@ if not success then
     print("  " .. path)
   end
   print("Current package.path: " .. package.path)
-  
+
   -- Try alternative busted loading approaches
   print("Attempting alternative busted loading...")
   success, busted_runner = pcall(require, "busted")
