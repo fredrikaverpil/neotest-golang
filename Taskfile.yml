@@ -49,6 +49,11 @@ tasks:
       #     as: TASKFILE
       - task: test-busted
 
+  test-plenary:
+    desc: Run tests with Neovim and plenary
+    cmds:
+      - cmd: nvim --headless --noplugin -i NONE -u spec/plenary_bootstrap.lua -c "PlenaryBustedDirectory spec/ { minimal_init = 'spec/plenary_minimal_init.lua', timeout = 50000 }"
+
   test-busted:
     desc: Run tests with busted via lazy.nvim minit
     cmds:
