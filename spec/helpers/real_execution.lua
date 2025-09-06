@@ -77,10 +77,14 @@ function M.execute_adapter_direct(file_path, test_pattern)
   assert(strategy_result, "Failed to get strategy result")
 
   -- Process results through adapter
-  local results =
-    nio.tests.with_async_context(adapter.results, run_spec, result, tree)
+  local results = nio.tests.with_async_context(
+    adapter.results,
+    run_spec,
+    strategy_result,
+    tree
+  )
 
-  return tree, results, run_spec, result
+  return tree, results, run_spec, strategy_result
 end
 
 --- Normalize Windows paths for cross-platform testing
