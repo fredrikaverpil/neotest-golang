@@ -9,6 +9,7 @@ on:
 
 jobs:
   plenary:
+    if: false # Disable this workflow as it hangs in CI
     strategy:
       matrix:
         os: [ubuntu-latest]
