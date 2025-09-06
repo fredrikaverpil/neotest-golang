@@ -57,7 +57,7 @@ tasks:
   test-busted:
     desc: Run tests with busted via lazy.nvim minit
     cmds:
-      - cmd: nvim -l ./spec/busted.lua spec
+      - cmd: nvim -l ./spec/busted_bootstrap.lua spec
 
   test-clean:
     desc: Run tests with busted via lazy.nvim minit

@@ -20,7 +20,7 @@ test_dependencies = {
 }
 test = {
   type = "command",
-  command = "./spec/run_tests.sh",
+  command = "nvim -l ./spec/busted_bootstrap.lua spec",
 }
 build = {
   type = "builtin",

@@ -18,10 +18,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake unzip curl git libreadline-dev
+      
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Install Neovim plugins
         run: |
@@ -54,5 +65,10 @@ jobs:
       - name: Neovim version
         run: nvim --version
       
+      - name: Install Go dependencies
+        run: |
+          cd tests/go
+          go mod download
+      
       - name: Run tests
-        run: luarocks test --local
+        run: task test-busted
