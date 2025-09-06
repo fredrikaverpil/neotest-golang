@@ -7,10 +7,10 @@ tempfile=".test_output.tmp"
 
 if [[ -n $1 ]]; then
 	# Run specific file
-	nvim --headless --noplugin -u tests/busted.lua -c "PlenaryBustedFile $1" | tee "${tempfile}"
+	nvim --headless --noplugin -u spec/busted_bootstrap.lua -c "PlenaryBustedFile $1" | tee "${tempfile}"
 else
 	# Run all tests in spec/ directory
-	nvim --headless --noplugin -u tests/busted.lua -c "PlenaryBustedDirectory spec/ {minimal_init = 'spec/busted.lua'}" | tee "${tempfile}"
+	nvim --headless --noplugin -u spec/busted_bootstrap.lua -c "PlenaryBustedDirectory spec/ {minimal_init = 'spec/busted_bootstrap.lua'}" | tee "${tempfile}"
 fi
 
 # Plenary doesn't emit exit code 1 when tests have errors during setup
@@ -24,4 +24,3 @@ if [[ -n $errors ]]; then
 fi
 
 exit 0
-
