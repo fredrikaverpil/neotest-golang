@@ -1,4 +1,4 @@
-package output_sanitization
+package outputsanitization
 
 import (
 	"crypto/rand"

@@ -1,4 +1,4 @@
-package special_characters
+package specialchars
 
 // Function used for tests.
 func Add(a, b int) int {

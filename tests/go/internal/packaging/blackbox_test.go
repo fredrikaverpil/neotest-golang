@@ -1,14 +1,14 @@
-package package_naming_test
+package packaging_test
 
 import (
 	"testing"
 
-	"github.com/fredrikaverpil/neotest-golang/internal/package_naming"
+	"github.com/fredrikaverpil/neotest-golang/internal/packaging"
 )
 
 func TestBlackBox(t *testing.T) {
 	// Can only access Add() through the public interface of package_naming.
-	if package_naming.Add(1, 2) != 3 {
+	if packaging.Add(1, 2) != 3 {
 		t.Fail()
 	}
 }
