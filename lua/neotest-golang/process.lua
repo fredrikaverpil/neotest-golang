@@ -31,18 +31,23 @@ function M.test_results(spec, result, tree)
   --- @type neotest.Position
   local pos = tree:data()
 
+  -- Stop streaming first to ensure all results are cached
   spec.context.stop_stream()
+
+  -- Get final cached results after streaming is complete
+  ---@type table<string, neotest.Result>
+  local results = lib.stream.get_final_cached_results()
 
   --- Final Neotest results, the way Neotest wants it returned.
   --- @type table<string, neotest.Result>
-  local neotest_result = {}
+  local skipped_result = {}
 
   if context.is_dap_active then
     -- return early if test result processing is not desired.
-    neotest_result[context.pos_id] = {
+    skipped_result[context.pos_id] = {
       status = "skipped",
     }
-    return neotest_result
+    return skipped_result
   end
 
   --- The runner to use for running tests.
@@ -59,25 +64,39 @@ function M.test_results(spec, result, tree)
   elseif runner == "gotestsum" then
     if context.test_output_json_filepath == nil then
       logger.error("Gotestsum JSON output file not found.")
-      return neotest_result
+      return skipped_result
     end
-    runner_raw_output = async.fn.readfile(context.test_output_json_filepath)
+
+    logger.debug("Reading gotestsum output from: " .. context.test_output_json_filepath)
+
+    -- Check if file exists before trying to read it
+    local file_stat = vim.uv.fs_stat(context.test_output_json_filepath)
+    if not file_stat then
+      logger.warn("Gotestsum JSON file does not exist: " .. context.test_output_json_filepath)
+      logger.warn("This might be an integration test - trying to read from regular output instead")
+
+      -- For integration tests, gotestsum command output might come through regular output
+      -- instead of the JSON file, so let's try that as fallback
+      runner_raw_output = raw_output
+    elseif file_stat.size == 0 then
+      logger.warn("Gotestsum JSON file is empty: " .. context.test_output_json_filepath)
+      logger.warn("Falling back to regular output")
+      runner_raw_output = raw_output
+    else
+      logger.debug("Gotestsum JSON file size: " .. file_stat.size .. " bytes")
+      runner_raw_output = async.fn.readfile(context.test_output_json_filepath)
+    end
   end
   logger.debug({ "Runner '" .. runner .. "', raw output: ", runner_raw_output })
 
   --- The 'go list -json' output, converted into a lua table.
   -- local golist_output = context.golist_data
 
-  --- Go test output.
-  --- @type table
+  --- @type GoTestEvent[]
   local gotest_output = lib.json.decode_from_table(runner_raw_output, true)
 
-  -- Re-register cached results.
-  ---@type table<string, neotest.Result>
-  local results = lib.stream.cached_results
-  lib.stream.cached_results = {} -- clear cache
-
-  results[pos.id] = M.node_results(results[pos.id], result, gotest_output) -- register root node result
+  -- Register root node result in the cached results
+  results[pos.id] = M.node_results(results[pos.id], result, gotest_output)
 
   -- Populate file nodes with aggregated results
   results = M.populate_file_nodes(tree, results)

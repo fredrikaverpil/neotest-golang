@@ -22,7 +22,6 @@ function M.init()
     },
     neotest = {
       url = "https://github.com/nvim-neotest/neotest",
-      hash = "cd1bccbe80772c70732b43f1b95addab2083067a",
     },
   }
   for plugin, data in pairs(plugins) do
@@ -99,7 +98,7 @@ function M.init()
     adapters = {
       adapter({
         -- Configure for test environment
-        runner = "go",
+        runner = "gotestsum",
         go_test_args = { "-v", "-race", "-count=1" },
         colorize_test_output = false,
         warn_test_results_missing = false,
