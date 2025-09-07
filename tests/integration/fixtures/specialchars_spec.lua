@@ -10,7 +10,7 @@ describe("Integration: special_characters", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/special_characters/special_characters_test.go"
+      .. "/tests/go/internal/specialchars/special_characters_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     local tree, results = real_execution.execute_adapter_direct(test_filepath)
@@ -36,7 +36,7 @@ describe("Integration: special_characters", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/special_characters/special_characters_test.go"
+      .. "/tests/go/internal/specialchars/special_characters_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     local tree, results = real_execution.execute_adapter_direct(test_filepath)

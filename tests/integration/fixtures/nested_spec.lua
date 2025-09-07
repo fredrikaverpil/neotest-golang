@@ -10,9 +10,9 @@ describe("Integration: nested_packages", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 
     local subpackage2_test_path = vim.uv.cwd()
-      .. "/tests/go/internal/nested_packages/subpackage2/subpackage2_test.go"
+      .. "/tests/go/internal/nested/subpackage2/subpackage2_test.go"
     local subpackage3_test_path = vim.uv.cwd()
-      .. "/tests/go/internal/nested_packages/subpackage2/subpackage3/subpackage3_test.go"
+      .. "/tests/go/internal/nested/subpackage2/subpackage3/subpackage3_test.go"
 
     subpackage2_test_path = real_execution.normalize_path(subpackage2_test_path)
     subpackage3_test_path = real_execution.normalize_path(subpackage3_test_path)
@@ -69,7 +69,7 @@ describe("Integration: nested_packages", function()
     -- Test that the adapter correctly handles nested directory structures
     -- where tests are in different packages at different nesting levels
     local deepest_test_path = vim.uv.cwd()
-      .. "/tests/go/internal/nested_packages/subpackage2/subpackage3/subpackage3_test.go"
+      .. "/tests/go/internal/nested/subpackage2/subpackage3/subpackage3_test.go"
     deepest_test_path = real_execution.normalize_path(deepest_test_path)
 
     local tree, results =
@@ -108,13 +108,13 @@ describe("Integration: nested_packages", function()
     local subpackage2_cmd = string.format(
       "cd %s && go list -json %s",
       vim.uv.cwd() .. "/tests/go",
-      "github.com/fredrikaverpil/neotest-golang/internal/nested_packages/subpackage2"
+      "github.com/fredrikaverpil/neotest-golang/internal/nested/subpackage2"
     )
 
     local subpackage3_cmd = string.format(
       "cd %s && go list -json %s",
       vim.uv.cwd() .. "/tests/go",
-      "github.com/fredrikaverpil/neotest-golang/internal/nested_packages/subpackage2/subpackage3"
+      "github.com/fredrikaverpil/neotest-golang/internal/nested/subpackage2/subpackage3"
     )
 
     local result2 = vim.fn.system(subpackage2_cmd)

@@ -10,7 +10,7 @@ describe("Integration: no_tests_package", function()
     local cmd = string.format(
       "cd %s && go list -json %s",
       vim.uv.cwd() .. "/tests/go",
-      "github.com/fredrikaverpil/neotest-golang/internal/no_tests_package"
+      "github.com/fredrikaverpil/neotest-golang/internal/notests"
     )
 
     local result = vim.fn.system(cmd)
@@ -41,7 +41,7 @@ describe("Integration: no_tests_package", function()
 
     -- Test that the adapter can handle the scenario where it's pointed
     -- at a directory that exists but has no test files
-    local package_dir = vim.uv.cwd() .. "/tests/go/internal/no_tests_package"
+    local package_dir = vim.uv.cwd() .. "/tests/go/internal/notests"
 
     -- Since the real_execution helper expects test files, we'll simulate
     -- what should happen when the adapter encounters a package with no tests
@@ -65,7 +65,7 @@ describe("Integration: no_tests_package", function()
     -- The adapter should gracefully handle when pointed at non-test files
     local neotest_golang = require("neotest-golang")
     local non_test_file = vim.uv.cwd()
-      .. "/tests/go/internal/no_tests_package/notest.go"
+      .. "/tests/go/internal/notests/notest.go"
 
     -- The adapter should correctly identify this is not a test file
     local is_test_file = neotest_golang.is_test_file(non_test_file)

@@ -10,7 +10,7 @@ describe("Integration: output_sanitization", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/output_sanitization/output_sanitization_test.go"
+      .. "/tests/go/internal/outputsanitization/output_sanitization_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     -- This test verifies that the output_sanitization fixture exists and can be discovered
@@ -51,7 +51,7 @@ describe("Integration: output_sanitization", function()
     })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/output_sanitization/output_sanitization_test.go"
+      .. "/tests/go/internal/outputsanitization/output_sanitization_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     -- The key test: this fixture writes 1000 bytes of random binary data to stdout

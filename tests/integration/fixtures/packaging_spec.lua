@@ -10,7 +10,7 @@ describe("Integration: package_naming", function()
     options.set({ runner = "go", warn_test_results_missing = false })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/package_naming/blackbox_test.go"
+      .. "/tests/go/internal/packaging/blackbox_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     local tree, results = real_execution.execute_adapter_direct(test_filepath)
@@ -36,9 +36,9 @@ describe("Integration: package_naming", function()
 
     -- Test both blackbox and whitebox files in the package_naming directory
     local blackbox_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/package_naming/blackbox_test.go"
+      .. "/tests/go/internal/packaging/blackbox_test.go"
     local whitebox_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/package_naming/whitebox_test.go"
+      .. "/tests/go/internal/packaging/whitebox_test.go"
 
     blackbox_filepath = real_execution.normalize_path(blackbox_filepath)
     whitebox_filepath = real_execution.normalize_path(whitebox_filepath)
