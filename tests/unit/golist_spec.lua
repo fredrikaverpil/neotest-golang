@@ -27,8 +27,7 @@ describe("go list output from internal", function()
   it("contains expected keys/values", function()
     local tests_filepath = vim.uv.cwd() .. "/tests/go"
     local internal_filepath = vim.uv.cwd() .. "/tests/go/internal"
-    local output =
-      lib.cmd.golist_data(utils.normalize_path(internal_filepath))
+    local output = lib.cmd.golist_data(utils.normalize_path(internal_filepath))
 
     -- Find the positions package entry by ImportPath (order-agnostic)
     local positions_import =
@@ -63,8 +62,7 @@ describe("go list output from internal/positions", function()
   it("contains expected keys/values", function()
     local tests_filepath = vim.uv.cwd() .. "/tests/go"
     local positions_filepath = vim.uv.cwd() .. "/tests/go/internal/positions"
-    local output =
-      lib.cmd.golist_data(utils.normalize_path(positions_filepath))
+    local output = lib.cmd.golist_data(utils.normalize_path(positions_filepath))
     local first_entry = output[1]
     local expected = {
       Dir = utils.normalize_path(positions_filepath),

@@ -18,14 +18,12 @@ describe("Integration: multifile", function()
     second_file_path = integration.normalize_path(second_file_path)
 
     -- Test discovery and execution of first file
-    local tree1, results1 =
-      integration.execute_adapter_direct(first_file_path)
+    local tree1, results1 = integration.execute_adapter_direct(first_file_path)
     assert.is_truthy(tree1, "Should discover tests in first file")
     assert.is_truthy(results1, "Should have results for first file")
 
     -- Test discovery and execution of second file
-    local tree2, results2 =
-      integration.execute_adapter_direct(second_file_path)
+    local tree2, results2 = integration.execute_adapter_direct(second_file_path)
     assert.is_truthy(tree2, "Should discover tests in second file")
     assert.is_truthy(results2, "Should have results for second file")
 

@@ -72,8 +72,7 @@ describe("Integration: nested_packages", function()
       .. "/tests/go/internal/nested/subpackage2/subpackage3/subpackage3_test.go"
     deepest_test_path = integration.normalize_path(deepest_test_path)
 
-    local tree, results =
-      integration.execute_adapter_direct(deepest_test_path)
+    local tree, results = integration.execute_adapter_direct(deepest_test_path)
 
     assert.is_truthy(
       tree,
