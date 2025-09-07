@@ -13,9 +13,10 @@ in case the change is not trivial.
 
 You can run tests, formatting and linting locally with `task all` (requires
 [Taskfile](https://taskfile.dev/)). Install dependencies with `task install`.
-Have a look at the `Taskfile` for more details. You can also use the
+Have a look at the `Taskfile.yml` for more details. You can also use the
 neotest-plenary and neotest-golang adapters to run the tests of this repo within
-Neovim.
+Neovim. Please refer to the [Test setup](../test/) for detail on how to run
+tests.
 
 ## AST and tree-sitter
 
@@ -40,9 +41,12 @@ file.
 
 ## Previewing the documentation
 
-Intall uv with e.g. `brew install` or `pip install uv`. Then run `uv sync` in
-the project root to create a virtual environment and install dependencies into
-it.
+Install [uv](https://docs.astral.sh/uv/) with e.g. `brew install uv` or
+`pip install uv`. Then:
+
+- Run `uv venv` to create a `.venv` folder
+- Activate the virtual environment with `source .venv/bin/activate`
+- Run `uv sync` to install dependencies
 
 Finally, run `uv run mkdocs serve` to serve the documentation and preview it on
 `http://localhost:8000`.
@@ -103,9 +107,9 @@ reporting back status and output to the Neotest tree (and specifically the
 position in the tree which was executed). It is therefore crucial for outputting
 structured data, which in this case is done with `go test -json`.
 
-One challenge here is that Go build errors are not part of the strucutured JSON
-output (although captured in the stdout) and needs to be looked for in other
-ways.
+One challenge here is that Go build errors are not always part of the structured
+JSON output (although captured in the stdout) and needs to be looked for in
+other ways.
 
 Another challenge is to properly populate statuses and errors into the
 corresponding Neotest tree position. This becomes increasingly difficult when
@@ -121,3 +125,33 @@ Neotest position type and populate it onto each of them, when applicable.
 On some systems and terminals, there are great issues with the `go test` output.
 I've therefore made it possible to make the adapter rely on output saved
 directly to disk without going through stdout, by leveraging `gotestsum`.
+
+With neotest-golang v2.0, streaming support was added and required a total
+rewrite of the output processing. In my opinion, this made the adapter logic
+easier to follow and formally defined the processing steps more clearly.
+
+When you run tests via neotest-golang, the following happens:
+
+- As part of building the runspec, the `go list -json` command runs to gather
+  data and a lookup (`mapping.lua`) is created which maps between Neotest test
+  position keys and Go tests. This is a crucial step to avoid O(n) operations as
+  well as understanding how Go packages and tests relate to the Neotest
+  filetree.
+- The `go test -json` command runs (`stream.lua`):
+  - The Go test JSON objects are recorded (and cached) for each key in the
+    lookup.
+  - If a Go test reaches a final verdict (state is passed, failed, skipped),
+    lightweight single-test processing is performed and the result is returned
+    to Neotest. Note that this is a really hot code path, and we must refrain
+    from performing too computionally heavy operations here, or stuttering can
+    be experienced or delay the test execution. The intent here is to return
+    early, near-realtime feedback on outcome.
+- The `go test -json` command finishes executing (`process.lua`):
+  - The test results cache is loaded, so we don't have to process all test
+    outcomes again.
+  - Here we have an opportunity to process all tests results as a whole (not
+    just on a per-single test basis). This will be done for:
+    - Computationally heavy operations which we don't want to run during
+      streaming.
+    - Aggregation of test outputs we want recorded onto the `file` positions in
+      the Neotest summary panel.
