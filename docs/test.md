@@ -14,47 +14,40 @@ Tests can be executed either from within Neovim (using neotest-plenary) or in
 the terminal. To run all tests from the terminal, simply execute `task test` in
 the terminal (requires [Taskfile](https://github.com/go-task/task)).
 
-> [!NOTE]
->
-> Nvim-nio will hit a hard-coded 2000 millisecond timeout if you are running the
-> entire test suite. I have mitigated this in the bootstraping script and also
-> opened an issue about that in
-> [nvim-neotest/nvim-nio#30](https://github.com/nvim-neotest/nvim-nio/issues/30).
+!!! warning "Tests timing out"
+
+    Nvim-nio will hit a hard-coded 2000 millisecond timeout if you are running the
+    entire test suite. I have mitigated this in the bootstraping script and also
+    opened an issue about that in
+    [nvim-neotest/nvim-nio#30](https://github.com/nvim-neotest/nvim-nio/issues/30).
 
 ## Test execution flow
 
 When you run `task test` (or `task test-plenary`), the following sequence
 occurs:
 
-1. **Neovim launches headlessly** with the command:
+- Neovim launches headlessly with the command:
+  ```sh
+  nvim --headless --noplugin -i NONE -u tests/bootstrap.lua -c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', timeout = 500000 }"
+  ```
+- Bootstrap script runs first (`tests/bootstrap.lua`): - Resets Neovim's runtime
+  path to a clean state - Downloads and installs required plugins (e.g.
+  plenary.nvim, neotest, nvim-nio, nvim-treesitter) - Configures the test
+  environment with proper packpath - Installs the Go treesitter parser -
+  Initializes neotest with the golang adapter - Ensures PlenaryBustedDirectory
+  command is available
+- PlenaryBustedDirectory executes (via the `-c` flag): - Discovers all
+  `*_spec.lua` files in the `tests/` directory - For each test file, creates a
+  fresh Neovim instance using the minimal init - Some integration tests use
+  `tests/helpers/integration.lua` to run actual Go tests
+- Minimal init runs per test (`tests/minimal_init.lua`): - Resets runtime path
+  to clean state for each test - Sets basic Neovim options (no swapfile, correct
+  packpath) - Provides isolated environment for individual test execution
 
-   ```bash
-   nvim --headless --noplugin -i NONE -u tests/bootstrap.lua -c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', timeout = 500000 }"
-   ```
+??? tip "Neovim vs Busted execution"
 
-2. **Bootstrap script runs first** (`tests/bootstrap.lua`):
-   - Resets Neovim's runtime path to a clean state
-   - Downloads and installs required plugins (e.g. plenary.nvim, neotest,
-     nvim-nio, nvim-treesitter)
-   - Configures the test environment with proper packpath
-   - Installs the Go treesitter parser
-   - Initializes neotest with the golang adapter
-   - Ensures PlenaryBustedDirectory command is available
-
-3. **PlenaryBustedDirectory executes** (via the `-c` flag):
-   - Discovers all `*_spec.lua` files in the `tests/` directory
-   - For each test file, creates a fresh Neovim instance using the minimal init
-   - Some integration tests use `tests/helpers/integration.lua` to run actual Go
-     tests
-
-4. **Minimal init runs per test** (`tests/minimal_init.lua`):
-   - Resets runtime path to clean state for each test
-   - Sets basic Neovim options (no swapfile, correct packpath)
-   - Provides isolated environment for individual test execution
-
-!!! note "Neovim vs Busted execution" This setup uses Neovim's `-c` flag to
-execute commands within Neovim's context, rather than Busted's `-l` flag which
-loads Lua files externally.
+    This setup uses Neovim's `-c` flag to execute commands within Neovim's context,
+    rather than Busted's `-l` flag which loads Lua files externally.
 
     **Strengths of plenary-busted approach:**
 
@@ -70,7 +63,7 @@ loads Lua files externally.
     - More complex setup and bootstrapping process
     - Harder to debug test failures (headless Neovim environment)
     - Potential for Neovim version-specific test behavior
-     - More memory and resource intensive
+    - More memory and resource intensive
 
 ## Integration tests
 
