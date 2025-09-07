@@ -49,6 +49,11 @@ tasks:
       #     as: TASKFILE
       - task: test-plenary
 
+  test-clean:
+    desc: Remove the .tests folder for a clean run
+    cmds:
+      - cmd: rm -rf .tests
+
   test-plenary:
     desc: Run tests with Neovim and plenary
     cmds:
