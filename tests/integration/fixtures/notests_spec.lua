@@ -64,8 +64,7 @@ describe("Integration: no_tests_package", function()
 
     -- The adapter should gracefully handle when pointed at non-test files
     local neotest_golang = require("neotest-golang")
-    local non_test_file = vim.uv.cwd()
-      .. "/tests/go/internal/notests/notest.go"
+    local non_test_file = vim.uv.cwd() .. "/tests/go/internal/notests/notest.go"
 
     -- The adapter should correctly identify this is not a test file
     local is_test_file = neotest_golang.is_test_file(non_test_file)

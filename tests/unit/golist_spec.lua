@@ -68,8 +68,7 @@ end)
 describe("go list output from internal/positions", function()
   it("contains expected keys/values", function()
     local tests_filepath = vim.uv.cwd() .. "/tests/go"
-    local positions_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/positions"
+    local positions_filepath = vim.uv.cwd() .. "/tests/go/internal/positions"
     local output =
       lib.cmd.golist_data(convert_path_separators(positions_filepath))
     local first_entry = output[1]
