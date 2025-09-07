@@ -2,8 +2,8 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 -- Load real execution helper
-local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
-local real_execution = dofile(real_execution_path)
+local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
+local integration = dofile(integration_path)
 
 describe("Integration: nested_packages", function()
   it("discovers tests in nested package directories", function()
@@ -14,18 +14,18 @@ describe("Integration: nested_packages", function()
     local subpackage3_test_path = vim.uv.cwd()
       .. "/tests/go/internal/nested/subpackage2/subpackage3/subpackage3_test.go"
 
-    subpackage2_test_path = real_execution.normalize_path(subpackage2_test_path)
-    subpackage3_test_path = real_execution.normalize_path(subpackage3_test_path)
+    subpackage2_test_path = integration.normalize_path(subpackage2_test_path)
+    subpackage3_test_path = integration.normalize_path(subpackage3_test_path)
 
     -- Test discovery and execution of subpackage2 tests
     local tree2, results2 =
-      real_execution.execute_adapter_direct(subpackage2_test_path)
+      integration.execute_adapter_direct(subpackage2_test_path)
     assert.is_truthy(tree2, "Should discover tests in subpackage2")
     assert.is_truthy(results2, "Should have results for subpackage2")
 
     -- Test discovery and execution of subpackage3 tests
     local tree3, results3 =
-      real_execution.execute_adapter_direct(subpackage3_test_path)
+      integration.execute_adapter_direct(subpackage3_test_path)
     assert.is_truthy(tree3, "Should discover tests in subpackage3")
     assert.is_truthy(results3, "Should have results for subpackage3")
 
@@ -70,10 +70,10 @@ describe("Integration: nested_packages", function()
     -- where tests are in different packages at different nesting levels
     local deepest_test_path = vim.uv.cwd()
       .. "/tests/go/internal/nested/subpackage2/subpackage3/subpackage3_test.go"
-    deepest_test_path = real_execution.normalize_path(deepest_test_path)
+    deepest_test_path = integration.normalize_path(deepest_test_path)
 
     local tree, results =
-      real_execution.execute_adapter_direct(deepest_test_path)
+      integration.execute_adapter_direct(deepest_test_path)
 
     assert.is_truthy(
       tree,

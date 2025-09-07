@@ -2,8 +2,8 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 -- Load real execution helper
-local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
-local real_execution = dofile(real_execution_path)
+local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
+local integration = dofile(integration_path)
 
 describe("Integration: output_sanitization", function()
   it("discovers output sanitization test fixture", function()
@@ -11,7 +11,7 @@ describe("Integration: output_sanitization", function()
 
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/outputsanitization/output_sanitization_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
     -- This test verifies that the output_sanitization fixture exists and can be discovered
     -- The fixture writes random binary data to stdout, which tests the sanitize_output option
@@ -52,7 +52,7 @@ describe("Integration: output_sanitization", function()
 
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/outputsanitization/output_sanitization_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
     -- The key test: this fixture writes 1000 bytes of random binary data to stdout
     -- With sanitize_output = false, the adapter may have trouble processing this

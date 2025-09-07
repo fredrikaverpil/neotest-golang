@@ -5,10 +5,7 @@ local adapter = require("neotest-golang")
 local lib = require("neotest-golang.lib")
 local options = require("neotest-golang.options")
 local testify = require("neotest-golang.features.testify")
-
-local function normalize_windows_path(path)
-  return path:gsub("/", "\\")
-end
+local utils = dofile(vim.uv.cwd() .. "/tests/helpers/utils.lua")
 
 local function compareIgnoringKeys(t1, t2, ignoreKeys)
   local function copyTable(t, ignoreKeys)
@@ -33,7 +30,7 @@ describe("With testify_enabled=false", function()
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/testifysuites/positions_test.go"
     if vim.fn.has("win32") == 1 then
-      test_filepath = normalize_windows_path(test_filepath)
+      test_filepath = utils.normalize_path(test_filepath)
     end
     local expected = {
       {
@@ -89,7 +86,7 @@ describe("With testify_enabled=true", function()
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/testifysuites/positions_test.go"
     if vim.fn.has("win32") == 1 then
-      test_filepath = normalize_windows_path(test_filepath)
+      test_filepath = utils.normalize_path(test_filepath)
     end
     options.set({ testify_enabled = true }) -- enable testify
     local filepaths = lib.find.go_test_filepaths(test_filepath)

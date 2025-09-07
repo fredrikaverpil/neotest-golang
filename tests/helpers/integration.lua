@@ -1,4 +1,4 @@
---- Utilities for executing real Go tests through Neotest
+--- Integration test utilities for end-to-end Go test execution
 
 local M = {}
 
@@ -112,10 +112,8 @@ end
 --- @param path string
 --- @return string
 function M.normalize_path(path)
-  if vim.fn.has("win32") == 1 then
-    return path:gsub("/", "\\")
-  end
-  return path
+  local utils = dofile(vim.uv.cwd() .. "/tests/helpers/utils.lua")
+  return utils.normalize_path(path)
 end
 
 --- Assert that a test result has the expected status

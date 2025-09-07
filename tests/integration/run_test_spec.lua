@@ -1,9 +1,8 @@
 local _ = require("plenary")
 local options = require("neotest-golang.options")
 
--- Load our real execution helper
-local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
-local real_execution = dofile(real_execution_path)
+-- Load our integration helpers
+local integration = dofile(vim.uv.cwd() .. "/tests/helpers/integration.lua")
 
 describe("Integration: real test execution", function()
   it("executes and reports results for a test file", function()
@@ -17,24 +16,24 @@ describe("Integration: real test execution", function()
 
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/positions/positions_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
     -- Act: Execute real test using our adapter directly
-    local tree, results = real_execution.execute_adapter_direct(
+    local tree, results = integration.execute_adapter_direct(
       test_filepath,
       "TestTopLevel" -- Run only the simple test
     )
 
     -- Assert: Verify test tree was discovered
     assert.is_truthy(tree)
-    local position_ids = real_execution.get_position_ids(tree)
+    local position_ids = integration.get_position_ids(tree)
     assert.is_true(#position_ids > 0, "Should discover test positions")
 
     -- Assert: File-level result exists and passed
     -- Note: Currently the adapter only returns file-level results when run directly
     -- This is expected because we're not using the streaming mechanism
     local file_pos_id = test_filepath
-    real_execution.assert_test_status(results, file_pos_id, "passed")
+    integration.assert_test_status(results, file_pos_id, "passed")
 
     -- Assert: Output contains expected Go test results
     assert.is_truthy(results[file_pos_id].output, "Should have output file")
@@ -56,13 +55,13 @@ describe("Integration: real test execution", function()
 
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/specialchars/special_characters_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
     -- Act: Execute test
-    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+    local tree, results = integration.execute_adapter_direct(test_filepath)
 
     -- Assert: Test file result
-    real_execution.assert_test_status(results, test_filepath, "passed")
+    integration.assert_test_status(results, test_filepath, "passed")
     assert.is_truthy(results[test_filepath].output, "Should have output")
   end)
 
@@ -76,11 +75,11 @@ describe("Integration: real test execution", function()
 
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/positions/positions_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
     -- Act: Execute with race detection
     local tree, results, run_spec =
-      real_execution.execute_adapter_direct(test_filepath)
+      integration.execute_adapter_direct(test_filepath)
 
     -- Assert: Command includes race flag
     local command_str = table.concat(run_spec.command, " ")
@@ -90,6 +89,6 @@ describe("Integration: real test execution", function()
     )
 
     -- Assert: Tests still pass
-    real_execution.assert_test_status(results, test_filepath, "passed")
+    integration.assert_test_status(results, test_filepath, "passed")
   end)
 end)

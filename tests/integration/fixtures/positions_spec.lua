@@ -1,10 +1,7 @@
 local _ = require("plenary")
 local adapter = require("neotest-golang")
 local nio = require("nio")
-
-local function normalize_windows_path(path)
-  return path:gsub("/", "\\")
-end
+local utils = dofile(vim.uv.cwd() .. "/tests/helpers/utils.lua")
 
 local function compareIgnoringKeys(t1, t2, ignoreKeys)
   local function copyTable(t, ignoreKeys)
@@ -29,7 +26,7 @@ describe("Discovery of test positions", function()
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/positions/positions_test.go"
     if vim.fn.has("win32") == 1 then
-      test_filepath = normalize_windows_path(test_filepath)
+      test_filepath = utils.normalize_path(test_filepath)
     end
     local expected = {
       {

@@ -3,10 +3,7 @@ local _ = require("plenary")
 local lib = require("neotest-golang.lib")
 local options = require("neotest-golang.options")
 local testify = require("neotest-golang.features.testify")
-
-local function normalize_windows_path(path)
-  return path:gsub("\\", "/")
-end
+local utils = dofile(vim.uv.cwd() .. "/tests/helpers/utils.lua")
 
 describe("Lookup", function()
   it("Generates tree replacement instructions", function()
@@ -14,12 +11,12 @@ describe("Lookup", function()
     options.set({ testify_enabled = true }) -- enable testify
     local folderpath = vim.uv.cwd() .. "/tests/go"
     if vim.fn.has("win32") == 1 then
-      folderpath = normalize_windows_path(folderpath)
+      folderpath = utils.to_unix_path(folderpath)
     end
     local filepaths = lib.find.go_test_filepaths(vim.uv.cwd())
     if vim.fn.has("win32") == 1 then
       for i, filepath in ipairs(filepaths) do
-        filepaths[i] = normalize_windows_path(filepath)
+        filepaths[i] = utils.to_unix_path(filepath)
       end
     end
     local expected_lookup = {

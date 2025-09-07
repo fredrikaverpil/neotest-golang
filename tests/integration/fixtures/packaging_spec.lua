@@ -2,8 +2,8 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 -- Load real execution helper
-local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
-local real_execution = dofile(real_execution_path)
+local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
+local integration = dofile(integration_path)
 
 describe("Integration: package_naming", function()
   it("handles blackbox and whitebox package naming", function()
@@ -11,9 +11,9 @@ describe("Integration: package_naming", function()
 
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/packaging/blackbox_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
-    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+    local tree, results = integration.execute_adapter_direct(test_filepath)
 
     -- Verify basic test execution works
     assert.is_truthy(tree)
@@ -40,18 +40,18 @@ describe("Integration: package_naming", function()
     local whitebox_filepath = vim.uv.cwd()
       .. "/tests/go/internal/packaging/whitebox_test.go"
 
-    blackbox_filepath = real_execution.normalize_path(blackbox_filepath)
-    whitebox_filepath = real_execution.normalize_path(whitebox_filepath)
+    blackbox_filepath = integration.normalize_path(blackbox_filepath)
+    whitebox_filepath = integration.normalize_path(whitebox_filepath)
 
     -- Test blackbox pattern (package x_test)
     local tree1, results1 =
-      real_execution.execute_adapter_direct(blackbox_filepath)
+      integration.execute_adapter_direct(blackbox_filepath)
     assert.is_truthy(tree1, "Should discover blackbox test structure")
     assert.is_truthy(results1, "Should have blackbox test results")
 
     -- Test whitebox pattern (package x)
     local tree2, results2 =
-      real_execution.execute_adapter_direct(whitebox_filepath)
+      integration.execute_adapter_direct(whitebox_filepath)
     assert.is_truthy(tree2, "Should discover whitebox test structure")
     assert.is_truthy(results2, "Should have whitebox test results")
 

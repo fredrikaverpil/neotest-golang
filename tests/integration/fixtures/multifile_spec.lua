@@ -2,8 +2,8 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 -- Load real execution helper
-local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
-local real_execution = dofile(real_execution_path)
+local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
+local integration = dofile(integration_path)
 
 describe("Integration: multifile", function()
   it("discovers tests from multiple files in the same package", function()
@@ -14,18 +14,18 @@ describe("Integration: multifile", function()
     local second_file_path = vim.uv.cwd()
       .. "/tests/go/internal/multifile/second_file_test.go"
 
-    first_file_path = real_execution.normalize_path(first_file_path)
-    second_file_path = real_execution.normalize_path(second_file_path)
+    first_file_path = integration.normalize_path(first_file_path)
+    second_file_path = integration.normalize_path(second_file_path)
 
     -- Test discovery and execution of first file
     local tree1, results1 =
-      real_execution.execute_adapter_direct(first_file_path)
+      integration.execute_adapter_direct(first_file_path)
     assert.is_truthy(tree1, "Should discover tests in first file")
     assert.is_truthy(results1, "Should have results for first file")
 
     -- Test discovery and execution of second file
     local tree2, results2 =
-      real_execution.execute_adapter_direct(second_file_path)
+      integration.execute_adapter_direct(second_file_path)
     assert.is_truthy(tree2, "Should discover tests in second file")
     assert.is_truthy(results2, "Should have results for second file")
 
@@ -68,15 +68,15 @@ describe("Integration: multifile", function()
 
     -- Test package-level execution by targeting the directory
     local package_dir = vim.uv.cwd() .. "/tests/go/internal/multifile"
-    package_dir = real_execution.normalize_path(package_dir)
+    package_dir = integration.normalize_path(package_dir)
 
     -- Since we can't directly execute a directory, test one file but verify
     -- the adapter handles multi-file packages correctly during discovery
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/multifile/first_file_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
-    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+    local tree, results = integration.execute_adapter_direct(test_filepath)
 
     assert.is_truthy(tree, "Should discover test structure")
     assert.is_truthy(results, "Should have test results")

@@ -1,9 +1,9 @@
 local _ = require("plenary")
 local options = require("neotest-golang.options")
 
--- Load our real execution helper
-local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
-local real_execution = dofile(real_execution_path)
+-- Load our integration helpers
+local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
+local integration = dofile(integration_path)
 
 describe("Integration: fail/skip paths", function()
   it("file reports failed status when containing failing tests", function()
@@ -12,10 +12,10 @@ describe("Integration: fail/skip paths", function()
     -- Use the file that contains failing tests
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/teststates/mixed/fail_skip_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
     -- Execute all tests in this file (which includes failures)
-    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+    local tree, results = integration.execute_adapter_direct(test_filepath)
 
     -- File-level should be marked as failed when containing failing tests
     local file_pos_id = test_filepath
@@ -32,10 +32,10 @@ describe("Integration: fail/skip paths", function()
     -- Use a file that contains only passing tests
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/teststates/passing/fail_skip_passing_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
     -- Execute all tests in this file (all passing)
-    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+    local tree, results = integration.execute_adapter_direct(test_filepath)
 
     -- File-level should be marked as passed when containing only passing tests
     local file_pos_id = test_filepath
@@ -52,10 +52,10 @@ describe("Integration: fail/skip paths", function()
     -- Use a file that contains only skipped tests
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/teststates/skipping/fail_skip_skipping_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
     -- Execute all tests in this file (all skipped)
-    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+    local tree, results = integration.execute_adapter_direct(test_filepath)
 
     -- File-level should be marked as passed when containing only skipped tests
     -- (This is because Go treats skipped tests as non-failures)
@@ -72,10 +72,10 @@ describe("Integration: fail/skip paths", function()
 
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/teststates/mixed/fail_skip_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
     -- Execute all tests to get full output
-    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+    local tree, results = integration.execute_adapter_direct(test_filepath)
 
     local file_pos_id = test_filepath
     assert.is_truthy(results[file_pos_id])

@@ -43,7 +43,7 @@ describe("Integration: no_tests_package", function()
     -- at a directory that exists but has no test files
     local package_dir = vim.uv.cwd() .. "/tests/go/internal/notests"
 
-    -- Since the real_execution helper expects test files, we'll simulate
+    -- Since the integration helper expects test files, we'll simulate
     -- what should happen when the adapter encounters a package with no tests
     local neotest_golang = require("neotest-golang")
 

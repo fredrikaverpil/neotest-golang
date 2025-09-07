@@ -2,8 +2,8 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 -- Load real execution helper
-local real_execution_path = vim.uv.cwd() .. "/tests/helpers/real_execution.lua"
-local real_execution = dofile(real_execution_path)
+local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
+local integration = dofile(integration_path)
 
 describe("Integration: treesitter_precision", function()
   it("executes treesitter precision tests without breaking", function()
@@ -11,9 +11,9 @@ describe("Integration: treesitter_precision", function()
 
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/precision/treesitter_precision_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
-    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+    local tree, results = integration.execute_adapter_direct(test_filepath)
 
     -- Verify basic test execution works
     assert.is_truthy(tree)
@@ -37,9 +37,9 @@ describe("Integration: treesitter_precision", function()
 
     local test_filepath = vim.uv.cwd()
       .. "/tests/go/internal/precision/treesitter_precision_test.go"
-    test_filepath = real_execution.normalize_path(test_filepath)
+    test_filepath = integration.normalize_path(test_filepath)
 
-    local tree, results = real_execution.execute_adapter_direct(test_filepath)
+    local tree, results = integration.execute_adapter_direct(test_filepath)
 
     assert.is_truthy(tree)
     assert.is_truthy(results)
