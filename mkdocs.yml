@@ -86,4 +86,5 @@ nav:
   - Configuration: config.md
   - Recipes: recipes.md
   - Troubleshooting: trouble.md
+  - Test setup: test.md
   - Contributing: contrib.md
