@@ -27,53 +27,53 @@ describe("Lookup", function()
         package = "diagnostic_classification",
         replacements = {},
       },
-      [folderpath .. "/internal/test_state_behaviors/mixed/fail_skip_test.go"] = {
+      [folderpath .. "/internal/teststates/mixed/fail_skip_test.go"] = {
         package = "mixed",
         replacements = {},
       },
-      [folderpath .. "/internal/test_state_behaviors/passing/fail_skip_passing_test.go"] = {
+      [folderpath .. "/internal/teststates/passing/fail_skip_passing_test.go"] = {
         package = "passing",
         replacements = {},
       },
-      [folderpath .. "/internal/test_state_behaviors/skipping/fail_skip_skipping_test.go"] = {
+      [folderpath .. "/internal/teststates/skipping/fail_skip_skipping_test.go"] = {
         package = "skipping",
         replacements = {},
       },
-      [folderpath .. "/internal/treesitter_precision/treesitter_precision_test.go"] = {
-        package = "treesitter_precision",
+      [folderpath .. "/internal/precision/treesitter_precision_test.go"] = {
+        package = "precision",
         replacements = {},
       },
-      [folderpath .. "/internal/position_discovery/positions_test.go"] = {
-        package = "position_discovery",
+      [folderpath .. "/internal/positions/positions_test.go"] = {
+        package = "positions",
         replacements = {},
       },
-      [folderpath .. "/internal/output_sanitization/output_sanitization_test.go"] = {
-        package = "output_sanitization",
+      [folderpath .. "/internal/outputsanitization/output_sanitization_test.go"] = {
+        package = "outputsanitization",
         replacements = {},
       },
-      [folderpath .. "/internal/nested_packages/subpackage2/subpackage2_test.go"] = {
+      [folderpath .. "/internal/nested/subpackage2/subpackage2_test.go"] = {
         package = "subpackage2",
         replacements = {},
       },
-      [folderpath .. "/internal/nested_packages/subpackage2/subpackage3/subpackage3_test.go"] = {
+      [folderpath .. "/internal/nested/subpackage2/subpackage3/subpackage3_test.go"] = {
         package = "subpackage3",
         replacements = {},
       },
-      [folderpath .. "/internal/testify_suites/othersuite_test.go"] = {
-        package = "testify_suites",
+      [folderpath .. "/internal/testifysuites/othersuite_test.go"] = {
+        package = "testifysuites",
         replacements = {
           OtherTestSuite = "TestOtherTestSuite",
         },
       },
-      [folderpath .. "/internal/testify_suites/positions_test.go"] = {
-        package = "testify_suites",
+      [folderpath .. "/internal/testifysuites/positions_test.go"] = {
+        package = "testifysuites",
         replacements = {
           ExampleTestSuite = "TestExampleTestSuite",
           ExampleTestSuite2 = "TestExampleTestSuite2",
         },
       },
-      [folderpath .. "/internal/special_characters/special_characters_test.go"] = {
-        package = "special_characters",
+      [folderpath .. "/internal/specialchars/special_characters_test.go"] = {
+        package = "specialchars",
         replacements = {},
       },
       [folderpath .. "/internal/multifile/first_file_test.go"] = {
@@ -84,12 +84,12 @@ describe("Lookup", function()
         package = "multifile",
         replacements = {},
       },
-      [folderpath .. "/internal/package_naming/blackbox_test.go"] = {
-        package = "package_naming_test",
+      [folderpath .. "/internal/packaging/blackbox_test.go"] = {
+        package = "packaging_test",
         replacements = {},
       },
-      [folderpath .. "/internal/package_naming/whitebox_test.go"] = {
-        package = "package_naming",
+      [folderpath .. "/internal/packaging/whitebox_test.go"] = {
+        package = "packaging",
         replacements = {},
       },
     }

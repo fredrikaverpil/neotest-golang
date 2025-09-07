@@ -16,7 +16,7 @@ describe("Integration: real test execution", function()
     })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/position_discovery/positions_test.go"
+      .. "/tests/go/internal/positions/positions_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     -- Act: Execute real test using our adapter directly
@@ -55,7 +55,7 @@ describe("Integration: real test execution", function()
     })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/special_characters/special_characters_test.go"
+      .. "/tests/go/internal/specialchars/special_characters_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     -- Act: Execute test
@@ -75,7 +75,7 @@ describe("Integration: real test execution", function()
     })
 
     local test_filepath = vim.uv.cwd()
-      .. "/tests/go/internal/position_discovery/positions_test.go"
+      .. "/tests/go/internal/positions/positions_test.go"
     test_filepath = real_execution.normalize_path(test_filepath)
 
     -- Act: Execute with race detection
