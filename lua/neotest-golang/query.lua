@@ -28,6 +28,7 @@ M.test_function = [[
 M.table_tests_list = [[
   ;; query for list table tests
   (block
+  (statement_list 
     (short_var_declaration
       left: (expression_list
         (identifier) @test.cases
@@ -59,6 +60,7 @@ M.table_tests_list = [[
         right: (identifier) @test.cases1 (#eq? @test.cases @test.cases1)
       )
       body: (block
+      (statement_list
         (expression_statement
           (call_expression
             function: (selector_expression
@@ -74,7 +76,9 @@ M.table_tests_list = [[
           )
         )
       )
+      )
     )
+  )
   )
 ]]
 
@@ -114,6 +118,7 @@ M.table_tests_loop = [[
       )
     )
     body: (block
+      (statement_list
       (expression_statement
         (call_expression
           function: (selector_expression
@@ -130,11 +135,13 @@ M.table_tests_loop = [[
       )
     )
   )
+  )
 ]]
 
 M.table_tests_unkeyed = [[
   ;; query for table tests with inline structs (not keyed)
   (block
+  (statement_list
     (short_var_declaration
       left: (expression_list (identifier) @test.cases
       )
@@ -166,6 +173,7 @@ M.table_tests_unkeyed = [[
         right: (identifier) @test.cases1 (#eq? @test.cases @test.cases1)
       )
       body: (block
+      (statement_list
         (expression_statement
           (call_expression
             function: (selector_expression
@@ -180,7 +188,9 @@ M.table_tests_unkeyed = [[
           )
         )
       )
+      )
     )
+  )
   )
 ]]
 
@@ -216,6 +226,7 @@ M.table_tests_loop_unkeyed = [[
       )
     )
     body: (block
+    (statement_list
       (expression_statement
         (call_expression
           function: (selector_expression
@@ -232,11 +243,13 @@ M.table_tests_loop_unkeyed = [[
       )
     )
   )
+  )
 ]]
 
 M.table_tests_map = [[
   ;; query for map table tests
   (block
+  (statement_list
     (short_var_declaration
       left: (expression_list
         (identifier) @test.cases
@@ -269,6 +282,7 @@ M.table_tests_map = [[
           right: (identifier) @test.cases1 (#eq? @test.cases @test.cases1)
         )
         body: (block
+        (statement_list
          (expression_statement
           (call_expression
             function: (selector_expression
@@ -284,6 +298,8 @@ M.table_tests_map = [[
         )
       )
     )
+    )
+  )
   )
 ]]
 
