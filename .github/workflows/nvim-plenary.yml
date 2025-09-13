@@ -37,6 +37,10 @@ jobs:
           cache-dependency-path: tests/go/go.sum
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@latest
+      - name: go version
+        run: go version
+      - name: gotestsum version
+        run: gotestsum --version
       - name: Install Task
         uses: arduino/setup-task@v2
         with:
