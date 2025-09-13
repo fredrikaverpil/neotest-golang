@@ -501,40 +501,5 @@ function M.assert_runspec_comprehensive(run_spec, expected_pos_id, opts)
   end
 end
 
--- Load assertion helpers
-local assert_helpers = dofile(vim.uv.cwd() .. "/tests/helpers/assert.lua")
-
--- Compatibility aliases for the new generic assertion approach
----@param actual_result neotest.Result
----@param expected_result neotest.Result
----@param context_name string?
-function M.assert_result_with_dynamic_fields(
-  actual_result,
-  expected_result,
-  context_name
-)
-  assert_helpers.assert_neotest_result(
-    actual_result,
-    expected_result,
-    { "output" },
-    context_name
-  )
-end
-
----@param actual_context RunspecContext
----@param expected_context RunspecContext
----@param context_name string?
-function M.assert_context_with_dynamic_fields(
-  actual_context,
-  expected_context,
-  context_name
-)
-  assert_helpers.assert_runspec_context(
-    actual_context,
-    expected_context,
-    { "golist_data", "stop_stream" },
-    context_name
-  )
-end
 
 return M

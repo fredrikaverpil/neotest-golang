@@ -115,9 +115,6 @@ When writing tests...
     local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
     local integration = dofile(integration_path)
 
-    -- Load assertion helpers
-    local assert_helpers = dofile(vim.uv.cwd() .. "/tests/helpers/assert.lua")
-
     describe("Integration: fail/skip paths", function()
       it("file reports failed status when containing failing tests", function()
         -- ===== ARRANGE =====
