@@ -80,7 +80,8 @@ function M.test_results(spec, result, tree)
           )
         else
           logger.warn(
-            "Gotestsum JSON file is empty: " .. context.test_output_json_filepath
+            "Gotestsum JSON file is empty: "
+              .. context.test_output_json_filepath
           )
         end
         logger.warn("Falling back to regular output")

@@ -42,22 +42,23 @@ function M.execute_adapter_direct(file_path, test_pattern)
       env = nil
     end
 
-    print(
-      "About to run command:",
-      vim.inspect(run_spec.command)
-    )
+    print("About to run command:", vim.inspect(run_spec.command))
     print("Working directory:", run_spec.cwd)
 
     -- Run the process synchronously
-    local sys = vim.system(run_spec.command, {
-      cwd = run_spec.cwd,
-      env = env,
-      text = true,
-    }):wait()
+    local sys = vim
+      .system(run_spec.command, {
+        cwd = run_spec.cwd,
+        env = env,
+        text = true,
+      })
+      :wait()
 
     -- Persist stdout/stderr to a temp file for debugging/fallbacks
     local output_path = nil
-    if (sys.stdout and sys.stdout ~= "") or (sys.stderr and sys.stderr ~= "") then
+    if
+      (sys.stdout and sys.stdout ~= "") or (sys.stderr and sys.stderr ~= "")
+    then
       output_path = vim.fs.normalize(vim.fn.tempname())
       local lines = {}
       if sys.stdout and sys.stdout ~= "" then
