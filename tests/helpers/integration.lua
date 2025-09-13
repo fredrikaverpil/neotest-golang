@@ -69,7 +69,7 @@ function M.execute_adapter_direct(file_path, test_pattern)
     print("Process created, waiting for completion...")
 
     -- Wait for completion with timeout
-    local timeout = 60000 -- 60 seconds for debugging
+    local timeout = 180000 -- 180 seconds to accommodate CI slowness
     local start_time = vim.uv.now()
 
     while not process.is_complete() and (vim.uv.now() - start_time) < timeout do
@@ -113,6 +113,7 @@ function M.execute_adapter_direct(file_path, test_pattern)
 
   -- Process the test output manually FIRST to populate individual test results
   -- This replicates what the streaming mechanism would do during normal execution
+  -- FIX: remove this; should not be necessary once straming works
   if strategy_result.output then
     M.process_test_output_manually(
       tree,
@@ -159,8 +160,11 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
   local lib = require("neotest-golang.lib")
   local options = require("neotest-golang.options")
 
-  -- Read the raw output
-  local raw_output = async.fn.readfile(output_path)
+  -- Read the raw output (guard if file missing)
+  local raw_output = {}
+  if output_path and vim.fn.filereadable(output_path) == 1 then
+    raw_output = async.fn.readfile(output_path)
+  end
 
   -- For gotestsum, we need to read from the JSON file that was created
   local gotest_output = {}

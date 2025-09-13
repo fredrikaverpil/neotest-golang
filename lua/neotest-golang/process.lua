@@ -56,44 +56,44 @@ function M.test_results(spec, result, tree)
 
   --- The raw output from the test command.
   --- @type table<string>
-  local raw_output = async.fn.readfile(result.output)
+  local raw_output = {}
+  if result.output and vim.fn.filereadable(result.output) == 1 then
+    raw_output = async.fn.readfile(result.output)
+  end
   --- @type table<string>
   local runner_raw_output = {}
   if runner == "go" then
     runner_raw_output = raw_output
   elseif runner == "gotestsum" then
-    if context.test_output_json_filepath == nil then
-      logger.error("Gotestsum JSON output file not found.")
-      return skipped_result
-    end
-
-    logger.debug(
-      "Reading gotestsum output from: " .. context.test_output_json_filepath
-    )
-
-    -- Check if file exists before trying to read it
-    local file_stat = vim.uv.fs_stat(context.test_output_json_filepath)
-    if not file_stat then
-      logger.warn(
-        "Gotestsum JSON file does not exist: "
-          .. context.test_output_json_filepath
-      )
-      logger.warn(
-        "This might be an integration test - trying to read from regular output instead"
+    if context.test_output_json_filepath ~= nil then
+      logger.debug(
+        "Reading gotestsum output from: " .. context.test_output_json_filepath
       )
 
-      -- For integration tests, gotestsum command output might come through regular output
-      -- instead of the JSON file, so let's try that as fallback
-      runner_raw_output = raw_output
-    elseif file_stat.size == 0 then
-      logger.warn(
-        "Gotestsum JSON file is empty: " .. context.test_output_json_filepath
-      )
-      logger.warn("Falling back to regular output")
-      runner_raw_output = raw_output
+      -- Check if file exists before trying to read it
+      local file_stat = vim.uv.fs_stat(context.test_output_json_filepath)
+      if not file_stat or file_stat.size == 0 then
+        if not file_stat then
+          logger.warn(
+            "Gotestsum JSON file does not exist: "
+              .. context.test_output_json_filepath
+          )
+        else
+          logger.warn(
+            "Gotestsum JSON file is empty: " .. context.test_output_json_filepath
+          )
+        end
+        logger.warn("Falling back to regular output")
+        runner_raw_output = raw_output
+      else
+        logger.debug("Gotestsum JSON file size: " .. file_stat.size .. " bytes")
+        runner_raw_output = async.fn.readfile(context.test_output_json_filepath)
+      end
     else
-      logger.debug("Gotestsum JSON file size: " .. file_stat.size .. " bytes")
-      runner_raw_output = async.fn.readfile(context.test_output_json_filepath)
+      logger.warn(
+        "Gotestsum JSON output file path not provided; using regular output fallback"
+      )
+      runner_raw_output = raw_output
     end
   end
   logger.debug({ "Runner '" .. runner .. "', raw output: ", runner_raw_output })
