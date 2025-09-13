@@ -34,86 +34,58 @@ function M.execute_adapter_direct(file_path, test_pattern)
   assert(run_spec, "Failed to build run spec for " .. file_path)
   assert(run_spec.command, "Run spec should have a command")
 
-  -- Execute the command using Neotest's integrated strategy
-  ---@type neotest.Strategy
-  local strategy = require("neotest.client.strategies.integrated")
-  local strategy_result = nil
-
-  -- Use nio.tests.with_async_context to properly handle async execution
-  strategy_result = nio.tests.with_async_context(function()
-    -- Configure the strategy if not already configured
-    if not run_spec.strategy then
-      run_spec.strategy = {} -- Default strategy config
+  -- Execute the command synchronously to avoid integrated strategy hangs
+  local strategy_result = nio.tests.with_async_context(function()
+    -- Normalize env and cwd
+    local env = run_spec.env
+    if env and vim.tbl_isempty(env) then
+      env = nil
     end
-
-    -- Clear env if it's causing issues
-    if run_spec.env and vim.tbl_isempty(run_spec.env) then
-      run_spec.env = nil
-    end
-
-    -- IMPORTANT: Integration tests always use neotest's integrated strategy
-    -- which runs the command directly. If gotestsum is configured, the command
-    -- will be a gotestsum command, but the output will come through the regular
-    -- stdout/stderr channels, not through file streaming like in normal usage.
 
     print(
-      "About to create process with command:",
+      "About to run command:",
       vim.inspect(run_spec.command)
     )
     print("Working directory:", run_spec.cwd)
 
-    -- Create process using the strategy
-    local process = strategy(run_spec)
-    assert(process, "Failed to create process")
+    -- Run the process synchronously
+    local sys = vim.system(run_spec.command, {
+      cwd = run_spec.cwd,
+      env = env,
+      text = true,
+    }):wait()
 
-    print("Process created, waiting for completion...")
-
-    -- Wait for completion with timeout
-    local timeout = 180000 -- 180 seconds to accommodate CI slowness
-    local start_time = vim.uv.now()
-
-    while not process.is_complete() and (vim.uv.now() - start_time) < timeout do
-      nio.sleep(500) -- Sleep 500ms for debugging
-      local elapsed = math.floor((vim.uv.now() - start_time) / 1000)
-      if elapsed % 5 == 0 then
-        print(
-          "Still waiting for process completion... elapsed:",
-          elapsed,
-          "seconds"
-        )
+    -- Persist stdout/stderr to a temp file for debugging/fallbacks
+    local output_path = nil
+    if (sys.stdout and sys.stdout ~= "") or (sys.stderr and sys.stderr ~= "") then
+      output_path = vim.fs.normalize(vim.fn.tempname())
+      local lines = {}
+      if sys.stdout and sys.stdout ~= "" then
+        for line in sys.stdout:gmatch("[^\r\n]+") do
+          table.insert(lines, line)
+        end
       end
+      if sys.stderr and sys.stderr ~= "" then
+        table.insert(lines, "")
+        table.insert(lines, "=== stderr ===")
+        for line in sys.stderr:gmatch("[^\r\n]+") do
+          table.insert(lines, line)
+        end
+      end
+      vim.fn.writefile(lines, output_path)
     end
 
-    if not process.is_complete() then
-      print("Process timed out after 60 seconds, stopping...")
-      if process.stop then
-        process.stop()
-      end
-      error("Test execution timed out after 60 seconds")
-    end
+    print("Exit code:", sys.code, "Output path:", output_path)
 
-    print("Process completed successfully")
-
-    -- Get the result - the integrated strategy result() method returns the exit code
-    local exit_code = process.result and process.result() or 1
-    local output_path = process.output and process.output() or nil
-
-    print("Exit code:", exit_code, "Output path:", output_path)
-
-    ---@type neotest.StrategyResult
-    local result = {
-      code = exit_code,
+    return {
+      code = sys.code or 1,
       output = output_path,
     }
-
-    return result
   end)
 
   assert(strategy_result, "Failed to get strategy result")
 
-  -- Process the test output manually FIRST to populate individual test results
-  -- This replicates what the streaming mechanism would do during normal execution
-  -- FIX: remove this; should not be necessary once straming works
+  -- If available, process any captured stdout/stderr to seed cached results.
   if strategy_result.output then
     M.process_test_output_manually(
       tree,
