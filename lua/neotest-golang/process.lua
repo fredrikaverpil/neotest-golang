@@ -67,19 +67,28 @@ function M.test_results(spec, result, tree)
       return skipped_result
     end
 
-    logger.debug("Reading gotestsum output from: " .. context.test_output_json_filepath)
+    logger.debug(
+      "Reading gotestsum output from: " .. context.test_output_json_filepath
+    )
 
     -- Check if file exists before trying to read it
     local file_stat = vim.uv.fs_stat(context.test_output_json_filepath)
     if not file_stat then
-      logger.warn("Gotestsum JSON file does not exist: " .. context.test_output_json_filepath)
-      logger.warn("This might be an integration test - trying to read from regular output instead")
+      logger.warn(
+        "Gotestsum JSON file does not exist: "
+          .. context.test_output_json_filepath
+      )
+      logger.warn(
+        "This might be an integration test - trying to read from regular output instead"
+      )
 
       -- For integration tests, gotestsum command output might come through regular output
       -- instead of the JSON file, so let's try that as fallback
       runner_raw_output = raw_output
     elseif file_stat.size == 0 then
-      logger.warn("Gotestsum JSON file is empty: " .. context.test_output_json_filepath)
+      logger.warn(
+        "Gotestsum JSON file is empty: " .. context.test_output_json_filepath
+      )
       logger.warn("Falling back to regular output")
       runner_raw_output = raw_output
     else

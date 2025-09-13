@@ -114,7 +114,12 @@ function M.execute_adapter_direct(file_path, test_pattern)
   -- Process the test output manually FIRST to populate individual test results
   -- This replicates what the streaming mechanism would do during normal execution
   if strategy_result.output then
-    M.process_test_output_manually(tree, run_spec.context.golist_data, strategy_result.output, run_spec.context)
+    M.process_test_output_manually(
+      tree,
+      run_spec.context.golist_data,
+      strategy_result.output,
+      run_spec.context
+    )
   end
 
   -- Process results through adapter - this will get the cached results
@@ -434,7 +439,12 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
   local accum = {}
 
   for _, gotest_event in ipairs(gotest_output) do
-    accum = stream_lib.process_event(golist_data, accum, gotest_event, position_lookup)
+    accum = stream_lib.process_event(
+      golist_data,
+      accum,
+      gotest_event,
+      position_lookup
+    )
   end
 
   -- Convert to stream results

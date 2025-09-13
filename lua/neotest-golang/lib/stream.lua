@@ -81,7 +81,9 @@ function M.new(tree, golist_data, json_filepath)
   end
 
   if is_integration_test then
-    logger.debug("Integration test context detected, using simplified streaming")
+    logger.debug(
+      "Integration test context detected, using simplified streaming"
+    )
   end
 
   ---Set up file streaming if using gotestsum runner
@@ -93,12 +95,18 @@ function M.new(tree, golist_data, json_filepath)
     if json_filepath ~= nil then
       if is_integration_test then
         -- Integration test: command has completed, just read the file directly
-        logger.debug("Integration test mode: setting up direct file reading for gotestsum")
+        logger.debug(
+          "Integration test mode: setting up direct file reading for gotestsum"
+        )
         stream_data = function()
           local file_stat = vim.uv.fs_stat(json_filepath)
           if file_stat and file_stat.size > 0 then
             local file_lines = async.fn.readfile(json_filepath)
-            logger.debug("Integration test: read " .. #file_lines .. " lines from gotestsum file")
+            logger.debug(
+              "Integration test: read "
+                .. #file_lines
+                .. " lines from gotestsum file"
+            )
             return file_lines
           else
             logger.debug("Integration test: gotestsum file not ready yet")
@@ -108,9 +116,13 @@ function M.new(tree, golist_data, json_filepath)
         original_stop_stream = function() end -- no-op for integration tests
       else
         -- Normal neotest usage: set up live streaming (this works perfectly)
-        logger.debug("Normal mode: setting up gotestsum live streaming for file: " .. json_filepath)
+        logger.debug(
+          "Normal mode: setting up gotestsum live streaming for file: "
+            .. json_filepath
+        )
         neotest_lib.files.write(json_filepath, "")
-        stream_data, original_stop_stream = neotest_lib.files.stream_lines(json_filepath)
+        stream_data, original_stop_stream =
+          neotest_lib.files.stream_lines(json_filepath)
       end
     else
       logger.error("JSON filepath is required for gotestsum runner streaming")
@@ -151,9 +163,14 @@ function M.new(tree, golist_data, json_filepath)
         if #lines == 0 and json_filepath then
           local file_stat = vim.uv.fs_stat(json_filepath)
           if file_stat and file_stat.size > 0 then
-            logger.debug("Gotestsum file exists but no lines read yet, size: " .. file_stat.size)
+            logger.debug(
+              "Gotestsum file exists but no lines read yet, size: "
+                .. file_stat.size
+            )
           elseif not file_stat then
-            logger.debug("Gotestsum JSON file does not exist yet: " .. json_filepath)
+            logger.debug(
+              "Gotestsum JSON file does not exist yet: " .. json_filepath
+            )
           end
         elseif #lines > 0 then
           logger.debug("Gotestsum read " .. #lines .. " lines from file")
@@ -240,7 +257,9 @@ function M.process_package(golist_data, accum, e, id)
 
   -- Record output for package.
   if
-    accum[e.Package] and accum[e.Package].metadata.status == "streaming" and e.Action == "output"
+    accum[e.Package]
+    and accum[e.Package].metadata.status == "streaming"
+    and e.Action == "output"
   then
     if e.Output then
       table.insert(accum[id].metadata.output_parts, e.Output)
@@ -249,7 +268,9 @@ function M.process_package(golist_data, accum, e, id)
 
   -- Record build output for test (introduced in Go 1.24).
   if
-    accum[id] and accum[id].metadata.status == "streaming" and e.Action == "build-output"
+    accum[id]
+    and accum[id].metadata.status == "streaming"
+    and e.Action == "build-output"
   then
     vim.notify(vim.inspect(e)) -- TODO: what to do with build-output?
     -- NOTE: "build-fail" message indicate build error.
@@ -260,7 +281,8 @@ function M.process_package(golist_data, accum, e, id)
 
   -- Register package results.
   if
-    accum[e.Package] and accum[e.Package].metadata.status == "streaming"
+    accum[e.Package]
+    and accum[e.Package].metadata.status == "streaming"
     and (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
   then
     if e.Action == "pass" then
@@ -311,7 +333,11 @@ function M.process_test(accum, e, id, position_lookup)
   end
 
   -- Record output for test.
-  if accum[id] and accum[id].metadata.status == "streaming" and e.Action == "output" then
+  if
+    accum[id]
+    and accum[id].metadata.status == "streaming"
+    and e.Action == "output"
+  then
     if e.Output then
       table.insert(accum[id].metadata.output_parts, e.Output)
     end
@@ -319,7 +345,9 @@ function M.process_test(accum, e, id, position_lookup)
 
   -- Record build output for test (introduced in Go 1.24).
   if
-    accum[id] and accum[id].metadata.status == "streaming" and e.Action == "build-output"
+    accum[id]
+    and accum[id].metadata.status == "streaming"
+    and e.Action == "build-output"
   then
     vim.notify(vim.inspect(e)) -- TODO: what to do with build-output?
     -- NOTE: "build-fail" message indicate build error.
@@ -330,7 +358,8 @@ function M.process_test(accum, e, id, position_lookup)
 
   -- Register test results.
   if
-    accum[id] and accum[id].metadata.status == "streaming"
+    accum[id]
+    and accum[id].metadata.status == "streaming"
     and (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
   then
     if e.Action == "pass" then
