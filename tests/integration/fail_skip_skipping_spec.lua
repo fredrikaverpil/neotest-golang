@@ -5,7 +5,6 @@ local options = require("neotest-golang.options")
 local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
 local integration = dofile(integration_path)
 
-
 describe("Integration: skipping tests", function()
   it("file reports passed status when containing only skipped tests", function()
     -- ===== ARRANGE =====

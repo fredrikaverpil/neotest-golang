@@ -214,5 +214,4 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
   return individual_results
 end
 
-
 return M

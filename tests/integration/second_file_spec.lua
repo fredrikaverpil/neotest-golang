@@ -5,7 +5,6 @@ local options = require("neotest-golang.options")
 local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
 local integration = dofile(integration_path)
 
-
 describe("Integration: multifile second test", function()
   it(
     "file reports test discovery and execution for second multifile test",
