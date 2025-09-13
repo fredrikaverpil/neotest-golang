@@ -72,6 +72,7 @@ function M.new(tree, golist_data, json_filepath)
   local stream_id = tostring(tree:data().id or "unknown")
   M.stream_complete_state[stream_id] = false
 
+  -- FIX: better detection?
   -- Detect if we're in an integration test context
   -- Integration tests typically have a very specific calling pattern
   local is_integration_test = false
@@ -89,8 +90,8 @@ function M.new(tree, golist_data, json_filepath)
   ---Set up file streaming if using gotestsum runner
   local stream_data = function() end -- no-op
   local original_stop_stream = function() end -- no-op
-  local is_completed_file = false
 
+  -- FIX: ugly integration test workaround
   if options.get().runner == "gotestsum" then
     if json_filepath ~= nil then
       if is_integration_test then
