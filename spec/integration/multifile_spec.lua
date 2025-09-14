@@ -18,10 +18,10 @@ describe("Integration: multifile test", function()
       position_id = integration.normalize_path(position_id)
 
       -- Build expected file paths
-      local first_file_path = position_id .. "/first_file_test.go"
-      local second_file_path = position_id .. "/second_file_test.go"
-      first_file_path = integration.normalize_path(first_file_path)
-      second_file_path = integration.normalize_path(second_file_path)
+      local first = position_id .. "/first_file_test.go"
+      local second = position_id .. "/second_file_test.go"
+      first = integration.normalize_path(first)
+      second = integration.normalize_path(second)
 
       ---@type AdapterExecutionResult
       local want = {
@@ -32,20 +32,20 @@ describe("Integration: multifile test", function()
             errors = {},
           },
           -- File-level results
-          [first_file_path] = {
+          [first] = {
             status = "passed",
             errors = {},
           },
-          [second_file_path] = {
+          [second] = {
             status = "passed",
             errors = {},
           },
           -- Individual test results
-          [first_file_path .. "::TestOne"] = {
+          [first .. "::TestOne"] = {
             status = "passed",
             errors = {},
           },
-          [second_file_path .. "::TestTwo"] = {
+          [second .. "::TestTwo"] = {
             status = "passed",
             errors = {},
           },
