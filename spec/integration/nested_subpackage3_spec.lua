@@ -5,9 +5,9 @@ local options = require("neotest-golang.options")
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
 
-describe("Integration: special characters test", function()
+describe("Integration: nested subpackage3 test", function()
   it(
-    "file reports test discovery and execution for tests with special characters",
+    "file reports test discovery and execution for nested subpackage3",
     function()
       -- ===== ARRANGE =====
       ---@type NeotestGolangOptions
@@ -16,17 +16,12 @@ describe("Integration: special characters test", function()
       options.set(test_options)
 
       local test_filepath = vim.uv.cwd()
-        .. "/tests/go/internal/specialchars/special_characters_test.go"
+        .. "/tests/go/internal/nested/subpackage2/subpackage3/subpackage3_test.go"
       test_filepath = integration.normalize_path(test_filepath)
 
       -- ===== ACT =====
-      ---@type ExecuteAdapterDirectArgs
-      local args = {
-        path = test_filepath,
-        position_type = "file"
-      }
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(args)
+      local got = integration.execute_adapter_direct(test_filepath)
 
       -- Expected complete adapter execution result
       ---@type AdapterExecutionResult
@@ -43,41 +38,7 @@ describe("Integration: special characters test", function()
             errors = {},
           },
           -- Individual test results
-          [test_filepath .. "::TestNames"] = {
-            status = "passed",
-            errors = {},
-          },
-          -- Subtest results with special characters
-          [test_filepath .. '::TestNames::"Mixed case with space"'] = {
-            status = "passed",
-            errors = {},
-          },
-          [test_filepath .. '::TestNames::"Period . comma , and apostrophy \' are ok to use"'] = {
-            status = "passed",
-            errors = {},
-          },
-          [test_filepath .. '::TestNames::"Brackets [1] (2) {3} are ok"'] = {
-            status = "passed",
-            errors = {},
-          },
-          [test_filepath .. '::TestNames::"Percentage sign like 50% is ok"'] = {
-            status = "passed",
-            errors = {},
-          },
-          [test_filepath .. '::TestNames::"Test(success)"'] = {
-            status = "passed",
-            errors = {},
-          },
-          [test_filepath .. '::TestNames::"Regexp characters like ( ) [ ] { } - | ? + * ^ $ are ok"'] = {
-            status = "passed",
-            errors = {},
-          },
-          [test_filepath .. '::TestNames::"nested1"'] = {
-            status = "passed",
-            errors = {},
-          },
-          -- Nested subtest results
-          [test_filepath .. '::TestNames::"nested1"::"nested2"'] = {
+          [test_filepath .. "::TestSubpackage3"] = {
             status = "passed",
             errors = {},
           },

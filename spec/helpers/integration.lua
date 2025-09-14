@@ -64,40 +64,98 @@ local function execute_command(run_spec)
   end)
 end
 
----@class ExecuteAdapterDirectArgs
----@field path string Absolute path to the Go test file or directory
----@field position_type "file" | "dir" | "test" Neotest position type
----@field test_pattern string|nil Optional test pattern (required for "test" position type)
-
 --- Execute a real test using the adapter's build_spec and results methods directly
 --- This bypasses neotest.run.run and calls the adapter interface directly
---- @param args ExecuteAdapterDirectArgs
+---
+--- Position ID Format Examples:
+--- "/path/to/directory"                                    -- Directory (all tests)
+--- "/path/to/file_test.go"                                 -- File (all tests in file)
+--- "/path/to/file_test.go::TestFunction"                   -- Specific test
+--- "/path/to/file_test.go::TestFunction::\"SubTest\""        -- Subtest
+--- "/path/to/file_test.go::TestFunction::\"SubTest\"::\"TableTest\"" -- Nested subtest
+---
+--- @param position_id string Neotest position ID (directory, file, or test position)
 --- @return AdapterExecutionResult result Complete execution result
-function M.execute_adapter_direct(args)
-  -- Validate args
-  assert(args, "args table is required")
-  assert(args.path, "args.path is required")
-  assert(args.position_type, "args.position_type is required")
+function M.execute_adapter_direct(position_id)
+  -- Validate arguments
+  assert(position_id, "position_id is required")
+  assert(type(position_id) == "string", "position_id must be a string")
+
+  -- Parse position ID to extract components
+  local base_path, test_components = position_id:match("^([^:]+)(.*)")
+  local has_test_parts = test_components and test_components ~= ""
+
+  -- Infer intent from position ID format
+  local is_file = vim.fn.filereadable(base_path) == 1
+  local is_dir = vim.fn.isdirectory(base_path) == 1
+
+  local inferred_type
+  if has_test_parts then
+    -- Contains :: = test or subtest execution
+    inferred_type = "test"
+    assert(
+      is_file,
+      "Test position ID must reference a readable file: " .. base_path
+    )
+    assert(
+      vim.endswith(base_path, "_test.go"),
+      "Test position ID must reference a Go test file ending in '_test.go': "
+        .. base_path
+    )
+  elseif is_file then
+    -- File path without :: = file execution
+    inferred_type = "file"
+    assert(
+      vim.endswith(base_path, "_test.go"),
+      "File position ID must reference a Go test file ending in '_test.go': "
+        .. base_path
+    )
+  elseif is_dir then
+    -- Directory path = directory execution
+    inferred_type = "dir"
+  else
+    error(
+      "Position ID must reference a readable file or directory: " .. base_path
+    )
+  end
+
+  -- Extract test pattern from position ID for test execution
+  local test_pattern = nil
+  if inferred_type == "test" then
+    -- Use existing utility to convert position ID to Go test name
+    local convert = require("neotest-golang.lib.convert")
+    local go_test_name = convert.pos_id_to_go_test_name(position_id)
+    if go_test_name then
+      -- Extract just the main test name (before any subtests)
+      local main_test_name = go_test_name:match("^([^/]+)")
+      test_pattern = "^" .. main_test_name .. "$"
+    else
+      error(
+        "Invalid test position ID format. Expected '::TestName' after file path: "
+          .. position_id
+      )
+    end
+  end
 
   local nio = require("nio")
   local adapter = require("neotest-golang")
 
   local tree, full_tree
 
-  if args.position_type == "file" then
+  if inferred_type == "file" then
     -- File position: discover all tests in the file
-    tree = nio.tests.with_async_context(adapter.discover_positions, args.path)
-    assert(tree, "Failed to discover test positions in " .. args.path)
+    tree = nio.tests.with_async_context(adapter.discover_positions, base_path)
+    assert(tree, "Failed to discover test positions in " .. base_path)
     full_tree = tree
-  elseif args.position_type == "dir" then
+  elseif inferred_type == "dir" then
     -- Directory position: build composite tree from all test files
     local test_files = {}
-    local dir_scan = vim.fn.readdir(args.path, function(name)
+    local dir_scan = vim.fn.readdir(base_path, function(name)
       return vim.endswith(name, "_test.go")
     end)
 
     for _, file in ipairs(dir_scan or {}) do
-      table.insert(test_files, args.path .. "/" .. file)
+      table.insert(test_files, base_path .. "/" .. file)
     end
 
     local all_nodes = {}
@@ -118,15 +176,15 @@ function M.execute_adapter_direct(args)
     -- Create directory tree structure
     local dir_position = {
       type = "dir",
-      path = args.path,
-      name = vim.fn.fnamemodify(args.path, ":t"),
-      id = args.path,
+      path = base_path,
+      name = vim.fn.fnamemodify(base_path, ":t"),
+      id = base_path,
       range = { 0, 0, 0, 0 },
     }
 
     tree = {
       _key = function()
-        return args.path
+        return base_path
       end,
       data = function()
         return dir_position
@@ -148,7 +206,7 @@ function M.execute_adapter_direct(args)
         return pairs(nodes)
       end,
       iter = function()
-        local positions = { [args.path] = dir_position }
+        local positions = { [base_path] = dir_position }
         for _, node in ipairs(all_nodes) do
           local pos = node:data()
           positions[pos.id] = pos
@@ -157,21 +215,17 @@ function M.execute_adapter_direct(args)
       end,
     }
     full_tree = tree
-  elseif args.position_type == "test" then
-    -- Test position: find specific test position that matches the pattern
-    assert(
-      args.test_pattern,
-      "args.test_pattern is required for position_type 'test'"
-    )
-
+  elseif inferred_type == "test" then
+    -- Test position: find specific test position that matches the position ID
     full_tree =
-      nio.tests.with_async_context(adapter.discover_positions, args.path)
-    assert(full_tree, "Failed to discover test positions in " .. args.path)
+      nio.tests.with_async_context(adapter.discover_positions, base_path)
+    assert(full_tree, "Failed to discover test positions in " .. base_path)
 
     local target_test_position = nil
     for _, node in full_tree:iter_nodes() do
       local pos = node:data()
-      if pos.type == "test" and pos.name:match(args.test_pattern) then
+      -- Match the exact position ID
+      if pos.id == position_id then
         target_test_position = node
         break
       end
@@ -179,26 +233,20 @@ function M.execute_adapter_direct(args)
 
     assert(
       target_test_position,
-      "Could not find test matching pattern: " .. args.test_pattern
+      "Could not find test matching position ID: " .. position_id
     )
     tree = target_test_position
-  else
-    error(
-      "Invalid position_type: "
-        .. args.position_type
-        .. ". Must be 'file', 'dir', or 'test'"
-    )
   end
 
   -- Build run spec
   ---@type neotest.RunArgs
   local run_args = { tree = tree }
-  if args.test_pattern then
-    run_args.extra_args = { "-run", args.test_pattern }
+  if test_pattern then
+    run_args.extra_args = { "-run", test_pattern }
   end
 
   local run_spec = adapter.build_spec(run_args)
-  assert(run_spec, "Failed to build run spec for " .. args.path)
+  assert(run_spec, "Failed to build run spec for " .. position_id)
   assert(run_spec.command, "Run spec should have a command")
 
   -- Execute the command

@@ -72,13 +72,8 @@ describe("Integration: multifile test", function()
       -- ===== ACT =====
       -- Use the new execute_adapter_direct function to test the entire directory
       -- This should run all tests in the multifile package (TestOne from first_file_test.go, TestTwo from second_file_test.go)
-      ---@type ExecuteAdapterDirectArgs
-      local args = {
-        path = test_dirpath,
-        position_type = "dir"
-      }
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(args)
+      local got = integration.execute_adapter_direct(test_dirpath)
 
       -- ===== ASSERT =====
       want.tree = got.tree

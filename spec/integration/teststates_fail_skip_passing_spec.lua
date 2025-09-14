@@ -19,10 +19,7 @@ describe("Integration: passing tests", function()
 
     -- ===== ACT =====
     ---@type AdapterExecutionResult
-    local got = integration.execute_adapter_direct({
-      path = test_filepath,
-      position_type = "file"
-    })
+    local got = integration.execute_adapter_direct(test_filepath)
 
     -- Expected complete adapter execution result
     ---@type AdapterExecutionResult

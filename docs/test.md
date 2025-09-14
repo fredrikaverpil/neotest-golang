@@ -107,6 +107,12 @@ When writing tests...
   (`got`) wrapped in `vim.inspect` for easier debugging. Set
   `want.somefield = got.somefield` if you don't care about asserting explicity
   values.
+- Invoke the Go test by calling `execute_adapter_direct` using the Neotest
+  position type as argument:
+  - dir: `/path/to/folder`
+  - file: `/path/to/folder/file_test.go`
+  - test: `/path/to/folder/file_test.go::TestSomething` or
+    `/path/to/folder/file_test.go::TestSomething::"TestSubTest"`
 
 ??? note "Example integration test"
 

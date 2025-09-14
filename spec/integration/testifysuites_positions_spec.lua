@@ -20,13 +20,8 @@ describe("Integration: testify suites positions test", function()
       test_filepath = integration.normalize_path(test_filepath)
 
       -- ===== ACT =====
-      ---@type ExecuteAdapterDirectArgs
-      local args = {
-        path = test_filepath,
-        position_type = "file"
-      }
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(args)
+      local got = integration.execute_adapter_direct(test_filepath)
 
       -- Expected complete adapter execution result
       ---@type AdapterExecutionResult

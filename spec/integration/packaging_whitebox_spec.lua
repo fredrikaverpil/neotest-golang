@@ -5,9 +5,9 @@ local options = require("neotest-golang.options")
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
 
-describe("Integration: packaging blackbox test", function()
+describe("Integration: packaging whitebox test", function()
   it(
-    "file reports test discovery and execution for blackbox testing",
+    "file reports test discovery and execution for whitebox testing",
     function()
       -- ===== ARRANGE =====
       ---@type NeotestGolangOptions
@@ -16,17 +16,12 @@ describe("Integration: packaging blackbox test", function()
       options.set(test_options)
 
       local test_filepath = vim.uv.cwd()
-        .. "/tests/go/internal/packaging/blackbox_test.go"
+        .. "/tests/go/internal/packaging/whitebox_test.go"
       test_filepath = integration.normalize_path(test_filepath)
 
       -- ===== ACT =====
-      ---@type ExecuteAdapterDirectArgs
-      local args = {
-        path = test_filepath,
-        position_type = "file"
-      }
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(args)
+      local got = integration.execute_adapter_direct(test_filepath)
 
       -- Expected complete adapter execution result
       ---@type AdapterExecutionResult
@@ -43,7 +38,7 @@ describe("Integration: packaging blackbox test", function()
             errors = {},
           },
           -- Individual test results
-          [test_filepath .. "::TestBlackBox"] = {
+          [test_filepath .. "::TestWhiteBox"] = {
             status = "passed",
             errors = {},
           },
