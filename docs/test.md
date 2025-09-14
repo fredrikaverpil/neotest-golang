@@ -109,9 +109,9 @@ When writing tests...
   values.
 - Invoke the Go test by calling `execute_adapter_direct` using the Neotest
   position type as argument:
-  - dir: `/path/to/folder`
-  - file: `/path/to/folder/file_test.go`
-  - test: `/path/to/folder/file_test.go::TestSomething` or
+    - dir: `/path/to/folder`
+    - file: `/path/to/folder/file_test.go`
+    - test: `/path/to/folder/file_test.go::TestSomething` or
     `/path/to/folder/file_test.go::TestSomething::"TestSubTest"`
 
 ??? note "Example integration test"
