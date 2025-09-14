@@ -19,10 +19,6 @@ describe("Integration: nested subpackage2 test", function()
         .. "/tests/go/internal/nested/subpackage2/subpackage2_test.go"
       position_id = integration.normalize_path(position_id)
 
-      -- ===== ACT =====
-      ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(position_id)
-
       -- Expected complete adapter execution result
       ---@type AdapterExecutionResult
       local want = {
@@ -61,6 +57,10 @@ describe("Integration: nested subpackage2 test", function()
           end,
         },
       }
+
+      -- ===== ACT =====
+      ---@type AdapterExecutionResult
+      local got = integration.execute_adapter_direct(position_id)
 
       -- ===== ASSERT =====
       want.tree = got.tree
