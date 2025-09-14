@@ -54,56 +54,34 @@ function M.test_results(spec, result, tree)
   --- @type string
   local runner = options.get().runner
 
-  --- The raw output from the test command.
+  --- The output from the test command, as captured by stdout.
   --- @type table<string>
-  local raw_output = {}
-  if result.output and vim.fn.filereadable(result.output) == 1 then
-    raw_output = async.fn.readfile(result.output)
-  end
-  --- @type table<string>
-  local runner_raw_output = {}
+  local output = {}
   if runner == "go" then
-    runner_raw_output = raw_output
-  elseif runner == "gotestsum" then
-    if context.test_output_json_filepath ~= nil then
-      logger.debug(
-        "Reading gotestsum output from: " .. context.test_output_json_filepath
-      )
-
-      -- Check if file exists before trying to read it
-      local file_stat = vim.uv.fs_stat(context.test_output_json_filepath)
-      if not file_stat or file_stat.size == 0 then
-        if not file_stat then
-          logger.warn(
-            "Gotestsum JSON file does not exist: "
-              .. context.test_output_json_filepath
-          )
-        else
-          logger.warn(
-            "Gotestsum JSON file is empty: "
-              .. context.test_output_json_filepath
-          )
-        end
-        logger.warn("Falling back to regular output")
-        runner_raw_output = raw_output
-      else
-        logger.debug("Gotestsum JSON file size: " .. file_stat.size .. " bytes")
-        runner_raw_output = async.fn.readfile(context.test_output_json_filepath)
-      end
-    else
-      logger.warn(
-        "Gotestsum JSON output file path not provided; using regular output fallback"
-      )
-      runner_raw_output = raw_output
+    if not result.output then
+      logger.error("Go test output file is missing")
     end
+    if vim.fn.filereadable(result.output) ~= 1 then
+      logger.error("Go test output file is not readable: " .. result.output)
+    end
+    output = async.fn.readfile(result.output)
+  elseif runner == "gotestsum" then
+    if not context.test_output_json_filepath then
+      logger.error("Gotestsum JSON output file path not provided")
+    end
+    local file_stat = vim.uv.fs_stat(context.test_output_json_filepath)
+    if not file_stat or file_stat.size == 0 then -- check if file exists and is non-empty
+      logger.error("Gotestsum JSON output file is missing or empty")
+    end
+    output = async.fn.readfile(context.test_output_json_filepath)
   end
-  logger.debug({ "Runner '" .. runner .. "', raw output: ", runner_raw_output })
+  logger.debug({ "Runner '" .. runner .. "', raw output: ", output })
 
   --- The 'go list -json' output, converted into a lua table.
   -- local golist_output = context.golist_data
 
   --- @type GoTestEvent[]
-  local gotest_output = lib.json.decode_from_table(runner_raw_output, true)
+  local gotest_output = lib.json.decode_from_table(output, true)
 
   -- Register root node result in the cached results
   results[pos.id] = M.node_results(results[pos.id], result, gotest_output)
