@@ -42,7 +42,7 @@ function M.execute_adapter_direct(file_path, test_pattern)
       env = nil
     end
 
-    print("About to run command:", vim.inspect(run_spec.command))
+    print("Go test command:", vim.inspect(run_spec.command))
     print("Working directory:", run_spec.cwd)
 
     -- Run the process synchronously
