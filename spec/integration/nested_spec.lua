@@ -76,22 +76,16 @@ describe("Integration: nested subpackage2 test", function()
       want.strategy_result.output = got.strategy_result.output
       for pos_id, result in pairs(got.results) do
         if want.results[pos_id] then
-          -- Copy output path if it exists
           if result.output then
             want.results[pos_id].output = result.output
           end
-          -- Copy short field if it exists
           if result.short then
             want.results[pos_id].short = result.short
           end
         end
       end
 
-      assert.are.same(
-        vim.inspect(want),
-        vim.inspect(got),
-        "Complete adapter execution result should match"
-      )
+      assert.are.same(vim.inspect(want), vim.inspect(got))
     end
   )
 
@@ -107,10 +101,6 @@ describe("Integration: nested subpackage2 test", function()
       local position_id = vim.uv.cwd()
         .. "/tests/go/internal/nested/subpackage2/subpackage3/subpackage3_test.go"
       position_id = integration.normalize_path(position_id)
-
-      -- ===== ACT =====
-      ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(position_id)
 
       -- Expected complete adapter execution result
       ---@type AdapterExecutionResult
@@ -151,6 +141,10 @@ describe("Integration: nested subpackage2 test", function()
         },
       }
 
+      -- ===== ACT =====
+      ---@type AdapterExecutionResult
+      local got = integration.execute_adapter_direct(position_id)
+
       -- ===== ASSERT =====
       want.tree = got.tree
       want.run_spec.command = got.run_spec.command
@@ -165,22 +159,16 @@ describe("Integration: nested subpackage2 test", function()
       want.strategy_result.output = got.strategy_result.output
       for pos_id, result in pairs(got.results) do
         if want.results[pos_id] then
-          -- Copy output path if it exists
           if result.output then
             want.results[pos_id].output = result.output
           end
-          -- Copy short field if it exists
           if result.short then
             want.results[pos_id].short = result.short
           end
         end
       end
 
-      assert.are.same(
-        vim.inspect(want),
-        vim.inspect(got),
-        "Complete adapter execution result should match"
-      )
+      assert.are.same(vim.inspect(want), vim.inspect(got))
     end
   )
 end)

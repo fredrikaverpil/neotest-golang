@@ -110,11 +110,9 @@ describe("Integration: diagnostics test", function()
       want.strategy_result.output = got.strategy_result.output
       for pos_id, result in pairs(got.results) do
         if want.results[pos_id] then
-          -- copy output path if it exists
           if result.output then
             want.results[pos_id].output = result.output
           end
-          -- copy short field if it exists
           if result.short then
             want.results[pos_id].short = result.short
           end
