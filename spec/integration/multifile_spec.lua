@@ -14,12 +14,12 @@ describe("Integration: multifile test", function()
       local test_options = { runner = "gotestsum" }
       options.set(test_options)
 
-      local test_dirpath = vim.uv.cwd() .. "/tests/go/internal/multifile"
-      test_dirpath = integration.normalize_path(test_dirpath)
+      local position_id = vim.uv.cwd() .. "/tests/go/internal/multifile"
+      position_id = integration.normalize_path(position_id)
 
       -- Build expected file paths
-      local first_file_path = test_dirpath .. "/first_file_test.go"
-      local second_file_path = test_dirpath .. "/second_file_test.go"
+      local first_file_path = position_id .. "/first_file_test.go"
+      local second_file_path = position_id .. "/second_file_test.go"
       first_file_path = integration.normalize_path(first_file_path)
       second_file_path = integration.normalize_path(second_file_path)
 
@@ -27,7 +27,7 @@ describe("Integration: multifile test", function()
       local want = {
         results = {
           -- Directory-level result
-          [test_dirpath] = {
+          [position_id] = {
             status = "passed",
             errors = {},
           },
@@ -53,7 +53,7 @@ describe("Integration: multifile test", function()
         run_spec = {
           command = {}, -- this will be replaced in the assertion
           context = {
-            pos_id = test_dirpath,
+            pos_id = position_id,
           },
         },
         strategy_result = {
@@ -73,7 +73,7 @@ describe("Integration: multifile test", function()
       -- Use the new execute_adapter_direct function to test the entire directory
       -- This should run all tests in the multifile package (TestOne from first_file_test.go, TestTwo from second_file_test.go)
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(test_dirpath)
+      local got = integration.execute_adapter_direct(position_id)
 
       -- ===== ASSERT =====
       want.tree = got.tree
@@ -87,8 +87,6 @@ describe("Integration: multifile test", function()
       want.run_spec.context.test_output_json_filepath =
         got.run_spec.context.test_output_json_filepath
       want.strategy_result.output = got.strategy_result.output
-
-      -- Copy dynamic fields for all results
       for pos_id, result in pairs(got.results) do
         if want.results[pos_id] then
           if result.output then
@@ -104,4 +102,3 @@ describe("Integration: multifile test", function()
     end
   )
 end)
-

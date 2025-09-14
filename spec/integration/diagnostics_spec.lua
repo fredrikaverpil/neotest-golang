@@ -14,15 +14,15 @@ describe("Integration: diagnostics test", function()
       local test_options = { runner = "gotestsum" }
       options.set(test_options)
 
-      local test_filepath = vim.uv.cwd()
+      local position_id = vim.uv.cwd()
         .. "/tests/go/internal/diagnostics/diagnostics_test.go"
-      test_filepath = integration.normalize_path(test_filepath)
+      position_id = integration.normalize_path(position_id)
 
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(test_filepath)] = {
+          [vim.fs.dirname(position_id)] = {
             status = "passed", -- Directory shows passed due to aggregation logic
             errors = {
               {
@@ -33,12 +33,12 @@ describe("Integration: diagnostics test", function()
             },
           },
           -- File-level result
-          [test_filepath] = {
+          [position_id] = {
             status = "failed", -- File fails because some tests fail
             errors = {},
           },
           -- Individual test results
-          [test_filepath .. "::TestDiagnosticsTopLevelLog"] = {
+          [position_id .. "::TestDiagnosticsTopLevelLog"] = {
             status = "passed",
             errors = {
               {
@@ -48,7 +48,7 @@ describe("Integration: diagnostics test", function()
               },
             },
           },
-          [test_filepath .. "::TestDiagnosticsTopLevelError"] = {
+          [position_id .. "::TestDiagnosticsTopLevelError"] = {
             status = "failed",
             errors = {
               {
@@ -58,7 +58,7 @@ describe("Integration: diagnostics test", function()
               },
             },
           },
-          [test_filepath .. "::TestDiagnosticsTopLevelSkip"] = {
+          [position_id .. "::TestDiagnosticsTopLevelSkip"] = {
             status = "skipped",
             errors = {
               {
@@ -68,7 +68,7 @@ describe("Integration: diagnostics test", function()
               },
             },
           },
-          [test_filepath .. "::TestDiagnosticsTopLevelPanic"] = {
+          [position_id .. "::TestDiagnosticsTopLevelPanic"] = {
             status = "failed",
             errors = {}, -- Panic has complex stack trace, keep empty
           },
@@ -76,7 +76,7 @@ describe("Integration: diagnostics test", function()
         run_spec = {
           command = {}, -- this will be replaced in the assertion
           context = {
-            pos_id = test_filepath,
+            pos_id = position_id,
           },
         },
         strategy_result = {
@@ -94,7 +94,7 @@ describe("Integration: diagnostics test", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(test_filepath)
+      local got = integration.execute_adapter_direct(position_id)
 
       -- ===== ASSERT =====
       want.tree = got.tree
