@@ -15,170 +15,170 @@ describe("Integration: positions test", function()
         { runner = "gotestsum", warn_test_results_missing = false }
       options.set(test_options)
 
-      local test_filepath = vim.uv.cwd()
+      local position_id = vim.uv.cwd()
         .. "/tests/go/internal/positions/positions_test.go"
-      test_filepath = integration.normalize_path(test_filepath)
+      position_id = integration.normalize_path(position_id)
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(test_filepath)
+      local got = integration.execute_adapter_direct(position_id)
 
       -- Expected complete adapter execution result
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(test_filepath)] = {
+          [vim.fs.dirname(position_id)] = {
             status = "passed",
             errors = {},
           },
           -- File-level result
-          [test_filepath] = {
+          [position_id] = {
             status = "passed",
             errors = {},
           },
           -- Individual test results
-          [test_filepath .. "::TestTopLevel"] = {
+          [position_id .. "::TestTopLevel"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestTopLevelWithSubTest"] = {
+          [position_id .. "::TestTopLevelWithSubTest"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestTableTestStruct"] = {
+          [position_id .. "::TestTableTestStruct"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestSubTestTableTestStruct"] = {
+          [position_id .. "::TestSubTestTableTestStruct"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestTableTestInlineStruct"] = {
+          [position_id .. "::TestTableTestInlineStruct"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestSubTestTableTestInlineStruct"] = {
+          [position_id .. "::TestSubTestTableTestInlineStruct"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestTableTestInlineStructLoop"] = {
+          [position_id .. "::TestTableTestInlineStructLoop"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestTableTestInlineStructLoopNotKeyed"] = {
+          [position_id .. "::TestTableTestInlineStructLoopNotKeyed"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestTableTestInlineStructLoopNotKeyed2"] = {
+          [position_id .. "::TestTableTestInlineStructLoopNotKeyed2"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestSubTestTableTestInlineStructLoop"] = {
+          [position_id .. "::TestSubTestTableTestInlineStructLoop"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestTableTestMap"] = {
+          [position_id .. "::TestTableTestMap"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestStructNotTableTest"] = {
+          [position_id .. "::TestStructNotTableTest"] = {
             status = "passed",
             errors = {},
           },
           -- Subtest results
-          [test_filepath .. '::TestTopLevelWithSubTest::"SubTest"'] = {
+          [position_id .. '::TestTopLevelWithSubTest::"SubTest"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestStruct::"TableTest1"'] = {
+          [position_id .. '::TestTableTestStruct::"TableTest1"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestStruct::"TableTest2"'] = {
+          [position_id .. '::TestTableTestStruct::"TableTest2"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestSubTestTableTestStruct::"SubTest"'] = {
+          [position_id .. '::TestSubTestTableTestStruct::"SubTest"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestSubTestTableTestStruct::"SubTest"::"TableTest1"'] = {
+          [position_id .. '::TestSubTestTableTestStruct::"SubTest"::"TableTest1"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestSubTestTableTestStruct::"SubTest"::"TableTest2"'] = {
+          [position_id .. '::TestSubTestTableTestStruct::"SubTest"::"TableTest2"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestInlineStruct::"TableTest1"'] = {
+          [position_id .. '::TestTableTestInlineStruct::"TableTest1"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestInlineStruct::"TableTest2"'] = {
+          [position_id .. '::TestTableTestInlineStruct::"TableTest2"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestSubTestTableTestInlineStruct::"SubTest"'] = {
+          [position_id .. '::TestSubTestTableTestInlineStruct::"SubTest"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestSubTestTableTestInlineStruct::"SubTest"::"TableTest1"'] = {
+          [position_id .. '::TestSubTestTableTestInlineStruct::"SubTest"::"TableTest1"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestSubTestTableTestInlineStruct::"SubTest"::"TableTest2"'] = {
+          [position_id .. '::TestSubTestTableTestInlineStruct::"SubTest"::"TableTest2"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestInlineStructLoop::"TableTest1"'] = {
+          [position_id .. '::TestTableTestInlineStructLoop::"TableTest1"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestInlineStructLoop::"TableTest2"'] = {
+          [position_id .. '::TestTableTestInlineStructLoop::"TableTest2"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestInlineStructLoopNotKeyed::"TableTest1"'] = {
+          [position_id .. '::TestTableTestInlineStructLoopNotKeyed::"TableTest1"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestInlineStructLoopNotKeyed::"TableTest2"'] = {
+          [position_id .. '::TestTableTestInlineStructLoopNotKeyed::"TableTest2"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestInlineStructLoopNotKeyed2::"TableTest1"'] = {
+          [position_id .. '::TestTableTestInlineStructLoopNotKeyed2::"TableTest1"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestInlineStructLoopNotKeyed2::"TableTest2"'] = {
+          [position_id .. '::TestTableTestInlineStructLoopNotKeyed2::"TableTest2"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestSubTestTableTestInlineStructLoop::"SubTest"'] = {
+          [position_id .. '::TestSubTestTableTestInlineStructLoop::"SubTest"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestSubTestTableTestInlineStructLoop::"SubTest"::"TableTest1"'] = {
+          [position_id .. '::TestSubTestTableTestInlineStructLoop::"SubTest"::"TableTest1"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestSubTestTableTestInlineStructLoop::"SubTest"::"TableTest2"'] = {
+          [position_id .. '::TestSubTestTableTestInlineStructLoop::"SubTest"::"TableTest2"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestMap::"TableTest1"'] = {
+          [position_id .. '::TestTableTestMap::"TableTest1"'] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. '::TestTableTestMap::"TableTest2"'] = {
+          [position_id .. '::TestTableTestMap::"TableTest2"'] = {
             status = "passed",
             errors = {},
           },
         },
         run_spec = {
           context = {
-            pos_id = test_filepath,
+            pos_id = position_id,
           },
         },
         strategy_result = {

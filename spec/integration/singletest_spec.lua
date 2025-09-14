@@ -61,7 +61,8 @@ describe("Integration: individual test example", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(test_filepath .. "::TestOne")
+      local got =
+        integration.execute_adapter_direct(test_filepath .. "::TestOne")
 
       -- ===== ASSERT =====
       want.tree = got.tree

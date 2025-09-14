@@ -13,13 +13,13 @@ describe("Integration: fail/skip paths", function()
       { runner = "gotestsum", warn_test_results_missing = false }
     options.set(test_options)
 
-    local test_filepath = vim.uv.cwd()
+    local position_id = vim.uv.cwd()
       .. "/tests/go/internal/teststates/mixed/fail_skip_test.go"
-    test_filepath = integration.normalize_path(test_filepath)
+    position_id = integration.normalize_path(position_id)
 
     -- ===== ACT =====
     ---@type AdapterExecutionResult
-    local got = integration.execute_adapter_direct(test_filepath)
+    local got = integration.execute_adapter_direct(position_id)
 
     -- Expected complete adapter execution result
     -- Based on the actual test output, the adapter does detect subtests in the results
@@ -27,21 +27,21 @@ describe("Integration: fail/skip paths", function()
     local want = {
       results = {
         -- Directory-level result (created by file aggregation)
-        [vim.fs.dirname(test_filepath)] = {
+        [vim.fs.dirname(position_id)] = {
           status = "passed",
           errors = {},
         },
         -- File-level result
-        [test_filepath] = {
+        [position_id] = {
           status = "failed",
           errors = {},
         },
         -- Individual test results
-        [test_filepath .. "::TestPassing"] = {
+        [position_id .. "::TestPassing"] = {
           status = "passed",
           errors = {},
         },
-        [test_filepath .. "::TestFailing"] = {
+        [position_id .. "::TestFailing"] = {
           status = "failed",
           errors = {
             {
@@ -51,7 +51,7 @@ describe("Integration: fail/skip paths", function()
             },
           },
         },
-        [test_filepath .. "::TestSkipped"] = {
+        [position_id .. "::TestSkipped"] = {
           status = "skipped",
           errors = {
             {
@@ -61,20 +61,20 @@ describe("Integration: fail/skip paths", function()
             },
           },
         },
-        [test_filepath .. "::TestWithFailingSubtest"] = {
+        [position_id .. "::TestWithFailingSubtest"] = {
           status = "failed",
           errors = {},
         },
-        [test_filepath .. "::TestWithSkippedSubtest"] = {
+        [position_id .. "::TestWithSkippedSubtest"] = {
           status = "passed",
           errors = {},
         },
         -- Subtest results
-        [test_filepath .. '::TestWithFailingSubtest::"SubtestPassing"'] = {
+        [position_id .. '::TestWithFailingSubtest::"SubtestPassing"'] = {
           status = "passed",
           errors = {},
         },
-        [test_filepath .. '::TestWithFailingSubtest::"SubtestFailing"'] = {
+        [position_id .. '::TestWithFailingSubtest::"SubtestFailing"'] = {
           status = "failed",
           errors = {
             {
@@ -84,11 +84,11 @@ describe("Integration: fail/skip paths", function()
             },
           },
         },
-        [test_filepath .. '::TestWithSkippedSubtest::"SubtestPassing"'] = {
+        [position_id .. '::TestWithSkippedSubtest::"SubtestPassing"'] = {
           status = "passed",
           errors = {},
         },
-        [test_filepath .. '::TestWithSkippedSubtest::"SubtestSkipped"'] = {
+        [position_id .. '::TestWithSkippedSubtest::"SubtestSkipped"'] = {
           status = "skipped",
           errors = {
             {
@@ -101,7 +101,7 @@ describe("Integration: fail/skip paths", function()
       },
       run_spec = {
         context = {
-          pos_id = test_filepath,
+          pos_id = position_id,
         },
       },
       strategy_result = {

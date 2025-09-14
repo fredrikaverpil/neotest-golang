@@ -15,45 +15,45 @@ describe("Integration: testify suites positions test", function()
         { runner = "gotestsum", warn_test_results_missing = false }
       options.set(test_options)
 
-      local test_filepath = vim.uv.cwd()
+      local position_id = vim.uv.cwd()
         .. "/tests/go/internal/testifysuites/positions_test.go"
-      test_filepath = integration.normalize_path(test_filepath)
+      position_id = integration.normalize_path(position_id)
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(test_filepath)
+      local got = integration.execute_adapter_direct(position_id)
 
       -- Expected complete adapter execution result
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(test_filepath)] = {
+          [vim.fs.dirname(position_id)] = {
             status = "passed",
             errors = {},
           },
           -- File-level result
-          [test_filepath] = {
+          [position_id] = {
             status = "passed",
             errors = {},
           },
           -- Individual test results
-          [test_filepath .. "::TestExampleTestSuite"] = {
+          [position_id .. "::TestExampleTestSuite"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestExampleTestSuite2"] = {
+          [position_id .. "::TestExampleTestSuite2"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestTrivial"] = {
+          [position_id .. "::TestTrivial"] = {
             status = "passed",
             errors = {},
           },
         },
         run_spec = {
           context = {
-            pos_id = test_filepath,
+            pos_id = position_id,
           },
         },
         strategy_result = {

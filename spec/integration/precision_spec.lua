@@ -15,13 +15,13 @@ describe("Integration: treesitter precision test", function()
         { runner = "gotestsum", warn_test_results_missing = false }
       options.set(test_options)
 
-      local test_filepath = vim.uv.cwd()
+      local position_id = vim.uv.cwd()
         .. "/tests/go/internal/precision/treesitter_precision_test.go"
-      test_filepath = integration.normalize_path(test_filepath)
+      position_id = integration.normalize_path(position_id)
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(test_filepath)
+      local got = integration.execute_adapter_direct(position_id)
 
       -- Expected complete adapter execution result
       -- Note: Only actual Go test functions should be detected, not benchmarks or fuzz tests
@@ -29,29 +29,29 @@ describe("Integration: treesitter precision test", function()
       local want = {
         results = {
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(test_filepath)] = {
+          [vim.fs.dirname(position_id)] = {
             status = "passed",
             errors = {},
           },
           -- File-level result
-          [test_filepath] = {
+          [position_id] = {
             status = "passed",
             errors = {},
           },
           -- Individual test results (only Test_Run should be detected)
-          [test_filepath .. "::Test_Run"] = {
+          [position_id .. "::Test_Run"] = {
             status = "passed",
             errors = {},
           },
           -- Subtest results (only t.Run calls should be detected, not dummy{}.Run calls)
-          [test_filepath .. '::Test_Run::"find me"'] = {
+          [position_id .. '::Test_Run::"find me"'] = {
             status = "passed",
             errors = {},
           },
         },
         run_spec = {
           context = {
-            pos_id = test_filepath,
+            pos_id = position_id,
           },
         },
         strategy_result = {
