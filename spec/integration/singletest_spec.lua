@@ -60,9 +60,14 @@ describe("Integration: individual test example", function()
       }
 
       -- ===== ACT =====
+      ---@type ExecuteAdapterDirectArgs
+      local args = {
+        path = test_filepath,
+        position_type = "test",
+        test_pattern = "^TestOne$"
+      }
       ---@type AdapterExecutionResult
-      local got =
-        integration.execute_adapter_direct_test(test_filepath, "^TestOne$")
+      local got = integration.execute_adapter_direct(args)
 
       -- ===== ASSERT =====
       want.tree = got.tree

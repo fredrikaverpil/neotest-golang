@@ -64,33 +64,40 @@ local function execute_command(run_spec)
   end)
 end
 
+---@class ExecuteAdapterDirectArgs
+---@field path string Absolute path to the Go test file or directory
+---@field position_type "file" | "dir" | "test" Neotest position type
+---@field test_pattern string|nil Optional test pattern (required for "test" position type)
+
 --- Execute a real test using the adapter's build_spec and results methods directly
 --- This bypasses neotest.run.run and calls the adapter interface directly
---- @param path string Absolute path to the Go test file or directory
---- @param position_type string Position type: "file", "dir", or "test"
---- @param test_pattern string|nil Optional test pattern (required for "test" position type)
+--- @param args ExecuteAdapterDirectArgs
 --- @return AdapterExecutionResult result Complete execution result
-function M.execute_adapter_direct(path, position_type, test_pattern)
+function M.execute_adapter_direct(args)
+  -- Validate args
+  assert(args, "args table is required")
+  assert(args.path, "args.path is required")
+  assert(args.position_type, "args.position_type is required")
+
   local nio = require("nio")
   local adapter = require("neotest-golang")
 
   local tree, full_tree
 
-  if position_type == "file" then
+  if args.position_type == "file" then
     -- File position: discover all tests in the file
-    tree = nio.tests.with_async_context(adapter.discover_positions, path)
-    assert(tree, "Failed to discover test positions in " .. path)
+    tree = nio.tests.with_async_context(adapter.discover_positions, args.path)
+    assert(tree, "Failed to discover test positions in " .. args.path)
     full_tree = tree
-
-  elseif position_type == "dir" then
+  elseif args.position_type == "dir" then
     -- Directory position: build composite tree from all test files
     local test_files = {}
-    local dir_scan = vim.fn.readdir(path, function(name)
+    local dir_scan = vim.fn.readdir(args.path, function(name)
       return vim.endswith(name, "_test.go")
     end)
 
     for _, file in ipairs(dir_scan or {}) do
-      table.insert(test_files, path .. "/" .. file)
+      table.insert(test_files, args.path .. "/" .. file)
     end
 
     local all_nodes = {}
@@ -98,7 +105,8 @@ function M.execute_adapter_direct(path, position_type, test_pattern)
 
     -- Discover positions for each test file
     for _, file_path in ipairs(test_files) do
-      local file_tree = nio.tests.with_async_context(adapter.discover_positions, file_path)
+      local file_tree =
+        nio.tests.with_async_context(adapter.discover_positions, file_path)
       if file_tree then
         table.insert(file_trees, file_tree)
         for _, node in file_tree:iter_nodes() do
@@ -110,25 +118,37 @@ function M.execute_adapter_direct(path, position_type, test_pattern)
     -- Create directory tree structure
     local dir_position = {
       type = "dir",
-      path = path,
-      name = vim.fn.fnamemodify(path, ":t"),
-      id = path,
+      path = args.path,
+      name = vim.fn.fnamemodify(args.path, ":t"),
+      id = args.path,
       range = { 0, 0, 0, 0 },
     }
 
     tree = {
-      _key = function() return path end,
-      data = function() return dir_position end,
-      children = function() return file_trees end,
+      _key = function()
+        return args.path
+      end,
+      data = function()
+        return dir_position
+      end,
+      children = function()
+        return file_trees
+      end,
       iter_nodes = function()
-        local nodes = { { data = function() return dir_position end } }
+        local nodes = {
+          {
+            data = function()
+              return dir_position
+            end,
+          },
+        }
         for _, node in ipairs(all_nodes) do
           table.insert(nodes, node)
         end
         return pairs(nodes)
       end,
       iter = function()
-        local positions = { [path] = dir_position }
+        local positions = { [args.path] = dir_position }
         for _, node in ipairs(all_nodes) do
           local pos = node:data()
           positions[pos.id] = pos
@@ -137,39 +157,48 @@ function M.execute_adapter_direct(path, position_type, test_pattern)
       end,
     }
     full_tree = tree
-
-  elseif position_type == "test" then
+  elseif args.position_type == "test" then
     -- Test position: find specific test position that matches the pattern
-    assert(test_pattern, "test_pattern is required for position_type 'test'")
+    assert(
+      args.test_pattern,
+      "args.test_pattern is required for position_type 'test'"
+    )
 
-    full_tree = nio.tests.with_async_context(adapter.discover_positions, path)
-    assert(full_tree, "Failed to discover test positions in " .. path)
+    full_tree =
+      nio.tests.with_async_context(adapter.discover_positions, args.path)
+    assert(full_tree, "Failed to discover test positions in " .. args.path)
 
     local target_test_position = nil
     for _, node in full_tree:iter_nodes() do
       local pos = node:data()
-      if pos.type == "test" and pos.name:match(test_pattern) then
+      if pos.type == "test" and pos.name:match(args.test_pattern) then
         target_test_position = node
         break
       end
     end
 
-    assert(target_test_position, "Could not find test matching pattern: " .. test_pattern)
+    assert(
+      target_test_position,
+      "Could not find test matching pattern: " .. args.test_pattern
+    )
     tree = target_test_position
-
   else
-    error("Invalid position_type: " .. position_type .. ". Must be 'file', 'dir', or 'test'")
+    error(
+      "Invalid position_type: "
+        .. args.position_type
+        .. ". Must be 'file', 'dir', or 'test'"
+    )
   end
 
   -- Build run spec
   ---@type neotest.RunArgs
   local run_args = { tree = tree }
-  if test_pattern then
-    run_args.extra_args = { "-run", test_pattern }
+  if args.test_pattern then
+    run_args.extra_args = { "-run", args.test_pattern }
   end
 
   local run_spec = adapter.build_spec(run_args)
-  assert(run_spec, "Failed to build run spec for " .. path)
+  assert(run_spec, "Failed to build run spec for " .. args.path)
   assert(run_spec.command, "Run spec should have a command")
 
   -- Execute the command
@@ -279,48 +308,6 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
   end
 
   return individual_results
-end
-
---- Compatibility wrapper: Execute directory-level test
---- @param dir_path string Absolute path to the Go test directory
---- @param test_pattern string|nil Optional test pattern
---- @return AdapterExecutionResult result Complete execution result
-function M.execute_adapter_direct_dir(dir_path, test_pattern)
-  return M.execute_adapter_direct(dir_path, "dir", test_pattern)
-end
-
---- Compatibility wrapper: Execute individual test with pattern matching
---- @param file_path string Absolute path to the Go test file
---- @param test_pattern string Regex pattern for test selection (e.g., "TestOne", "TestOne$", "Test.*Subtest")
---- @return AdapterExecutionResult result Complete execution result
-function M.execute_adapter_direct_test(file_path, test_pattern)
-  return M.execute_adapter_direct(file_path, "test", test_pattern)
-end
-
--- Override execute_adapter_direct to handle backward compatibility
--- Save the new implementation
-local execute_adapter_direct_new = M.execute_adapter_direct
-
---- Execute adapter direct with backward compatibility
---- @param path_or_file string File path (old signature) or path (new signature)
---- @param position_type_or_pattern string|nil Position type (new) or test pattern (old)
---- @param test_pattern string|nil Test pattern (new signature only)
---- @return AdapterExecutionResult result Complete execution result
-function M.execute_adapter_direct(path_or_file, position_type_or_pattern, test_pattern)
-  -- Detect old signature: execute_adapter_direct(file_path, test_pattern)
-  if position_type_or_pattern and
-     position_type_or_pattern ~= "file" and
-     position_type_or_pattern ~= "dir" and
-     position_type_or_pattern ~= "test" then
-    -- Old signature with test pattern
-    return execute_adapter_direct_new(path_or_file, "file", position_type_or_pattern)
-  elseif not position_type_or_pattern then
-    -- Old signature with just file path
-    return execute_adapter_direct_new(path_or_file, "file", nil)
-  else
-    -- New signature
-    return execute_adapter_direct_new(path_or_file, position_type_or_pattern, test_pattern)
-  end
 end
 
 return M

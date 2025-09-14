@@ -93,8 +93,13 @@ describe("Integration: diagnostics test", function()
       }
 
       -- ===== ACT =====
+      ---@type ExecuteAdapterDirectArgs
+      local args = {
+        path = test_filepath,
+        position_type = "file"
+      }
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(test_filepath)
+      local got = integration.execute_adapter_direct(args)
 
       -- ===== ASSERT =====
       want.tree = got.tree
