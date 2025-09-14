@@ -2,12 +2,12 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 -- Load integration helpers
-local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
+local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
 
-describe("Integration: nested subpackage3 test", function()
+describe("Integration: multifile second test", function()
   it(
-    "file reports test discovery and execution for nested subpackage3",
+    "file reports test discovery and execution for second multifile test",
     function()
       -- ===== ARRANGE =====
       ---@type NeotestGolangOptions
@@ -16,7 +16,7 @@ describe("Integration: nested subpackage3 test", function()
       options.set(test_options)
 
       local test_filepath = vim.uv.cwd()
-        .. "/tests/go/internal/nested/subpackage2/subpackage3/subpackage3_test.go"
+        .. "/tests/go/internal/multifile/second_file_test.go"
       test_filepath = integration.normalize_path(test_filepath)
 
       -- ===== ACT =====
@@ -38,7 +38,7 @@ describe("Integration: nested subpackage3 test", function()
             errors = {},
           },
           -- Individual test results
-          [test_filepath .. "::TestSubpackage3"] = {
+          [test_filepath .. "::TestTwo"] = {
             status = "passed",
             errors = {},
           },

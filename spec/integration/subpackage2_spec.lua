@@ -2,12 +2,12 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 -- Load integration helpers
-local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
+local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
 
-describe("Integration: testify othersuite test", function()
+describe("Integration: nested subpackage2 test", function()
   it(
-    "file reports test discovery and execution for simple testify suite",
+    "file reports test discovery and execution for nested subpackage2",
     function()
       -- ===== ARRANGE =====
       ---@type NeotestGolangOptions
@@ -16,7 +16,7 @@ describe("Integration: testify othersuite test", function()
       options.set(test_options)
 
       local test_filepath = vim.uv.cwd()
-        .. "/tests/go/internal/testifysuites/othersuite_test.go"
+        .. "/tests/go/internal/nested/subpackage2/subpackage2_test.go"
       test_filepath = integration.normalize_path(test_filepath)
 
       -- ===== ACT =====
@@ -38,7 +38,7 @@ describe("Integration: testify othersuite test", function()
             errors = {},
           },
           -- Individual test results
-          [test_filepath .. "::TestOtherTestSuite"] = {
+          [test_filepath .. "::TestSubpackage2"] = {
             status = "passed",
             errors = {},
           },

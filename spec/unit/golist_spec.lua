@@ -1,5 +1,5 @@
 local lib = require("neotest-golang.lib")
-local utils = dofile(vim.uv.cwd() .. "/tests/helpers/utils.lua")
+local utils = dofile(vim.uv.cwd() .. "/spec/helpers/utils.lua")
 
 describe("go list output from root", function()
   it("contains expected keys/values", function()

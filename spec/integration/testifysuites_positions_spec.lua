@@ -2,12 +2,12 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 -- Load integration helpers
-local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
+local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
 
-describe("Integration: multifile first test", function()
+describe("Integration: testify suites positions test", function()
   it(
-    "file reports test discovery and execution for first multifile test",
+    "file reports test discovery and execution for testify suite patterns",
     function()
       -- ===== ARRANGE =====
       ---@type NeotestGolangOptions
@@ -16,7 +16,7 @@ describe("Integration: multifile first test", function()
       options.set(test_options)
 
       local test_filepath = vim.uv.cwd()
-        .. "/tests/go/internal/multifile/first_file_test.go"
+        .. "/tests/go/internal/testifysuites/positions_test.go"
       test_filepath = integration.normalize_path(test_filepath)
 
       -- ===== ACT =====
@@ -38,7 +38,15 @@ describe("Integration: multifile first test", function()
             errors = {},
           },
           -- Individual test results
-          [test_filepath .. "::TestOne"] = {
+          [test_filepath .. "::TestExampleTestSuite"] = {
+            status = "passed",
+            errors = {},
+          },
+          [test_filepath .. "::TestExampleTestSuite2"] = {
+            status = "passed",
+            errors = {},
+          },
+          [test_filepath .. "::TestTrivial"] = {
             status = "passed",
             errors = {},
           },

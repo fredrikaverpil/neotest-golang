@@ -117,7 +117,7 @@ end
 --- @param path string
 --- @return string
 function M.normalize_path(path)
-  local utils = dofile(vim.uv.cwd() .. "/tests/helpers/utils.lua")
+  local utils = dofile(vim.uv.cwd() .. "/spec/helpers/utils.lua")
   return utils.normalize_path(path)
 end
 

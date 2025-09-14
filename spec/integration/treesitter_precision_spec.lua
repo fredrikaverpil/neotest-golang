@@ -2,12 +2,12 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 -- Load integration helpers
-local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
+local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
 
-describe("Integration: nested subpackage2 test", function()
+describe("Integration: treesitter precision test", function()
   it(
-    "file reports test discovery and execution for nested subpackage2",
+    "file reports test discovery and execution for precise treesitter detection",
     function()
       -- ===== ARRANGE =====
       ---@type NeotestGolangOptions
@@ -16,7 +16,7 @@ describe("Integration: nested subpackage2 test", function()
       options.set(test_options)
 
       local test_filepath = vim.uv.cwd()
-        .. "/tests/go/internal/nested/subpackage2/subpackage2_test.go"
+        .. "/tests/go/internal/precision/treesitter_precision_test.go"
       test_filepath = integration.normalize_path(test_filepath)
 
       -- ===== ACT =====
@@ -24,6 +24,7 @@ describe("Integration: nested subpackage2 test", function()
       local got = integration.execute_adapter_direct(test_filepath)
 
       -- Expected complete adapter execution result
+      -- Note: Only actual Go test functions should be detected, not benchmarks or fuzz tests
       ---@type AdapterExecutionResult
       local want = {
         results = {
@@ -37,8 +38,13 @@ describe("Integration: nested subpackage2 test", function()
             status = "passed",
             errors = {},
           },
-          -- Individual test results
-          [test_filepath .. "::TestSubpackage2"] = {
+          -- Individual test results (only Test_Run should be detected)
+          [test_filepath .. "::Test_Run"] = {
+            status = "passed",
+            errors = {},
+          },
+          -- Subtest results (only t.Run calls should be detected, not dummy{}.Run calls)
+          [test_filepath .. '::Test_Run::"find me"'] = {
             status = "passed",
             errors = {},
           },

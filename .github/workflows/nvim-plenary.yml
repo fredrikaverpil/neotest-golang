@@ -21,7 +21,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .tests
-          key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ hashFiles('tests/minimal_init.lua') }}-${{ hashFiles('tests/bootstrap.lua') }}
+          key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ hashFiles('spec/minimal_init.lua') }}-${{ hashFiles('spec/bootstrap.lua') }}
       - name: Neovim setup
         uses: rhysd/action-setup-vim@v1
         with:

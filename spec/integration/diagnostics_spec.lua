@@ -2,12 +2,12 @@ local _ = require("plenary")
 local options = require("neotest-golang.options")
 
 -- Load integration helpers
-local integration_path = vim.uv.cwd() .. "/tests/helpers/integration.lua"
+local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
 
-describe("Integration: testify suites positions test", function()
+describe("Integration: diagnostics test", function()
   it(
-    "file reports test discovery and execution for testify suite patterns",
+    "file reports test discovery and execution for diagnostic classification",
     function()
       -- ===== ARRANGE =====
       ---@type NeotestGolangOptions
@@ -16,7 +16,7 @@ describe("Integration: testify suites positions test", function()
       options.set(test_options)
 
       local test_filepath = vim.uv.cwd()
-        .. "/tests/go/internal/testifysuites/positions_test.go"
+        .. "/tests/go/internal/diagnostics/diagnostics_test.go"
       test_filepath = integration.normalize_path(test_filepath)
 
       -- ===== ACT =====
@@ -24,13 +24,20 @@ describe("Integration: testify suites positions test", function()
       local got = integration.execute_adapter_direct(test_filepath)
 
       -- Expected complete adapter execution result
+      -- Note: The skipped tests are expected to pass since they're skipped
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Directory-level result (created by file aggregation)
           [vim.fs.dirname(test_filepath)] = {
             status = "passed",
-            errors = {},
+            errors = {
+              {
+                message = "I'm a logging hint message",
+                line = 11,
+                severity = vim.diagnostic.severity.HINT,
+              },
+            },
           },
           -- File-level result
           [test_filepath] = {
@@ -38,17 +45,50 @@ describe("Integration: testify suites positions test", function()
             errors = {},
           },
           -- Individual test results
-          [test_filepath .. "::TestExampleTestSuite"] = {
+          [test_filepath .. "::TestDiagnostics"] = {
             status = "passed",
             errors = {},
           },
-          [test_filepath .. "::TestExampleTestSuite2"] = {
+          [test_filepath .. "::TestDiagnosticsTopLevelLog"] = {
             status = "passed",
-            errors = {},
+            errors = {
+              {
+                message = "top-level hint: this should be classified as a hint",
+                line = 18,
+                severity = vim.diagnostic.severity.HINT,
+              },
+            },
           },
-          [test_filepath .. "::TestTrivial"] = {
+          [test_filepath .. "::TestDiagnosticsTopLevelError"] = {
+            status = "skipped",
+            errors = {
+              {
+                message = "remove skip to trigger error",
+                line = 24,
+                severity = vim.diagnostic.severity.HINT,
+              },
+            },
+          },
+          [test_filepath .. "::TestDiagnosticsTopLevelPanic"] = {
+            status = "skipped",
+            errors = {
+              {
+                message = "remove skip to trigger panic",
+                line = 31,
+                severity = vim.diagnostic.severity.HINT,
+              },
+            },
+          },
+          -- Subtest results
+          [test_filepath .. '::TestDiagnostics::"log"'] = {
             status = "passed",
-            errors = {},
+            errors = {
+              {
+                message = "I'm a logging hint message",
+                line = 11,
+                severity = vim.diagnostic.severity.HINT,
+              },
+            },
           },
         },
         run_spec = {
