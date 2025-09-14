@@ -10,8 +10,8 @@ describe("Integration: multifile test", function()
     "directory testing runs both TestOne and TestTwo from multiple files",
     function()
       -- ===== ARRANGE =====
-      ---@type NeotestGolangOptions
-      local test_options = { runner = "gotestsum" }
+      local test_options = options.get()
+      test_options.runner = "gotestsum"
       options.set(test_options)
 
       local position_id = vim.uv.cwd() .. "/tests/go/internal/multifile"

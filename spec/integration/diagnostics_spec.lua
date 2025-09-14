@@ -10,8 +10,8 @@ describe("Integration: diagnostics test", function()
     "file reports test discovery and execution for diagnostic classification",
     function()
       -- ===== ARRANGE =====
-      ---@type NeotestGolangOptions
-      local test_options = { runner = "gotestsum" }
+      local test_options = options.get()
+      test_options.runner = "gotestsum"
       options.set(test_options)
 
       local position_id = vim.uv.cwd()

@@ -10,9 +10,8 @@ describe("Integration: nested subpackage2 test", function()
     "file reports test discovery and execution for nested subpackage2",
     function()
       -- ===== ARRANGE =====
-      ---@type NeotestGolangOptions
-      local test_options =
-        { runner = "gotestsum", warn_test_results_missing = false }
+      local test_options = options.get()
+      test_options.runner = "gotestsum"
       options.set(test_options)
 
       local position_id = vim.uv.cwd()
@@ -92,9 +91,8 @@ describe("Integration: nested subpackage2 test", function()
     "file reports test discovery and execution for nested subpackage3",
     function()
       -- ===== ARRANGE =====
-      ---@type NeotestGolangOptions
-      local test_options =
-        { runner = "gotestsum", warn_test_results_missing = false }
+      local test_options = options.get()
+      test_options.runner = "gotestsum"
       options.set(test_options)
 
       local position_id = vim.uv.cwd()
