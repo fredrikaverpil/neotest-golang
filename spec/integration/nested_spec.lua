@@ -19,7 +19,6 @@ describe("Integration: nested subpackage2 test", function()
         .. "/tests/go/internal/nested/subpackage2/subpackage2_test.go"
       position_id = integration.normalize_path(position_id)
 
-      -- Expected complete adapter execution result
       ---@type AdapterExecutionResult
       local want = {
         results = {
@@ -102,7 +101,6 @@ describe("Integration: nested subpackage2 test", function()
         .. "/tests/go/internal/nested/subpackage2/subpackage3/subpackage3_test.go"
       position_id = integration.normalize_path(position_id)
 
-      -- Expected complete adapter execution result
       ---@type AdapterExecutionResult
       local want = {
         results = {

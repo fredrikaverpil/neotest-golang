@@ -17,7 +17,6 @@ describe("Integration: multifile test", function()
       local position_id = vim.uv.cwd() .. "/tests/go/internal/multifile"
       position_id = integration.normalize_path(position_id)
 
-      -- Build expected file paths
       local first = position_id .. "/first_file_test.go"
       local second = position_id .. "/second_file_test.go"
       first = integration.normalize_path(first)
