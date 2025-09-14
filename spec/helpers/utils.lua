@@ -7,7 +7,8 @@ local M = {}
 --- @return string
 function M.normalize_path(path)
   if vim.fn.has("win32") == 1 then
-    return path:gsub("/", "\\")
+    local normalized_path, _ = path:gsub("/", "\\")
+    return normalized_path
   end
   return path
 end
@@ -16,7 +17,8 @@ end
 --- @param path string
 --- @return string
 function M.to_unix_path(path)
-  return path:gsub("\\", "/")
+  local unix_path, _ = path:gsub("\\", "/")
+  return unix_path
 end
 
 return M
