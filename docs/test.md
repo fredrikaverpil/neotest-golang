@@ -104,7 +104,9 @@ When writing tests...
   test.
 - Follow the Arrange, Act, Assert (AAA) pattern.
 - Assert on the _full_ wanted test results (`want`) from the gotten test results
-  (`got`) wrapped in `vim.inspect` for easier debugging.
+  (`got`) wrapped in `vim.inspect` for easier debugging. Set
+  `want.somefield = got.somefield` if you don't care about asserting explicity
+  values.
 
 ??? note "Example integration test"
 
@@ -130,10 +132,6 @@ When writing tests...
             .. "/tests/go/internal/mytestpkg/mytest_test.go"
           test_filepath = integration.normalize_path(test_filepath)
 
-          -- ===== ACT =====
-          ---@type AdapterExecutionResult
-          local got = integration.execute_adapter_direct(test_filepath)
-
           -- Expected complete adapter execution result
           ---@type AdapterExecutionResult
           local want = {
@@ -155,20 +153,33 @@ When writing tests...
               },
             },
             run_spec = {
+              command = {},  -- this will be replaced in the assertion
               context = {
                 pos_id = test_filepath,
               },
             },
             strategy_result = {
-              code = 0,
+              code = 1,
+            },
+            tree = {
+              -- this will be replaced in the assertion
+              _children = {},
+              _nodes = {},
+              _key = function()
+                return ""
+              end,
             },
           }
 
-          -- ===== ASSERT =====
+          -- ===== ACT =====
+          ---@type AdapterExecutionResult
+          local got = integration.execute_adapter_direct(test_filepath)
 
-          -- Copy dynamic run_spec fields
-          want.run_spec.command = got.run_spec.command
+
+          -- ===== ASSERT =====
+          want.tree = got.tree
           want.run_spec.cwd = got.run_spec.cwd
+          want.run_spec.command = got.run_spec.command
           want.run_spec.env = got.run_spec.env
           want.run_spec.stream = got.run_spec.stream
           want.run_spec.strategy = got.run_spec.strategy
@@ -176,21 +187,14 @@ When writing tests...
           want.run_spec.context.stop_stream = got.run_spec.context.stop_stream
           want.run_spec.context.test_output_json_filepath =
             got.run_spec.context.test_output_json_filepath
-
-          -- Copy dynamic strategy_result fields
           want.strategy_result.output = got.strategy_result.output
-
-          -- Copy tree field if present
-          want.tree = got.tree
-
-          -- Copy dynamic output paths for all results
           for pos_id, result in pairs(got.results) do
             if want.results[pos_id] then
-              -- Copy output path if it exists
+              -- copy output path if it exists
               if result.output then
                 want.results[pos_id].output = result.output
               end
-              -- Copy short field if it exists
+              -- copy short field if it exists
               if result.short then
                 want.results[pos_id].short = result.short
               end
