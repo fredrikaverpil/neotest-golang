@@ -349,4 +349,120 @@ function M.execute_adapter_direct_dir(dir_path, test_pattern)
   }
 end
 
+--- Execute a real individual test using the adapter's build_spec and results methods directly
+--- This bypasses neotest.run.run and calls the adapter interface directly for individual test testing
+--- @param file_path string Absolute path to the Go test file
+--- @param test_pattern string Regex pattern for test selection (e.g., "TestOne", "TestOne$", "Test.*Subtest")
+--- @return AdapterExecutionResult result Complete execution result
+function M.execute_adapter_direct_test(file_path, test_pattern)
+  local nio = require("nio")
+  local adapter = require("neotest-golang")
+
+  -- Discover positions for the file to get the complete tree with all test positions
+  ---@type neotest.Tree
+  local full_tree = nio.tests.with_async_context(adapter.discover_positions, file_path)
+  assert(full_tree, "Failed to discover test positions in " .. file_path)
+
+  -- Find the specific test position that matches the pattern
+  local target_test_position = nil
+  for _, node in full_tree:iter_nodes() do
+    local pos = node:data()
+    if pos.type == "test" and pos.name:match(test_pattern) then
+      target_test_position = node
+      break
+    end
+  end
+
+  assert(target_test_position, "Could not find test matching pattern: " .. test_pattern)
+
+  -- Build run spec using only the specific test position (not the full file tree)
+  ---@type neotest.RunArgs
+  local run_args = {
+    tree = target_test_position,
+    extra_args = { "-run", test_pattern }
+  }
+
+  local run_spec = adapter.build_spec(run_args)
+  assert(run_spec, "Failed to build run spec for pattern: " .. test_pattern)
+  assert(run_spec.command, "Run spec should have a command")
+
+  -- Execute the command synchronously to avoid integrated strategy hangs
+  local strategy_result = nio.tests.with_async_context(function()
+    -- Normalize env and cwd
+    local env = run_spec.env
+    if env and vim.tbl_isempty(env) then
+      env = nil
+    end
+
+    print("Go test command:", vim.inspect(run_spec.command))
+    print("Working directory:", run_spec.cwd)
+
+    -- Run the process synchronously
+    local sys = vim
+      .system(run_spec.command, {
+        cwd = run_spec.cwd,
+        env = env,
+        text = true,
+      })
+      :wait()
+
+    -- Persist stdout/stderr to a temp file for debugging/fallbacks
+    local output_path = nil
+    if
+      (sys.stdout and sys.stdout ~= "") or (sys.stderr and sys.stderr ~= "")
+    then
+      output_path = vim.fs.normalize(vim.fn.tempname())
+      local lines = {}
+      if sys.stdout and sys.stdout ~= "" then
+        for line in sys.stdout:gmatch("[^\r\n]+") do
+          table.insert(lines, line)
+        end
+      end
+      if sys.stderr and sys.stderr ~= "" then
+        table.insert(lines, "")
+        table.insert(lines, "=== stderr ===")
+        for line in sys.stderr:gmatch("[^\r\n]+") do
+          table.insert(lines, line)
+        end
+      end
+      vim.fn.writefile(lines, output_path)
+    end
+
+    print("Exit code:", sys.code, "Output path:", output_path)
+
+    return {
+      code = sys.code or 1,
+      output = output_path,
+    }
+  end)
+
+  assert(strategy_result, "Failed to get strategy result")
+
+  -- If available, process any captured stdout/stderr to seed cached results.
+  if strategy_result.output then
+    M.process_test_output_manually(
+      full_tree,
+      run_spec.context.golist_data,
+      strategy_result.output,
+      run_spec.context
+    )
+  end
+
+  -- Process results through adapter - this will get the cached results
+  local results = nio.tests.with_async_context(
+    adapter.results,
+    run_spec,
+    strategy_result,
+    full_tree
+  )
+
+  ---@type AdapterExecutionResult
+  return {
+    tree = full_tree,
+    results = results,
+    run_spec = run_spec,
+    strategy_result = strategy_result,
+  }
+end
+
 return M
