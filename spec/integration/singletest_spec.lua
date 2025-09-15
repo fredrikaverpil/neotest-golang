@@ -15,26 +15,27 @@ describe("Integration: individual test example", function()
         { runner = "gotestsum", warn_test_results_missing = false }
       options.set(test_options)
 
-      local filepath = vim.uv.cwd()
+      local position_id_file = vim.uv.cwd()
         .. "/tests/go/internal/singletest/singletest_test.go"
-      local position_id = integration.normalize_path(filepath) .. "::TestOne"
+      local position_id_test = integration.normalize_path(position_id_file)
+        .. "::TestOne"
 
       -- Expected complete adapter execution result - only TestOne should run
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(position_id)] = {
+          [vim.fs.dirname(position_id_file)] = {
             status = "passed",
             errors = {},
           },
           -- File-level result
-          [integration.normalize_path(filepath)] = {
+          [integration.normalize_path(position_id_file)] = {
             status = "passed",
             errors = {},
           },
           -- Individual test results - ONLY TestOne should be present!
-          [position_id] = {
+          [position_id_test] = {
             status = "passed",
             errors = {},
           },
@@ -43,7 +44,7 @@ describe("Integration: individual test example", function()
         run_spec = {
           command = {}, -- this will be replaced in the assertion
           context = {
-            pos_id = position_id,
+            pos_id = position_id_test,
           },
         },
         strategy_result = {
@@ -61,7 +62,7 @@ describe("Integration: individual test example", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(position_id)
+      local got = integration.execute_adapter_direct(position_id_test)
 
       -- ===== ASSERT =====
       want.tree = got.tree
