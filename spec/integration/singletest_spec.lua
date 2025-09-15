@@ -15,26 +15,26 @@ describe("Integration: individual test example", function()
         { runner = "gotestsum", warn_test_results_missing = false }
       options.set(test_options)
 
-      local test_filepath = vim.uv.cwd()
+      local filepath = vim.uv.cwd()
         .. "/tests/go/internal/singletest/singletest_test.go"
-      test_filepath = integration.normalize_path(test_filepath)
+      local position_id = integration.normalize_path(filepath) .. "::TestOne"
 
       -- Expected complete adapter execution result - only TestOne should run
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(test_filepath)] = {
+          [vim.fs.dirname(position_id)] = {
             status = "passed",
             errors = {},
           },
           -- File-level result
-          [test_filepath] = {
+          [integration.normalize_path(filepath)] = {
             status = "passed",
             errors = {},
           },
           -- Individual test results - ONLY TestOne should be present!
-          [test_filepath .. "::TestOne"] = {
+          [position_id] = {
             status = "passed",
             errors = {},
           },
@@ -43,7 +43,7 @@ describe("Integration: individual test example", function()
         run_spec = {
           command = {}, -- this will be replaced in the assertion
           context = {
-            pos_id = test_filepath .. "::TestOne",
+            pos_id = position_id,
           },
         },
         strategy_result = {
@@ -61,8 +61,7 @@ describe("Integration: individual test example", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got =
-        integration.execute_adapter_direct(test_filepath .. "::TestOne")
+      local got = integration.execute_adapter_direct(position_id)
 
       -- ===== ASSERT =====
       want.tree = got.tree
@@ -79,15 +78,11 @@ describe("Integration: individual test example", function()
       want.run_spec.context.process_test_results =
         got.run_spec.context.process_test_results
       want.strategy_result.output = got.strategy_result.output
-
-      -- Copy dynamic fields for expected results only
       for pos_id, result in pairs(got.results) do
         if want.results[pos_id] then
-          -- copy output path if it exists
           if result.output then
             want.results[pos_id].output = result.output
           end
-          -- copy short field if it exists
           if result.short then
             want.results[pos_id].short = result.short
           end

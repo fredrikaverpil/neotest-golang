@@ -14,37 +14,37 @@ describe("Integration: multifile test", function()
       test_options.runner = "gotestsum"
       options.set(test_options)
 
-      local position_id = vim.uv.cwd() .. "/tests/go/internal/multifile"
-      position_id = integration.normalize_path(position_id)
+      local pos_id_dir = vim.uv.cwd() .. "/tests/go/internal/multifile"
+      pos_id_dir = integration.normalize_path(pos_id_dir)
 
-      local first = position_id .. "/first_file_test.go"
-      local second = position_id .. "/second_file_test.go"
-      first = integration.normalize_path(first)
-      second = integration.normalize_path(second)
+      local pos_id_first = pos_id_dir .. "/first_file_test.go"
+      local pos_id_second = pos_id_dir .. "/second_file_test.go"
+      pos_id_first = integration.normalize_path(pos_id_first)
+      pos_id_second = integration.normalize_path(pos_id_second)
 
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Directory-level result
-          [position_id] = {
+          [pos_id_dir] = {
             status = "passed",
             errors = {},
           },
           -- File-level results
-          [first] = {
+          [pos_id_first] = {
             status = "passed",
             errors = {},
           },
-          [second] = {
+          [pos_id_second] = {
             status = "passed",
             errors = {},
           },
           -- Individual test results
-          [first .. "::TestOne"] = {
+          [pos_id_first .. "::TestOne"] = {
             status = "passed",
             errors = {},
           },
-          [second .. "::TestTwo"] = {
+          [pos_id_second .. "::TestTwo"] = {
             status = "passed",
             errors = {},
           },
@@ -52,7 +52,7 @@ describe("Integration: multifile test", function()
         run_spec = {
           command = {}, -- this will be replaced in the assertion
           context = {
-            pos_id = position_id,
+            pos_id = pos_id_dir,
           },
         },
         strategy_result = {
@@ -70,7 +70,7 @@ describe("Integration: multifile test", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(position_id)
+      local got = integration.execute_adapter_direct(pos_id_dir)
 
       -- ===== ASSERT =====
       want.tree = got.tree
