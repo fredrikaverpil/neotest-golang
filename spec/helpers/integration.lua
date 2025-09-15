@@ -240,7 +240,7 @@ function M.execute_adapter_direct(position_id)
 
   -- Build run spec
   ---@type neotest.RunArgs
-  local run_args = { tree = tree }
+  local run_args = { tree = tree, strategy = "integrated" }
   if test_pattern then
     run_args.extra_args = { "-run", test_pattern }
   end
