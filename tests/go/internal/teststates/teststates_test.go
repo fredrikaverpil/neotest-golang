@@ -50,3 +50,4 @@ func TestWithSkippedSubtest(t *testing.T) {
 		t.Skip("this subtest is intentionally skipped")
 	})
 }
+
