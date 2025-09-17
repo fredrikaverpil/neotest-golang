@@ -5,9 +5,9 @@ local options = require("neotest-golang.options")
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
 
-describe("Integration: testify suites positions test", function()
+describe("Integration: test states", function()
   it(
-    "file reports test discovery and execution for testify suite patterns",
+    "file reports test discovery and execution for various test states (passing, failing, skipping)",
     function()
       -- ===== ARRANGE =====
       local test_options = options.get()
@@ -15,7 +15,7 @@ describe("Integration: testify suites positions test", function()
       options.set(test_options)
 
       local position_id = vim.uv.cwd()
-        .. "/tests/go/internal/testifysuites/positions_test.go"
+        .. "/tests/go/internal/teststates/teststates_test.go"
       position_id = integration.normalize_path(position_id)
 
       -- ===== ACT =====
@@ -33,21 +33,84 @@ describe("Integration: testify suites positions test", function()
           },
           -- File-level result
           [position_id] = {
-            status = "passed",
+            status = "failed",
             errors = {},
           },
           -- Individual test results
-          [position_id .. "::TestExampleTestSuite"] = {
+          [position_id .. "::TestPassing"] = {
             status = "passed",
             errors = {},
           },
-          [position_id .. "::TestExampleTestSuite2"] = {
+          [position_id .. "::TestAlsoPassing"] = {
             status = "passed",
             errors = {},
           },
-          [position_id .. "::TestTrivial"] = {
+          [position_id .. "::TestFailing"] = {
+            status = "failed",
+            errors = {
+              {
+                message = "this test intentionally fails",
+                line = 18,
+                severity = 4,
+              },
+            },
+          },
+          [position_id .. "::TestSkipped"] = {
+            status = "skipped",
+            errors = {
+              {
+                message = "this test is intentionally skipped",
+                line = 23,
+                severity = 4,
+              },
+            },
+          },
+          [position_id .. "::TestAlsoSkipped"] = {
+            status = "skipped",
+            errors = {
+              {
+                message = "this test is also intentionally skipped",
+                line = 28,
+                severity = 4,
+              },
+            },
+          },
+          [position_id .. "::TestWithFailingSubtest"] = {
+            status = "failed",
+            errors = {},
+          },
+          [position_id .. "::TestWithSkippedSubtest"] = {
             status = "passed",
             errors = {},
+          },
+          -- Subtest results
+          [position_id .. '::TestWithFailingSubtest::"SubtestPassing"'] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. '::TestWithFailingSubtest::"SubtestFailing"'] = {
+            status = "failed",
+            errors = {
+              {
+                message = "this subtest intentionally fails",
+                line = 38,
+                severity = 4,
+              },
+            },
+          },
+          [position_id .. '::TestWithSkippedSubtest::"SubtestPassing"'] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. '::TestWithSkippedSubtest::"SubtestSkipped"'] = {
+            status = "skipped",
+            errors = {
+              {
+                message = "this subtest is intentionally skipped",
+                line = 49,
+                severity = 4,
+              },
+            },
           },
         },
         run_spec = {
@@ -57,7 +120,7 @@ describe("Integration: testify suites positions test", function()
           },
         },
         strategy_result = {
-          code = 0,
+          code = 1, -- Non-zero exit code due to failing tests
         },
         tree = {
           -- this will be replaced in the assertion

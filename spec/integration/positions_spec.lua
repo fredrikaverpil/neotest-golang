@@ -7,12 +7,11 @@ local integration = dofile(integration_path)
 
 describe("Integration: positions test", function()
   it(
-    "file reports test discovery and execution for various position patterns",
+    "file reports test discovery and execution for various test names and positions",
     function()
       -- ===== ARRANGE =====
-      ---@type NeotestGolangOptions
-      local test_options =
-        { runner = "gotestsum", warn_test_results_missing = false }
+      local test_options = options.get()
+      test_options.runner = "gotestsum"
       options.set(test_options)
 
       local position_id = vim.uv.cwd()
@@ -177,12 +176,21 @@ describe("Integration: positions test", function()
           },
         },
         run_spec = {
+          command = {}, -- this will be replaced in the assertion
           context = {
             pos_id = position_id,
           },
         },
         strategy_result = {
           code = 0,
+        },
+        tree = {
+          -- this will be replaced in the assertion
+          _children = {},
+          _nodes = {},
+          _key = function()
+            return ""
+          end,
         },
       }
 

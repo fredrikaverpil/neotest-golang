@@ -1,4 +1,4 @@
-package mixed
+package teststates
 
 import (
 	"testing"
@@ -9,6 +9,11 @@ func TestPassing(t *testing.T) {
 	// This test passes
 }
 
+// Another test that passes
+func TestAlsoPassing(t *testing.T) {
+	// This test also passes
+}
+
 // Test that fails
 func TestFailing(t *testing.T) {
 	t.Error("this test intentionally fails")
@@ -17,6 +22,11 @@ func TestFailing(t *testing.T) {
 // Test that is skipped
 func TestSkipped(t *testing.T) {
 	t.Skip("this test is intentionally skipped")
+}
+
+// Another test that is skipped
+func TestAlsoSkipped(t *testing.T) {
+	t.Skip("this test is also intentionally skipped")
 }
 
 // Test with subtest that fails

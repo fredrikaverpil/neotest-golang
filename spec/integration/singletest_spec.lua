@@ -7,12 +7,11 @@ local integration = dofile(integration_path)
 
 describe("Integration: individual test example", function()
   it(
-    "individual test pattern targeting reports test discovery and execution for specific test",
+    "only runs the specified individual test (TestOne) in singletest_test.go",
     function()
       -- ===== ARRANGE =====
-      ---@type NeotestGolangOptions
-      local test_options =
-        { runner = "gotestsum", warn_test_results_missing = false }
+      local test_options = options.get()
+      test_options.runner = "gotestsum"
       options.set(test_options)
 
       local position_id_file = vim.uv.cwd()
