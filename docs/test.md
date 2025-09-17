@@ -67,33 +67,40 @@ sequence occurs:
 
 ### Unit tests
 
-Unit tests are meant to test specific lua function capabilities within a small
-scope, but sometimes with a large amount of permutations in terms of input
-arguments or output.
+Unit tests (in `./spec/unit`) are meant to test specific lua function
+capabilities within a small scope, but sometimes with a large amount of
+permutations in terms of input arguments or output.
 
 ### Integration tests
 
-Use `spec/helpers/integration.lua` to perform true end-to-end validation by
-executing actual Go tests via the neotest-golang adapter:
-
-- **Purpose**: Validates the complete adapter pipeline with real Go projects
-- **How it works**: Bypasses `neotest.run.run()` and calls adapter methods
-  directly (`discover_positions` → `build_spec` → `results`)
-- **What it tests**: Test discovery, command building, execution, and result
-  parsing using genuine Go test files
-- **Test files**: Real Go tests in `tests/go/` directory are used as fixtures
-
-See the `integration.lua` script for exact details.
-
-This approach provides high confidence that the adapter works correctly with
-actual Go projects and test execution scenarios.
+Integration tests (in `./spec/integration`) performs end-to-end validation by
+executing actual Go tests via the neotest-golang adapter.
 
 The general workflow of adding a new integration test:
 
 1. Add a new `yourtestname_test.go` file in `tests/go/internal/yourpkgname`
 2. Add a new lua integration test in
-   `spec/integration/yourpkgname[_yourtestname]_spec.lua` which executes the
-   `yourtestname_test.go`
+   `spec/integration/yourpkgname[_yourtestname]_spec.lua` and from it, execute
+   all tests in a dir, a file or specifiy individual test(s):
+
+   ```lua
+   local integration = require("spec.helpers.integration")
+
+   -- Run all tests in a directory
+   local result = integration.execute_adapter_direct("/path/to/directory")
+
+   -- Run all tests in a file
+   local result = integration.execute_adapter_direct("/path/to/file_test.go")
+
+   -- Run a specific test function
+   local result = integration.execute_adapter_direct("/path/to/file_test.go::TestFunction")
+
+   -- Run a specific subtest
+   local result = integration.execute_adapter_direct("/path/to/file_test.go::TestFunction::\"SubTest\"")
+
+   -- Run a nested subtest
+   local result = integration.execute_adapter_direct("/path/to/file_test.go::TestFunction::\"SubTest\"::\"TableTest\"")
+   ```
 
 ### Best practices
 
