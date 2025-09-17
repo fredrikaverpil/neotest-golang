@@ -101,7 +101,6 @@ function M.init()
         runner = "gotestsum",
         go_test_args = { "-v", "-race", "-count=1" },
         colorize_test_output = false,
-        warn_test_results_missing = false,
         -- Don't set env here as it might cause issues
       }),
     },
