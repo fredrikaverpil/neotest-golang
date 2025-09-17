@@ -7,15 +7,50 @@ describe("Convert pos_id to go test name", function()
     assert.are_equal("TestName", lib.convert.pos_id_to_go_test_name(input))
   end)
 
-  it("returns nil for missing ::", function()
-    local input = "/path/to/file_test.go"
+  it("returns nil for invalid position IDs", function()
+    local input = "/path/to/pkg/file_test.go" -- No :: separator
     assert.is_nil(lib.convert.pos_id_to_go_test_name(input))
   end)
 
-  it("converts quoted subtests and spaces to underscores", function()
-    local input = '/path/file.go::TestName::"Sub Test"::"Inner Sub"'
+  it("converts test with single subtest", function()
+    local input = '/path/to/pkg/file_test.go::TestName::"SubTest"'
     assert.are_equal(
-      "TestName/Sub_Test/Inner_Sub",
+      "TestName/SubTest",
+      lib.convert.pos_id_to_go_test_name(input)
+    )
+  end)
+
+  it("converts test with nested subtests", function()
+    local input =
+      '/path/to/pkg/file_test.go::TestName::"SubTest1"::"NestedSubTest"'
+    assert.are_equal(
+      "TestName/SubTest1/NestedSubTest",
+      lib.convert.pos_id_to_go_test_name(input)
+    )
+  end)
+
+  it("converts test with spaces in subtest names", function()
+    local input = '/path/to/pkg/file_test.go::TestName::"Sub Test With Spaces"'
+    assert.are_equal(
+      "TestName/Sub_Test_With_Spaces",
+      lib.convert.pos_id_to_go_test_name(input)
+    )
+  end)
+
+  it("converts deeply nested subtests", function()
+    local input =
+      '/path/to/pkg/file_test.go::TestMain::"Level1"::"Level2"::"Level3"::"Level4"'
+    assert.are_equal(
+      "TestMain/Level1/Level2/Level3/Level4",
+      lib.convert.pos_id_to_go_test_name(input)
+    )
+  end)
+
+  it("handles subtests with special characters", function()
+    local input =
+      '/path/to/pkg/file_test.go::TestName::"SubTest with & symbols!"'
+    assert.are_equal(
+      "TestName/SubTest_with_&_symbols!",
       lib.convert.pos_id_to_go_test_name(input)
     )
   end)
@@ -168,4 +203,170 @@ describe("Convert go test name to regex pattern", function()
       lib.convert.to_gotest_regex_pattern(input)
     )
   end)
+end)
+
+describe("file_path_to_import_path", function()
+  it("finds matching import path", function()
+    local file_path = "/path/to/pkg/subdir/file_test.go"
+    local import_to_dir = {
+      ["example.com/repo/pkg"] = "/path/to/pkg",
+      ["example.com/repo/pkg/subdir"] = "/path/to/pkg/subdir",
+      ["example.com/repo/other"] = "/path/to/other",
+    }
+
+    local expected = "example.com/repo/pkg/subdir"
+    local result =
+      lib.convert.file_path_to_import_path(file_path, import_to_dir)
+    assert.are.equal(expected, result)
+  end)
+
+  it("returns nil when no match found", function()
+    local file_path = "/path/to/unknown/file_test.go"
+    local import_to_dir = {
+      ["example.com/repo/pkg"] = "/path/to/pkg",
+    }
+
+    local result =
+      lib.convert.file_path_to_import_path(file_path, import_to_dir)
+    assert.is_nil(result)
+  end)
+
+  it("returns nil for invalid file path", function()
+    local file_path = "invalid_path" -- No directory separator
+    local import_to_dir = {}
+
+    local result =
+      lib.convert.file_path_to_import_path(file_path, import_to_dir)
+    assert.is_nil(result)
+  end)
+end)
+
+describe("to_dir_position_id", function()
+  it("finds matching package directory", function()
+    local golist_data = {
+      {
+        ImportPath = "example.com/repo/pkg",
+        Dir = "/path/to/pkg",
+      },
+      {
+        ImportPath = "example.com/repo/other",
+        Dir = "/path/to/other",
+      },
+    }
+    local package_name = "example.com/repo/pkg"
+    local expected = "/path/to/pkg"
+
+    local result = lib.convert.to_dir_position_id(golist_data, package_name)
+    assert.are.equal(expected, result)
+  end)
+
+  it("errors for unknown package", function()
+    local golist_data = {
+      {
+        ImportPath = "example.com/repo/pkg",
+        Dir = "/path/to/pkg",
+      },
+    }
+    local package_name = "example.com/unknown/pkg"
+
+    assert.has_error(function()
+      lib.convert.to_dir_position_id(golist_data, package_name)
+    end, "Could not find position id for package: example.com/unknown/pkg")
+  end)
+
+  it("errors for empty golist data", function()
+    local golist_data = {}
+    local package_name = "example.com/repo/pkg"
+
+    assert.has_error(function()
+      lib.convert.to_dir_position_id(golist_data, package_name)
+    end, "Could not find position id for package: example.com/repo/pkg")
+  end)
+end)
+
+describe("pos_id_to_filename", function()
+  it("extracts filename from file path position ID", function()
+    local pos_id = "/path/to/pkg/file_test.go::TestName"
+    local expected = "file_test.go"
+
+    local result = lib.convert.pos_id_to_filename(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("returns nil for synthetic position ID", function()
+    local pos_id = "github.com/pkg::TestName"
+
+    local result = lib.convert.pos_id_to_filename(pos_id)
+    assert.is_nil(result)
+  end)
+
+  it("returns nil for nil input", function()
+    local result = lib.convert.pos_id_to_filename(nil)
+    assert.is_nil(result)
+  end)
+
+  it("returns nil for non-go file path", function()
+    local pos_id = "/path/to/pkg/file.txt::TestName"
+
+    local result = lib.convert.pos_id_to_filename(pos_id)
+    assert.is_nil(result)
+  end)
+
+  it("returns nil for path without directory separator", function()
+    local pos_id = "file_test.go::TestName"
+
+    local result = lib.convert.pos_id_to_filename(pos_id)
+    assert.is_nil(result)
+  end)
+end)
+
+describe("bidirectional conversion", function()
+  it(
+    "maintains consistency between pos_id and go_test_name conversions",
+    function()
+      local test_cases = {
+        { pos = "TestName", go = "TestName" },
+        { pos = 'TestName::"SubTest"', go = "TestName/SubTest" },
+        { pos = 'TestName::"Sub1"::"Sub2"', go = "TestName/Sub1/Sub2" },
+        {
+          pos = 'TestName::"Sub Test With Spaces"',
+          go = "TestName/Sub_Test_With_Spaces",
+        },
+      }
+
+      for _, test_case in ipairs(test_cases) do
+        -- Test pos -> go -> pos
+        local go_result =
+          lib.convert.pos_id_to_go_test_name("file.go::" .. test_case.pos)
+        assert.are.equal(
+          test_case.go,
+          go_result,
+          "pos->go conversion failed for " .. test_case.pos
+        )
+
+        local pos_result = lib.convert.go_test_name_to_pos_id(go_result)
+        assert.are.equal(
+          test_case.pos,
+          pos_result,
+          "go->pos conversion failed for " .. test_case.go
+        )
+
+        -- Test go -> pos -> go
+        local pos_result2 = lib.convert.go_test_name_to_pos_id(test_case.go)
+        assert.are.equal(
+          test_case.pos,
+          pos_result2,
+          "go->pos conversion failed for " .. test_case.go
+        )
+
+        local go_result2 =
+          lib.convert.pos_id_to_go_test_name("file.go::" .. pos_result2)
+        assert.are.equal(
+          test_case.go,
+          go_result2,
+          "pos->go conversion failed for " .. test_case.pos
+        )
+      end
+    end
+  )
 end)
