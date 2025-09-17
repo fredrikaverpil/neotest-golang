@@ -17,6 +17,16 @@ M.ProcessingStatus = {
   status_detected = "status_detected",
 }
 
+---Global stream strategy override for testing
+---@type table|nil
+M._test_stream_strategy = nil
+
+---Set a stream strategy override for testing purposes
+---@param strategy table|nil The stream strategy to use, or nil to reset to default
+function M.set_test_strategy(strategy)
+  M._test_stream_strategy = strategy
+end
+
 ---Internal test metadata, required for processing.
 ---@class TestMetadata
 ---@field position_id? string The neotest position ID for this test
@@ -72,58 +82,21 @@ function M.new(tree, golist_data, json_filepath)
   local stream_id = tostring(tree:data().id or "unknown")
   M.stream_complete_state[stream_id] = false
 
-  -- FIX: better detection?
-  -- Detect if we're in an integration test context
-  -- Integration tests typically have a very specific calling pattern
-  local is_integration_test = false
-  local debug_info = debug.getinfo(3, "S") -- Get info about the caller's caller
-  if debug_info and debug_info.source then
-    is_integration_test = debug_info.source:match("integration") ~= nil
-  end
-
-  if is_integration_test then
-    logger.debug(
-      "Integration test context detected, using simplified streaming"
-    )
-  end
-
-  ---Set up file streaming if using gotestsum runner
+  ---Set up file streaming using test strategy override or default
   local stream_data = function() end -- no-op
   local original_stop_stream = function() end -- no-op
 
-  -- FIX: ugly integration test workaround
   if options.get().runner == "gotestsum" then
     if json_filepath ~= nil then
-      if is_integration_test then
-        -- Integration test: command has completed, just read the file directly
-        logger.debug(
-          "Integration test mode: setting up direct file reading for gotestsum"
-        )
-        stream_data = function()
-          local file_stat = vim.uv.fs_stat(json_filepath)
-          if file_stat and file_stat.size > 0 then
-            local file_lines = async.fn.readfile(json_filepath)
-            logger.debug(
-              "Integration test: read "
-                .. #file_lines
-                .. " lines from gotestsum file"
-            )
-            return file_lines
-          else
-            logger.debug("Integration test: gotestsum file not ready yet")
-            return {}
-          end
-        end
-        original_stop_stream = function() end -- no-op for integration tests
-      else
-        -- Normal neotest usage: set up live streaming (this works perfectly)
-        logger.debug(
-          "Normal mode: setting up gotestsum live streaming for file: "
-            .. json_filepath
-        )
-        neotest_lib.files.write(json_filepath, "")
+      -- Use test strategy override if set, otherwise use default live streaming
+      if M._test_stream_strategy then
         stream_data, original_stop_stream =
-          neotest_lib.files.stream_lines(json_filepath)
+          M._test_stream_strategy.create_stream(json_filepath)
+      else
+        -- Default to live streaming strategy for production use
+        local live_strategy = require("neotest-golang.lib.stream.live_strategy")
+        stream_data, original_stop_stream =
+          live_strategy.create_stream(json_filepath)
       end
     else
       logger.error("JSON filepath is required for gotestsum runner streaming")

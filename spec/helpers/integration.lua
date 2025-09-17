@@ -140,6 +140,11 @@ function M.execute_adapter_direct(position_id)
   local nio = require("nio")
   local adapter = require("neotest-golang")
 
+  -- Set up test stream strategy for integration tests
+  local lib_stream = require("neotest-golang.lib.stream")
+  local test_strategy = require("neotest-golang.lib.stream.test_strategy")
+  lib_stream.set_test_strategy(test_strategy)
+
   local tree, full_tree
 
   if inferred_type == "file" then
@@ -270,6 +275,9 @@ function M.execute_adapter_direct(position_id)
     strategy_result,
     full_tree
   )
+
+  -- Reset test strategy to avoid state leakage between tests
+  lib_stream.set_test_strategy(nil)
 
   ---@type AdapterExecutionResult
   return {
