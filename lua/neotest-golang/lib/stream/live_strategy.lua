@@ -4,7 +4,7 @@ local M = {}
 ---Create a live streaming data source for production gotestsum usage
 ---@param json_filepath string|nil Path to the JSON output file
 ---@return function stream_data Function that returns lines from live stream
----@return function stop_stream Function to stop the stream
+---@return function stop_filestream Function to stop the stream
 function M.create_stream(json_filepath)
   local neotest_lib = require("neotest.lib")
   local logger = require("neotest-golang.logging")

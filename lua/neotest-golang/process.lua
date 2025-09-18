@@ -13,7 +13,7 @@ local options = require("neotest-golang.options")
 --- @field errors? table<string> Non-gotest errors to show in the final output.
 --- @field is_dap_active boolean? If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
---- @field stop_stream fun() Stops the stream of test output.
+--- @field stop_filestream fun() Stops the stream of test output.
 
 local M = {}
 
@@ -32,7 +32,7 @@ function M.test_results(spec, result, tree)
   local pos = tree:data()
 
   -- Stop streaming first to ensure all results are cached
-  spec.context.stop_stream()
+  spec.context.stop_filestream()
 
   -- Get final cached results after streaming is complete
   ---@type table<string, neotest.Result>

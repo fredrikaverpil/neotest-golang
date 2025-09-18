@@ -7,7 +7,6 @@ local mapping = require("neotest-golang.lib.mapping")
 local options = require("neotest-golang.options")
 
 local async = require("neotest.async")
-local neotest_lib = require("neotest.lib")
 
 local M = {}
 
@@ -51,10 +50,6 @@ end
 ---@type table<string, neotest.Result>
 M.cached_results = {}
 
----Internal state tracking for stream completion
----@type table<string, boolean>
-M.stream_complete_state = {}
-
 ---Finalize and return the cached results, ensuring all streaming is complete.
 ---This function should be called after the stream has been stopped to get
 ---the final state of cached results.
@@ -66,48 +61,46 @@ function M.get_final_cached_results()
   for pos_id, result in pairs(M.cached_results) do
     results[pos_id] = result
   end
-
-  -- Clear the cache after transferring ownership
-  M.cached_results = {}
-
+  M.cached_results = {} -- Clear the cache after transferring ownership
   return results
 end
 
 ---Contstructor for new stream.
+---
+--- This sets up Neotest output streaming based on selected runner and strategy.
+--- The strategies supported are:
+--- - Native live streaming via stdout (default for `go test -json`)
+--- - Asynchronous file-based streaming (default for `gotestsum --jsonfile`)
+--- - Synchronous file-based streaming (for testing purposes only)
 ---@param golist_data table Golist data containing package information
 ---@param json_filepath string|nil Path to the JSON output file
 ---@return function, function
 function M.new(tree, golist_data, json_filepath)
-  -- M.cached_results = {} -- reset test output cache
-  local stream_id = tostring(tree:data().id or "unknown")
-  M.stream_complete_state[stream_id] = false
+  -- No-op filestream functions for gotestsum runner
+  local filestream_data = function() end -- no-op
+  local stop_filestream = function() end -- no-op
 
-  ---Set up file streaming using test strategy override or default
-  local stream_data = function() end -- no-op
-  local original_stop_stream = function() end -- no-op
-
-  if options.get().runner == "gotestsum" then
-    if json_filepath ~= nil then
-      -- Use test strategy override if set, otherwise use default live streaming
-      if M._test_stream_strategy then
-        stream_data, original_stop_stream =
-          M._test_stream_strategy.create_stream(json_filepath)
-      else
-        -- Default to live streaming strategy for production use
-        local live_strategy = require("neotest-golang.lib.stream.live_strategy")
-        stream_data, original_stop_stream =
-          live_strategy.create_stream(json_filepath)
-      end
-    else
+  -- Asynchronous file-based streaming strategy for gotestsum
+  if not M._test_stream_strategy and options.get().runner == "gotestsum" then
+    if not json_filepath then
       logger.error("JSON filepath is required for gotestsum runner streaming")
     end
+
+    local live_strategy = require("neotest-golang.lib.stream.live_strategy")
+    filestream_data, stop_filestream =
+      live_strategy.create_stream(json_filepath)
   end
 
-  -- Wrap stop_stream to mark completion
-  local stop_stream = function()
-    original_stop_stream()
-    M.stream_complete_state[stream_id] = true
-    logger.debug("Stream " .. stream_id .. " marked as complete")
+  -- Synchronous file-based streaming strategy override for testing
+  if M._test_stream_strategy then
+    if options.get().runner ~= "gotestsum" then
+      logger.error(
+        "Custom stream strategy can only be used with gotestsum runner"
+      )
+    end
+
+    filestream_data, stop_filestream =
+      M._test_stream_strategy.create_stream(json_filepath)
   end
 
   ---Stream function.
@@ -131,7 +124,7 @@ function M.new(tree, golist_data, json_filepath)
       if options.get().runner == "go" then
         lines = data() -- capture `go test -json` output from stdout stream
       elseif options.get().runner == "gotestsum" then
-        lines = stream_data() or {} -- capture `go test -json` output from file stream
+        lines = filestream_data() or {} -- capture `go test -json` output from file stream
 
         -- Validate that we have data or file exists
         if #lines == 0 and json_filepath then
@@ -179,7 +172,7 @@ function M.new(tree, golist_data, json_filepath)
     end
   end
 
-  return stream, stop_stream
+  return stream, stop_filestream
 end
 
 ---Process a single event from the test output.

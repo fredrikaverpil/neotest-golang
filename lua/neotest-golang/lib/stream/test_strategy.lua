@@ -6,7 +6,7 @@ local M = {}
 ---Integration tests run synchronously, so we use vim.fn.readfile instead of async.fn.readfile
 ---@param json_filepath string|nil Path to the JSON output file
 ---@return function stream_data Function that returns lines from completed file
----@return function stop_stream Function to stop the stream (no-op for tests)
+---@return function stop_filestream Function to stop the stream (no-op for tests)
 function M.create_stream(json_filepath)
   local logger = require("neotest-golang.logging")
 
@@ -30,11 +30,11 @@ function M.create_stream(json_filepath)
     end
   end
 
-  local stop_stream = function()
+  local stop_filestream = function()
     -- No-op for integration tests since file is already complete
   end
 
-  return stream_data, stop_stream
+  return stream_data, stop_filestream
 end
 
 return M
