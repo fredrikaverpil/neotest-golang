@@ -163,14 +163,12 @@ function M.populate_file_nodes(tree, results)
         -- Create combined output file
         local combined_output = {}
         table.insert(combined_output, "=== File: " .. pos.path .. " ===")
-        table.insert(combined_output, "")
 
         for _, child_result in ipairs(child_tests) do
           if child_result.output then
             -- Read child test output
             local child_output_lines = async.fn.readfile(child_result.output)
             vim.list_extend(combined_output, child_output_lines)
-            table.insert(combined_output, "") -- separator
           end
         end
 
