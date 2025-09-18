@@ -4,9 +4,9 @@ local options = require("neotest-golang.options")
 local M = {}
 
 ---Convert to Neotest position id pattern.
----@param golist_data table Golist data containing package information
+---@param golist_data GoListItem[] Golist data containing package information
 ---@param package_name string The name of the package
----@return string? The pattern for matching against a test's position id in the neotest tree
+---@return string|nil The pattern for matching against a test's position id in the neotest tree
 function M.to_dir_position_id(golist_data, package_name)
   for _, item in ipairs(golist_data) do
     if item.ImportPath == package_name then
@@ -18,9 +18,9 @@ function M.to_dir_position_id(golist_data, package_name)
   logger.error("Could not find position id for package: " .. package_name)
 end
 
--- Converts the test name into a regexp-friendly pattern, for usage in 'go test'.
----@param test_name string
----@return string
+--- Converts the test name into a regexp-friendly pattern, for usage in 'go test'.
+---@param test_name string Test name to convert to regex pattern
+---@return string Escaped regex pattern suitable for 'go test -run'
 function M.to_gotest_regex_pattern(test_name)
   local special_characters = {
     "(",

@@ -9,9 +9,10 @@ local options = require("neotest-golang.options")
 local M = {}
 
 --- Build runspec for a single test
---- @param pos neotest.Position
---- @param strategy string
---- @return neotest.RunSpec | neotest.RunSpec[] | nil
+--- @param pos neotest.Position Position data for the test
+--- @param tree neotest.Tree Neotest tree containing test structure
+--- @param strategy string|nil Strategy to use (e.g., "dap" for debugging)
+--- @return neotest.RunSpec|nil Runspec for executing the test
 function M.build(pos, tree, strategy)
   local pos_path_folderpath = vim.fn.fnamemodify(pos.path, ":h")
 

@@ -7,9 +7,10 @@ local options = require("neotest-golang.options")
 
 local M = {}
 
---- Build runspec for a single test
---- @param pos neotest.Position
---- @return neotest.RunSpec | neotest.RunSpec[] | nil
+--- Build runspec for all tests in a namespace
+--- @param pos neotest.Position Position data for the namespace
+--- @param tree neotest.Tree Neotest tree containing test structure
+--- @return neotest.RunSpec|nil Runspec for executing tests in the namespace
 function M.build(pos, tree)
   local pos_path_folderpath =
     string.match(pos.path, "(.+)" .. lib.find.os_path_sep)

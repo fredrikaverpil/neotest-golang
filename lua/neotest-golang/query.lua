@@ -288,7 +288,8 @@ M.table_tests_map = [[
 ]]
 
 --- Detect test names in Go *._test.go files.
---- @param file_path string
+--- @param file_path string Absolute path to the Go test file
+--- @return neotest.Tree|nil Tree of detected tests, or nil if parsing failed
 function M.detect_tests(file_path)
   local opts = { nested_tests = true }
   local query = M.test_function

@@ -16,8 +16,9 @@ local M = {}
 ---Two strategies are going to be used:
 --- 1. Perfect match.
 --- 2. Sub-package match.
----@param pos neotest.Position
----@param golist_data table
+---@param pos neotest.Position Position data for the directory
+---@param golist_data GoListItem[] Package information from 'go list'
+---@return string|nil Package import path with "/..." suffix, or nil if not found
 local function find_go_package_import_path(pos, golist_data)
   ---@type string|nil
   local package_import_path = nil
@@ -77,8 +78,9 @@ end
 --- 1. Find the go.mod file from pos.path.
 --- 2. Run `go test` from the directory containing the go.mod file.
 --- 3. Use the relative path from the go.mod file to pos.path as the test pattern.
---- @param pos neotest.Position
---- @return neotest.RunSpec | nil
+--- @param pos neotest.Position Position data for the directory
+--- @param tree neotest.Tree Neotest tree containing test structure
+--- @return neotest.RunSpec|nil Runspec for executing tests in the directory
 function M.build(pos, tree)
   local go_mod_filepath = lib.find.file_upwards("go.mod", pos.path)
   if go_mod_filepath == nil then
