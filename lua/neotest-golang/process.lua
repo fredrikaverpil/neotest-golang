@@ -7,6 +7,8 @@ local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 
+local M = {}
+
 --- @class RunspecContext
 --- @field pos_id string Neotest tree position id.
 --- @field golist_data table<string, string> The 'go list' JSON data (lua table).
@@ -14,8 +16,6 @@ local options = require("neotest-golang.options")
 --- @field is_dap_active boolean? If true, parsing of test output will occur.
 --- @field test_output_json_filepath? string Gotestsum JSON filepath.
 --- @field stop_filestream fun() Stops the stream of test output.
-
-local M = {}
 
 --- Process the complete test output from the test command.
 --- @param spec neotest.RunSpec

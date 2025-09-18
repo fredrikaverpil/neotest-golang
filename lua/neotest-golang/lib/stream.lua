@@ -16,6 +16,9 @@ M.ProcessingStatus = {
   status_detected = "status_detected",
 }
 
+---@type table<string, neotest.Result>
+M.cached_results = {}
+
 ---Global stream strategy override for testing
 ---@type table|nil
 M._test_stream_strategy = nil
@@ -25,7 +28,6 @@ M._test_stream_strategy = nil
 function M.set_test_strategy(strategy)
   M._test_stream_strategy = strategy
 end
-
 ---Internal test metadata, required for processing.
 ---@class TestMetadata
 ---@field position_id? string The neotest position ID for this test
@@ -46,9 +48,6 @@ end
 ---@field Test? string Test name (present when Action relates to a specific test)
 ---@field Elapsed? number Time elapsed in seconds
 ---@field Output? string Output text (present when Action is "output")
-
----@type table<string, neotest.Result>
-M.cached_results = {}
 
 ---Finalize and return the cached results, ensuring all streaming is complete.
 ---This function should be called after the stream has been stopped to get

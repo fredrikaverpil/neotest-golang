@@ -4,6 +4,8 @@
 
 local logger = require("neotest-golang.logging")
 
+local M = {}
+
 ---@class NeotestGolangOptions
 ---@field runner string "go" or "gotestsum"
 ---@field go_test_args string[]|fun(): string[] Arguments for go test command
@@ -23,8 +25,6 @@ local logger = require("neotest-golang.logging")
 ---@field log_level integer Vim log level
 ---@field sanitize_output boolean Sanitize test output
 ---@field dev_notifications boolean Enable development notifications (experimental)
-
-local M = {}
 
 ---@type NeotestGolangOptions
 local opts = {

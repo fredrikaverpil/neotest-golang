@@ -203,7 +203,8 @@ describe("Integration: positions test", function()
       want.run_spec.stream = got.run_spec.stream
       want.run_spec.strategy = got.run_spec.strategy
       want.run_spec.context.golist_data = got.run_spec.context.golist_data
-      want.run_spec.context.stop_filestream = got.run_spec.context.stop_filestream
+      want.run_spec.context.stop_filestream =
+        got.run_spec.context.stop_filestream
       want.run_spec.context.test_output_json_filepath =
         got.run_spec.context.test_output_json_filepath
 
