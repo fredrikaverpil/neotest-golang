@@ -3,6 +3,7 @@ local logger = require("neotest-golang.logging")
 local mapping = require("neotest-golang.lib.mapping")
 local options = require("neotest-golang.options")
 local results_stream = require("neotest-golang.results_stream")
+require("neotest-golang.lib.types")
 
 local async = require("neotest.async")
 

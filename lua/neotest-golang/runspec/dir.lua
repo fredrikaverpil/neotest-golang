@@ -90,7 +90,6 @@ function M.build(pos, tree)
     return nil -- NOTE: logger.error will throw an error, but the LSP doesn't see it.
   end
 
-  local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
   local golist_data, golist_error = lib.cmd.golist_data(pos.path)
 
   local errors = nil
@@ -104,6 +103,7 @@ function M.build(pos, tree)
   local package_import_path = find_go_package_import_path(pos, golist_data)
   if not package_import_path then
     logger.error("Could not find a package for the selected dir: " .. pos.path)
+    return nil -- NOTE: logger.error will throw an error, but the LSP doesn't see it.
   end
 
   local test_cmd, json_filepath =

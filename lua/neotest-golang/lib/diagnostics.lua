@@ -1,4 +1,5 @@
 local convert = require("neotest-golang.lib.convert")
+require("neotest-golang.lib.types")
 
 local M = {}
 

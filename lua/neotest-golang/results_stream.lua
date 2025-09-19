@@ -7,6 +7,7 @@ local diagnostics = require("neotest-golang.lib.diagnostics")
 local json = require("neotest-golang.lib.json")
 local logger = require("neotest-golang.logging")
 local mapping = require("neotest-golang.lib.mapping")
+require("neotest-golang.lib.types")
 
 local async = require("neotest.async")
 
@@ -17,27 +18,6 @@ M.ProcessingStatus = {
   streaming = "streaming",
   status_detected = "status_detected",
 }
-
----Internal test metadata, required for processing.
----@class TestMetadata
----@field position_id? string The neotest position ID for this test
----@field output_parts string[] Raw output parts collected during streaming
----@field output_path? string Path to the finalized output file
----@field status? processingStatus Whether the test result has been finalized
-
----The accumulated test data. This holds both the Neotest result for the test and also internal metadata.
----@class TestEntry
----@field result neotest.Result The neotest result data
----@field metadata TestMetadata Custom metadata for processing
-
----The `go test -json` event structure.
----@class GoTestEvent
----@field Time? string ISO 8601 timestamp when the event occurred
----@field Action "start"|"run"|"output"|"build-output"|"skip"|"fail"|"pass" Test action
----@field Package? string Package name being tested
----@field Test? string Test name (present when Action relates to a specific test)
----@field Elapsed? number Time elapsed in seconds
----@field Output? string Output text (present when Action is "output")
 
 ---Process a single event from the test output.
 ---@param golist_data table The 'go list -json' output

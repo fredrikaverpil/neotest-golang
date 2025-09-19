@@ -1,4 +1,4 @@
---- Helper functions building the command to execute.
+--- Helper functions building the test command to execute.
 
 local async = require("neotest.async")
 
@@ -6,16 +6,7 @@ local extra_args = require("neotest-golang.extra_args")
 local json = require("neotest-golang.lib.json")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
-
----@class GoListItem
----@field ImportPath string The import path of the Go package
----@field Dir string The directory containing the package source
----@field Name string The package name
----@field Module? table Module information if part of a Go module
----@field Root? string The root directory of the module
----@field GoMod? string Path to go.mod file
----@field TestGoFiles? string[] List of test files in the package
----@field XTestGoFiles? string[] List of external test files in the package
+require("neotest-golang.lib.types")
 
 ---@alias RunnerType "go" | "gotestsum"
 
@@ -103,7 +94,7 @@ end
 --- Build test command using configured runner (go or gotestsum)
 ---@param go_test_required_args string[] The required arguments, necessary for the test command
 ---@param fallback boolean Control runner fallback behavior, used primarily by tests
----@return string[], string|nil cmd, json_filepath
+---@return string[], string|nil
 function M.test_command(go_test_required_args, fallback)
   --- The runner to use for running tests.
   --- @type string
@@ -117,7 +108,7 @@ function M.test_command(go_test_required_args, fallback)
   local json_filepath = nil
 
   --- The final test command to execute.
-  --- @type table<string>
+  --- @type string[]
   local cmd = {}
 
   if runner == "go" then
@@ -173,7 +164,9 @@ end
 --- @return RunnerType The actual runner to use after fallback
 function M.runner_fallback(executable)
   if M.system_has(executable) == false then
-    options.set({ runner = "go" })
+    local opts = options.get()
+    opts.runner = "go"
+    options.set(opts)
     return options.get().runner
   end
   return options.get().runner

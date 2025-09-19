@@ -129,6 +129,7 @@ function M.return_skipped(pos)
   local context = {
     pos_id = pos.id,
     golist_data = {}, -- no golist output
+    stop_filestream = function() end, -- no stream to stop
   }
 
   --- Runspec designed for files that contain no tests.

@@ -3,8 +3,8 @@ local options = require("neotest-golang.options")
 local M = {}
 
 --- Colorize output parts (optimized version)
---- @param output_parts table[] Array of output strings
---- @return table[] Array of colorized lines ready for file output
+--- @param output_parts string[] Array of output strings
+--- @return string[] Array of colorized lines ready for file output
 function M.colorize_parts(output_parts)
   if not options.get().colorize_test_output == true or not output_parts then
     -- If colorization disabled, still need to split into lines for file output

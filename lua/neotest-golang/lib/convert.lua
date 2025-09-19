@@ -1,5 +1,6 @@
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
+require("neotest-golang.lib.types")
 
 local M = {}
 
