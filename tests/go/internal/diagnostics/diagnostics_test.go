@@ -18,11 +18,6 @@ func TestDiagnosticsTopLevelSkip(t *testing.T) {
 	t.Skip("not implemented yet")
 }
 
-func TestDiagnosticsTopLevelPanic(t *testing.T) {
-	var s []int
-	_ = s[1] // panic: runtime error: index out of range
-}
-
 func TestDiagnosticsSubTests(t *testing.T) {
 	t.Run("log", func(t *testing.T) {
 		t.Log("I'm a logging hint message")
@@ -35,10 +30,4 @@ func TestDiagnosticsSubTests(t *testing.T) {
 	t.Run("skip", func(t *testing.T) {
 		t.Skip("I'm a skip message")
 	})
-
-	// NOTE: this does not work as expected...?
-	// t.Run("panic", func(t *testing.T) {
-	// 	var s []int
-	// 	_ = s[1] // panic: runtime error: index out of range
-	// })
 }

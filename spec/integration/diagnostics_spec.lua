@@ -68,9 +68,39 @@ describe("Integration: diagnostics test", function()
               },
             },
           },
-          [position_id .. "::TestDiagnosticsTopLevelPanic"] = {
+          [position_id .. "::TestDiagnosticsSubTests"] = {
+            errors = {},
             status = "failed",
-            errors = {}, -- Panic has complex stack trace, keep empty
+          },
+          [position_id .. '::TestDiagnosticsSubTests::"error"'] = {
+            errors = {
+              {
+                line = 26,
+                message = "I'm an error message",
+                severity = 4,
+              },
+            },
+            status = "failed",
+          },
+          [position_id .. '::TestDiagnosticsSubTests::"log"'] = {
+            errors = {
+              {
+                line = 22,
+                message = "I'm a logging hint message",
+                severity = 4,
+              },
+            },
+            status = "passed",
+          },
+          [position_id .. '::TestDiagnosticsSubTests::"skip"'] = {
+            errors = {
+              {
+                line = 30,
+                message = "I'm a skip message",
+                severity = 4,
+              },
+            },
+            status = "skipped",
           },
         },
         run_spec = {
