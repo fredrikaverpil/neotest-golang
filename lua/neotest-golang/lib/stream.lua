@@ -8,7 +8,6 @@ local async = require("neotest.async")
 
 local M = {}
 
-
 ---@type table<string, neotest.Result>
 M.cached_results = {}
 
@@ -119,7 +118,8 @@ function M.new(tree, golist_data, json_filepath)
       gotest_events = json.decode_from_table(lines, true)
 
       for _, gotest_event in ipairs(gotest_events) do
-        accum = results_stream.process_event(golist_data, accum, gotest_event, lookup)
+        accum =
+          results_stream.process_event(golist_data, accum, gotest_event, lookup)
       end
 
       results = results_stream.make_stream_results(accum)
@@ -146,6 +146,5 @@ function M.new(tree, golist_data, json_filepath)
 
   return stream, stop_filestream
 end
-
 
 return M

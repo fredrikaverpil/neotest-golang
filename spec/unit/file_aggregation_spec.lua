@@ -114,7 +114,8 @@ describe("file node aggregation", function()
     it(
       "aggregates status from child tests - failed takes precedence",
       function()
-        local result = results_finalize.populate_file_nodes(mock_tree, test_results)
+        local result =
+          results_finalize.populate_file_nodes(mock_tree, test_results)
 
         -- File should have failed status since one child failed
         assert.is_not_nil(result["/path/to/file_test.go"])
@@ -123,7 +124,8 @@ describe("file node aggregation", function()
     )
 
     it("aggregates errors from child tests", function()
-      local result = results_finalize.populate_file_nodes(mock_tree, test_results)
+      local result =
+        results_finalize.populate_file_nodes(mock_tree, test_results)
 
       local file_result = result["/path/to/file_test.go"]
       assert.is_not_nil(file_result)
@@ -136,7 +138,8 @@ describe("file node aggregation", function()
     end)
 
     it("creates combined output file", function()
-      local result = results_finalize.populate_file_nodes(mock_tree, test_results)
+      local result =
+        results_finalize.populate_file_nodes(mock_tree, test_results)
 
       local file_result = result["/path/to/file_test.go"]
       assert.is_not_nil(file_result)
@@ -145,7 +148,8 @@ describe("file node aggregation", function()
     end)
 
     it("does not affect tests from other files", function()
-      local result = results_finalize.populate_file_nodes(mock_tree, test_results)
+      local result =
+        results_finalize.populate_file_nodes(mock_tree, test_results)
 
       -- Test from other file should remain unchanged
       assert.are.equal(
@@ -158,7 +162,8 @@ describe("file node aggregation", function()
       -- Remove failed test
       test_results["/path/to/file_test.go::TestFailed"] = nil
 
-      local result = results_finalize.populate_file_nodes(mock_tree, test_results)
+      local result =
+        results_finalize.populate_file_nodes(mock_tree, test_results)
 
       local file_result = result["/path/to/file_test.go"]
       assert.is_not_nil(file_result)
@@ -171,7 +176,8 @@ describe("file node aggregation", function()
       test_results["/path/to/file_test.go::TestFailed"].status = "skipped"
       test_results["/path/to/file_test.go::TestFailed"].errors = {}
 
-      local result = results_finalize.populate_file_nodes(mock_tree, test_results)
+      local result =
+        results_finalize.populate_file_nodes(mock_tree, test_results)
 
       local file_result = result["/path/to/file_test.go"]
       assert.is_not_nil(file_result)
@@ -185,7 +191,8 @@ describe("file node aggregation", function()
         output = "/existing/output",
       }
 
-      local result = results_finalize.populate_file_nodes(mock_tree, test_results)
+      local result =
+        results_finalize.populate_file_nodes(mock_tree, test_results)
 
       -- Should keep existing result, not overwrite
       assert.are.equal(

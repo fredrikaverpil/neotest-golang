@@ -4,8 +4,8 @@
 local extra_args = require("neotest-golang.extra_args")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
-local results_finalize = require("neotest-golang.results_finalize")
 local query = require("neotest-golang.query")
+local results_finalize = require("neotest-golang.results_finalize")
 local runspec = require("neotest-golang.runspec")
 
 local M = {}
