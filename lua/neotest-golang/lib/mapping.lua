@@ -90,7 +90,7 @@ function M.build_position_lookup(tree, golist_data)
   return lookup
 end
 
----Convert from test event Get position ID from go test event using lookup
+---Get position ID from go test event using lookup
 ---@param lookup table<string, string> The position lookup table
 ---@param package_import string Go package import path
 ---@param test_name string Go test name (may include slashes for subtests)
@@ -101,13 +101,9 @@ function M.get_pos_id(lookup, package_import, test_name)
 
   if not pos_id then
     if options.get().dev_notifications then
-      logger.warn(
-        "Test was executed but not detected by Neotest: " .. internal_key
-      )
+      logger.warn("Test was executed but not detected: " .. internal_key)
     else
-      logger.debug(
-        "Test was executed but not detected by Neotest: " .. internal_key
-      )
+      logger.debug("Test was executed but not detected: " .. internal_key)
     end
   end
 
