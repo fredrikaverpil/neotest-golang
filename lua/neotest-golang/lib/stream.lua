@@ -115,6 +115,7 @@ function M.new(tree, golist_data, json_filepath)
         end
       end
 
+      ---@type GoTestEvent[]
       gotest_events = json.decode_from_table(lines, true)
 
       for _, gotest_event in ipairs(gotest_events) do

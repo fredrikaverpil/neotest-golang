@@ -40,6 +40,7 @@ function M.golist_data(cwd)
 
   local output = result.stdout or ""
 
+  ---@type GoListItem[]
   local golist_output = json.decode_from_string(output)
   logger.debug({ "JSON-decoded 'go list' output: ", golist_output })
   return golist_output, err
