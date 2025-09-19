@@ -20,7 +20,6 @@ local M = {}
 ---@field testify_import_identifier string Regex pattern for testify import identifiers
 ---@field colorize_test_output boolean Enable colored test output
 ---@field warn_test_name_dupes boolean Warn about duplicate test names
----@field warn_test_not_executed boolean Warn about tests not executed
 ---@field log_level integer Vim log level
 ---@field sanitize_output boolean Sanitize test output
 ---@field dev_notifications boolean Enable development notifications (experimental)
@@ -40,7 +39,6 @@ local opts = {
   testify_import_identifier = "^(suite)$",
   colorize_test_output = true,
   warn_test_name_dupes = true, -- TODO: not implemented yet
-  warn_test_not_executed = true, -- TODO: not implemented yet
   log_level = vim.log.levels.WARN,
   sanitize_output = false,
 

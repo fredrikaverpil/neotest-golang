@@ -21,7 +21,6 @@ describe("Options are set up", function()
       testify_import_identifier = "^(suite)$",
       colorize_test_output = true,
       warn_test_name_dupes = true,
-      warn_test_not_executed = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
 
@@ -52,7 +51,6 @@ describe("Options are set up", function()
       testify_import_identifier = "^(suite)$",
       colorize_test_output = false,
       warn_test_name_dupes = true,
-      warn_test_not_executed = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
 
@@ -93,7 +91,6 @@ describe("Options are set up", function()
       testify_import_identifier = "^(suite)$",
       colorize_test_output = true,
       warn_test_name_dupes = true,
-      warn_test_not_executed = true,
       log_level = vim.log.levels.WARN,
       sanitize_output = false,
 
