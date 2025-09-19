@@ -81,7 +81,7 @@ end
 
 --- Build test command for running all tests in a package
 --- @param package_or_path string Package import path or directory path
---- @return string[], string|nil cmd, json_filepath
+--- @return string[], string|nil
 function M.test_command_in_package(package_or_path)
   local go_test_required_args = { package_or_path }
   local cmd, json_filepath = M.test_command(go_test_required_args, true)
@@ -91,7 +91,7 @@ end
 --- Build test command for running specific tests matching a regexp in a package
 --- @param package_or_path string Package import path or directory path
 --- @param regexp string Regular expression to match test names
---- @return string[], string|nil cmd, json_filepath
+--- @return string[], string|nil
 function M.test_command_in_package_with_regexp(package_or_path, regexp)
   local go_test_required_args = { package_or_path, "-run", regexp }
   local cmd, json_filepath = M.test_command(go_test_required_args, true)
