@@ -14,6 +14,8 @@ local options = require("neotest-golang.options")
 ---@field Module? table Module information if part of a Go module
 ---@field Root? string The root directory of the module
 ---@field GoMod? string Path to go.mod file
+---@field TestGoFiles? string[] List of test files in the package
+---@field XTestGoFiles? string[] List of external test files in the package
 
 ---@alias RunnerType "go" | "gotestsum"
 
