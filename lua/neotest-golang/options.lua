@@ -21,7 +21,6 @@ local M = {}
 ---@field colorize_test_output boolean Enable colored test output
 ---@field warn_test_name_dupes boolean Warn about duplicate test names
 ---@field warn_test_not_executed boolean Warn about tests not executed
----@field warn_test_results_missing boolean Warn about missing test results
 ---@field log_level integer Vim log level
 ---@field sanitize_output boolean Sanitize test output
 ---@field dev_notifications boolean Enable development notifications (experimental)
@@ -42,7 +41,6 @@ local opts = {
   colorize_test_output = true,
   warn_test_name_dupes = true, -- TODO: not implemented yet
   warn_test_not_executed = true, -- TODO: not implemented yet
-  warn_test_results_missing = true,
   log_level = vim.log.levels.WARN,
   sanitize_output = false,
 

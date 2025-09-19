@@ -249,13 +249,6 @@ Default value: `true`
 
 Warn if test was not executed.
 
-### `warn_test_results_missing`
-
-Default value: `true`
-
-Warn if test was detected by Neotest but no results were reported from test
-execution.
-
 ### `log_level`
 
 Default value: `"vim.log.levels.WARN"`
