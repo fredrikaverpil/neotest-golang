@@ -58,5 +58,4 @@ function M.decode_from_string(str)
   return M.decode_from_table(tbl, false)
 end
 
-
 return M
