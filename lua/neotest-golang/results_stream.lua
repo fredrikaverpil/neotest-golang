@@ -90,6 +90,15 @@ function M.process_package(golist_data, accum, e, id)
     end
   end
 
+  -- Record build failure (introduced in Go 1.24).
+  if
+    accum[id]
+    and accum[id].metadata.status == "streaming"
+    and e.Action == "build-fail"
+  then
+    -- TODO: what do do here?
+  end
+
   -- Register package results.
   if
     accum[e.Package]
@@ -165,6 +174,15 @@ function M.process_test(accum, e, id, position_lookup)
     if e.Output then
       table.insert(accum[id].metadata.output_parts, e.Output)
     end
+  end
+
+  -- Record build failure (introduced in Go 1.24).
+  if
+    accum[id]
+    and accum[id].metadata.status == "streaming"
+    and e.Action == "build-fail"
+  then
+    -- TODO: what do do here?
   end
 
   -- Register test results.
