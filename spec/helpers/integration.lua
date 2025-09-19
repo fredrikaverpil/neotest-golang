@@ -307,6 +307,7 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
   local async = require("neotest.async")
   local lib = require("neotest-golang.lib")
   local options = require("neotest-golang.options")
+  local results_stream = require("neotest-golang.results_stream")
 
   -- Read the raw output (guard if file missing)
   local raw_output = {}
@@ -343,11 +344,10 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
   local position_lookup = lib.mapping.build_position_lookup(tree, golist_data)
 
   -- Process events using the same logic as streaming
-  local stream_lib = lib.stream
   local accum = {}
 
   for _, gotest_event in ipairs(gotest_output) do
-    accum = stream_lib.process_event(
+    accum = results_stream.process_event(
       golist_data,
       accum,
       gotest_event,
@@ -356,11 +356,11 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
   end
 
   -- Convert to stream results
-  local individual_results = stream_lib.make_stream_results(accum)
+  local individual_results = results_stream.make_stream_results(accum)
 
-  -- Populate the cached results so that process.test_results can access them
+  -- Populate the cached results so that results_finalize.test_results can access them
   for pos_id, result in pairs(individual_results) do
-    stream_lib.cached_results[pos_id] = result
+    lib.stream.cached_results[pos_id] = result
   end
 
   return individual_results

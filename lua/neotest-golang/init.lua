@@ -4,7 +4,7 @@
 local extra_args = require("neotest-golang.extra_args")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
-local process = require("neotest-golang.process")
+local results_finalize = require("neotest-golang.results_finalize")
 local query = require("neotest-golang.query")
 local runspec = require("neotest-golang.runspec")
 
@@ -144,25 +144,25 @@ function M.Adapter.results(spec, result, tree)
   if pos.type == "dir" then
     -- A test command executed a directory of tests and the output/status must
     -- now be processed.
-    local results = process.test_results(spec, result, tree)
+    local results = results_finalize.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif pos.type == "file" then
     -- A test command executed a file of tests and the output/status must
     -- now be processed.
-    local results = process.test_results(spec, result, tree)
+    local results = results_finalize.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif pos.type == "namespace" then
     -- A test command executed a namespace and the output/status must now be
     -- processed.
-    local results = process.test_results(spec, result, tree)
+    local results = results_finalize.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif pos.type == "test" then
     -- A test command executed a single test and the output/status must now be
     -- processed.
-    local results = process.test_results(spec, result, tree)
+    local results = results_finalize.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   end
