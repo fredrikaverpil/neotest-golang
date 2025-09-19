@@ -15,6 +15,8 @@ local options = require("neotest-golang.options")
 ---@field Root? string The root directory of the module
 ---@field GoMod? string Path to go.mod file
 
+---@alias RunnerType "go" | "gotestsum"
+
 local M = {}
 
 --- Call 'go list -json {go_list_args...} ./...' to get test file data
