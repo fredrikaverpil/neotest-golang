@@ -142,7 +142,7 @@ function M.execute_adapter_direct(position_id)
 
   -- Set up test stream strategy for integration tests
   local lib_stream = require("neotest-golang.lib.stream")
-  local test_strategy = require("neotest-golang.lib.stream.test_strategy")
+  local test_strategy = require("neotest-golang.lib.stream_strategy.test")
   lib_stream.set_test_strategy(test_strategy)
 
   local tree, full_tree

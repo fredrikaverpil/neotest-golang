@@ -57,7 +57,7 @@ function M.new(tree, golist_data, json_filepath)
       logger.error("JSON filepath is required for gotestsum runner streaming")
     end
 
-    local live_strategy = require("neotest-golang.lib.stream.live_strategy")
+    local live_strategy = require("neotest-golang.lib.stream_strategy.live")
     filestream_data, stop_filestream =
       live_strategy.create_stream(json_filepath)
   end
