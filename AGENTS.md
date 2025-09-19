@@ -1,13 +1,13 @@
 # AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with
-code in this repository.
+This file provides guidance when working with code in this repository.
 
 ## Project Overview
 
-This is `neotest-golang`, a Neotest adapter for running Go tests in Neovim. The
-project is written primarily in Lua and follows the Neotest adapter interface to
-integrate Go testing capabilities into Neovim.
+This is `neotest-golang`, a [Neotest](https://github.com/nvim-neotest/neotest)
+adapter for running Go tests in Neovim. The project is written primarily in Lua
+and follows the Neotest adapter interface to integrate Go testing capabilities
+into Neovim.
 
 ## Core Architecture
 
@@ -25,13 +25,15 @@ The adapter follows the Neotest interface with these key components:
 - **`lua/neotest-golang/features/`** - Advanced features like DAP debugging and
   testify suite support
 
-The adapter handles:
+The adapter follows the
+[Neotest adapter interface](https://github.com/nvim-neotest/neotest/blob/master/lua/neotest/adapters/interface.lua)
+and handles:
 
 - Test discovery via treesitter AST parsing
 - Command generation for various test scopes (directory, file, individual tests)
 - Result processing from `go test` and `gotestsum` output
 - Integration with DAP for debugging
-- Support for testify test suites
+- Rudimental support for testify test suites (although provided via a "hack")
 
 ## Development Commands
 
@@ -82,6 +84,7 @@ When running `task test-plenary`, Neovim launches headlessly and:
 
 ### Writing Tests
 
+- Guidelines and best practices are described in `docs/test.md`
 - **Unit tests**: Test specific Lua function capabilities in small scope
 - **Integration tests**: Add Go test files in `tests/go/internal/` and
   corresponding Lua specs
@@ -105,7 +108,7 @@ When running `task test-plenary`, Neovim launches headlessly and:
 1. **Position Types**: The adapter handles 4 position types from Neotest:
    - `dir` - Directory of tests
    - `file` - Single test file
-   - `namespace` - Group of tests (e.g., testify suites)
+   - `namespace` - Group of tests (used only by testify suites)
    - `test` - Individual test function
 
 2. **Runspec Strategy**: Each position type has its own runspec builder in
@@ -130,4 +133,3 @@ When running `task test-plenary`, Neovim launches headlessly and:
 - Library utilities in `lua/neotest-golang/lib/`
 - Test specifications in `spec/`
 - Go test fixtures in `tests/go/`
-
