@@ -3,14 +3,6 @@
 
 local M = {}
 
----@class GoListItem
----@field ImportPath string The import path of the Go package
----@field Dir string The directory containing the package source
----@field Name string The package name
----@field Module? table Module information if part of a Go module
----@field Root? string The root directory of the module
----@field GoMod? string Path to go.mod file
-
 ---@class DapConfig
 ---@field type string DAP adapter type (e.g., "go")
 ---@field request string DAP request type (e.g., "launch")

@@ -3,6 +3,14 @@
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 
+---@class DapConfig
+---@field type string DAP adapter type (e.g., "go")
+---@field request string DAP request type (e.g., "launch")
+---@field mode string DAP mode (e.g., "test", "debug")
+---@field program string Path to program to debug
+---@field args? string[] Optional arguments to pass to the program
+---@field env? table<string, string> Optional environment variables
+
 local M = {}
 
 --- Get the DAP implementation based on configured mode

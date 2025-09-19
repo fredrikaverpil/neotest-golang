@@ -7,11 +7,19 @@ local json = require("neotest-golang.lib.json")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 
+---@class GoListItem
+---@field ImportPath string The import path of the Go package
+---@field Dir string The directory containing the package source
+---@field Name string The package name
+---@field Module? table Module information if part of a Go module
+---@field Root? string The root directory of the module
+---@field GoMod? string Path to go.mod file
+
 local M = {}
 
 --- Call 'go list -json {go_list_args...} ./...' to get test file data
 --- @param cwd string Working directory to run 'go list' from
---- @return GoListItem[], string|nil golist_output, error_message
+--- @return GoListItem[], string|nil
 function M.golist_data(cwd)
   local cmd = M.golist_command()
   local go_list_command_concat = table.concat(cmd, " ")
