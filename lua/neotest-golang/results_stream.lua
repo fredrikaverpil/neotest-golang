@@ -1,11 +1,12 @@
 --- This file handles real-time processing of Go test output during streaming.
 --- It processes individual Go test events and accumulates results as tests run.
+---
+--- NOTE: you cannot notify (vim.notify) from this module, as it is executed asynchronously.
+--- Also, log with care, as this is a hot path.
 
 local colorize = require("neotest-golang.lib.colorize")
 local convert = require("neotest-golang.lib.convert")
 local diagnostics = require("neotest-golang.lib.diagnostics")
-local json = require("neotest-golang.lib.json")
-local logger = require("neotest-golang.logging")
 local mapping = require("neotest-golang.lib.mapping")
 require("neotest-golang.lib.types")
 

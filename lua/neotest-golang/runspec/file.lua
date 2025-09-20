@@ -15,7 +15,7 @@ local M = {}
 --- @return neotest.RunSpec|nil Runspec for executing tests in the file
 function M.build(pos, tree, strategy)
   if vim.tbl_isempty(tree:children()) then
-    logger.warn("No tests found in file")
+    logger.warn("No tests found in file", true)
     return M.return_skipped(pos)
   end
 

@@ -83,22 +83,30 @@ function M.info(msg)
 end
 
 ---Log the warning.
+--- WARNING: notifying causes issues when logging from async context.
 ---@param msg string|table
-function M.warn(msg)
+---@param notify boolean|nil Whether to also notify the user
+function M.warn(msg, notify)
   if type(msg) ~= "string" then
     msg = handle_input(msg)
   end
-  -- vim.notify(msg, vim.log.levels.WARN) -- NOTE: causes issues when logging from async context
+  if notify then
+    vim.notify(msg, vim.log.levels.WARN)
+  end
   get_logger().warn(msg)
 end
 
 ---Log and throw error.
+--- WARNING: notifying causes issues when logging from async context.
 ---@param msg string|table
-function M.error(msg)
+---@param notify boolean|nil Whether to also notify the user
+function M.error(msg, notify)
   if type(msg) ~= "string" then
     msg = handle_input(msg)
   end
-  -- vim.notify(msg, vim.log.levels.ERROR) -- NOTE: causes issues when logging from async context
+  if notify then
+    vim.notify(msg, vim.log.levels.ERROR)
+  end
   get_logger().error(msg)
   error(msg)
 end

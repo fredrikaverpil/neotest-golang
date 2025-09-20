@@ -41,7 +41,8 @@ function M.modify_neotest_tree(file_path, tree)
 
   if not lookup_table then
     logger.warn(
-      "No lookup found. Could not modify Neotest tree for testify suite support"
+      "No lookup found. Could not modify Neotest tree for testify suite support",
+      true
     )
     return tree
   end

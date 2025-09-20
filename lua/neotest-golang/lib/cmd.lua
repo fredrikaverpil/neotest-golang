@@ -30,7 +30,7 @@ function M.golist_data(cwd)
     if result.stdout ~= nil and result.stderr ~= "" then
       err = err .. " " .. result.stderr
     end
-    logger.warn({ "Go list error: ", err })
+    logger.warn({ "Go list error: ", err }, true)
   end
 
   local output = result.stdout or ""
@@ -177,7 +177,7 @@ end
 --- @return boolean True if executable is found and executable
 function M.system_has(executable)
   if vim.fn.executable(executable) == 0 then
-    logger.warn("Executable not found: " .. executable)
+    logger.warn("Executable not found: " .. executable, true)
     return false
   end
   return true

@@ -42,7 +42,7 @@ function M.build_position_lookup(tree, golist_data)
       else
         stats.failed = stats.failed + 1
         if options.get().dev_notifications then
-          logger.warn("Failed to map position: " .. pos.id)
+          logger.warn("Failed to map position: " .. pos.id, true)
         else
           logger.debug("Failed to map position: " .. pos.id)
         end
@@ -100,8 +100,10 @@ function M.get_pos_id(lookup, package_import, test_name)
   local pos_id = lookup[internal_key]
 
   if not pos_id then
+    -- TODO: save the entries and report later, in bulk, outside of async context.
+    -- This also means we can enable notify.
     if options.get().dev_notifications then
-      logger.warn("Test was executed but not detected: " .. internal_key)
+      logger.warn("Test was executed but not detected: " .. internal_key, false)
     else
       logger.debug("Test was executed but not detected: " .. internal_key)
     end

@@ -137,7 +137,7 @@ function M.file_path_to_import_path(file_path, import_to_dir)
   end
 
   if options.get().dev_notifications then
-    logger.warn("No import path found for directory: " .. file_dir)
+    logger.warn("No import path found for directory: " .. file_dir, true)
   else
     logger.debug("No import path found for directory: " .. file_dir)
   end

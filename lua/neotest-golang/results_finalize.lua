@@ -94,7 +94,8 @@ function M.test_results(spec, result, tree)
     if options.get().dev_notifications then
       logger.warn(
         "Test results not populated for the following Neotest positions:\n"
-          .. table.concat(missing, "\n")
+          .. table.concat(missing, "\n"),
+        true
       )
     else
       logger.debug(
