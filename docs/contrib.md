@@ -127,31 +127,19 @@ I've therefore made it possible to make the adapter rely on output saved
 directly to disk without going through stdout, by leveraging `gotestsum`.
 
 With neotest-golang v2.0, streaming support was added and required a total
-rewrite of the output processing. In my opinion, this made the adapter logic
-easier to follow and formally defined the processing steps more clearly.
+rewrite of the output processing. This made the adapter logic easier to follow
+and formally defined the processing steps more clearly.
 
 When you run tests via neotest-golang, the following happens:
 
-- As part of building the runspec, the `go list -json` command runs to gather
-  data and a lookup (`mapping.lua`) is created which maps between Neotest test
-  position keys and Go tests. This is a crucial step to avoid O(n) operations as
-  well as understanding how Go packages and tests relate to the Neotest
-  filetree.
-- The `go test -json` command runs (`stream.lua`):
-  - The Go test JSON objects are recorded (and cached) for each key in the
-    lookup.
-  - If a Go test reaches a final verdict (state is passed, failed, skipped),
-    lightweight single-test processing is performed and the result is returned
-    to Neotest. Note that this is a really hot code path, and we must refrain
-    from performing too computionally heavy operations here, or stuttering can
-    be experienced or delay the test execution. The intent here is to return
-    early, near-realtime feedback on outcome.
-- The `go test -json` command finishes executing (`process.lua`):
-  - The test results cache is loaded, so we don't have to process all test
-    outcomes again.
-  - Here we have an opportunity to process all tests results as a whole (not
-    just on a per-single test basis). This will be done for:
-    - Computationally heavy operations which we don't want to run during
-      streaming.
-    - Aggregation of test outputs we want recorded onto the `file` positions in
-      the Neotest summary panel.
+- **Runspec preparation**: `go list -json` gathers package data and creates a
+  lookup (`mapping.lua`) mapping Neotest positions to Go tests.
+- **Streaming execution** (`results_stream.lua`):
+  - Go test JSON events are processed in real-time and cached directly.
+  - **Async file writing** (`async_writer.lua`) immediately writes test output
+    to disk without blocking the streaming hot path.
+  - Results are populated directly into the cache for near-realtime feedback.
+- **Finalization** (`results_finalize.lua`):
+  - Waits for all async file writes to complete.
+  - Performs aggregation for file/directory nodes in the Neotest tree.
+  - No heavy file I/O since all output files are already written asynchronously.
