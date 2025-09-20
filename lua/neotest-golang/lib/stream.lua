@@ -117,16 +117,6 @@ function M.new(tree, golist_data, json_filepath)
       -- Optimized: Direct cache population eliminates intermediate results and copy loop
       results_stream.make_stream_results_with_cache(accum, M.cached_results)
 
-      -- TODO: optimize caching:
-      -- 1. ✓ DONE - Direct cache population in make_stream_results:
-      --    Updated streaming loop to use make_stream_results_with_cache()
-      -- 2. ✓ DONE - Eliminate intermediate results table (eliminates the pairs loop).
-      -- 3. ✓ DONE - Async file writing:
-      --    Implemented async file writing in streaming hot path, eliminating I/O blocking.
-      --    Files are now written asynchronously immediately when test events are processed.
-      -- 4. ✓ DONE - Cache transfer instead of clear:
-      --    Implemented transfer_cached_results() for atomic ownership transfer
-
       -- Return the cache for compatibility with existing streaming interface
       return M.cached_results
     end
