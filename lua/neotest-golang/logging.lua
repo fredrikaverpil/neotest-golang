@@ -82,23 +82,23 @@ function M.info(msg)
   get_logger().info(msg)
 end
 
----Notify and log the warning.
+---Log the warning.
 ---@param msg string|table
 function M.warn(msg)
   if type(msg) ~= "string" then
     msg = handle_input(msg)
   end
-  vim.notify(msg, vim.log.levels.WARN)
+  -- vim.notify(msg, vim.log.levels.WARN) -- NOTE: causes issues when logging from async context
   get_logger().warn(msg)
 end
 
----Notify, log and throw error.
+---Log and throw error.
 ---@param msg string|table
 function M.error(msg)
   if type(msg) ~= "string" then
     msg = handle_input(msg)
   end
-  vim.notify(msg, vim.log.levels.ERROR)
+  -- vim.notify(msg, vim.log.levels.ERROR) -- NOTE: causes issues when logging from async context
   get_logger().error(msg)
   error(msg)
 end
