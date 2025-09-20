@@ -355,15 +355,14 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
     )
   end
 
-  -- Convert to stream results
-  local individual_results = results_stream.make_stream_results(accum)
+  -- Convert to stream results using optimized direct cache population
+  results_stream.make_stream_results_with_cache(
+    accum,
+    lib.stream.cached_results
+  )
 
-  -- Populate the cached results so that results_finalize.test_results can access them
-  for pos_id, result in pairs(individual_results) do
-    lib.stream.cached_results[pos_id] = result
-  end
-
-  return individual_results
+  -- Return a reference to the updated cache
+  return lib.stream.cached_results
 end
 
 return M

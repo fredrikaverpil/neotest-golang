@@ -202,14 +202,13 @@ function M.process_test(accum, e, id, position_lookup)
   return accum
 end
 
----Process internal test data into Neotest results for stream.
+---Process internal test data and directly update the provided cache.
 ---@param accum table<string, TestEntry> The accumulated test data to process
----@return table<string, neotest.Result>
-function M.make_stream_results(accum)
-  ---@type table<string, neotest.Result>
-  local results = {}
+---@param cache table<string, neotest.Result> The cache to update directly
+function M.make_stream_results_with_cache(accum, cache)
+  ---@type table<string>
 
-  for key, test_entry in pairs(accum) do
+  for _, test_entry in pairs(accum) do
     if test_entry.metadata.position_id ~= nil then
       if test_entry.metadata.state ~= "finalized" then
         if test_entry.metadata.output_parts then
@@ -239,13 +238,9 @@ function M.make_stream_results(accum)
       }
 
       test_entry.metadata.state = "finalized"
-      accum[key] = test_entry
-
-      results[test_entry.metadata.position_id] = result
+      cache[test_entry.metadata.position_id] = result
     end
   end
-
-  return results
 end
 
 return M

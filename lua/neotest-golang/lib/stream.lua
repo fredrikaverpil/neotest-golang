@@ -20,18 +20,12 @@ function M.set_test_strategy(strategy)
   M._test_stream_strategy = strategy
 end
 
----Finalize and return the cached results, ensuring all streaming is complete.
----This function should be called after the stream has been stopped to get
----the final state of cached results.
+---Atomically transfer ownership of cached results and clear the cache.
+---This optimization eliminates the copy-then-clear pattern.
 ---@return table<string, neotest.Result>
-function M.get_final_cached_results()
-  -- At this point, streaming should be stopped and cache should be complete
-  -- Return a copy to avoid further modifications
-  local results = {}
-  for pos_id, result in pairs(M.cached_results) do
-    results[pos_id] = result
-  end
-  M.cached_results = {} -- Clear the cache after transferring ownership
+function M.transfer_cached_results()
+  local results = M.cached_results
+  M.cached_results = {}
   return results
 end
 
@@ -80,8 +74,6 @@ function M.new(tree, golist_data, json_filepath)
     local gotest_events = {}
     ---@type table<string, TestEntry>
     local accum = {}
-    ---@type table<string, neotest.Result>
-    local results = {}
 
     -- Build position lookup table
     local lookup = mapping.build_position_lookup(tree, golist_data)
@@ -122,25 +114,22 @@ function M.new(tree, golist_data, json_filepath)
           results_stream.process_event(golist_data, accum, gotest_event, lookup)
       end
 
-      results = results_stream.make_stream_results(accum)
+      -- Optimized: Direct cache population eliminates intermediate results and copy loop
+      results_stream.make_stream_results_with_cache(accum, M.cached_results)
 
       -- TODO: optimize caching:
-      -- 1. Direct cache population in make_stream_results:
-      --    M.cached_results = process.make_stream_results_and_cache(accum, M.cached_results)
-      -- 2. Eliminate intermediate results table (eliminates the pairs loop).
+      -- 1. ✓ DONE - Direct cache population in make_stream_results:
+      --    Updated streaming loop to use make_stream_results_with_cache()
+      -- 2. ✓ DONE - Eliminate intermediate results table (eliminates the pairs loop).
       -- 3. Lazy file writing?
       --    - Defer file writing until final test_results() phase (maybe opt-in to write during stream?)
       --    - Keep output_parts in memory during streaming.
       --    - Write files only when actually needed (reduces i/o).
-      -- 4. Cache transfer instead of clear:
-      --    Instead of: load -> clear -> rebuild
-      --    Do: transfer ownership
-      --    local results = M.transfer_cached_results() -- returns and clears in one operation
-      for pos_id, result in pairs(results) do
-        M.cached_results[pos_id] = result
-      end
+      -- 4. ✓ DONE - Cache transfer instead of clear:
+      --    Implemented transfer_cached_results() for atomic ownership transfer
 
-      return results
+      -- Return the cache for compatibility with existing streaming interface
+      return M.cached_results
     end
   end
 

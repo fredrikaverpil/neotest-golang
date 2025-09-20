@@ -27,9 +27,9 @@ function M.test_results(spec, result, tree)
   -- Stop streaming first to ensure all results are cached
   spec.context.stop_filestream()
 
-  -- Get final cached results after streaming is complete
+  -- Get final cached results after streaming is complete (atomic transfer)
   ---@type table<string, neotest.Result>
-  local results = lib.stream.get_final_cached_results()
+  local results = lib.stream.transfer_cached_results()
 
   --- Final Neotest results, the way Neotest wants it returned.
   --- @type table<string, neotest.Result>
