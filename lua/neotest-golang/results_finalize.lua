@@ -82,6 +82,9 @@ function M.test_results(spec, result, tree)
   -- Populate file nodes with aggregated results
   results = M.populate_file_nodes(tree, results)
 
+  -- Populate directory nodes with aggregated results from descendant files
+  results = M.populate_dir_nodes(tree, results)
+
   -- Track missing results
   local missing = {}
   for _, node in tree:iter_nodes() do
@@ -102,6 +105,92 @@ function M.test_results(spec, result, tree)
         "Test results not populated for the following Neotest positions:\n"
           .. table.concat(missing, "\n")
       )
+    end
+  end
+
+  return results
+end
+
+--- Populate directory nodes with aggregated results from their descendant files
+--- @param tree neotest.Tree The neotest tree structure
+--- @param results table<string, neotest.Result> Current results
+--- @return table<string, neotest.Result> Updated results with directory node data
+-- NOTE: this is intense, so cannot be part of streaming hot path.
+function M.populate_dir_nodes(tree, results)
+  for _, node in tree:iter_nodes() do
+    local pos = node:data()
+
+    if pos.type == "dir" and not results[pos.id] then
+      -- Collect all descendant file results for this directory
+      local descendant_files = {}
+      local dir_status = "passed"
+      local has_files = false
+      local all_errors = {}
+
+      for _, child_node in tree:iter_nodes() do
+        local child_pos = child_node:data()
+        local child_result = results[child_pos.id]
+
+        -- Check if this file is a descendant of this directory
+        if
+          child_pos.type == "file"
+          and child_result
+          and child_pos.path:find(pos.path, 1, true) == 1
+          and child_pos.path ~= pos.path
+        then
+          has_files = true
+          table.insert(descendant_files, child_result)
+
+          -- Aggregate status (failed > skipped > passed)
+          if child_result.status == "failed" then
+            dir_status = "failed"
+          elseif
+            child_result.status == "skipped" and dir_status ~= "failed"
+          then
+            dir_status = "skipped"
+          end
+
+          -- Collect errors
+          if child_result.errors then
+            vim.list_extend(all_errors, child_result.errors)
+          end
+        end
+      end
+
+      if has_files then
+        -- Create combined output file
+        local combined_output = {}
+        table.insert(combined_output, "=== Directory: " .. pos.path .. " ===")
+
+        for _, file_result in ipairs(descendant_files) do
+          if file_result.output then
+            -- Read file result output
+            local file_output_lines = async.fn.readfile(file_result.output)
+            vim.list_extend(combined_output, file_output_lines)
+          end
+        end
+
+        -- Write combined output to file
+        local dir_output_path = vim.fs.normalize(async.fn.tempname())
+        async.fn.writefile(combined_output, dir_output_path)
+
+        -- Create directory node result
+        results[pos.id] = {
+          status = dir_status,
+          output = dir_output_path,
+          errors = all_errors,
+        }
+
+        logger.debug(
+          "Populated directory node "
+            .. pos.id
+            .. " with status: "
+            .. dir_status
+            .. " from "
+            .. #descendant_files
+            .. " descendant files"
+        )
+      end
     end
   end
 
