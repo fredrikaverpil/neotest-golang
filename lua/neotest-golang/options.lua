@@ -2,8 +2,6 @@
 --- providing them as arguments to the Adapter function. See the README for mode
 --- details and examples.
 
-local logger = require("neotest-golang.logging")
-
 local M = {}
 
 ---@class NeotestGolangOptions
@@ -54,6 +52,8 @@ function M.setup(user_opts)
     end
   else
   end
+
+  local logger = require("neotest-golang.logging") -- NOTE: avoid circular dependency
   logger.debug("Loaded with options: " .. vim.inspect(opts))
 end
 
