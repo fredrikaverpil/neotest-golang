@@ -83,8 +83,6 @@ function M.process_package(golist_data, accum, e, id)
     and accum[id].metadata.status == "streaming"
     and e.Action == "build-output"
   then
-    vim.notify(vim.inspect(e)) -- TODO: what to do with build-output?
-    -- NOTE: "build-fail" message indicate build error.
     if e.Output then
       table.insert(accum[id].metadata.output_parts, e.Output)
     end
@@ -169,8 +167,6 @@ function M.process_test(accum, e, id, position_lookup)
     and accum[id].metadata.status == "streaming"
     and e.Action == "build-output"
   then
-    vim.notify(vim.inspect(e)) -- TODO: what to do with build-output?
-    -- NOTE: "build-fail" message indicate build error.
     if e.Output then
       table.insert(accum[id].metadata.output_parts, e.Output)
     end
