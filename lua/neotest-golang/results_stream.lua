@@ -20,7 +20,6 @@ local M = {}
 ---@param e GoTestEvent The event data.
 ---@param position_lookup table<string, string> Position lookup table
 ---@return table<string, TestEntry>
--- TODO: this is part of streaming hot path. To be optimized.
 function M.process_event(golist_data, accum, e, position_lookup)
   if e.Package then
     local id = e.Package or "UNKNOWN_PACKAGE"
@@ -41,7 +40,6 @@ end
 ---@param e GoTestEvent The event data
 ---@param id string The internal test/package id
 ---@return table<string, TestEntry>
--- TODO: this is part of streaming hot path. To be optimized.
 function M.process_package(golist_data, accum, e, id)
   -- Indicate package started/running.
   if not accum[id] and (e.Action == "start" or e.Action == "run") then
@@ -125,7 +123,6 @@ end
 ---@param id string Test ID
 ---@param position_lookup table<string, string> Position lookup table for O(1) mapping
 ---@return table<string, TestEntry>
--- TODO: this is part of streaming hot path. To be optimized.
 function M.process_test(accum, e, id, position_lookup)
   -- Indicate test started/running.
   if not accum[id] and e.Action == "run" then
@@ -208,7 +205,6 @@ end
 ---Process internal test data into Neotest results for stream.
 ---@param accum table<string, TestEntry> The accumulated test data to process
 ---@return table<string, neotest.Result>
--- TODO: this is part of streaming hot path. To be optimized.
 function M.make_stream_results(accum)
   ---@type table<string, neotest.Result>
   local results = {}
@@ -240,7 +236,6 @@ function M.make_stream_results(accum)
         status = test_entry.result.status,
         output = test_entry.metadata.output_path,
         errors = test_entry.result.errors,
-        -- TODO: add short?
       }
 
       test_entry.metadata.status = "finalized"

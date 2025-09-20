@@ -10,7 +10,6 @@ local M = {}
 ---@param lines string[] Array of strings, each string is a line
 ---@param construct_invalid boolean Whether to construct invalid lines into JSON objects
 ---@return table[] Array of decoded JSON objects
--- TODO: this is part of streaming hot path. To be optimized for performance.
 function M.decode_from_table(lines, construct_invalid)
   local jsonlines = {}
   for _, line in ipairs(lines) do

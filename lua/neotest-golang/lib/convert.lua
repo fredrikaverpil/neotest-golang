@@ -58,7 +58,6 @@ end
 ---Convert AST-detected Neotest position ID to `go test` test name format
 ---@param pos_id string Neotest position ID like /path/file.go::TestName::"SubTest"::"Nested"
 ---@return string|nil Go test name like "TestName/SubTest/Nested" or nil if invalid
--- TODO: this is part of streaming hot path. To be optimized.
 function M.pos_id_to_go_test_name(pos_id)
   -- Validate input
   if type(pos_id) ~= "string" then
@@ -121,7 +120,6 @@ end
 ---@param file_path string Full path to test file
 ---@param import_to_dir table<string, string> Mapping of import paths to directories
 ---@return string|nil Import path or nil if not found
--- TODO: this is part of streaming hot path. To be optimized.
 function M.file_path_to_import_path(file_path, import_to_dir)
   -- Get the directory containing the file
   local file_dir = file_path:match("(.+)/[^/]+$")
