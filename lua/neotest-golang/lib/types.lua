@@ -24,7 +24,7 @@
 --- @field position_id? string The neotest position ID for this test
 --- @field output_parts string[] Raw output parts collected during streaming
 --- @field output_path? string Path to the finalized output file
---- @field status? "streaming"|"streamed" Whether the test result has been finalized
+--- @field state? "streaming"|"streamed"|"finalized" State of the test entry's processing
 
 --- The accumulated test data. This holds both the Neotest result for the test and also internal metadata.
 --- @class TestEntry

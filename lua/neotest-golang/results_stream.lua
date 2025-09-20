@@ -50,7 +50,7 @@ function M.process_package(golist_data, accum, e, id)
         errors = {},
       },
       metadata = {
-        status = "streaming",
+        state = "streaming",
         output_parts = {},
       },
     }
@@ -62,7 +62,7 @@ function M.process_package(golist_data, accum, e, id)
   -- Record output for package.
   if
     accum[e.Package]
-    and accum[e.Package].metadata.status == "streaming"
+    and accum[e.Package].metadata.state == "streaming"
     and e.Action == "output"
   then
     if e.Output then
@@ -73,7 +73,7 @@ function M.process_package(golist_data, accum, e, id)
   -- Record build output for test (introduced in Go 1.24).
   if
     accum[id]
-    and accum[id].metadata.status == "streaming"
+    and accum[id].metadata.state == "streaming"
     and e.Action == "build-output"
   then
     if e.Output then
@@ -84,7 +84,7 @@ function M.process_package(golist_data, accum, e, id)
   -- Record build failure (introduced in Go 1.24).
   if
     accum[id]
-    and accum[id].metadata.status == "streaming"
+    and accum[id].metadata.state == "streaming"
     and e.Action == "build-fail"
   then
     -- TODO: what do do here?
@@ -93,7 +93,7 @@ function M.process_package(golist_data, accum, e, id)
   -- Register package results.
   if
     accum[e.Package]
-    and accum[e.Package].metadata.status == "streaming"
+    and accum[e.Package].metadata.state == "streaming"
     and (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
   then
     if e.Action == "pass" then
@@ -104,7 +104,7 @@ function M.process_package(golist_data, accum, e, id)
       accum[id].result.status = "skipped"
     end
 
-    accum[id].metadata.status = "streamed"
+    accum[id].metadata.state = "streamed"
 
     if e.Output then
       -- NOTE: this does not ever happen, it seems.
@@ -133,7 +133,7 @@ function M.process_test(accum, e, id, position_lookup)
         errors = {},
       },
       metadata = {
-        status = "streaming",
+        state = "streaming",
         output_parts = {},
       },
     }
@@ -145,7 +145,7 @@ function M.process_test(accum, e, id, position_lookup)
   -- Record output for test.
   if
     accum[id]
-    and accum[id].metadata.status == "streaming"
+    and accum[id].metadata.state == "streaming"
     and e.Action == "output"
   then
     if e.Output then
@@ -156,7 +156,7 @@ function M.process_test(accum, e, id, position_lookup)
   -- Record build output for test (introduced in Go 1.24).
   if
     accum[id]
-    and accum[id].metadata.status == "streaming"
+    and accum[id].metadata.state == "streaming"
     and e.Action == "build-output"
   then
     if e.Output then
@@ -167,7 +167,7 @@ function M.process_test(accum, e, id, position_lookup)
   -- Record build failure (introduced in Go 1.24).
   if
     accum[id]
-    and accum[id].metadata.status == "streaming"
+    and accum[id].metadata.state == "streaming"
     and e.Action == "build-fail"
   then
     -- TODO: what do do here?
@@ -176,7 +176,7 @@ function M.process_test(accum, e, id, position_lookup)
   -- Register test results.
   if
     accum[id]
-    and accum[id].metadata.status == "streaming"
+    and accum[id].metadata.state == "streaming"
     and (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
   then
     if e.Action == "pass" then
@@ -187,7 +187,7 @@ function M.process_test(accum, e, id, position_lookup)
       accum[id].result.status = "skipped"
     end
 
-    accum[id].metadata.status = "streamed"
+    accum[id].metadata.state = "streamed"
 
     if e.Output then
       -- NOTE: this does not ever happen, it seems.
@@ -211,7 +211,7 @@ function M.make_stream_results(accum)
 
   for key, test_entry in pairs(accum) do
     if test_entry.metadata.position_id ~= nil then
-      if test_entry.metadata.status ~= "finalized" then
+      if test_entry.metadata.state ~= "finalized" then
         if test_entry.metadata.output_parts then
           test_entry.result.errors = diagnostics.process_diagnostics(test_entry)
         end
@@ -238,7 +238,7 @@ function M.make_stream_results(accum)
         errors = test_entry.result.errors,
       }
 
-      test_entry.metadata.status = "finalized"
+      test_entry.metadata.state = "finalized"
       accum[key] = test_entry
 
       results[test_entry.metadata.position_id] = result
