@@ -2,6 +2,7 @@
 
 local lib = require("neotest.lib")
 
+local dupe = require("neotest-golang.lib.dupe")
 local options = require("neotest-golang.options")
 local testify = require("neotest-golang.features.testify")
 
@@ -312,6 +313,11 @@ function M.detect_tests(file_path)
 
   if options.get().testify_enabled == true then
     tree = testify.tree_modification.modify_neotest_tree(file_path, tree)
+  end
+
+  -- Check for duplicate subtests in the tree
+  if options.get().warn_test_name_dupes then
+    dupe.warn_duplicate_tests(tree)
   end
 
   return tree

@@ -36,7 +36,7 @@ local opts = {
   testify_operand = "^(s|suite)$",
   testify_import_identifier = "^(suite)$",
   colorize_test_output = true,
-  warn_test_name_dupes = true, -- TODO: not implemented yet
+  warn_test_name_dupes = true,
   log_level = vim.log.levels.WARN,
   sanitize_output = false,
 
