@@ -13,12 +13,6 @@ local async = require("neotest.async")
 
 local M = {}
 
----@enum processingStatus
-M.ProcessingStatus = {
-  streaming = "streaming",
-  status_detected = "status_detected",
-}
-
 ---Process a single event from the test output.
 ---@param golist_data table The 'go list -json' output
 ---@param accum table<string, TestEntry> Accumulated test data
@@ -111,7 +105,7 @@ function M.process_package(golist_data, accum, e, id)
       accum[id].result.status = "skipped"
     end
 
-    accum[id].metadata.status = "status_detected"
+    accum[id].metadata.status = "streamed"
 
     if e.Output then
       -- NOTE: this does not ever happen, it seems.
@@ -195,7 +189,7 @@ function M.process_test(accum, e, id, position_lookup)
       accum[id].result.status = "skipped"
     end
 
-    accum[id].metadata.status = "status_detected"
+    accum[id].metadata.status = "streamed"
 
     if e.Output then
       -- NOTE: this does not ever happen, it seems.
@@ -218,12 +212,9 @@ function M.make_stream_results(accum)
   ---@type table<string, neotest.Result>
   local results = {}
 
-  for _, test_entry in pairs(accum) do
+  for key, test_entry in pairs(accum) do
     if test_entry.metadata.position_id ~= nil then
-      if test_entry.metadata.output_path == nil then
-        -- NOTE: finalizing has not been done yet for this position id.
-        -- TODO: use explicit variable to denote processing state done/pending rather than output_path presence.
-
+      if test_entry.metadata.status ~= "finalized" then
         if test_entry.metadata.output_parts then
           test_entry.result.errors = diagnostics.process_diagnostics(test_entry)
         end
@@ -250,6 +241,9 @@ function M.make_stream_results(accum)
         errors = test_entry.result.errors,
         -- TODO: add short?
       }
+
+      test_entry.metadata.status = "finalized"
+      accum[key] = test_entry
 
       results[test_entry.metadata.position_id] = result
     end
