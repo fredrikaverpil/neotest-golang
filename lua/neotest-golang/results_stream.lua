@@ -4,6 +4,7 @@
 --- NOTE: you cannot notify (vim.notify) from this module, as it is executed asynchronously.
 --- Also, log with care, as this is a hot path.
 
+local async_writer = require("neotest-golang.lib.async_writer")
 local colorize = require("neotest-golang.lib.colorize")
 local convert = require("neotest-golang.lib.convert")
 local diagnostics = require("neotest-golang.lib.diagnostics")
@@ -203,11 +204,10 @@ function M.process_test(accum, e, id, position_lookup)
 end
 
 ---Process internal test data and directly update the provided cache.
+---Async file writing: Generate output paths and immediately start async file writing.
 ---@param accum table<string, TestEntry> The accumulated test data to process
 ---@param cache table<string, neotest.Result> The cache to update directly
 function M.make_stream_results_with_cache(accum, cache)
-  ---@type table<string>
-
   for _, test_entry in pairs(accum) do
     if test_entry.metadata.position_id ~= nil then
       if test_entry.metadata.state ~= "finalized" then
@@ -215,17 +215,17 @@ function M.make_stream_results_with_cache(accum, cache)
           test_entry.result.errors = diagnostics.process_diagnostics(test_entry)
         end
 
+        -- Generate output path and start async writing immediately
         test_entry.metadata.output_path = vim.fs.normalize(async.fn.tempname())
 
-        local stat = vim.uv.fs_stat(test_entry.metadata.output_path)
-        if not stat then
-          -- file does not exist, let's write it
-          if test_entry.metadata.output_parts then
-            local output_lines =
-              colorize.colorize_parts(test_entry.metadata.output_parts)
-            async.fn.writefile(output_lines, test_entry.metadata.output_path)
-            test_entry.metadata.output_parts = nil -- clean up parts to save memory
-          end
+        if test_entry.metadata.output_parts then
+          -- Start async writing immediately (non-blocking)
+          local output_lines =
+            colorize.colorize_parts(test_entry.metadata.output_parts)
+          async_writer.write_async(
+            test_entry.metadata.output_path,
+            output_lines
+          )
         end
       end
 

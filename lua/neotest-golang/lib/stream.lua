@@ -121,10 +121,9 @@ function M.new(tree, golist_data, json_filepath)
       -- 1. ✓ DONE - Direct cache population in make_stream_results:
       --    Updated streaming loop to use make_stream_results_with_cache()
       -- 2. ✓ DONE - Eliminate intermediate results table (eliminates the pairs loop).
-      -- 3. Lazy file writing?
-      --    - Defer file writing until final test_results() phase (maybe opt-in to write during stream?)
-      --    - Keep output_parts in memory during streaming.
-      --    - Write files only when actually needed (reduces i/o).
+      -- 3. ✓ DONE - Async file writing:
+      --    Implemented async file writing in streaming hot path, eliminating I/O blocking.
+      --    Files are now written asynchronously immediately when test events are processed.
       -- 4. ✓ DONE - Cache transfer instead of clear:
       --    Implemented transfer_cached_results() for atomic ownership transfer
 

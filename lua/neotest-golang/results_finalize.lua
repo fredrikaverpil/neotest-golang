@@ -2,6 +2,7 @@
 --- and assembling of the final results to hand back over to Neotest.
 
 local async = require("neotest.async")
+local async_writer = require("neotest-golang.lib.async_writer")
 
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
@@ -30,6 +31,9 @@ function M.test_results(spec, result, tree)
   -- Get final cached results after streaming is complete (atomic transfer)
   ---@type table<string, neotest.Result>
   local results = lib.stream.transfer_cached_results()
+
+  -- Wait for all async writes to complete before proceeding
+  async_writer.wait_for_completion()
 
   --- Final Neotest results, the way Neotest wants it returned.
   --- @type table<string, neotest.Result>
