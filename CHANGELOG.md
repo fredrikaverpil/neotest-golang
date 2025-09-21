@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.15.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.14.0...v1.15.0) (2025-09-21)
+
+
+### Features
+
+* introduce streaming test result processing ([#373](https://github.com/fredrikaverpil/neotest-golang/issues/373)) ([cac1039](https://github.com/fredrikaverpil/neotest-golang/commit/cac1039b81e3ae8d8c616c2fa4b5bb2cf0bb6704))
+* warn if go parser is missing ([#388](https://github.com/fredrikaverpil/neotest-golang/issues/388)) ([2c86dab](https://github.com/fredrikaverpil/neotest-golang/commit/2c86dab20f4e7c7d18d870a5367dde82b3a66c23))
+
 ## [1.14.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.13.0...v1.14.0) (2025-06-10)
 
 
