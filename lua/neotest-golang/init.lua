@@ -71,14 +71,14 @@ function M.Adapter.build_spec(args)
   --- @type neotest.Tree
   local tree = args.tree
 
-  --- The position object, describing the current directory, file or test.
-  --- @type neotest.Position
-  local pos = args.tree:data() -- NOTE: causes <file> is not accessible by the current user!
-
   if not tree then
     logger.error("Unexpectedly did not receive a neotest.Tree.")
     return
   end
+
+  --- The position object, describing the current directory, file or test.
+  --- @type neotest.Position
+  local pos = tree:data() -- NOTE: causes <file> is not accessible by the current user!
 
   -- Below is the main logic of figuring out how to execute tests. In short,
   -- a "runspec" is defined for each command to execute.

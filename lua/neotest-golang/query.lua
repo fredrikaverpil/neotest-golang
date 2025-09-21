@@ -3,6 +3,7 @@
 local lib = require("neotest.lib")
 
 local dupe = require("neotest-golang.lib.dupe")
+local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
 local testify = require("neotest-golang.features.testify")
 
@@ -288,10 +289,29 @@ M.table_tests_map = [[
   )
 ]]
 
+--- Check if Go tree-sitter parser is available
+--- @return boolean True if Go parser is available, false otherwise
+function M.has_go_parser()
+  if vim.treesitter.language and vim.treesitter.language.add then
+    return pcall(function()
+      vim.treesitter.language.add("go")
+    end)
+  end
+  return false
+end
+
 --- Detect test names in Go *._test.go files.
 --- @param file_path string Absolute path to the Go test file
 --- @return neotest.Tree|nil Tree of detected tests, or nil if parsing failed
 function M.detect_tests(file_path)
+  if not M.has_go_parser() then
+    logger.error(
+      "Go tree-sitter parser not found. Install with :TSInstall go",
+      true
+    )
+    return nil
+  end
+
   local opts = { nested_tests = true }
   local query = M.test_function
     .. M.table_tests_list
