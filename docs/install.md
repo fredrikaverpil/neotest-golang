@@ -48,7 +48,7 @@ ultimately it is up to you what you want.
     configure neotest-golang to use
     [`gotestsum`](https://github.com/gotestyourself/gotestsum) as test runner, for
     maximal stability, as it writes JSON to file instead. Head over to the
-    [configuration docs](/config/#runner) for more details.
+    [configuration docs](config.md/#runner) for more details.
 
     ```diff
     return {

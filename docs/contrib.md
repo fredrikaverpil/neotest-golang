@@ -15,7 +15,7 @@ You can run tests, formatting and linting locally with `task all` (requires
 [Taskfile](https://taskfile.dev/)). Install dependencies with `task install`.
 Have a look at the `Taskfile.yml` for more details. You can also use the
 neotest-plenary and neotest-golang adapters to run the tests of this repo within
-Neovim. Please refer to the [Test setup](../test/) for detail on how to run
+Neovim. Please refer to the [Test setup](test.md) for detail on how to run
 tests.
 
 ## AST and tree-sitter
