@@ -13,16 +13,16 @@ local RunnerInterface = {}
 --- Build test command for the given arguments
 --- @param go_test_required_args string[] Required arguments for the test command
 --- @param fallback boolean Whether to use fallback logic
---- @return string[], string|nil Command array and optional JSON output path
+--- @return string[], table|nil Command array and execution context (opaque to callers)
 function RunnerInterface:get_test_command(go_test_required_args, fallback)
   error("get_test_command must be implemented by concrete runner")
 end
 
 --- Process test output and return lines for parsing
---- @param output_file string|nil Path to output file
---- @param context table|nil Additional context (e.g., JSON file path)
+--- @param result table The strategy result containing output and other execution data
+--- @param exec_context table|nil Execution context returned from get_test_command
 --- @return string[] Output lines for processing
-function RunnerInterface:process_output(output_file, context)
+function RunnerInterface:process_output(result, exec_context)
   error("process_output must be implemented by concrete runner")
 end
 
@@ -74,4 +74,3 @@ function M.create_runner(runner_name, fallback)
 end
 
 return M
-

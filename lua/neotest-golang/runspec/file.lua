@@ -67,14 +67,14 @@ function M.build(pos, tree, strategy)
 
   -- find all top-level tests in pos.path
   local test_cmd = nil
-  local json_filepath = nil
+  local exec_context = nil
   local regexp = M.get_regexp(pos.path)
   if regexp ~= nil then
-    test_cmd, json_filepath =
+    test_cmd, exec_context =
       lib.cmd.test_command_in_package_with_regexp(package_name, regexp)
   else
     -- fallback: run all tests in the package
-    test_cmd, json_filepath = lib.cmd.test_command_in_package(package_name)
+    test_cmd, exec_context = lib.cmd.test_command_in_package(package_name)
     -- NOTE: could also fall back to running on a per-test basis by using a bare return
   end
 
@@ -92,14 +92,14 @@ function M.build(pos, tree, strategy)
   end
 
   local stream, stop_filestream =
-    lib.stream.new(tree, golist_data, json_filepath)
+    lib.stream.new(tree, golist_data, exec_context)
 
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
-    test_output_json_filepath = json_filepath,
+    runner_exec_context = exec_context,
     stop_filestream = stop_filestream,
   }
 

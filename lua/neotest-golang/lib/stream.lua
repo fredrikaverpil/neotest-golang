@@ -63,12 +63,18 @@ end
 ---
 ---@param tree neotest.Tree The Neotest tree containing test positions
 ---@param golist_data table Output from `go list -json` containing package information
----@param json_filepath string|nil Path to gotestsum JSON output file (required for gotestsum runner)
+---@param exec_context table|nil Opaque execution context from test runner
 ---@return function stream_function Function that processes test events and returns cached results
 ---@return function stop_function Function to stop streaming and clean up resources
-function M.new(tree, golist_data, json_filepath)
+function M.new(tree, golist_data, exec_context)
   -- Start performance monitoring session
   metrics.start_session()
+
+  -- Extract json_filepath from execution context for gotestsum runner
+  local json_filepath = nil
+  if exec_context and exec_context.json_filepath then
+    json_filepath = exec_context.json_filepath
+  end
 
   -- No-op filestream functions for gotestsum runner
   local filestream_data = function() end -- no-op

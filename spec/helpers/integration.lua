@@ -319,27 +319,20 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
   local opts = options.get()
   local runner = opts.runner_instance
 
-  local gotest_output = {}
-  if runner and runner.name == "gotestsum" then
-    -- For gotestsum, the actual JSON test data is in the --jsonfile, not stdout
-    -- Check if we have access to the gotestsum JSON file path from context
-    if context and context.test_output_json_filepath then
-      local json_filepath = context.test_output_json_filepath
-      local file_stat = vim.uv.fs_stat(json_filepath)
-      if file_stat and file_stat.size > 0 then
-        local json_lines = async.fn.readfile(json_filepath)
-        gotest_output = lib.json.decode_from_table(json_lines, true)
-      else
-        gotest_output = lib.json.decode_from_table(raw_output, true)
-      end
-    else
-      -- No JSON file path available, parse from stdout
-      gotest_output = lib.json.decode_from_table(raw_output, true)
-    end
+  -- Use the runner's process_output method to get the correct output lines
+  local output_lines = {}
+  if runner and context and context.runner_exec_context then
+    -- Create a mock result object with output path for runner processing
+    local mock_result = { output = output_path }
+    output_lines =
+      runner:process_output(mock_result, context.runner_exec_context)
   else
-    -- Parse JSON events from go test -json output
-    gotest_output = lib.json.decode_from_table(raw_output, true)
+    -- Fallback to raw output if no runner or context available
+    output_lines = raw_output
   end
+
+  -- Parse JSON events from the processed output
+  local gotest_output = lib.json.decode_from_table(output_lines, true)
 
   -- Build position lookup table
   local position_lookup = lib.mapping.build_position_lookup(tree, golist_data)

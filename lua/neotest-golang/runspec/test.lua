@@ -33,7 +33,7 @@ function M.build(pos, tree, strategy)
   end
   local test_name_regex = lib.convert.to_gotest_regex_pattern(test_name)
 
-  local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(
+  local test_cmd, exec_context = lib.cmd.test_command_in_package_with_regexp(
     pos_path_folderpath,
     test_name_regex
   )
@@ -52,7 +52,7 @@ function M.build(pos, tree, strategy)
   end
 
   local stream, stop_filestream =
-    lib.stream.new(tree, golist_data, json_filepath)
+    lib.stream.new(tree, golist_data, exec_context)
 
   --- @type RunspecContext
   local context = {
@@ -60,7 +60,7 @@ function M.build(pos, tree, strategy)
     golist_data = golist_data,
     errors = errors,
     process_test_results = true,
-    test_output_json_filepath = json_filepath,
+    runner_exec_context = exec_context,
     stop_filestream = stop_filestream,
   }
 

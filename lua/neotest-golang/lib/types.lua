@@ -5,7 +5,7 @@
 --- @field golist_data table<string, string> The 'go list' JSON data (lua table).
 --- @field errors? table<string> Non-gotest errors to show in the final output.
 --- @field is_dap_active boolean? If true, parsing of test output will occur.
---- @field test_output_json_filepath? string Gotestsum JSON filepath.
+--- @field runner_exec_context table|nil Opaque execution context from test runner.
 --- @field stop_filestream fun() Stops the stream of test output.
 --- @field process_test_results? boolean Used in test.lua specifically
 

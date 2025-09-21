@@ -71,27 +71,27 @@ end
 
 --- Build test command for running all tests in a package
 --- @param package_or_path string Package import path or directory path
---- @return string[], string|nil
+--- @return string[], table|nil
 function M.test_command_in_package(package_or_path)
   local go_test_required_args = { package_or_path }
-  local cmd, json_filepath = M.test_command(go_test_required_args, true)
-  return cmd, json_filepath
+  local cmd, exec_context = M.test_command(go_test_required_args, true)
+  return cmd, exec_context
 end
 
 --- Build test command for running specific tests matching a regexp in a package
 --- @param package_or_path string Package import path or directory path
 --- @param regexp string Regular expression to match test names
---- @return string[], string|nil
+--- @return string[], table|nil
 function M.test_command_in_package_with_regexp(package_or_path, regexp)
   local go_test_required_args = { package_or_path, "-run", regexp }
-  local cmd, json_filepath = M.test_command(go_test_required_args, true)
-  return cmd, json_filepath
+  local cmd, exec_context = M.test_command(go_test_required_args, true)
+  return cmd, exec_context
 end
 
 --- Build test command using injected runner strategy
 ---@param go_test_required_args string[] The required arguments, necessary for the test command
 ---@param fallback boolean Control runner fallback behavior, used primarily by tests
----@return string[], string|nil
+---@return string[], table|nil
 function M.test_command(go_test_required_args, fallback)
   local opts = options.get()
   local runner = opts.runner_instance
@@ -117,12 +117,12 @@ function M.test_command(go_test_required_args, fallback)
     runner = runner_lib.create_runner(fallback_runner_name, false)
   end
 
-  local cmd, json_filepath =
+  local cmd, exec_context =
     runner:get_test_command(go_test_required_args, fallback)
 
   logger.info("Test command: " .. table.concat(cmd, " "))
 
-  return cmd, json_filepath
+  return cmd, exec_context
 end
 
 --- Check if an executable is available in the system PATH

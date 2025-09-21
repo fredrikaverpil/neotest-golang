@@ -83,8 +83,8 @@ describe("Integration: treesitter precision test", function()
       want.run_spec.context.golist_data = got.run_spec.context.golist_data
       want.run_spec.context.stop_filestream =
         got.run_spec.context.stop_filestream
-      want.run_spec.context.test_output_json_filepath =
-        got.run_spec.context.test_output_json_filepath
+      want.run_spec.context.runner_exec_context =
+        got.run_spec.context.runner_exec_context
 
       -- Copy dynamic strategy_result fields
       want.strategy_result.output = got.strategy_result.output

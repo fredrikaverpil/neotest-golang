@@ -45,22 +45,24 @@ function GotestsumRunner:get_test_command(go_test_required_args, fallback)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_args)
 
-  return cmd, json_filepath
+  -- Return execution context containing the JSON file path
+  local exec_context = { json_filepath = json_filepath }
+  return cmd, exec_context
 end
 
-function GotestsumRunner:process_output(output_file, context)
-  if not context or not context.test_output_json_filepath then
-    logger.error("Gotestsum JSON output file path not provided")
+function GotestsumRunner:process_output(result, exec_context)
+  if not exec_context or not exec_context.json_filepath then
+    logger.error("Gotestsum execution context missing JSON filepath")
     return {}
   end
 
-  local file_stat = vim.uv.fs_stat(context.test_output_json_filepath)
+  local file_stat = vim.uv.fs_stat(exec_context.json_filepath)
   if not file_stat or file_stat.size == 0 then
     logger.error("Gotestsum JSON output file is missing or empty")
     return {}
   end
 
-  return async.fn.readfile(context.test_output_json_filepath)
+  return async.fn.readfile(exec_context.json_filepath)
 end
 
 function GotestsumRunner:is_available()
@@ -68,4 +70,3 @@ function GotestsumRunner:is_available()
 end
 
 return GotestsumRunner
-

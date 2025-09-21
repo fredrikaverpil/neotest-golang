@@ -54,13 +54,15 @@ function M.test_results(spec, result, tree)
   local runner = opts.runner_instance
 
   if not runner then
-    logger.error("No runner instance available. Ensure options.setup() was called.")
+    logger.error(
+      "No runner instance available. Ensure options.setup() was called."
+    )
     return {}
   end
 
   --- The output from the test command, processed by the runner strategy.
   --- @type table<string>
-  local output = runner:process_output(result.output, context)
+  local output = runner:process_output(result, context.runner_exec_context)
   logger.debug({ "Runner '" .. runner.name .. "', raw output: ", output })
 
   --- The 'go list -json' output, converted into a lua table.

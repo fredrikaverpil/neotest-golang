@@ -32,19 +32,20 @@ function GoRunner:get_test_command(go_test_required_args, fallback)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
   cmd = vim.list_extend(vim.deepcopy(cmd), args)
 
+  -- GoRunner doesn't need any execution context since it reads from stdout
   return cmd, nil
 end
 
-function GoRunner:process_output(output_file, context)
-  if not output_file then
+function GoRunner:process_output(result, exec_context)
+  if not result.output then
     logger.error("Go test output file is missing")
     return {}
   end
-  if vim.fn.filereadable(output_file) ~= 1 then
-    logger.error("Go test output file is not readable: " .. output_file)
+  if vim.fn.filereadable(result.output) ~= 1 then
+    logger.error("Go test output file is not readable: " .. result.output)
     return {}
   end
-  return async.fn.readfile(output_file)
+  return async.fn.readfile(result.output)
 end
 
 function GoRunner:is_available()
