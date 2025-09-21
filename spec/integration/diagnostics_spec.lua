@@ -21,6 +21,17 @@ describe("Integration: diagnostics test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
+          -- Parent directory result (created by hierarchical aggregation)
+          [vim.uv.cwd() .. "/tests/go/internal"] = {
+            status = "passed",
+            errors = {
+              {
+                message = "top-level hint: this should be classified as a hint",
+                line = 9, -- 0-indexed: line 10 - 1
+                severity = 4, -- vim.diagnostic.severity.HINT
+              },
+            },
+          },
           -- Directory-level result (created by file aggregation)
           [vim.fs.dirname(position_id)] = {
             status = "passed", -- Directory shows passed due to aggregation logic
@@ -32,10 +43,41 @@ describe("Integration: diagnostics test", function()
               },
             },
           },
-          -- File-level result
+          -- File-level result (gets aggregated errors from child tests)
           [position_id] = {
             status = "failed", -- File fails because some tests fail
-            errors = {},
+            errors = {
+              {
+                message = "I'm an error message",
+                line = 26,
+                severity = 4,
+              },
+              {
+                message = "I'm a logging hint message",
+                line = 22,
+                severity = 4,
+              },
+              {
+                message = "I'm a skip message",
+                line = 30,
+                severity = 4,
+              },
+              {
+                message = "top-level hint: this should be classified as a hint",
+                line = 9, -- 0-indexed: line 10 - 1
+                severity = 4, -- vim.diagnostic.severity.HINT
+              },
+              {
+                message = "expected 42 but got 0",
+                line = 13, -- 0-indexed: line 14 - 1
+                severity = 1, -- vim.diagnostic.severity.ERROR
+              },
+              {
+                message = "not implemented yet",
+                line = 17, -- 0-indexed: line 18 - 1
+                severity = 4, -- vim.diagnostic.severity.HINT
+              },
+            },
           },
           -- Individual test results
           [position_id .. "::TestDiagnosticsTopLevelLog"] = {
@@ -147,6 +189,34 @@ describe("Integration: diagnostics test", function()
           if result.short then
             want.results[pos_id].short = result.short
           end
+        end
+      end
+
+      -- Sort errors for order-agnostic comparison
+      -- Helper function to sort errors for order-agnostic comparison
+      local function sort_errors(errors)
+        if not errors or #errors == 0 then
+          return errors or {}
+        end
+        local sorted = vim.deepcopy(errors)
+        table.sort(sorted, function(a, b)
+          if a.line ~= b.line then
+            return a.line < b.line
+          end
+          return a.message < b.message
+        end)
+        return sorted
+      end
+
+      -- Sort errors in both expected and actual results for order-agnostic comparison
+      for pos_id, result in pairs(want.results) do
+        if result.errors then
+          result.errors = sort_errors(result.errors)
+        end
+      end
+      for pos_id, result in pairs(got.results) do
+        if result.errors then
+          result.errors = sort_errors(result.errors)
         end
       end
 

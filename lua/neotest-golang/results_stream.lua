@@ -215,10 +215,11 @@ function M.make_stream_results_with_cache(accum, cache)
           test_entry.result.errors = diagnostics.process_diagnostics(test_entry)
         end
 
-        -- Generate output path and start async writing immediately
-        test_entry.metadata.output_path = vim.fs.normalize(async.fn.tempname())
-
+        -- Only generate output path and write when there's actual content
         if test_entry.metadata.output_parts then
+          test_entry.metadata.output_path =
+            vim.fs.normalize(async.fn.tempname())
+
           -- Start async writing immediately (non-blocking)
           local output_lines =
             colorize.colorize_parts(test_entry.metadata.output_parts)
@@ -229,11 +230,11 @@ function M.make_stream_results_with_cache(accum, cache)
         end
       end
 
-      -- Create the final neotest.Result with the output path
+      -- Create the final neotest.Result with the output path (only if exists)
       ---@type neotest.Result
       local result = {
         status = test_entry.result.status,
-        output = test_entry.metadata.output_path,
+        output = test_entry.metadata.output_path, -- nil if no output parts
         errors = test_entry.result.errors,
       }
 

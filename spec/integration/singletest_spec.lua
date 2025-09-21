@@ -23,6 +23,11 @@ describe("Integration: individual test example", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
+          -- Parent directory result
+          [vim.fs.dirname(vim.fs.dirname(position_id_file))] = {
+            status = "passed",
+            errors = {},
+          },
           -- Directory-level result (created by file aggregation)
           [vim.fs.dirname(position_id_file)] = {
             status = "passed",

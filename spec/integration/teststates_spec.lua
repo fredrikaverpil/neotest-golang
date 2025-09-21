@@ -26,6 +26,11 @@ describe("Integration: test states", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
+          -- Parent directory result (created by hierarchical aggregation)
+          [vim.uv.cwd() .. "/tests/go/internal"] = {
+            status = "passed",
+            errors = {},
+          },
           -- Directory-level result (created by file aggregation)
           [vim.fs.dirname(position_id)] = {
             status = "passed",
@@ -34,7 +39,33 @@ describe("Integration: test states", function()
           -- File-level result
           [position_id] = {
             status = "failed",
-            errors = {},
+            errors = {
+              {
+                line = 18,
+                message = "this test intentionally fails",
+                severity = 4,
+              },
+              {
+                line = 23,
+                message = "this test is intentionally skipped",
+                severity = 4,
+              },
+              {
+                line = 28,
+                message = "this test is also intentionally skipped",
+                severity = 4,
+              },
+              {
+                line = 38,
+                message = "this subtest intentionally fails",
+                severity = 4,
+              },
+              {
+                line = 49,
+                message = "this subtest is intentionally skipped",
+                severity = 4,
+              },
+            },
           },
           -- Individual test results
           [position_id .. "::TestPassing"] = {
@@ -163,6 +194,33 @@ describe("Integration: test states", function()
           if result.short then
             want.results[pos_id].short = result.short
           end
+        end
+      end
+
+      -- Helper function to sort errors for order-agnostic comparison
+      local function sort_errors(errors)
+        if not errors or #errors == 0 then
+          return errors or {}
+        end
+        local sorted = vim.deepcopy(errors)
+        table.sort(sorted, function(a, b)
+          if a.line ~= b.line then
+            return a.line < b.line
+          end
+          return a.message < b.message
+        end)
+        return sorted
+      end
+
+      -- Sort errors in both expected and actual results for order-agnostic comparison
+      for pos_id, result in pairs(want.results) do
+        if result.errors then
+          result.errors = sort_errors(result.errors)
+        end
+      end
+      for pos_id, result in pairs(got.results) do
+        if result.errors then
+          result.errors = sort_errors(result.errors)
         end
       end
 

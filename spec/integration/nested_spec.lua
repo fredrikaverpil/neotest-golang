@@ -103,6 +103,11 @@ describe("Integration: nested subpackage2 test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
+          -- Parent directory result (created by hierarchical aggregation)
+          [vim.uv.cwd() .. "/tests/go/internal/nested"] = {
+            status = "passed",
+            errors = {},
+          },
           -- Directory-level result (created by file aggregation)
           [vim.fs.dirname(position_id)] = {
             status = "passed",
@@ -185,6 +190,11 @@ describe("Integration: nested subpackage2 test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
+          -- Parent directory result (created by hierarchical aggregation)
+          [vim.uv.cwd() .. "/tests/go/internal/nested/subpackage2"] = {
+            status = "passed",
+            errors = {},
+          },
           -- Directory-level result (created by file aggregation)
           [vim.fs.dirname(position_id)] = {
             status = "passed",

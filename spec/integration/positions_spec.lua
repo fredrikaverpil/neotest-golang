@@ -26,6 +26,11 @@ describe("Integration: positions test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
+          -- Parent directory result (created by hierarchical aggregation)
+          [vim.uv.cwd() .. "/tests/go/internal"] = {
+            status = "passed",
+            errors = {},
+          },
           -- Directory-level result (created by file aggregation)
           [vim.fs.dirname(position_id)] = {
             status = "passed",

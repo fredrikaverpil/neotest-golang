@@ -26,6 +26,11 @@ describe("Integration: special characters test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
+          -- Parent directory result
+          [vim.fs.dirname(vim.fs.dirname(position_id))] = {
+            status = "passed",
+            errors = {},
+          },
           -- Directory-level result (created by file aggregation)
           [vim.fs.dirname(position_id)] = {
             status = "passed",

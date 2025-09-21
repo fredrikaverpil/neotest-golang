@@ -25,6 +25,11 @@ describe("Integration: multifile test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
+          -- Parent directory result
+          [vim.fs.dirname(pos_id_dir)] = {
+            status = "passed",
+            errors = {},
+          },
           -- Directory-level result
           [pos_id_dir] = {
             status = "passed",
