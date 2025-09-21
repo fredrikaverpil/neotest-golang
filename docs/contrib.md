@@ -135,11 +135,10 @@ When you run tests via neotest-golang, the following happens:
 - **Runspec preparation**: `go list -json` gathers package data and creates a
   lookup (`mapping.lua`) mapping Neotest positions to Go tests.
 - **Streaming execution** (`results_stream.lua`):
-  - Go test JSON events are processed in real-time and cached directly.
-  - **Async file writing** (`async_writer.lua`) immediately writes test output
-    to disk without blocking the streaming hot path.
-  - Results are populated directly into the cache for near-realtime feedback.
+  - Go test JSON events are processed in real-time as they arrive.
+  - Results are cached directly for immediate feedback.
+  - Test output files are written synchronously when tests complete.
 - **Finalization** (`results_finalize.lua`):
-  - Waits for all async file writes to complete.
+  - Stops streaming and transfers cached results atomically.
   - Performs aggregation for file/directory nodes in the Neotest tree.
-  - No heavy file I/O since all output files are already written asynchronously.
+  - All test output is already available from the streaming phase.
