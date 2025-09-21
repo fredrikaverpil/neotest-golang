@@ -255,7 +255,7 @@ this. See `:h vim.log.levels` for all levels.
 
     ```lua
     local config = {
-        log_level = vim.log.levels.TRACE, -- set log level
+        log_level = vim.log.levels.DEBUG, -- set log level
     }
 
     require("neotest").setup({
@@ -268,7 +268,7 @@ this. See `:h vim.log.levels` for all levels.
     !!! warn "Do not forget to revert"
 
         Don't forget to revert back to `WARN` level once you are done troubleshooting,
-        as the `TRACE` level can degrade performance.
+        as the `DEBUG` level can degrade performance.
 
 !!! tip "Convenience command"
 
