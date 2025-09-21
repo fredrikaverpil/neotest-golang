@@ -40,7 +40,7 @@ end
 
 --- Get streaming strategy for this runner
 --- @param exec_context table|nil Execution context from get_test_command
---- @return function, function stream_data_function, stop_function for streaming
+--- @return StreamingStrategy Strategy object with source metadata and stream functions
 function RunnerInterface:get_streaming_strategy(exec_context)
   error("get_streaming_strategy must be implemented by concrete runner")
 end

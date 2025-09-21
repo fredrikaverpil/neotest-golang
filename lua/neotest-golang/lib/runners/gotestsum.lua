@@ -69,16 +69,23 @@ function GotestsumRunner:is_available()
   return vim.fn.executable("gotestsum") == 1
 end
 
+--- Get streaming strategy for gotestsum runner
+--- @param exec_context table|nil Execution context containing json_filepath
+--- @return StreamingStrategy Strategy object configured for file streaming
 function GotestsumRunner:get_streaming_strategy(exec_context)
   if not exec_context or not exec_context.json_filepath then
     logger.error("JSON filepath is required for gotestsum runner streaming")
-    -- Return error functions that indicate the condition
-    return function()
-      logger.warn("Streaming disabled: JSON filepath missing")
-      return {}
-    end, function()
-      logger.debug("Stream stop called but streaming was disabled")
-    end
+    -- Return error strategy that indicates the condition
+    return {
+      source = "file",
+      get_data = function()
+        logger.warn("Streaming disabled: JSON filepath missing")
+        return {}
+      end,
+      stop = function()
+        logger.debug("Stream stop called but streaming was disabled")
+      end,
+    }
   end
 
   -- Use file-based streaming strategy with mode detection
@@ -89,7 +96,14 @@ function GotestsumRunner:get_streaming_strategy(exec_context)
   -- Determine if we're in test mode based on global override
   local test_mode = stream._test_stream_strategy ~= nil
 
-  return file_strategy.create_stream(exec_context.json_filepath, test_mode)
+  local data_function, stop_function =
+    file_strategy.create_stream(exec_context.json_filepath, test_mode)
+
+  return {
+    source = "file",
+    get_data = data_function,
+    stop = stop_function,
+  }
 end
 
 return GotestsumRunner

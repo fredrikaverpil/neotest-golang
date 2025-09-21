@@ -52,11 +52,21 @@ function GoRunner:is_available()
   return vim.fn.executable("go") == 1
 end
 
+--- Get streaming strategy for go test runner
+--- @param exec_context table|nil Execution context (unused for go runner)
+--- @return StreamingStrategy Strategy object configured for stdout streaming
 function GoRunner:get_streaming_strategy(exec_context)
-  -- Go runner uses stdout-based streaming
+  -- Go runner uses stdout-based streaming from neotest's data() function
   local stdout_strategy =
     require("neotest-golang.lib.stream_strategy.stdout_stream")
-  return stdout_strategy.create_stream(exec_context)
+  local data_function, stop_function =
+    stdout_strategy.create_stream(exec_context)
+
+  return {
+    source = "stdout",
+    get_data = data_function,
+    stop = stop_function,
+  }
 end
 
 return GoRunner

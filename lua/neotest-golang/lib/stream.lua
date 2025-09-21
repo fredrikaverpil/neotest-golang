@@ -73,8 +73,12 @@ function M.new(tree, golist_data, exec_context)
   -- Get streaming strategy from runner
   local opts = options.get()
   local runner = opts.runner_instance
-  local filestream_data, stop_filestream =
-    runner:get_streaming_strategy(exec_context)
+  ---@type StreamingStrategy
+  local strategy = runner:get_streaming_strategy(exec_context)
+
+  -- Extract functions from strategy object
+  local filestream_data = strategy.get_data
+  local stop_filestream = strategy.stop
 
   ---Stream function that processes test output in real-time.
   ---
@@ -92,16 +96,21 @@ function M.new(tree, golist_data, exec_context)
     )
 
     return function()
-      -- Get lines from stdout stream (go runner) or file stream (gotestsum runner)
-      local stdout_lines = data() or {}
-      local file_lines = filestream_data() or {}
-
-      -- Use whichever source has data - go runner uses stdout, gotestsum uses file
       local lines = {}
-      if #file_lines > 0 then
-        lines = file_lines
-      elseif #stdout_lines > 0 then
+
+      -- Use the strategy's source to determine which data to use
+      if strategy.source == "file" then
+        -- File-based strategy (gotestsum runner)
+        lines = filestream_data() or {}
+      elseif strategy.source == "stdout" then
+        -- Stdout-based strategy (go runner)
+        local stdout_lines = data() or {}
         lines = stdout_lines
+      else
+        logger.error(
+          "Unknown streaming strategy source: " .. tostring(strategy.source)
+        )
+        return M.cached_results
       end
 
       ---@type GoTestEvent[]

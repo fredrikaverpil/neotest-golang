@@ -40,6 +40,12 @@
 --- @field Elapsed? number Time elapsed in seconds
 --- @field Output? string Output text (present when Action is "output")
 
+--- Streaming strategy object returned by runners for live test output processing.
+--- @class StreamingStrategy
+--- @field source "stdout"|"file" The data source this strategy uses
+--- @field get_data fun(): string[] Function to retrieve new data lines from the source
+--- @field stop fun() Function to stop streaming and cleanup resources
+
 local M = {}
 
 return M
