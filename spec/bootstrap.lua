@@ -1,17 +1,20 @@
 local M = {}
 
 --- Initialize the test environment.
---- Thie file will run once before attempting to run PlenaryBustedDirectory.
+--- This file will run once before attempting to run PlenaryBustedDirectory, so to set up requirements.
+--- Also see minimal_init.lua which runs before each test file.
 function M.init()
   vim.cmd([[set runtimepath=$VIMRUNTIME]]) -- reset, otherwise it contains all of $PATH
-  print("Runtime path: " .. vim.inspect(vim.opt.runtimepath:get()))
-  -- vim.opt.runtimepath:append(".") -- add project root to runtime path
-  vim.opt.swapfile = false
-  local site_dir = ".tests/all/site"
-  vim.opt.packpath = { site_dir } -- set packpath to the site directory
 
-  -- Define timeout for tests
-  local test_timeout = 500000 -- timeout in milliseconds
+  local site_dir = ".tests/all/site"
+  print("Runtime path: " .. vim.inspect(vim.opt.runtimepath:get()))
+  print("Package path: " .. package.path)
+  print("Site directory: " .. site_dir)
+
+  vim.opt.runtimepath:append(".") -- add project root to runtime path so we can require our adapter
+  vim.opt.runtimepath:append(site_dir) -- add site directory to runtime path so neovim can find parsers
+  vim.opt.packpath = { site_dir } -- add site directory to packpath so plugins can be found
+  vim.opt.swapfile = false
 
   -- Clone down plugins, add to runtimepath
   local plugins = {
@@ -19,6 +22,7 @@ function M.init()
     ["nvim-nio"] = { url = "https://github.com/nvim-neotest/nvim-nio" },
     ["nvim-treesitter"] = {
       url = "https://github.com/nvim-treesitter/nvim-treesitter",
+      branch = "master",
     },
     neotest = {
       url = "https://github.com/nvim-neotest/neotest",
@@ -28,7 +32,12 @@ function M.init()
     local plugin_path = site_dir .. "/pack/deps/start/" .. plugin
     if vim.fn.isdirectory(plugin_path) ~= 1 then
       print("Cloning " .. plugin .. "...")
-      os.execute("git clone " .. data.url .. " " .. plugin_path)
+      local clone_cmd = "git clone " .. data.url
+      if data.branch then
+        clone_cmd = clone_cmd .. " --branch " .. data.branch
+      end
+      clone_cmd = clone_cmd .. " " .. plugin_path
+      os.execute(clone_cmd)
       if data.hash then
         print("Checking out hash " .. data.hash .. " for " .. plugin)
         os.execute("cd " .. plugin_path .. " && git checkout " .. data.hash)
@@ -57,7 +66,8 @@ function M.init()
     print("Adding to runtimepath: " .. plugin_path)
     vim.opt.runtimepath:append(plugin_path)
 
-    -- Update nvim-nio timeout value if this is the nvim-nio plugin
+    -- HACK: Update nvim-nio timeout value if this is the nvim-nio plugin
+    local test_timeout = 500000 -- timeout in milliseconds
     if plugin == "nvim-nio" then
       local tests_file_path = plugin_path .. "/lua/nio/tests.lua"
       if vim.fn.filereadable(tests_file_path) == 1 then
@@ -73,11 +83,12 @@ function M.init()
     end
   end
 
-  print("Runtime path: " .. vim.inspect(vim.opt.runtimepath:get()))
-  print("Package path: " .. package.path)
-
-  -- Add project root to runtime path so we can require our adapter
-  vim.opt.runtimepath:append(".")
+  -- Ensure parser directory exists with proper permissions
+  local parser_dir = site_dir .. "/parser"
+  if vim.fn.isdirectory(parser_dir) ~= 1 then
+    vim.fn.mkdir(parser_dir, "p")
+    print("Created parser directory: " .. parser_dir)
+  end
 
   -- Check availability
   require("plenary")
