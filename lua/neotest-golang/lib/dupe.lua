@@ -94,11 +94,7 @@ function M.warn_duplicate_tests(tree)
     )
 
     local warning = table.concat(warning_lines, "\n")
-
-    -- Use warn with notify=true to show to user
     logger.warn(warning, true)
-  else
-    logger.debug("No duplicate subtest names found.")
   end
 end
 
