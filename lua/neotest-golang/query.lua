@@ -3,7 +3,7 @@
 local lib = require("neotest.lib")
 
 local dupe = require("neotest-golang.lib.dupe")
-local logger = require("neotest-golang.logging")
+local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
 local testify = require("neotest-golang.features.testify")
 

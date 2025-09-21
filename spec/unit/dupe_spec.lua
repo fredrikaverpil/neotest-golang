@@ -28,7 +28,7 @@ describe("Duplicate subtest detection", function()
 
     before_each(function()
       captured_warnings = {}
-      local logger = require("neotest-golang.logging")
+      local logger = require("neotest-golang.lib.logging")
       original_warn = logger.warn
       logger.warn = function(msg, notify)
         table.insert(captured_warnings, { msg = msg, notify = notify })
@@ -37,7 +37,7 @@ describe("Duplicate subtest detection", function()
 
     after_each(function()
       if original_warn then
-        require("neotest-golang.logging").warn = original_warn
+        require("neotest-golang.lib.logging").warn = original_warn
       end
     end)
 

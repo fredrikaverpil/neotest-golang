@@ -1,8 +1,8 @@
 --- This is the main entry point for the neotest-golang adapter. It follows the
 --- Neotest interface: https://github.com/nvim-neotest/neotest/blob/master/lua/neotest/adapters/interface.lua
 
-local extra_args = require("neotest-golang.extra_args")
-local logger = require("neotest-golang.logging")
+local lib = require("neotest-golang.lib")
+local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
 local query = require("neotest-golang.query")
 local results_finalize = require("neotest-golang.results_finalize")
@@ -65,7 +65,7 @@ end
 --- @return neotest.RunSpec | neotest.RunSpec[] | nil
 function M.Adapter.build_spec(args)
   -- Set extra args so that they can be past to the "go test" command later down the line.
-  extra_args.set(args.extra_args)
+  lib.extra_args.set(args.extra_args)
 
   --- The tree object, describing the AST-detected tests and their positions.
   --- @type neotest.Tree

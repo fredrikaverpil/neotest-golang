@@ -8,7 +8,7 @@ local M = {}
 ---@return function stream_data Function that returns lines from completed file
 ---@return function stop_filestream Function to stop the stream (no-op for tests)
 function M.create_stream(json_filepath)
-  local logger = require("neotest-golang.logging")
+  local logger = require("neotest-golang.lib.logging")
 
   local stream_data = function()
     if not json_filepath then

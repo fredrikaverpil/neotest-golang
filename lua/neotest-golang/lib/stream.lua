@@ -1,5 +1,5 @@
 local json = require("neotest-golang.lib.json")
-local logger = require("neotest-golang.logging")
+local logger = require("neotest-golang.lib.logging")
 local mapping = require("neotest-golang.lib.mapping")
 local metrics = require("neotest-golang.lib.metrics")
 local options = require("neotest-golang.options")

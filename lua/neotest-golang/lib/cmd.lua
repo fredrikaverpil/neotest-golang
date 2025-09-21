@@ -2,9 +2,9 @@
 
 local async = require("neotest.async")
 
-local extra_args = require("neotest-golang.extra_args")
+local extra_args = require("neotest-golang.lib.extra_args")
 local json = require("neotest-golang.lib.json")
-local logger = require("neotest-golang.logging")
+local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
 require("neotest-golang.lib.types")
 

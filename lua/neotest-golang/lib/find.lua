@@ -2,7 +2,7 @@
 
 local scandir = require("plenary.scandir")
 
-local logger = require("neotest-golang.logging")
+local logger = require("neotest-golang.lib.logging")
 
 local M = {}
 
