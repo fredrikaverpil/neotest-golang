@@ -239,8 +239,12 @@ function M.make_stream_results_with_cache(accum, cache)
           local output_lines =
             colorize.colorize_parts(test_entry.metadata.output_parts)
           async.fn.writefile(output_lines, test_entry.metadata.output_path)
+        end
 
-          -- Clear output_parts after successful write to free memory
+        -- Clear output_parts after file write to prevent memory accumulation during long streaming sessions.
+        -- Each output_parts array can contain hundreds of lines for verbose tests, and without cleanup
+        -- these arrays remain in memory until the entire streaming session ends.
+        if test_entry.metadata.output_parts then
           test_entry.metadata.output_parts = nil
         end
       end
