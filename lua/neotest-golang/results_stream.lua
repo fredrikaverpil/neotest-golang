@@ -4,7 +4,6 @@
 --- NOTE: you cannot notify (vim.notify) from this module, as it is executed asynchronously.
 --- Also, log with care, as this is a hot path.
 
-local async_writer = require("neotest-golang.lib.async_writer")
 local colorize = require("neotest-golang.lib.colorize")
 local convert = require("neotest-golang.lib.convert")
 local diagnostics = require("neotest-golang.lib.diagnostics")
@@ -204,13 +203,10 @@ function M.process_test(accum, e, id, position_lookup)
 end
 
 ---Process internal test data and directly update the provided cache.
----Async file writing: Generate output paths and immediately start async file writing.
+---Synchronous file writing: Generate output paths and write files immediately.
 ---@param accum table<string, TestEntry> The accumulated test data to process
 ---@param cache table<string, neotest.Result> The cache to update directly
 function M.make_stream_results_with_cache(accum, cache)
-  local processed_count = 0
-  local max_processing_batch = 500 -- Limit processing batch size
-
   for _, test_entry in pairs(accum) do
     if test_entry.metadata.position_id ~= nil then
       if test_entry.metadata.state ~= "finalized" then
@@ -219,19 +215,19 @@ function M.make_stream_results_with_cache(accum, cache)
         end
 
         -- Only generate output path and write when there's actual content
-        if test_entry.metadata.output_parts then
+        if
+          test_entry.metadata.output_parts
+          and #test_entry.metadata.output_parts > 0
+        then
           test_entry.metadata.output_path =
             vim.fs.normalize(async.fn.tempname())
 
-          -- Start async writing immediately (non-blocking)
+          -- Write file synchronously - ensures availability when result is cached
           local output_lines =
             colorize.colorize_parts(test_entry.metadata.output_parts)
-          async_writer.write_async(
-            test_entry.metadata.output_path,
-            output_lines
-          )
+          async.fn.writefile(output_lines, test_entry.metadata.output_path)
 
-          -- Clear output_parts after processing to free memory
+          -- Clear output_parts after successful write to free memory
           test_entry.metadata.output_parts = nil
         end
       end
@@ -246,13 +242,6 @@ function M.make_stream_results_with_cache(accum, cache)
 
       test_entry.metadata.state = "finalized"
       cache[test_entry.metadata.position_id] = result
-
-      processed_count = processed_count + 1
-
-      -- Yield control if processing too many items at once
-      if processed_count >= max_processing_batch then
-        break
-      end
     end
   end
 end
