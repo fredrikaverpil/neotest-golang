@@ -24,7 +24,7 @@ end
 --- @param go_test_required_args string[] Required arguments for the test command
 --- @param fallback boolean Whether to use fallback logic (unused for go runner)
 --- @return string[] command Command array to execute
---- @return nil exec_context No execution context needed for go runner
+--- @return GoExecContext exec_context Execution context for go runner
 function GoRunner:get_test_command(go_test_required_args, fallback)
   local extra_args = require("neotest-golang.extra_args")
   local options = require("neotest-golang.options")
@@ -38,13 +38,13 @@ function GoRunner:get_test_command(go_test_required_args, fallback)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
   cmd = vim.list_extend(vim.deepcopy(cmd), args)
 
-  -- GoRunner doesn't need any execution context since it reads from stdout
-  return cmd, nil
+  -- GoRunner returns typed execution context for consistency with interface
+  return cmd, { type = "go" }
 end
 
 --- Process test output and return lines for parsing
 --- @param result neotest.StrategyResult The strategy result containing output and other execution data
---- @param exec_context nil Execution context (always nil for go runner)
+--- @param exec_context GoExecContext Execution context (not used by go runner)
 --- @return string[] Output lines for processing
 function GoRunner:process_output(result, exec_context)
   if not result.output then
@@ -65,7 +65,7 @@ function GoRunner:is_available()
 end
 
 --- Get streaming strategy for go test runner
---- @param exec_context nil Execution context (unused for go runner)
+--- @param exec_context GoExecContext Execution context (unused for go runner)
 --- @return StreamingStrategy Strategy object configured for stdout streaming
 function GoRunner:get_streaming_strategy(exec_context)
   -- Go runner uses stdout-based streaming from neotest's data() function

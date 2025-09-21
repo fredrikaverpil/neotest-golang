@@ -8,6 +8,7 @@ local logger = require("neotest-golang.logging")
 
 --- Gotestsum-specific execution context
 --- @class GotestsumExecContext : RunnerExecContext
+--- @field type "gotestsum"
 --- @field json_filepath string Path to the JSON output file created by gotestsum
 
 --- Gotestsum runner implementation
@@ -56,16 +57,16 @@ function GotestsumRunner:get_test_command(go_test_required_args, fallback)
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_args)
 
   -- Return execution context containing the JSON file path
-  local exec_context = { json_filepath = json_filepath }
+  local exec_context = { type = "gotestsum", json_filepath = json_filepath }
   return cmd, exec_context
 end
 
 --- Process test output and return lines for parsing
 --- @param result neotest.StrategyResult The strategy result containing output and other execution data
---- @param exec_context GotestsumExecContext|nil Execution context containing JSON filepath
+--- @param exec_context GotestsumExecContext Execution context containing JSON filepath
 --- @return string[] Output lines for processing
 function GotestsumRunner:process_output(result, exec_context)
-  if not exec_context or not exec_context.json_filepath then
+  if not exec_context.json_filepath then
     logger.error("Gotestsum execution context missing JSON filepath")
     return {}
   end
@@ -86,10 +87,10 @@ function GotestsumRunner:is_available()
 end
 
 --- Get streaming strategy for gotestsum runner
---- @param exec_context GotestsumExecContext|nil Execution context containing json_filepath
+--- @param exec_context GotestsumExecContext Execution context containing json_filepath
 --- @return StreamingStrategy Strategy object configured for file streaming
 function GotestsumRunner:get_streaming_strategy(exec_context)
-  if not exec_context or not exec_context.json_filepath then
+  if not exec_context.json_filepath then
     logger.error("JSON filepath is required for gotestsum runner streaming")
     -- Return error strategy that indicates the condition
     return {
