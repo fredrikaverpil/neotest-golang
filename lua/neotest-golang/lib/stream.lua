@@ -71,8 +71,7 @@ function M.new(tree, golist_data, exec_context)
   metrics.start_session()
 
   -- Get streaming strategy from runner
-  local opts = options.get()
-  local runner = opts.runner_instance
+  local runner = options.get().runner_instance
   ---@type StreamingStrategy
   local strategy = runner:get_streaming_strategy(exec_context)
 
