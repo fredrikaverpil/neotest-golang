@@ -1,8 +1,5 @@
 --- Helper functions building the test command to execute.
 
-local async = require("neotest.async")
-
-local extra_args = require("neotest-golang.extra_args")
 local json = require("neotest-golang.lib.json")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
@@ -91,85 +88,41 @@ function M.test_command_in_package_with_regexp(package_or_path, regexp)
   return cmd, json_filepath
 end
 
---- Build test command using configured runner (go or gotestsum)
+--- Build test command using injected runner strategy
 ---@param go_test_required_args string[] The required arguments, necessary for the test command
 ---@param fallback boolean Control runner fallback behavior, used primarily by tests
 ---@return string[], string|nil
 function M.test_command(go_test_required_args, fallback)
-  --- The runner to use for running tests.
-  --- @type string
-  local runner = options.get().runner
-  if fallback then
-    runner = M.runner_fallback(options.get().runner)
+  local opts = options.get()
+  local runner = opts.runner_instance
+
+  if not runner then
+    logger.error(
+      "No runner instance available. Ensure options.setup() was called."
+    )
+    return {}, nil
   end
 
-  --- The filepath to write test output JSON to, if using `gotestsum`.
-  --- @type string | nil
-  local json_filepath = nil
-
-  --- The final test command to execute.
-  --- @type string[]
-  local cmd = {}
-
-  if runner == "go" then
-    cmd = M.go_test(go_test_required_args)
-  elseif runner == "gotestsum" then
-    json_filepath = vim.fs.normalize(async.fn.tempname())
-    cmd = M.gotestsum(go_test_required_args, json_filepath)
+  if fallback and not runner:is_available() then
+    local fallback_runner_name = runner:get_fallback()
+    logger.warn(
+      "Runner '"
+        .. runner.name
+        .. "' not available, falling back to '"
+        .. fallback_runner_name
+        .. "'",
+      true
+    )
+    local runner_lib = require("neotest-golang.lib.runners")
+    runner = runner_lib.create_runner(fallback_runner_name, false)
   end
+
+  local cmd, json_filepath =
+    runner:get_test_command(go_test_required_args, fallback)
 
   logger.info("Test command: " .. table.concat(cmd, " "))
 
   return cmd, json_filepath
-end
-
---- Build 'go test -json' command with configured arguments
---- @param go_test_required_args string[] Required arguments for the test command
---- @return string[] Complete go test command
-function M.go_test(go_test_required_args)
-  local cmd = { "go", "test", "-json" }
-  local args = extra_args.get().go_test_args or options.get().go_test_args
-  if type(args) == "function" then
-    args = args()
-  end
-  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
-  cmd = vim.list_extend(vim.deepcopy(cmd), args)
-  return cmd
-end
-
---- Build gotestsum command with JSON output file
---- @param go_test_required_args string[] Required arguments for the test command
---- @param json_filepath string Path to write JSON output
---- @return string[] Complete gotestsum command
-function M.gotestsum(go_test_required_args, json_filepath)
-  local cmd = { "gotestsum", "--jsonfile=" .. json_filepath }
-  local gotestsum_args = options.get().gotestsum_args
-  if type(gotestsum_args) == "function" then
-    gotestsum_args = gotestsum_args()
-  end
-  local go_test_args = extra_args.get().go_test_args
-    or options.get().go_test_args
-  if type(go_test_args) == "function" then
-    go_test_args = go_test_args()
-  end
-  cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_args)
-  cmd = vim.list_extend(vim.deepcopy(cmd), { "--" })
-  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
-  cmd = vim.list_extend(vim.deepcopy(cmd), go_test_args)
-  return cmd
-end
-
---- Handle runner fallback when executable is not available
---- @param executable string Name of the executable to check
---- @return RunnerType The actual runner to use after fallback
-function M.runner_fallback(executable)
-  if M.system_has(executable) == false then
-    local opts = options.get()
-    opts.runner = "go"
-    options.set(opts)
-    return options.get().runner
-  end
-  return options.get().runner
 end
 
 --- Check if an executable is available in the system PATH

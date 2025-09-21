@@ -29,7 +29,17 @@ describe("Options are set up", function()
       performance_monitoring = false,
     }
     options.setup()
-    assert.are_same(expected_options, options.get())
+    local actual_options = options.get()
+
+    -- Check that runner_instance exists and is a table (object)
+    assert.is_not_nil(actual_options.runner_instance)
+    assert.is_table(actual_options.runner_instance)
+
+    -- Remove runner_instance from comparison since it's an object
+    local actual_for_comparison = vim.deepcopy(actual_options)
+    actual_for_comparison.runner_instance = nil
+
+    assert.are_same(expected_options, actual_for_comparison)
   end)
 
   it("With non-defaults", function()
@@ -60,7 +70,17 @@ describe("Options are set up", function()
       performance_monitoring = false,
     }
     options.setup(expected_options)
-    assert.are_same(expected_options, options.get())
+    local actual_options = options.get()
+
+    -- Check that runner_instance exists and is a table (object)
+    assert.is_not_nil(actual_options.runner_instance)
+    assert.is_table(actual_options.runner_instance)
+
+    -- Remove runner_instance from comparison since it's an object
+    local actual_for_comparison = vim.deepcopy(actual_options)
+    actual_for_comparison.runner_instance = nil
+
+    assert.are_same(expected_options, actual_for_comparison)
   end)
 
   it("With args as functions", function()
@@ -105,6 +125,16 @@ describe("Options are set up", function()
       performance_monitoring = false,
     }
     options.setup(expected_options)
-    assert.are_same(expected_options, options.get())
+    local actual_options = options.get()
+
+    -- Check that runner_instance exists and is a table (object)
+    assert.is_not_nil(actual_options.runner_instance)
+    assert.is_table(actual_options.runner_instance)
+
+    -- Remove runner_instance from comparison since it's an object
+    local actual_for_comparison = vim.deepcopy(actual_options)
+    actual_for_comparison.runner_instance = nil
+
+    assert.are_same(expected_options, actual_for_comparison)
   end)
 end)

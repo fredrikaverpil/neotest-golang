@@ -315,11 +315,12 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
     raw_output = async.fn.readfile(output_path)
   end
 
-  -- For gotestsum, we need to read from the JSON file that was created
-  local gotest_output = {}
-  if options.get().runner == "gotestsum" then
-    -- Removed debug prints for cleaner test output
+  -- Use the runner instance to process output consistently
+  local opts = options.get()
+  local runner = opts.runner_instance
 
+  local gotest_output = {}
+  if runner and runner.name == "gotestsum" then
     -- For gotestsum, the actual JSON test data is in the --jsonfile, not stdout
     -- Check if we have access to the gotestsum JSON file path from context
     if context and context.test_output_json_filepath then

@@ -6,6 +6,7 @@ local M = {}
 
 ---@class NeotestGolangOptions
 ---@field runner string "go" or "gotestsum"
+---@field runner_instance table|nil The injected runner strategy instance
 ---@field go_test_args string[]|fun(): string[] Arguments for go test command
 ---@field gotestsum_args string[]|fun(): string[] Arguments for gotestsum command
 ---@field go_list_args string[]|fun(): string[] Arguments for go list command
@@ -26,6 +27,7 @@ local M = {}
 ---@type NeotestGolangOptions
 local opts = {
   runner = "go", -- or "gotestsum"
+  runner_instance = nil, -- injected runner strategy instance
   go_test_args = { "-v", "-race", "-count=1" }, -- NOTE: can also be a function
   gotestsum_args = { "--format=standard-verbose" }, -- NOTE: can also be a function
   go_list_args = {}, -- NOTE: can also be a function
@@ -52,8 +54,11 @@ function M.setup(user_opts)
     for k, v in pairs(user_opts) do
       opts[k] = v
     end
-  else
   end
+
+  -- Create and inject runner instance based on configuration
+  local runner_lib = require("neotest-golang.lib.runners")
+  opts.runner_instance = runner_lib.create_runner(opts.runner, true)
 
   local logger = require("neotest-golang.logging") -- NOTE: avoid circular dependency
   logger.debug("Loaded with options: " .. vim.inspect(opts))
@@ -70,6 +75,13 @@ function M.set(updated_opts)
   for k, v in pairs(updated_opts) do
     opts[k] = v
   end
+
+  -- Recreate runner instance if runner configuration changed
+  if updated_opts.runner then
+    local runner_lib = require("neotest-golang.lib.runners")
+    opts.runner_instance = runner_lib.create_runner(opts.runner, true)
+  end
+
   return opts
 end
 

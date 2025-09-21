@@ -49,32 +49,19 @@ function M.test_results(spec, result, tree)
     return skipped_result
   end
 
-  --- The runner to use for running tests.
-  --- @type string
-  local runner = options.get().runner
+  --- The runner instance to use for processing output.
+  local opts = options.get()
+  local runner = opts.runner_instance
 
-  --- The output from the test command, as captured by stdout.
-  --- @type table<string>
-  local output = {}
-  if runner == "go" then
-    if not result.output then
-      logger.error("Go test output file is missing")
-    end
-    if vim.fn.filereadable(result.output) ~= 1 then
-      logger.error("Go test output file is not readable: " .. result.output)
-    end
-    output = async.fn.readfile(result.output)
-  elseif runner == "gotestsum" then
-    if not context.test_output_json_filepath then
-      logger.error("Gotestsum JSON output file path not provided")
-    end
-    local file_stat = vim.uv.fs_stat(context.test_output_json_filepath)
-    if not file_stat or file_stat.size == 0 then -- check if file exists and is non-empty
-      logger.error("Gotestsum JSON output file is missing or empty")
-    end
-    output = async.fn.readfile(context.test_output_json_filepath)
+  if not runner then
+    logger.error("No runner instance available. Ensure options.setup() was called.")
+    return {}
   end
-  logger.debug({ "Runner '" .. runner .. "', raw output: ", output })
+
+  --- The output from the test command, processed by the runner strategy.
+  --- @type table<string>
+  local output = runner:process_output(result.output, context)
+  logger.debug({ "Runner '" .. runner.name .. "', raw output: ", output })
 
   --- The 'go list -json' output, converted into a lua table.
   -- local golist_output = context.golist_data
