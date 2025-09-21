@@ -68,7 +68,7 @@ function M.cleanup_cache_if_needed()
   end
 end
 
----Contstructor for new stream.
+---Constructor for new stream.
 ---
 --- This sets up Neotest output streaming based on selected runner and strategy.
 --- The strategies supported are:
