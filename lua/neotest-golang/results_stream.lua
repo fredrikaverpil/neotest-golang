@@ -208,6 +208,9 @@ end
 ---@param accum table<string, TestEntry> The accumulated test data to process
 ---@param cache table<string, neotest.Result> The cache to update directly
 function M.make_stream_results_with_cache(accum, cache)
+  local processed_count = 0
+  local max_processing_batch = 500 -- Limit processing batch size
+
   for _, test_entry in pairs(accum) do
     if test_entry.metadata.position_id ~= nil then
       if test_entry.metadata.state ~= "finalized" then
@@ -227,6 +230,9 @@ function M.make_stream_results_with_cache(accum, cache)
             test_entry.metadata.output_path,
             output_lines
           )
+
+          -- Clear output_parts after processing to free memory
+          test_entry.metadata.output_parts = nil
         end
       end
 
@@ -240,6 +246,13 @@ function M.make_stream_results_with_cache(accum, cache)
 
       test_entry.metadata.state = "finalized"
       cache[test_entry.metadata.position_id] = result
+
+      processed_count = processed_count + 1
+
+      -- Yield control if processing too many items at once
+      if processed_count >= max_processing_batch then
+        break
+      end
     end
   end
 end

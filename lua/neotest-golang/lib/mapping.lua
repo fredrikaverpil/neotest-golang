@@ -24,10 +24,25 @@ function M.build_position_lookup(tree, golist_data)
   ---@type { package_import: string, go_test_name: string, pos_id: string }[]
   local collected = {}
 
+  -- Limit the number of nodes processed to prevent overwhelming large projects
+  local max_nodes = 50000
+  local processed_nodes = 0
+
   for _, node in tree:iter_nodes() do
     local pos = node:data()
     if pos.type == "test" then
       stats.processed = stats.processed + 1
+      processed_nodes = processed_nodes + 1
+
+      -- Stop processing if we've hit the limit
+      if processed_nodes > max_nodes then
+        logger.warn(
+          "Reached maximum node processing limit ("
+            .. max_nodes
+            .. "), some tests may not be mapped"
+        )
+        break
+      end
 
       local package_import =
         convert.file_path_to_import_path(pos.path, import_to_dir)
