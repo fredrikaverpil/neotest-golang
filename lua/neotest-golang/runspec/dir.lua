@@ -1,7 +1,6 @@
 --- Helpers to build the command and context around running all tests of
 --- a Go package.
 
-local extra_args = require("neotest-golang.extra_args")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
@@ -109,7 +108,7 @@ function M.build(pos, tree)
   local test_cmd, json_filepath =
     lib.cmd.test_command_in_package(package_import_path)
 
-  local env = extra_args.get().env or options.get().env
+  local env = lib.extra_args.get().env or options.get().env
   if type(env) == "function" then
     env = env()
   end
