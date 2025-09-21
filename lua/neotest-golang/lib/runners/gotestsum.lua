@@ -81,17 +81,15 @@ function GotestsumRunner:get_streaming_strategy(exec_context)
     end
   end
 
-  -- Delegate to appropriate streaming strategy based on global override
+  -- Use file-based streaming strategy with mode detection
   local stream = require("neotest-golang.lib.stream")
-  if stream._test_stream_strategy then
-    -- Use test strategy for integration tests
-    local test_strategy = require("neotest-golang.lib.stream_strategy.test")
-    return test_strategy.create_stream(exec_context.json_filepath)
-  else
-    -- Use live strategy for production
-    local live_strategy = require("neotest-golang.lib.stream_strategy.live")
-    return live_strategy.create_stream(exec_context.json_filepath)
-  end
+  local file_strategy =
+    require("neotest-golang.lib.stream_strategy.file_stream")
+
+  -- Determine if we're in test mode based on global override
+  local test_mode = stream._test_stream_strategy ~= nil
+
+  return file_strategy.create_stream(exec_context.json_filepath, test_mode)
 end
 
 return GotestsumRunner
