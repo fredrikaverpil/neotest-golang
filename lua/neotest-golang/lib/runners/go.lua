@@ -52,4 +52,15 @@ function GoRunner:is_available()
   return vim.fn.executable("go") == 1
 end
 
+function GoRunner:get_streaming_strategy(exec_context)
+  -- Go runner uses stdout-based streaming, so no file streaming needed
+  -- Return no-op functions for file streaming
+  local stream_data = function()
+    return {}
+  end
+  local stop_function = function() end
+
+  return stream_data, stop_function
+end
+
 return GoRunner

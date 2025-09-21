@@ -69,4 +69,29 @@ function GotestsumRunner:is_available()
   return vim.fn.executable("gotestsum") == 1
 end
 
+function GotestsumRunner:get_streaming_strategy(exec_context)
+  if not exec_context or not exec_context.json_filepath then
+    logger.error("JSON filepath is required for gotestsum runner streaming")
+    -- Return error functions that indicate the condition
+    return function()
+      logger.warn("Streaming disabled: JSON filepath missing")
+      return {}
+    end, function()
+      logger.debug("Stream stop called but streaming was disabled")
+    end
+  end
+
+  -- Delegate to appropriate streaming strategy based on global override
+  local stream = require("neotest-golang.lib.stream")
+  if stream._test_stream_strategy then
+    -- Use test strategy for integration tests
+    local test_strategy = require("neotest-golang.lib.stream_strategy.test")
+    return test_strategy.create_stream(exec_context.json_filepath)
+  else
+    -- Use live strategy for production
+    local live_strategy = require("neotest-golang.lib.stream_strategy.live")
+    return live_strategy.create_stream(exec_context.json_filepath)
+  end
+end
+
 return GotestsumRunner

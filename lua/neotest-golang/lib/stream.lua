@@ -70,38 +70,11 @@ function M.new(tree, golist_data, exec_context)
   -- Start performance monitoring session
   metrics.start_session()
 
-  -- Extract json_filepath from execution context for gotestsum runner
-  local json_filepath = nil
-  if exec_context and exec_context.json_filepath then
-    json_filepath = exec_context.json_filepath
-  end
-
-  -- No-op filestream functions for gotestsum runner
-  local filestream_data = function() end -- no-op
-  local stop_filestream = function() end -- no-op
-
-  -- Asynchronous file-based streaming strategy for gotestsum
-  if not M._test_stream_strategy and options.get().runner == "gotestsum" then
-    if not json_filepath then
-      logger.error("JSON filepath is required for gotestsum runner streaming")
-    end
-
-    local live_strategy = require("neotest-golang.lib.stream_strategy.live")
-    filestream_data, stop_filestream =
-      live_strategy.create_stream(json_filepath)
-  end
-
-  -- Synchronous file-based streaming strategy override for testing
-  if M._test_stream_strategy then
-    if options.get().runner ~= "gotestsum" then
-      logger.error(
-        "Custom stream strategy can only be used with gotestsum runner"
-      )
-    end
-
-    filestream_data, stop_filestream =
-      M._test_stream_strategy.create_stream(json_filepath)
-  end
+  -- Get streaming strategy from runner
+  local opts = options.get()
+  local runner = opts.runner_instance
+  local filestream_data, stop_filestream =
+    runner:get_streaming_strategy(exec_context)
 
   ---Stream function that processes test output in real-time.
   ---
@@ -119,28 +92,16 @@ function M.new(tree, golist_data, exec_context)
     )
 
     return function()
-      local lines = {}
-      if options.get().runner == "go" then
-        lines = data() -- capture `go test -json` output from stdout stream
-      elseif options.get().runner == "gotestsum" then
-        lines = filestream_data() or {} -- capture `go test -json` output from file stream
+      -- Get lines from stdout stream (go runner) or file stream (gotestsum runner)
+      local stdout_lines = data() or {}
+      local file_lines = filestream_data() or {}
 
-        -- Validate that we have data or file exists
-        if #lines == 0 and json_filepath then
-          local file_stat = vim.uv.fs_stat(json_filepath)
-          if file_stat and file_stat.size > 0 then
-            logger.debug(
-              "Gotestsum file exists but no lines read yet, size: "
-                .. file_stat.size
-            )
-          elseif not file_stat then
-            logger.debug(
-              "Gotestsum JSON file does not exist yet: " .. json_filepath
-            )
-          end
-        elseif #lines > 0 then
-          logger.debug("Gotestsum read " .. #lines .. " lines from file")
-        end
+      -- Use whichever source has data - go runner uses stdout, gotestsum uses file
+      local lines = {}
+      if #file_lines > 0 then
+        lines = file_lines
+      elseif #stdout_lines > 0 then
+        lines = stdout_lines
       end
 
       ---@type GoTestEvent[]
