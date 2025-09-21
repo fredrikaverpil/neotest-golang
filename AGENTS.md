@@ -57,7 +57,7 @@ and handles:
 ## Test Framework
 
 Uses Plenary for Lua testing with neotest-plenary. See `docs/test.md` for
-comprehensive testing documentation.
+testing documentation.
 
 ### Test Structure
 
