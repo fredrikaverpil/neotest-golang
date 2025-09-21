@@ -19,6 +19,28 @@ the terminal (requires [Taskfile](https://github.com/go-task/task)).
     opened an issue about that in
     [nvim-neotest/nvim-nio#30](https://github.com/nvim-neotest/nvim-nio/issues/30).
 
+!!! fail "Lua unit tests crashes inside Neovim"
+
+    Unfortunately, when running all unit tests at once using neotest-plenary, from within Neovim, you will see this crash:
+
+    ```lua
+    Lua callback:
+    ...local/share/nvim-fredrik/lazy/nvim-nio/lua/nio/tasks.lua:100: Async task failed without callback: The coroutine failed with this message:
+    ...cal/share/nvim-fredrik/lazy/nvim-nio/lua/nio/control.lua:293: ...eotest/lua/neotest/client/strategies/integrated/init.lua:33: EBADF: bad file descriptor
+    stack traceback:
+            [C]: in function 'error'
+            ...cal/share/nvim-fredrik/lazy/nvim-nio/lua/nio/control.lua:293: in function 'with'
+            ...-fredrik/lazy/neotest/lua/neotest/types/fanout_accum.lua:49: in function 'push'
+            ...eotest/lua/neotest/client/strategies/integrated/init.lua:48: in function <...eotest/lua/neotest/client/strategies/integrated/init.lua:47>
+    stack traceback:
+            [C]: in function 'error'
+            ...local/share/nvim-fredrik/lazy/nvim-nio/lua/nio/tasks.lua:100: in function 'close_task'
+            ...local/share/nvim-fredrik/lazy/nvim-nio/lua/nio/tasks.lua:122: in function 'cb'
+            ...local/share/nvim-fredrik/lazy/nvim-nio/lua/nio/tasks.lua:183: in function <...local/share/nvim-fredrik/lazy/nvim-nio/lua/nio/tasks.lua:182>
+    ```
+
+    The workaround is to run them individually or run them all from the terminal using `task test`.
+
 ## Test execution flow
 
 When you run `task test` (or, rather `task test-plenary`), the following
