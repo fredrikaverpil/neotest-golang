@@ -5,6 +5,7 @@ local logger = require("neotest-golang.logging")
 
 --- Go test runner implementation
 --- @class GoRunner : RunnerInterface
+--- @field name string
 local GoRunner = {}
 GoRunner.name = "go"
 
@@ -19,6 +20,11 @@ function GoRunner:new()
   return instance
 end
 
+--- Build test command for the given arguments
+--- @param go_test_required_args string[] Required arguments for the test command
+--- @param fallback boolean Whether to use fallback logic (unused for go runner)
+--- @return string[] command Command array to execute
+--- @return nil exec_context No execution context needed for go runner
 function GoRunner:get_test_command(go_test_required_args, fallback)
   local extra_args = require("neotest-golang.extra_args")
   local options = require("neotest-golang.options")
@@ -36,6 +42,10 @@ function GoRunner:get_test_command(go_test_required_args, fallback)
   return cmd, nil
 end
 
+--- Process test output and return lines for parsing
+--- @param result neotest.StrategyResult The strategy result containing output and other execution data
+--- @param exec_context nil Execution context (always nil for go runner)
+--- @return string[] Output lines for processing
 function GoRunner:process_output(result, exec_context)
   if not result.output then
     logger.error("Go test output file is missing")
@@ -48,12 +58,14 @@ function GoRunner:process_output(result, exec_context)
   return async.fn.readfile(result.output)
 end
 
+--- Check if this runner is available on the system
+--- @return boolean True if go executable is available
 function GoRunner:is_available()
   return vim.fn.executable("go") == 1
 end
 
 --- Get streaming strategy for go test runner
---- @param exec_context table|nil Execution context (unused for go runner)
+--- @param exec_context nil Execution context (unused for go runner)
 --- @return StreamingStrategy Strategy object configured for stdout streaming
 function GoRunner:get_streaming_strategy(exec_context)
   -- Go runner uses stdout-based streaming from neotest's data() function

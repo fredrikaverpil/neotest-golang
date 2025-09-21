@@ -59,20 +59,4 @@ function M.create_stream(output_file, test_mode)
   end
 end
 
----Create a file-based streaming data source for production use (legacy compatibility)
----@param output_file string|nil Path to the runner output file
----@return function stream_data Function that returns lines from file stream
----@return function stop_filestream Function to stop the stream
-function M.create_live_stream(output_file)
-  return M.create_stream(output_file, false)
-end
-
----Create a file-based streaming data source for integration tests (legacy compatibility)
----@param output_file string|nil Path to the runner output file
----@return function stream_data Function that returns lines from completed file
----@return function stop_filestream Function to stop the stream (no-op for tests)
-function M.create_test_stream(output_file)
-  return M.create_stream(output_file, true)
-end
-
 return M

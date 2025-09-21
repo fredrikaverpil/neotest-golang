@@ -6,8 +6,13 @@
 local async = require("neotest.async")
 local logger = require("neotest-golang.logging")
 
+--- Gotestsum-specific execution context
+--- @class GotestsumExecContext : RunnerExecContext
+--- @field json_filepath string Path to the JSON output file created by gotestsum
+
 --- Gotestsum runner implementation
 --- @class GotestsumRunner : RunnerInterface
+--- @field name string
 local GotestsumRunner = {}
 GotestsumRunner.name = "gotestsum"
 
@@ -22,6 +27,11 @@ function GotestsumRunner:new()
   return instance
 end
 
+--- Build test command for the given arguments
+--- @param go_test_required_args string[] Required arguments for the test command
+--- @param fallback boolean Whether to use fallback logic (unused for gotestsum runner)
+--- @return string[] command Command array to execute
+--- @return GotestsumExecContext exec_context Execution context containing JSON file path
 function GotestsumRunner:get_test_command(go_test_required_args, fallback)
   local extra_args = require("neotest-golang.extra_args")
   local options = require("neotest-golang.options")
@@ -50,6 +60,10 @@ function GotestsumRunner:get_test_command(go_test_required_args, fallback)
   return cmd, exec_context
 end
 
+--- Process test output and return lines for parsing
+--- @param result neotest.StrategyResult The strategy result containing output and other execution data
+--- @param exec_context GotestsumExecContext|nil Execution context containing JSON filepath
+--- @return string[] Output lines for processing
 function GotestsumRunner:process_output(result, exec_context)
   if not exec_context or not exec_context.json_filepath then
     logger.error("Gotestsum execution context missing JSON filepath")
@@ -65,12 +79,14 @@ function GotestsumRunner:process_output(result, exec_context)
   return async.fn.readfile(exec_context.json_filepath)
 end
 
+--- Check if this runner is available on the system
+--- @return boolean True if gotestsum executable is available
 function GotestsumRunner:is_available()
   return vim.fn.executable("gotestsum") == 1
 end
 
 --- Get streaming strategy for gotestsum runner
---- @param exec_context table|nil Execution context containing json_filepath
+--- @param exec_context GotestsumExecContext|nil Execution context containing json_filepath
 --- @return StreamingStrategy Strategy object configured for file streaming
 function GotestsumRunner:get_streaming_strategy(exec_context)
   if not exec_context or not exec_context.json_filepath then
