@@ -198,6 +198,9 @@ end
 setmetatable(M.Adapter, {
   __call = function(_, opts)
     M.Adapter.options = options.setup(opts)
+    logger.debug(
+      "Adapter loaded with options: " .. vim.inspect(M.Adapter.options)
+    )
     return M.Adapter
   end,
 })
