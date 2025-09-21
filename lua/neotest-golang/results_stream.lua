@@ -232,13 +232,20 @@ function M.make_stream_results_with_cache(accum, cache)
           test_entry.metadata.output_parts
           and #test_entry.metadata.output_parts > 0
         then
-          test_entry.metadata.output_path =
-            vim.fs.normalize(async.fn.tempname())
+          local temp_path = async.fn.tempname()
+          if temp_path and temp_path ~= "" then
+            test_entry.metadata.output_path = vim.fs.normalize(temp_path)
 
-          -- Write file synchronously - ensures availability when result is cached
-          local output_lines =
-            colorize.colorize_parts(test_entry.metadata.output_parts)
-          async.fn.writefile(output_lines, test_entry.metadata.output_path)
+            -- Write file synchronously - ensures availability when result is cached
+            local output_lines =
+              colorize.colorize_parts(test_entry.metadata.output_parts)
+
+            local success = pcall(async.fn.writefile, output_lines, test_entry.metadata.output_path)
+            if not success then
+              -- If file write fails, clear the output path so test still completes without output file
+              test_entry.metadata.output_path = nil
+            end
+          end
         end
 
         -- Clear output_parts after file write to prevent memory accumulation during long streaming sessions.
