@@ -9,10 +9,11 @@ local options = require("neotest-golang.options")
 local M = {}
 
 --- Build runspec for a single test
---- @param pos neotest.Position
---- @param strategy string
---- @return neotest.RunSpec | neotest.RunSpec[] | nil
-function M.build(pos, strategy)
+--- @param pos neotest.Position Position data for the test
+--- @param tree neotest.Tree Neotest tree containing test structure
+--- @param strategy string|nil Strategy to use (e.g., "dap" for debugging)
+--- @return neotest.RunSpec|nil Runspec for executing the test
+function M.build(pos, tree, strategy)
   local pos_path_folderpath = vim.fn.fnamemodify(pos.path, ":h")
 
   local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
@@ -25,7 +26,11 @@ function M.build(pos, strategy)
     table.insert(errors, golist_error)
   end
 
-  local test_name = lib.convert.to_gotest_test_name(pos.id)
+  local test_name = lib.convert.pos_id_to_go_test_name(pos.id)
+  if not test_name then
+    logger.error("Could not determine test name for position id: " .. pos.id)
+    return nil
+  end
   local test_name_regex = lib.convert.to_gotest_regex_pattern(test_name)
 
   local test_cmd, json_filepath = lib.cmd.test_command_in_package_with_regexp(
@@ -46,6 +51,9 @@ function M.build(pos, strategy)
     env = env()
   end
 
+  local stream, stop_filestream =
+    lib.stream.new(tree, golist_data, json_filepath)
+
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
@@ -53,6 +61,7 @@ function M.build(pos, strategy)
     errors = errors,
     process_test_results = true,
     test_output_json_filepath = json_filepath,
+    stop_filestream = stop_filestream,
   }
 
   --- @type neotest.RunSpec
@@ -61,6 +70,7 @@ function M.build(pos, strategy)
     cwd = pos_path_folderpath,
     context = context,
     env = env,
+    stream = stream,
   }
 
   if runspec_strategy ~= nil then

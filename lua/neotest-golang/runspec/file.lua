@@ -9,13 +9,13 @@ local options = require("neotest-golang.options")
 local M = {}
 
 --- Build runspec for a file.
---- @param pos neotest.Position
---- @param tree neotest.Tree
---- @param strategy string
---- @return neotest.RunSpec | neotest.RunSpec[] | nil
+--- @param pos neotest.Position Position data for the test file
+--- @param tree neotest.Tree Neotest tree containing test structure
+--- @param strategy string|nil Strategy to use (e.g., "dap" for debugging)
+--- @return neotest.RunSpec|nil Runspec for executing tests in the file
 function M.build(pos, tree, strategy)
   if vim.tbl_isempty(tree:children()) then
-    logger.warn("No tests found in file")
+    logger.warn("No tests found in file", true)
     return M.return_skipped(pos)
   end
 
@@ -91,12 +91,16 @@ function M.build(pos, tree, strategy)
     env = env()
   end
 
+  local stream, stop_filestream =
+    lib.stream.new(tree, golist_data, json_filepath)
+
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
     test_output_json_filepath = json_filepath,
+    stop_filestream = stop_filestream,
   }
 
   --- @type neotest.RunSpec
@@ -105,6 +109,7 @@ function M.build(pos, tree, strategy)
     cwd = pos_path_folderpath,
     context = context,
     env = env,
+    stream = stream,
   }
 
   if runspec_strategy ~= nil then
@@ -116,11 +121,15 @@ function M.build(pos, tree, strategy)
   return run_spec
 end
 
+--- Return a skipped runspec for files with no tests
+--- @param pos neotest.Position Position data for the file
+--- @return neotest.RunSpec Runspec that outputs "No tests found"
 function M.return_skipped(pos)
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
     golist_data = {}, -- no golist output
+    stop_filestream = function() end, -- no stream to stop
   }
 
   --- Runspec designed for files that contain no tests.
@@ -132,6 +141,9 @@ function M.return_skipped(pos)
   return run_spec
 end
 
+--- Extract test function names from file and build regex pattern
+--- @param filepath string Path to the test file to analyze
+--- @return string|nil Regex pattern matching all test functions, or nil if none found
 function M.get_regexp(filepath)
   local regexp = nil
   local lines = {}

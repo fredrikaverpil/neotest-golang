@@ -9,9 +9,9 @@ local M = {}
 M.os_path_sep = package.config:sub(1, 1) -- "/" on Unix, "\" on Windows
 
 --- Find a file upwards in the directory tree and return its path, if found.
---- @param filename string
---- @param start_path string
---- @return string | nil
+--- @param filename string Name of file to search for
+--- @param start_path string Starting directory or file path to search from
+--- @return string|nil Full path to found file or nil if not found
 function M.file_upwards(filename, start_path)
   -- Ensure start_path is a directory
   local start_dir = vim.fn.isdirectory(start_path) == 1 and start_path
@@ -34,7 +34,9 @@ function M.file_upwards(filename, start_path)
   return nil
 end
 
--- Get all *_test.go files in a directory recursively.
+--- Get all *_test.go files in a directory recursively.
+--- @param folderpath string Directory path to search in
+--- @return string[] Array of full paths to test files
 function M.go_test_filepaths(folderpath)
   local files = scandir.scan_dir(
     folderpath,

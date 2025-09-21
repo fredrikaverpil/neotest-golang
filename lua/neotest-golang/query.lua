@@ -2,6 +2,7 @@
 
 local lib = require("neotest.lib")
 
+local dupe = require("neotest-golang.lib.dupe")
 local options = require("neotest-golang.options")
 local testify = require("neotest-golang.features.testify")
 
@@ -288,7 +289,8 @@ M.table_tests_map = [[
 ]]
 
 --- Detect test names in Go *._test.go files.
---- @param file_path string
+--- @param file_path string Absolute path to the Go test file
+--- @return neotest.Tree|nil Tree of detected tests, or nil if parsing failed
 function M.detect_tests(file_path)
   local opts = { nested_tests = true }
   local query = M.test_function
@@ -311,6 +313,11 @@ function M.detect_tests(file_path)
 
   if options.get().testify_enabled == true then
     tree = testify.tree_modification.modify_neotest_tree(file_path, tree)
+  end
+
+  -- Check for duplicate subtests in the tree
+  if options.get().warn_test_name_dupes then
+    dupe.warn_duplicate_tests(tree)
   end
 
   return tree

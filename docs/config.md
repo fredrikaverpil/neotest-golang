@@ -243,12 +243,6 @@ Default value: `true`
 
 Warn about duplicate test names within the same Go package.
 
-### `warn_test_not_executed`
-
-Default value: `true`
-
-Warn if test was not executed.
-
 ### `log_level`
 
 Default value: `"vim.log.levels.WARN"`

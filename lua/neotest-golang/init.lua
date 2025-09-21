@@ -4,8 +4,8 @@
 local extra_args = require("neotest-golang.extra_args")
 local logger = require("neotest-golang.logging")
 local options = require("neotest-golang.options")
-local process = require("neotest-golang.process")
 local query = require("neotest-golang.query")
+local results_finalize = require("neotest-golang.results_finalize")
 local runspec = require("neotest-golang.runspec")
 
 local M = {}
@@ -105,12 +105,12 @@ function M.Adapter.build_spec(args)
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is also the current working
     -- directory.
-    return runspec.dir.build(pos)
+    return runspec.dir.build(pos, tree)
   elseif pos.type == "dir" then
     -- A runspec is to be created, based on running all tests in the given
     -- directory. In this case, the directory is a sub-directory of the current
     -- working directory.
-    return runspec.dir.build(pos)
+    return runspec.dir.build(pos, tree)
   elseif pos.type == "file" then
     -- A runspec is to be created, based on on running all tests in the given
     -- file.
@@ -118,10 +118,10 @@ function M.Adapter.build_spec(args)
   elseif pos.type == "namespace" then
     -- A runspec is to be created, based on running all tests in the given
     -- namespace.
-    return runspec.namespace.build(pos)
+    return runspec.namespace.build(pos, tree)
   elseif pos.type == "test" then
     -- A runspec is to be created, based on on running the given test.
-    return runspec.test.build(pos, args.strategy)
+    return runspec.test.build(pos, tree, args.strategy)
   end
 
   logger.error(
@@ -144,25 +144,25 @@ function M.Adapter.results(spec, result, tree)
   if pos.type == "dir" then
     -- A test command executed a directory of tests and the output/status must
     -- now be processed.
-    local results = process.test_results(spec, result, tree)
+    local results = results_finalize.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif pos.type == "file" then
     -- A test command executed a file of tests and the output/status must
     -- now be processed.
-    local results = process.test_results(spec, result, tree)
+    local results = results_finalize.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif pos.type == "namespace" then
     -- A test command executed a namespace and the output/status must now be
     -- processed.
-    local results = process.test_results(spec, result, tree)
+    local results = results_finalize.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif pos.type == "test" then
     -- A test command executed a single test and the output/status must now be
     -- processed.
-    local results = process.test_results(spec, result, tree)
+    local results = results_finalize.test_results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   end

@@ -16,8 +16,9 @@ local M = {}
 ---Two strategies are going to be used:
 --- 1. Perfect match.
 --- 2. Sub-package match.
----@param pos neotest.Position
----@param golist_data table
+---@param pos neotest.Position Position data for the directory
+---@param golist_data GoListItem[] Package information from 'go list'
+---@return string|nil Package import path with "/..." suffix, or nil if not found
 local function find_go_package_import_path(pos, golist_data)
   ---@type string|nil
   local package_import_path = nil
@@ -77,9 +78,10 @@ end
 --- 1. Find the go.mod file from pos.path.
 --- 2. Run `go test` from the directory containing the go.mod file.
 --- 3. Use the relative path from the go.mod file to pos.path as the test pattern.
---- @param pos neotest.Position
---- @return neotest.RunSpec | nil
-function M.build(pos)
+--- @param pos neotest.Position Position data for the directory
+--- @param tree neotest.Tree Neotest tree containing test structure
+--- @return neotest.RunSpec|nil Runspec for executing tests in the directory
+function M.build(pos, tree)
   local go_mod_filepath = lib.find.file_upwards("go.mod", pos.path)
   if go_mod_filepath == nil then
     logger.error(
@@ -88,7 +90,6 @@ function M.build(pos)
     return nil -- NOTE: logger.error will throw an error, but the LSP doesn't see it.
   end
 
-  local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
   local golist_data, golist_error = lib.cmd.golist_data(pos.path)
 
   local errors = nil
@@ -102,6 +103,7 @@ function M.build(pos)
   local package_import_path = find_go_package_import_path(pos, golist_data)
   if not package_import_path then
     logger.error("Could not find a package for the selected dir: " .. pos.path)
+    return nil -- NOTE: logger.error will throw an error, but the LSP doesn't see it.
   end
 
   local test_cmd, json_filepath =
@@ -112,12 +114,16 @@ function M.build(pos)
     env = env()
   end
 
+  local stream, stop_filestream =
+    lib.stream.new(tree, golist_data, json_filepath)
+
   --- @type RunspecContext
   local context = {
     pos_id = pos.id,
     golist_data = golist_data,
     errors = errors,
     test_output_json_filepath = json_filepath,
+    stop_filestream = stop_filestream,
   }
 
   --- @type neotest.RunSpec
@@ -126,6 +132,7 @@ function M.build(pos)
     cwd = pos.path,
     context = context,
     env = env,
+    stream = stream,
   }
 
   logger.debug({ "RunSpec:", run_spec })

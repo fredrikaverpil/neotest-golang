@@ -21,7 +21,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .tests
-          key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ hashFiles('tests/minimal_init.lua') }}-${{ hashFiles('tests/bootstrap.lua') }}
+          key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ hashFiles('spec/minimal_init.lua') }}-${{ hashFiles('spec/bootstrap.lua') }}
       - name: Neovim setup
         uses: rhysd/action-setup-vim@v1
         with:
@@ -29,6 +29,18 @@ jobs:
           version: ${{ matrix.version }}
       - name: Neovim version
         run: nvim --version
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: tests/go/go.mod
+          cache: true
+          cache-dependency-path: tests/go/go.sum
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@latest
+      - name: go version
+        run: go version
+      - name: gotestsum version
+        run: gotestsum --version
       - name: Install Task
         uses: arduino/setup-task@v2
         with:

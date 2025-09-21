@@ -4,15 +4,6 @@ Reliable Neotest adapter for running Go tests in Neovim.
 
 ![neotest-golang](https://github.com/fredrikaverpil/neotest-golang/assets/994357/afb6e936-b355-4d7b-ab73-65c21ee66ae7)
 
-## New! streaming results 💫
-
-The output processing is being rewritten with streaming in mind (near-realtime
-feedback in the Neotest summary panel). To give it a try, set your Neovim
-package manager to use the `stream` branch. Follow the discussion in
-[#370](https://github.com/fredrikaverpil/neotest-golang/issues/370) and the
-development in
-[#373](https://github.com/fredrikaverpil/neotest-golang/pull/373).
-
 Please report any issues or if it works well for you!
 
 ## Features

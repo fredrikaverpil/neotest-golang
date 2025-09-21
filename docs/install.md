@@ -41,8 +41,48 @@ the main branch.
 I do not recommend pinning to a specific version or to a major version. But
 ultimately it is up to you what you want.
 
-See the [Lazy versioning spec](https://lazy.folke.io/spec/versioning) for more
-details.
+!!! tip "Gotestsum"
+
+    Although neotest-golang is designed to run tests with `go test -json`, there are
+    a plethora of issues with reading JSON from stdout. It is recommended that you
+    configure neotest-golang to use
+    [`gotestsum`](https://github.com/gotestyourself/gotestsum) as test runner, for
+    maximal stability, as it writes JSON to file instead. Head over to the
+    [configuration docs](/config/#runner) for more details.
+
+    ```diff
+    return {
+      {
+        "nvim-neotest/neotest",
+        dependencies = {
+          "nvim-neotest/nvim-nio",
+          "nvim-lua/plenary.nvim",
+          "antoinemadec/FixCursorHold.nvim",
+          "nvim-treesitter/nvim-treesitter",
+    -     { "fredrikaverpil/neotest-golang", version = "*" }, -- Installation
+    +     {
+    +       "fredrikaverpil/neotest-golang",
+    +       version = "*",
+    +       build = "go run gotest.tools/gotestsum@latest"
+    +     },
+        },
+        config = function()
+    -     local neotest_golang_opts = {}  -- Specify custom configuration
+    +     local neotest_golang_opts = {  -- Specify custom configuration
+    +       runner = "gotestsum",
+    +     }
+          require("neotest").setup({
+            adapters = {
+              require("neotest-golang")(neotest_golang_opts), -- Registration
+            },
+          })
+        end,
+      },
+    }
+    ```
+
+    Also, see the [Lazy versioning spec](https://lazy.folke.io/spec/versioning) for more
+    details on configuring plugins for lazy.nvim.
 
 ## 🌒 Rocks.nvim
 

@@ -19,38 +19,30 @@ If the problem persists and is configuration-related, please open a discussion
 For bugs and feature requests, feel free to use discussions or file a detailed
 issue.
 
-## Warning "Test(s) not associated (not found/executed)"
+## Common problems
 
-There are numerous reasons as to why you might be hitting this warning. Let me
-briefly explain:
-
-Neotest-golang processes the test JSON execution output and looks for certain
-key/value pairs corresponding to each position (folder, file, test) in the
-Neotest tree. Output and statuses are collected and then populated onto each
-position's data in the tree, but if a position was never populated with any
-data, this warning gets hit.
-
-There are many reasons why this can happen:
-
-- Go did not compile and Neotest-golang failed to pick up on it. The intent is
-  that neotest-golang should show a compilation error (please file a bug report
-  if this happens).
+- Some terminals/environments will write inject linebreaks and even truncate
+  output from `go test` as it is written to stdout. When this happens, it is
+  impossible to reliably parse the output as JSON. This is a widespread problem
+  and to mitigate it, use the [`gotestsum` runner](config.md#runner) instead.
+  Gotestsum writes all JSON test output to file, which is a lot more reliable.
+  This particular problem has been reported to happen in some specific cases:
+  - When on Windows:
+    [issues/147](https://github.com/fredrikaverpil/neotest-golang/issues/147)
+  - When using Ubuntu snaps:
+    [discussions/161](https://github.com/fredrikaverpil/neotest-golang/discussions/161)
+  - When using the mongodb test-container:
+    [discussions/256](https://github.com/fredrikaverpil/neotest-golang/discussions/256)
+- If you see non-UTF8 characters written to test output, you may want to enable
+  the [`sanitize_output`](config.md#sanitize_output) option.
 - You are using the default `go_test_args` (or use the `-race` flag), which
   requires CGO but you don't have `gcc` installed. Read more about this in the
   [`go_test_args`](config.md#go_test_args) option description.
 - You are passing invalid args to `go_test_args`, e.g., `'-vet="all"'` instead
   of `'-vet=all'`. (Quotes are valid in a shell, not `go test` itself)
-- You are on a system which writes non-UTF8 characters to stdout (in which case
-  you can look into [`gotestsum` runner](config.md#runner) and/or
-  [`sanitize_output`](config.md#sanitize_output)). This has been reported to
-  happen in some specific cases:
-
-      - When on Windows:
-        [issues/147](https://github.com/fredrikaverpil/neotest-golang/issues/147)
-      - When using Ubuntu snaps:
-        [discussions/161](https://github.com/fredrikaverpil/neotest-golang/discussions/161)
-      - When using the mongodb test-container:
-        [discussions/256](https://github.com/fredrikaverpil/neotest-golang/discussions/256)
+- Go did not compile and Neotest-golang failed to pick up on it. The intent is
+  that neotest-golang should show a compilation error (please file a bug report
+  if this happens).
 
 ## Neotest is slowing down Neovim
 
@@ -113,4 +105,8 @@ subject further.
 
 ## "Error on launch: Failed to launch"
 
-If you encounter "Error on launch: Failed to launch" in messages/notifications in nvim when you attempt to execute your tests, open up the dap-ui with `:%lua require("dapui").open()`. This should show any underlying errors encountered when nvim-dap tries to build/execute/attach the debugger and should guide you on how to troubleshoot.
+If you encounter "Error on launch: Failed to launch" in messages/notifications
+in nvim when you attempt to execute your tests, open up the dap-ui with
+`:%lua require("dapui").open()`. This should show any underlying errors
+encountered when nvim-dap tries to build/execute/attach the debugger and should
+guide you on how to troubleshoot.

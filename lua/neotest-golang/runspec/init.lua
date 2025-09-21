@@ -1,5 +1,7 @@
 --- Build the neotest.Runspec specification for a test execution.
 
+require("neotest-golang.lib.types")
+
 local M = {}
 
 M.dir = require("neotest-golang.runspec.dir")
