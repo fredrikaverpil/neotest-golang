@@ -18,10 +18,18 @@ function M.create_stream(json_filepath)
       neotest_lib.files.write(json_filepath, "")
       return neotest_lib.files.stream_lines(json_filepath)
     else
-      logger.error("JSON filepath is required for gotestsum runner streaming")
+      local error_msg =
+        "JSON filepath is required for gotestsum runner streaming"
+      logger.error(error_msg)
+      -- Return functions that indicate the error condition rather than silently failing
       return function()
+        logger.warn("Streaming disabled: " .. error_msg)
         return {}
-      end, function() end
+      end, function()
+        logger.debug(
+          "Stream stop called but streaming was disabled due to missing JSON filepath"
+        )
+      end
     end
   else
     -- For 'go' runner, streaming is handled differently (stdout-based)
