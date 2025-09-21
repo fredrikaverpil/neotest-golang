@@ -63,7 +63,7 @@ ultimately it is up to you what you want.
     +     {
     +       "fredrikaverpil/neotest-golang",
     +       version = "*",
-    +       build = "go run gotest.tools/gotestsum@latest"
+    +       build = "go install gotest.tools/gotestsum@latest"
     +     },
         },
         config = function()
