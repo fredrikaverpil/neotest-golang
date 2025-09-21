@@ -7,7 +7,7 @@ local M = {}
 ---@return function stop_filestream Function to stop the stream
 function M.create_stream(json_filepath)
   local neotest_lib = require("neotest.lib")
-  local logger = require("neotest-golang.logging")
+  local logger = require("neotest-golang.lib.logging")
   local options = require("neotest-golang.options")
 
   if options.get().runner == "gotestsum" then

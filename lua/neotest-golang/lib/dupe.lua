@@ -1,7 +1,7 @@
 --- This module handles duplicate subtest detection and warnings
 
 local convert = require("neotest-golang.lib.convert")
-local logger = require("neotest-golang.logging")
+local logger = require("neotest-golang.lib.logging")
 
 local M = {}
 

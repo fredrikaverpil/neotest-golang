@@ -1,7 +1,7 @@
 --- Helpers to build the command and context around running all tests in a namespace.
 
 local lib = require("neotest-golang.lib")
-local logger = require("neotest-golang.logging")
+local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
 
 local M = {}

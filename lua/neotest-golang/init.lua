@@ -2,7 +2,7 @@
 --- Neotest interface: https://github.com/nvim-neotest/neotest/blob/master/lua/neotest/adapters/interface.lua
 
 local lib = require("neotest-golang.lib")
-local logger = require("neotest-golang.logging")
+local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
 local query = require("neotest-golang.query")
 local results_finalize = require("neotest-golang.results_finalize")

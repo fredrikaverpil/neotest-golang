@@ -1,5 +1,5 @@
 local convert = require("neotest-golang.lib.convert")
-local logger = require("neotest-golang.logging")
+local logger = require("neotest-golang.lib.logging")
 local metrics = require("neotest-golang.lib.metrics")
 local options = require("neotest-golang.options")
 

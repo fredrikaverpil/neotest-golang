@@ -1,6 +1,6 @@
 --- DAP setup related functions.
 
-local logger = require("neotest-golang.logging")
+local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
 
 ---@class DapConfig
