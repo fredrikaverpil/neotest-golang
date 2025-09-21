@@ -90,6 +90,10 @@ function M.build_position_lookup(tree, golist_data)
   return lookup
 end
 
+---Collection of failed position mappings for bulk reporting
+---@type table<string, boolean>
+M._failed_mappings = {}
+
 ---Get position ID from go test event using lookup
 ---@param lookup table<string, string> The position lookup table
 ---@param package_import string Go package import path
@@ -100,16 +104,32 @@ function M.get_pos_id(lookup, package_import, test_name)
   local pos_id = lookup[internal_key]
 
   if not pos_id then
-    -- TODO: save the entries and report later, in bulk, outside of async context.
-    -- This also means we can enable notify.
-    if options.get().dev_notifications then
-      logger.warn("Test was executed but not detected: " .. internal_key, false)
-    else
-      logger.debug("Test was executed but not detected: " .. internal_key)
-    end
+    -- Collect failed mappings for bulk reporting to avoid spam during streaming
+    M._failed_mappings[internal_key] = true
+    logger.debug("Test was executed but not detected: " .. internal_key)
   end
 
   return pos_id
+end
+
+---Report all collected failed position mappings and clear the collection
+function M.report_failed_mappings()
+  if vim.tbl_count(M._failed_mappings) > 0 then
+    local failed_list = vim.tbl_keys(M._failed_mappings)
+    table.sort(failed_list)
+
+    local message = "Tests executed but not detected (" .. #failed_list .. " tests):\n"
+                 .. table.concat(failed_list, "\n")
+
+    if options.get().dev_notifications then
+      logger.warn(message, true)
+    else
+      logger.info(message)
+    end
+
+    -- Clear the collection after reporting
+    M._failed_mappings = {}
+  end
 end
 
 return M

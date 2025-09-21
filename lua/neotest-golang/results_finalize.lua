@@ -26,6 +26,9 @@ function M.test_results(spec, result, tree)
   -- Stop streaming first to ensure all results are cached
   spec.context.stop_filestream()
 
+  -- Report any failed position mappings collected during streaming
+  lib.mapping.report_failed_mappings()
+
   -- Get final cached results after streaming is complete (atomic transfer)
   ---@type table<string, neotest.Result>
   local results = lib.stream.transfer_cached_results()
