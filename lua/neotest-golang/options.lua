@@ -21,6 +21,7 @@ local M = {}
 ---@field log_level integer Vim log level
 ---@field sanitize_output boolean Sanitize test output
 ---@field dev_notifications boolean Enable development notifications (experimental)
+---@field performance_monitoring boolean Enable streaming performance metrics collection (experimental)
 
 ---@type NeotestGolangOptions
 local opts = {
@@ -42,6 +43,7 @@ local opts = {
 
   -- experimental, for now undocumented, options
   dev_notifications = false,
+  performance_monitoring = false,
 }
 
 ---@param user_opts NeotestGolangOptions?

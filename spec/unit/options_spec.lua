@@ -26,6 +26,7 @@ describe("Options are set up", function()
 
       -- experimental
       dev_notifications = false,
+      performance_monitoring = false,
     }
     options.setup()
     assert.are_same(expected_options, options.get())
@@ -56,6 +57,7 @@ describe("Options are set up", function()
 
       -- experimental
       dev_notifications = false,
+      performance_monitoring = false,
     }
     options.setup(expected_options)
     assert.are_same(expected_options, options.get())
@@ -100,6 +102,7 @@ describe("Options are set up", function()
         return { "--format=standard-verbose" }
       end,
       dev_notifications = false,
+      performance_monitoring = false,
     }
     options.setup(expected_options)
     assert.are_same(expected_options, options.get())

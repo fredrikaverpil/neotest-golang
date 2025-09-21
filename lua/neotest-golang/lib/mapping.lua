@@ -1,5 +1,6 @@
 local convert = require("neotest-golang.lib.convert")
 local logger = require("neotest-golang.logging")
+local metrics = require("neotest-golang.lib.metrics")
 local options = require("neotest-golang.options")
 
 local M = {}
@@ -103,6 +104,10 @@ function M.get_pos_id(lookup, package_import, test_name)
   local internal_key = package_import .. "::" .. test_name
   local pos_id = lookup[internal_key]
 
+  -- Record position lookup for metrics
+  local success = pos_id ~= nil
+  metrics.record_position_lookup(success)
+
   if not pos_id then
     -- Collect failed mappings for bulk reporting to avoid spam during streaming
     M._failed_mappings[internal_key] = true
@@ -118,8 +123,10 @@ function M.report_failed_mappings()
     local failed_list = vim.tbl_keys(M._failed_mappings)
     table.sort(failed_list)
 
-    local message = "Tests executed but not detected (" .. #failed_list .. " tests):\n"
-                 .. table.concat(failed_list, "\n")
+    local message = "Tests executed but not detected ("
+      .. #failed_list
+      .. " tests):\n"
+      .. table.concat(failed_list, "\n")
 
     if options.get().dev_notifications then
       logger.warn(message, true)

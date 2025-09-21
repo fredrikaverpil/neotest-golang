@@ -1,6 +1,7 @@
 local json = require("neotest-golang.lib.json")
 local logger = require("neotest-golang.logging")
 local mapping = require("neotest-golang.lib.mapping")
+local metrics = require("neotest-golang.lib.metrics")
 local options = require("neotest-golang.options")
 local results_stream = require("neotest-golang.results_stream")
 require("neotest-golang.lib.types")
@@ -66,6 +67,9 @@ end
 ---@return function stream_function Function that processes test events and returns cached results
 ---@return function stop_function Function to stop streaming and clean up resources
 function M.new(tree, golist_data, json_filepath)
+  -- Start performance monitoring session
+  metrics.start_session()
+
   -- No-op filestream functions for gotestsum runner
   local filestream_data = function() end -- no-op
   local stop_filestream = function() end -- no-op
@@ -138,9 +142,18 @@ function M.new(tree, golist_data, json_filepath)
 
       -- Process all events synchronously
       for _, gotest_event in ipairs(gotest_events) do
+        -- Record event processing for metrics
+        if gotest_event.Action then
+          metrics.record_event(gotest_event.Action)
+        end
+
         accum =
           results_stream.process_event(golist_data, accum, gotest_event, lookup)
       end
+
+      -- Record memory usage metrics
+      metrics.record_accum_size(vim.tbl_count(accum))
+      metrics.record_cache_size(vim.tbl_count(M.cached_results))
 
       -- Optimized: Direct cache population eliminates intermediate results and copy loop
       results_stream.make_stream_results_with_cache(accum, M.cached_results)

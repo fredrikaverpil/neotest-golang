@@ -26,6 +26,10 @@ function M.test_results(spec, result, tree)
   -- Stop streaming first to ensure all results are cached
   spec.context.stop_filestream()
 
+  -- End performance monitoring session and report metrics
+  local metrics = require("neotest-golang.lib.metrics")
+  metrics.end_session()
+
   -- Report any failed position mappings collected during streaming
   lib.mapping.report_failed_mappings()
 
