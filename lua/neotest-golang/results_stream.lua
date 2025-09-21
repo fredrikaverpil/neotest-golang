@@ -186,10 +186,39 @@ function M.process_test(accum, e, id, position_lookup)
   return accum
 end
 
----Process internal test data and directly update the provided cache.
----Synchronous file writing: Generate output paths and write files immediately.
----@param accum table<string, TestEntry> The accumulated test data to process
----@param cache table<string, neotest.Result> The cache to update directly
+---Convert accumulated streaming test data into final Neotest results and update cache.
+---
+---This function processes test entries that have been accumulated during streaming and
+---converts them into the final `neotest.Result` format that Neotest expects. It handles
+---the critical transition from streaming internal format to Neotest's result format.
+---
+---## Processing Steps
+---
+---1. **Diagnostics Processing**: Extracts error information from test output using
+---   the diagnostics module to create actionable error entries with line numbers.
+---
+---2. **Output File Creation**: For tests with captured output, creates temporary files
+---   containing colorized test output. Files are written synchronously to ensure
+---   immediate availability when results are cached.
+---
+---3. **Memory Management**: Clears `output_parts` arrays after successful file writes
+---   to free memory and prevent accumulation during long streaming sessions.
+---
+---4. **Result Finalization**: Creates final `neotest.Result` objects with:
+---   - Test status (passed/failed/skipped)
+---   - Path to output file (nil if no output)
+---   - Processed error diagnostics with line numbers
+---
+---5. **Cache Population**: Updates the provided cache directly with position ID as key,
+---   enabling immediate result availability for Neotest UI updates.
+---
+---## Idempotency
+---
+---Only processes test entries that are not already "finalized", preventing duplicate
+---processing and file creation if called multiple times with the same data.
+---
+---@param accum table<string, TestEntry> Accumulated test data from streaming (internal format)
+---@param cache table<string, neotest.Result> The result cache to populate (Neotest format)
 function M.make_stream_results_with_cache(accum, cache)
   for _, test_entry in pairs(accum) do
     if test_entry.metadata.position_id ~= nil then

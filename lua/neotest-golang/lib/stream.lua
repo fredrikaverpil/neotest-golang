@@ -29,16 +29,42 @@ function M.transfer_cached_results()
   return results
 end
 
----Constructor for new stream.
+---Create a new test result streaming processor.
 ---
---- This sets up Neotest output streaming based on selected runner and strategy.
---- The strategies supported are:
---- - Native live streaming via stdout (default for `go test -json`)
---- - Asynchronous file-based streaming (default for `gotestsum --jsonfile`)
---- - Synchronous file-based streaming (for testing purposes only)
----@param golist_data table Golist data containing package information
----@param json_filepath string|nil Path to the JSON output file
----@return function, function
+---This function sets up real-time processing of Go test output with different strategies
+---based on the selected test runner. The streaming processor handles Go test JSON events
+---as they arrive and caches results for immediate feedback in Neotest.
+---
+---## Streaming Strategies
+---
+---**go test runner**: Uses stdout-based streaming where the `data` parameter from Neotest
+---provides lines directly from the running `go test -json` process.
+---
+---**gotestsum runner**: Uses file-based streaming where gotestsum writes JSON events to
+---a file (`--jsonfile`) and the processor reads from that file in real-time.
+---
+---**Test strategy override**: When `M._test_stream_strategy` is set (for integration tests),
+---uses a custom strategy that reads from completed files synchronously.
+---
+---## Stream Function Behavior
+---
+---The returned stream function:
+---- Processes Go test JSON events in real-time as they become available
+---- Builds position lookup table mapping Go test names to Neotest position IDs
+---- Accumulates test results and writes output files synchronously when tests complete
+---- Returns cached results on each call for immediate UI updates
+---- Handles empty data gracefully (returns current cache without processing)
+---
+---## Termination
+---
+---Streaming continues until the returned `stop_filestream` function is called,
+---typically by `results_finalize.lua` when ready to aggregate final results.
+---
+---@param tree neotest.Tree The Neotest tree containing test positions
+---@param golist_data table Output from `go list -json` containing package information
+---@param json_filepath string|nil Path to gotestsum JSON output file (required for gotestsum runner)
+---@return function stream_function Function that processes test events and returns cached results
+---@return function stop_function Function to stop streaming and clean up resources
 function M.new(tree, golist_data, json_filepath)
   -- No-op filestream functions for gotestsum runner
   local filestream_data = function() end -- no-op
