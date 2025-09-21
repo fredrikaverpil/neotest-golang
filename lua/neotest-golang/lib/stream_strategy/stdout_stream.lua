@@ -9,7 +9,7 @@ local M = {}
 ---@return function stream_data Function that returns empty data (no-op)
 ---@return function stop_filestream Function to stop the stream (no-op)
 function M.create_stream(exec_context)
-  logger.debug("Using stdout streaming strategy (no-op for file streaming)")
+  logger.debug("Using stdout streaming strategy")
 
   -- Return no-op functions since stdout is handled by neotest directly
   local stream_data = function()
