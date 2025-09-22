@@ -44,6 +44,8 @@ sequence occurs:
 
 ??? tip "Neovim vs Busted execution"
 
+    The below outlines why BustedPlenary was chosen instead of Busted.
+
     This setup uses Neovim's `-c` flag to execute commands within Neovim's context,
     rather than Busted's `-l` flag which loads Lua files externally.
 
@@ -126,7 +128,7 @@ When writing tests...
 
 The testify suite feature in neotest-golang is complex because it requires
 transforming the neotest tree to create proper namespace hierarchies for testify
-receiver methods. This section documents common debugging techniques for
+receiver methods. This section documents debugging techniques for
 testify-related issues.
 
 ### Understanding Testify Architecture

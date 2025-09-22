@@ -4,8 +4,6 @@ Reliable Neotest adapter for running Go tests in Neovim.
 
 ![neotest-golang](https://github.com/fredrikaverpil/neotest-golang/assets/994357/afb6e936-b355-4d7b-ab73-65c21ee66ae7)
 
-Please report any issues or if it works well for you!
-
 ## Features
 
 - Supports all [Neotest usage](https://github.com/nvim-neotest/neotest#usage).
@@ -26,6 +24,8 @@ Please report any issues or if it works well for you!
   ([disabled](https://fredrikaverpil.github.io/neotest-golang/config/#testify_enabled)
   by default).
 - Option to sanitize test output from non-UTF8 characters.
+
+...and more!
 
 ---
 
