@@ -83,17 +83,18 @@ function M.init()
     end
   end
 
+  -- Check availability
+  require("plenary")
+  require("nio")
+  require("nvim-treesitter")
+  require("neotest")
+
   -- Ensure parser directory exists with proper permissions
   local parser_dir = site_dir .. "/parser"
   if vim.fn.isdirectory(parser_dir) ~= 1 then
     vim.fn.mkdir(parser_dir, "p")
     print("Created parser directory: " .. parser_dir)
   end
-
-  -- Check availability
-  require("plenary")
-  require("neotest")
-  require("nvim-treesitter")
 
   -- Install go parser, if not already installed
   require("nvim-treesitter.configs").setup({
