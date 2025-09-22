@@ -27,17 +27,19 @@ M.suite_query = string.format(
   (function_declaration
     name: (identifier) @test_function (#match? @test_function "^Test")
     body: (block
-      (expression_statement
-        (call_expression
-          function: (selector_expression
-            operand: (identifier) @import_identifier (#match? @import_identifier "%s")
-            field: (field_identifier) @run_method (#match? @run_method "^Run$")
-          )
-          arguments: (argument_list
-            (identifier)
-            (call_expression
-              arguments: (argument_list
-                (type_identifier) @suite_struct
+      (statement_list
+        (expression_statement
+          (call_expression
+            function: (selector_expression
+              operand: (identifier) @import_identifier (#match? @import_identifier "%s")
+              field: (field_identifier) @run_method (#match? @run_method "^Run$")
+            )
+            arguments: (argument_list
+              (identifier)
+              (call_expression
+                arguments: (argument_list
+                  (type_identifier) @suite_struct
+                )
               )
             )
           )
@@ -70,29 +72,31 @@ M.test_function_query = string.format(
         )
       )
     ) 
-    body: (block 
-      (short_var_declaration 
-        left: (expression_list 
-          (identifier)
-        ) 
-        right: (expression_list 
-          (unary_expression 
-            operand: (composite_literal 
-              type: (type_identifier) @suite_struct 
-              body: (literal_value)
+    body: (block
+      (statement_list
+        (short_var_declaration
+          left: (expression_list
+            (identifier)
+          )
+          right: (expression_list
+            (unary_expression
+              operand: (composite_literal
+                type: (type_identifier) @suite_struct
+                body: (literal_value)
+              )
             )
           )
         )
-      ) 
-      (expression_statement 
-        (call_expression 
-          function: (selector_expression 
-            operand: (identifier) @import_identifier (#match? @import_identifier "%s")
-            field: (field_identifier) @run_method (#match? @run_method "^Run$")
-          )
-          arguments: (argument_list 
-            (identifier) 
-            (identifier)
+        (expression_statement
+          (call_expression
+            function: (selector_expression
+              operand: (identifier) @import_identifier (#match? @import_identifier "%s")
+              field: (field_identifier) @run_method (#match? @run_method "^Run$")
+            )
+            arguments: (argument_list
+              (identifier)
+              (identifier)
+            )
           )
         )
       )

@@ -35,6 +35,15 @@ jobs:
           go-version-file: tests/go/go.mod
           cache: true
           cache-dependency-path: tests/go/go.sum
+      - name: Verify build tools
+        run: |
+          gcc --version
+          node --version
+          npm --version
+      - name: Install tree-sitter-cli
+        run: npm install -g tree-sitter-cli@latest
+      - name: Verify tree-sitter-cli
+        run: tree-sitter --version
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@latest
       - name: go version

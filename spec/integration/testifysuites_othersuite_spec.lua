@@ -42,8 +42,12 @@ describe("Integration: testify othersuite test", function()
             status = "passed",
             errors = {},
           },
-          -- NOTE: TestOtherTestSuite is not present because this test suite
-          -- has no actual test methods - only the setup/suite function
+          -- Cross-file testify suite: TestOther method is defined in positions_test.go
+          -- but should appear under TestOtherTestSuite namespace when processing othersuite_test.go
+          [position_id .. "::TestOtherTestSuite::TestOther"] = {
+            status = "passed",
+            errors = {},
+          },
         },
         run_spec = {
           command = {}, -- this will be replaced in the assertion

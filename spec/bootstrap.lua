@@ -22,7 +22,7 @@ function M.init()
     ["nvim-nio"] = { url = "https://github.com/nvim-neotest/nvim-nio" },
     ["nvim-treesitter"] = {
       url = "https://github.com/nvim-treesitter/nvim-treesitter",
-      branch = "master",
+      branch = "main",
     },
     neotest = {
       url = "https://github.com/nvim-neotest/neotest",
@@ -96,12 +96,28 @@ function M.init()
     print("Created parser directory: " .. parser_dir)
   end
 
-  -- Install go parser, if not already installed
-  require("nvim-treesitter.configs").setup({
-    ensure_installed = { "go" },
-    auto_install = true,
-    sync_install = true,
-  })
+  -- Configuare nvim-treesitter to use the site directory for parsers
+  print("Configuring nvim-treesitter install directory...")
+  ---@type TSConfig
+  local treesitter_opts = { install_dir = site_dir }
+  require("nvim-treesitter.config").setup(treesitter_opts)
+
+  -- Install Go parser if not already installed
+  local parser_path = site_dir .. "/parser/go.so"
+  local parser_installed = vim.fn.filereadable(parser_path) == 1
+
+  if not parser_installed then
+    print("Go parser not found, installing...")
+    local success, result = pcall(function()
+      return require("nvim-treesitter.install").install({ "go" }):wait(300000) -- wait max. 5 minutes
+    end)
+
+    if not success then
+      print("Parser installation failed: " .. tostring(result))
+    end
+  else
+    print("Go parser already installed at: " .. parser_path)
+  end
 
   -- Initialize Neotest with our golang adapter
   print("Initializing Neotest with golang adapter...")

@@ -34,10 +34,11 @@ Then you have two options:
           "nvim-neotest/nvim-nio",
           "nvim-lua/plenary.nvim",
           "antoinemadec/FixCursorHold.nvim",
-          "nvim-treesitter/nvim-treesitter",
-    -      "fredrikaverpil/neotest-golang", -- Installation
+          { "nvim-treesitter/nvim-treesitter", branch = "main" },
+    -     { "fredrikaverpil/neotest-golang", version = "*" }, -- Installation
     +      {
     +        "fredrikaverpil/neotest-golang", -- Installation
+    +        version = "*",
     +        dependencies = {
     +          "leoluz/nvim-dap-go",
     +        },
@@ -72,8 +73,8 @@ Then you have two options:
           "nvim-neotest/nvim-nio",
           "nvim-lua/plenary.nvim",
           "antoinemadec/FixCursorHold.nvim",
-          "nvim-treesitter/nvim-treesitter",
-          "fredrikaverpil/neotest-golang", -- Installation
+          { "nvim-treesitter/nvim-treesitter", branch = "main" },
+          { "fredrikaverpil/neotest-golang", version = "*" }, -- Installation
         },
         config = function()
     +      local options = {
@@ -135,7 +136,7 @@ show coverage in Neovim.
           "nvim-neotest/nvim-nio",
           "nvim-lua/plenary.nvim",
           "antoinemadec/FixCursorHold.nvim",
-          "nvim-treesitter/nvim-treesitter",
+          { "nvim-treesitter/nvim-treesitter", branch = "main" },
           {
             "fredrikaverpil/neotest-golang",
             version = "*",
@@ -239,14 +240,14 @@ For instance, if you want to run `go test` with the
 
 ## Custom environment variables
 
-You can also pass in custom environment variables to the adapter, which will
-be set when running tests. This can be useful for setting up test-specific
+You can also pass in custom environment variables to the adapter, which will be
+set when running tests. This can be useful for setting up test-specific
 environment variables, such as database connection strings or API keys.
 
 ### Using configuration
 
-You can pass in environment variables by providing a table of key-value pairs
-to the `env` option in the adapter configuration.
+You can pass in environment variables by providing a table of key-value pairs to
+the `env` option in the adapter configuration.
 
 !!! example "Custom env variables"
 
@@ -364,20 +365,20 @@ files, see:
           "nvim-neotest/nvim-nio",
           "nvim-lua/plenary.nvim",
           "antoinemadec/FixCursorHold.nvim",
-          "nvim-treesitter/nvim-treesitter",
+          { "nvim-treesitter/nvim-treesitter", branch = "main" },
 
           "nvim-neotest/neotest-plenary",
           "nvim-neotest/neotest-vim-test",
 
           {
             "fredrikaverpil/neotest-golang",
+            version = "*",
             dependencies = {
               {
                 "leoluz/nvim-dap-go",
                 opts = {},
               },
             },
-            branch = "main",
           },
         },
         opts = function(_, opts)

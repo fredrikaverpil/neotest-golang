@@ -13,6 +13,7 @@ describe("Integration: testify suites positions test", function()
       local test_options = options.get()
       test_options.runner = "gotestsum"
       test_options.testify_enabled = true
+      test_options.log_level = vim.log.levels.DEBUG
       options.set(test_options)
 
       local position_id = vim.uv.cwd()
