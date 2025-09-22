@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.15.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.15.0...v1.15.1) (2025-09-22)
+
+
+### Bug Fixes
+
+* **bootstrap:** add missing check for nio ([#402](https://github.com/fredrikaverpil/neotest-golang/issues/402)) ([3c0e1c7](https://github.com/fredrikaverpil/neotest-golang/commit/3c0e1c7d56fac0e081f77e0ba834cbdff825d654))
+* disable goreleaser ([#392](https://github.com/fredrikaverpil/neotest-golang/issues/392)) ([1454f2a](https://github.com/fredrikaverpil/neotest-golang/commit/1454f2a8a4ed1467bc70824f3a59897c929130e3))
+* excessive logging ([#396](https://github.com/fredrikaverpil/neotest-golang/issues/396)) ([e8c8c0d](https://github.com/fredrikaverpil/neotest-golang/commit/e8c8c0ddba1c7dbde4979815811c4e58243bcfd1))
+* **init:** fixes to bootstrap and minimal_init ([#401](https://github.com/fredrikaverpil/neotest-golang/issues/401)) ([364e0ac](https://github.com/fredrikaverpil/neotest-golang/commit/364e0acf76eac5d46cb15573b8cab928848f515a))
+
 ## [1.15.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.14.0...v1.15.0) (2025-09-21)
 
 
