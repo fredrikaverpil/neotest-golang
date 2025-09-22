@@ -1,4 +1,4 @@
-; query for map table tests
+; query for map table tests (testify suite pattern with s.Run or suite.Run)
 (block
   (statement_list
     (short_var_declaration
@@ -25,9 +25,10 @@
             (call_expression
               function: (selector_expression
                 operand: (identifier) @test.operand
-                (#match? @test.operand "^[t]$")
+                (#not-match? @test.operand "^[t]$")
                 field: (field_identifier) @test.method
                 (#match? @test.method "^Run$"))
               arguments: (argument_list
                 ((identifier) @test.key.name1
                   (#eq? @test.key.name @test.key.name1))))))))))
+
