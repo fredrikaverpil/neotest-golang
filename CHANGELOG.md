@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.15.1...v2.0.0) (2025-09-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* support latest go parser / nvim-treesitter main branch ([#387](https://github.com/fredrikaverpil/neotest-golang/issues/387))
+
+### Features
+
+* support latest go parser / nvim-treesitter main branch ([#387](https://github.com/fredrikaverpil/neotest-golang/issues/387)) ([bf7b047](https://github.com/fredrikaverpil/neotest-golang/commit/bf7b047183b011a3abc2915b6dce091ed36fb33e))
+
+ ### 🌱 v1 → v2 migration guide
+
+ - If using nvim-treesitter, switch to its `main` branch and run `:TSUpdate go`.
+ - For context, see the [updated installation docs](https://fredrikaverpil.github.io/neotest-golang/install/).
+
 ## [1.15.1](https://github.com/fredrikaverpil/neotest-golang/compare/v1.15.0...v1.15.1) (2025-09-22)
 
 
