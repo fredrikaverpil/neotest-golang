@@ -11,19 +11,19 @@ local M = {}
 M.namespace_query = [[
   ; query for detecting receiver type and treat as Neotest namespace.
 
-  ; func (suite *testSuite) TestSomething() { // @namespace.name
+  ; func (suite *testSuite) TestSomething() { // @namespace_name
   ;  // test code
   ; }
   (method_declaration
     receiver: (parameter_list
       (parameter_declaration
         type: (pointer_type
-          (type_identifier) @namespace.name
+          (type_identifier) @namespace_name
         )
       )
     )
-  ) @namespace.definition
-  name: (field_identifier) @test_function (#match? @test_function "^(Test|Example)") (#not-match? @test.name "^TestMain$")
+    name: (field_identifier) @test_function (#match? @test_function "^(Test|Example)") (#not-match? @test_function "^TestMain$")
+  ) @namespace_definition
 ]]
 
 M.test_method_query = [[
@@ -40,7 +40,7 @@ M.subtest_query = string.format(
     function: (selector_expression
       operand: (identifier) @test.operand (#match? @test.operand "%s")
       field: (field_identifier) @test.method (#match? @test.method "^Run$")
-    ) 
+    )
     arguments: (argument_list
       . (interpreted_string_literal) @test.name
     )
