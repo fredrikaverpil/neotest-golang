@@ -6,9 +6,9 @@ Reliable Neotest adapter for running Go tests in Neovim.
 
 ## 🌱 v1 → v2 migration guide
 
-**Breaking changes in v2.0.0** - see the
-[migration guide](https://github.com/fredrikaverpil/neotest-golang/releases/tag/v2.0.0)
-for full details.
+- If using nvim-treesitter, switch to its `main` branch and run `:TSUpdate go`.
+- For context, see the
+  [updated installation docs](https://fredrikaverpil.github.io/neotest-golang/install/).
 
 ## Features
 
@@ -20,6 +20,7 @@ for full details.
   custom configuration for debugging of tests using
   [delve](https://github.com/go-delve/delve).
 - Monorepo support (detect, run and debug tests in sub-projects).
+- Streaming results.
 - Inline diagnostics.
 - Custom `go test` argument support.
 - Environment variables support.
