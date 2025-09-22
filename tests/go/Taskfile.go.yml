@@ -48,8 +48,7 @@ tasks:
     desc: Run go test
     aliases: ["test"]
     cmds:
-      # - go test ./...
-      - echo "nope"
+      - go test ./...
 
   go-vet:
     desc: Run go vet
