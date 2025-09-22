@@ -19,28 +19,6 @@ the terminal (requires [Taskfile](https://github.com/go-task/task)).
     opened an issue about that in
     [nvim-neotest/nvim-nio#30](https://github.com/nvim-neotest/nvim-nio/issues/30).
 
-!!! fail "Lua unit tests crashes inside Neovim"
-
-    Unfortunately, when running all unit tests at once using neotest-plenary, from within Neovim, you will see this crash:
-
-    ```lua
-    Lua callback:
-    ...local/share/nvim/lazy/nvim-nio/lua/nio/tasks.lua:100: Async task failed without callback: The coroutine failed with this message:
-    ...cal/share/nvim/lazy/nvim-nio/lua/nio/control.lua:293: ...eotest/lua/neotest/client/strategies/integrated/init.lua:33: EBADF: bad file descriptor
-    stack traceback:
-            [C]: in function 'error'
-            ...cal/share/nvim/lazy/nvim-nio/lua/nio/control.lua:293: in function 'with'
-            ...-fredrik/lazy/neotest/lua/neotest/types/fanout_accum.lua:49: in function 'push'
-            ...eotest/lua/neotest/client/strategies/integrated/init.lua:48: in function <...eotest/lua/neotest/client/strategies/integrated/init.lua:47>
-    stack traceback:
-            [C]: in function 'error'
-            ...local/share/nvim/lazy/nvim-nio/lua/nio/tasks.lua:100: in function 'close_task'
-            ...local/share/nvim/lazy/nvim-nio/lua/nio/tasks.lua:122: in function 'cb'
-            ...local/share/nvim/lazy/nvim-nio/lua/nio/tasks.lua:183: in function <...local/share/nvim/lazy/nvim-nio/lua/nio/tasks.lua:182>
-    ```
-
-    The workaround is to run them individually or run them all from the terminal using `task test`.
-
 ## Test execution flow
 
 When you run `task test` (or, rather `task test-plenary`), the following
@@ -146,11 +124,15 @@ When writing tests...
 
 ## Debugging Testify Suite Issues
 
-The testify suite feature in neotest-golang is complex because it requires transforming the neotest tree to create proper namespace hierarchies for testify receiver methods. This section documents common debugging techniques for testify-related issues.
+The testify suite feature in neotest-golang is complex because it requires
+transforming the neotest tree to create proper namespace hierarchies for testify
+receiver methods. This section documents common debugging techniques for
+testify-related issues.
 
 ### Understanding Testify Architecture
 
-Testify suites use Go receiver methods that need to be converted into neotest namespace structures:
+Testify suites use Go receiver methods that need to be converted into neotest
+namespace structures:
 
 ```go
 // Receiver type
@@ -169,6 +151,7 @@ func TestExampleTestSuite(t *testing.T) {
 ```
 
 The expected neotest tree structure should be:
+
 ```
 - TestExampleTestSuite (namespace)
   ├── TestExample (test)
@@ -180,7 +163,8 @@ The expected neotest tree structure should be:
 
 ### Debugging Tree Modification Issues
 
-When testify suites aren't working correctly, the issue is usually in the tree modification process. Add debug output to key functions:
+When testify suites aren't working correctly, the issue is usually in the tree
+modification process. Add debug output to key functions:
 
 #### 1. Debug Query Discovery
 
@@ -213,7 +197,8 @@ print("=======================================")
 
 #### 2. Debug Tree Structure
 
-Add this to `lua/neotest-golang/features/testify/tree_modification.lua` in the `modify_neotest_tree` function:
+Add this to `lua/neotest-golang/features/testify/tree_modification.lua` in the
+`modify_neotest_tree` function:
 
 ```lua
 -- DEBUG: Check what's in the original tree
@@ -246,7 +231,8 @@ print("=======================================")
 
 #### 3. Debug Method-to-Receiver Mapping
 
-For testify suites with duplicate method names (like multiple `TestExample` methods), add this debug output:
+For testify suites with duplicate method names (like multiple `TestExample`
+methods), add this debug output:
 
 ```lua
 -- DEBUG: Show method to receiver mapping
@@ -264,43 +250,58 @@ print("=====================================")
 ### Common Issues and Solutions
 
 #### Issue: Testify methods not discovered
+
 - **Symptom**: Original tree only shows suite functions, no receiver methods
 - **Cause**: Testify queries using wrong capture names or invalid syntax
-- **Solution**: Ensure testify queries use `@test.name` and `@test.definition` (not `@test_name`)
+- **Solution**: Ensure testify queries use `@test.name` and `@test.definition`
+  (not `@test_name`)
 - **Check**: Enable debug output in query detection to see if methods are found
 
 #### Issue: Methods not properly namespaced
+
 - **Symptom**: Flat test structure instead of namespace hierarchy
 - **Cause**: Tree modification not creating proper parent-child relationships
 - **Solution**: Check method-to-receiver mapping and tree creation logic
 - **Check**: Debug tree structure before/after modification
 
 #### Issue: Duplicate method names causing confusion
+
 - **Symptom**: Some testify methods missing or assigned to wrong suites
-- **Cause**: Multiple receivers with same method names (e.g., two `TestExample` methods)
-- **Solution**: Use position/range information to distinguish duplicate method names
+- **Cause**: Multiple receivers with same method names (e.g., two `TestExample`
+  methods)
+- **Solution**: Use position/range information to distinguish duplicate method
+  names
 - **Check**: Debug method-to-receiver mapping to see if all instances are found
 
 #### Issue: Position IDs incorrect
+
 - **Symptom**: Test execution fails or doesn't match expected IDs
 - **Cause**: ID replacement logic not updating position IDs correctly
-- **Solution**: Ensure regex replacement updates IDs from `::MethodName` to `::SuiteFunction::MethodName`
+- **Solution**: Ensure regex replacement updates IDs from `::MethodName` to
+  `::SuiteFunction::MethodName`
 - **Check**: Compare expected vs actual position IDs in test assertions
 
 ### Treesitter Query Compatibility
 
 When upgrading nvim-treesitter (especially from master to main branch):
 
-1. **Capture name format**: Main branch requires dots (`@test.name`) not underscores (`@test_name`)
-2. **Statement list wrappers**: Some queries need additional `(statement_list ...)` wrappers
-3. **Query validation**: Test queries individually with `testify.query.run_query_on_file`
+1. **Capture name format**: Main branch requires dots (`@test.name`) not
+   underscores (`@test_name`)
+2. **Statement list wrappers**: Some queries need additional
+   `(statement_list ...)` wrappers
+3. **Query validation**: Test queries individually with
+   `testify.query.run_query_on_file`
 
 ### Testing Testify Changes
 
 When modifying testify functionality:
 
 1. **Enable testify**: Set `testify_enabled = true` in test options
-2. **Use integration tests**: Run `spec/integration/testifysuites_positions_spec.lua`
-3. **Check Go command**: Verify the generated go test command targets suite functions
-4. **Validate tree structure**: Ensure namespace hierarchy matches expected test position IDs
-5. **Test edge cases**: Files with multiple suites, duplicate method names, subtests
+2. **Use integration tests**: Run
+   `spec/integration/testifysuites_positions_spec.lua`
+3. **Check Go command**: Verify the generated go test command targets suite
+   functions
+4. **Validate tree structure**: Ensure namespace hierarchy matches expected test
+   position IDs
+5. **Test edge cases**: Files with multiple suites, duplicate method names,
+   subtests
