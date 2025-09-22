@@ -145,7 +145,9 @@ A table of environment variables to set when running tests.
 The value can also be passed in as a function.
 
 ??? example "Pass environment variables"
+
     Provide environment variables like `table<string, string>`:
+
     ```lua
     local config = { -- Specify configuration
       env = {
@@ -159,14 +161,18 @@ The value can also be passed in as a function.
       },
     })
     ```
+
 !!! tip "Extra args"
-    You can also pass in environment variables via Neotest's `extra_args` feature, see the [recipes](recipes.md) for more info.
+
+    You can also pass in environment variables via Neotest's `extra_args` feature,
+    see the [recipes](recipes.md) for more info.
 
 ### `testify_enabled`
 
 Default value: `false`
 
-Enable support for [testify](https://github.com/stretchr/testify) suites.
+Enable support for [testify](https://github.com/stretchr/testify) suites. Please
+note that this requires `nvim-treesitter` (`main` branch).
 
 !!! warning "Not enabled by default"
 
@@ -313,10 +319,11 @@ newlines, and carriage returns.
           "nvim-neotest/nvim-nio",
           "nvim-lua/plenary.nvim",
           "antoinemadec/FixCursorHold.nvim",
-          "nvim-treesitter/nvim-treesitter",
+          { "nvim-treesitter/nvim-treesitter", branch = "main" },
     -      "fredrikaverpil/neotest-golang", -- Installation
     +      {
     +        "fredrikaverpil/neotest-golang", -- Installation
+    +        version = "*",
     +        dependencies = {
     +          "uga-rosa/utf8.nvim", -- Additional dependency required
     +        },

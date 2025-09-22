@@ -4,9 +4,11 @@ icon: material/progress-check
 
 # Installation
 
-!!! warning "Minimum Neovim version"
+!!! warning "Requirements"
 
-    Neovim v0.10.0 or above is required.
+    - **Neovim v0.10.0+** is required
+    - **Go tree-sitter parser** is required (see setup below)
+    - **gotestsum** is recommended for best experience (optional)
 
 ## 💤 Lazy.nvim
 
@@ -18,14 +20,23 @@ return {
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
       "antoinemadec/FixCursorHold.nvim",
-      "nvim-treesitter/nvim-treesitter",
-      { "fredrikaverpil/neotest-golang", version = "*" }, -- Installation
+      { "nvim-treesitter/nvim-treesitter", branch = "main" }, -- Optional
+      {
+        "fredrikaverpil/neotest-golang",
+        version = "*",  -- Optional, but recommended
+        build = function()
+          vim.system({"go", "install", "gotest.tools/gotestsum@latest"}):wait() -- Optional, but recommended
+          vim.cmd([[:TSUpdate go]])  -- Optional
+        end,
+      },
     },
     config = function()
-      local neotest_golang_opts = {}  -- Specify custom configuration
+      local config = {
+        runner = "gotestsum", -- Optional, but recommended
+      }
       require("neotest").setup({
         adapters = {
-          require("neotest-golang")(neotest_golang_opts), -- Registration
+          require("neotest-golang")(config),
         },
       })
     end,
@@ -33,56 +44,64 @@ return {
 }
 ```
 
-For increased stability and less updating noise, I recommend that you track
-official releases by setting `version = "*"`. By omitting this option (or
-setting `version = false`), you will get the latest and greatest directly from
-the main branch.
+_See the [Lazy versioning spec](https://lazy.folke.io/spec/versioning) for more
+details._
 
-I do not recommend pinning to a specific version or to a major version. But
-ultimately it is up to you what you want.
+!!! note "Recommended: Track releases"
 
-!!! tip "Gotestsum"
+    For increased stability and fewer updates, set `version = "*"` to track official releases.
 
-    Although neotest-golang is designed to run tests with `go test -json`, there are
-    a plethora of issues with reading JSON from stdout. It is recommended that you
-    configure neotest-golang to use
-    [`gotestsum`](https://github.com/gotestyourself/gotestsum) as test runner, for
-    maximal stability, as it writes JSON to file instead. Head over to the
-    [configuration docs](config.md/#runner) for more details.
+    - `version = "*"` → Latest stable release (recommended)
+    - `version = false` → Latest from main branch (cutting edge)
+    - Specific versions → Not recommended (you'll miss important fixes)
 
-    ```diff
-    return {
-      {
-        "nvim-neotest/neotest",
-        dependencies = {
-          "nvim-neotest/nvim-nio",
-          "nvim-lua/plenary.nvim",
-          "antoinemadec/FixCursorHold.nvim",
-          "nvim-treesitter/nvim-treesitter",
-    -     { "fredrikaverpil/neotest-golang", version = "*" }, -- Installation
-    +     {
-    +       "fredrikaverpil/neotest-golang",
-    +       version = "*",
-    +       build = "go install gotest.tools/gotestsum@latest"
-    +     },
-        },
-        config = function()
-    -     local neotest_golang_opts = {}  -- Specify custom configuration
-    +     local neotest_golang_opts = {  -- Specify custom configuration
-    +       runner = "gotestsum",
-    +     }
-          require("neotest").setup({
-            adapters = {
-              require("neotest-golang")(neotest_golang_opts), -- Registration
-            },
-          })
-        end,
-      },
-    }
-    ```
+!!! danger "Required: Go tree-sitter parser"
 
-    Also, see the [Lazy versioning spec](https://lazy.folke.io/spec/versioning) for more
-    details on configuring plugins for lazy.nvim.
+    **What's required:** The [Go tree-sitter parser](https://github.com/tree-sitter/tree-sitter-go)
+    is required for neotest-golang to detect and parse Go tests.
+
+    **Installation options:**
+
+    1. **Via nvim-treesitter** (recommended):
+       ```vim
+       :TSInstall go
+       :TSUpdate go
+       ```
+
+    2. **Alternative methods:** You can install the parser via system package managers, Nix, or other means.
+
+    **When nvim-treesitter is required:**
+    - **Always required** for [testify suite features](config.md#testify_enabled)
+    - Optional for basic test discovery (parser can be installed via alternative methods)
+
+    **Important version requirement:**
+    ⚠️ **BREAKING**: neotest-golang v2+ requires the Go parser from nvim-treesitter's
+    [`main` branch](https://github.com/nvim-treesitter/nvim-treesitter/tree/main).
+    The frozen `master` branch is not supported.
+
+    **Parser stability notice:**
+    The tree-sitter-go project doesn't use semantic versioning and may introduce
+    breaking changes without notice. Neotest-golang tracks nvim-treesitter's curated
+    parser versions to provide stability, but parser updates can still potentially break
+    functionality. The community actively maintains compatibility with parser updates,
+    ensuring broad ecosystem support.
+
+    If you experience issues after updating, consider rolling back the parser version.
+    You can check the exact parser version being used in nvim-treesitter's
+    [`parsers.lua`](https://github.com/nvim-treesitter/nvim-treesitter/blob/main/lua/nvim-treesitter/parsers.lua).
+
+!!! tip "Recommended: Use gotestsum runner"
+
+    **Why gotestsum?** Although neotest-golang works with `go test -json`, there are
+    many issues with reading JSON from stdout (corruption, truncation, ANSI codes).
+    For examples, see [common problems](trouble.md#common_problems).
+
+    **Solution:** Use [`gotestsum`](https://github.com/gotestyourself/gotestsum)
+    as your test runner for maximum stability. It writes clean JSON to file instead
+    of stdout, eliminating parsing issues entirely.
+
+    The example above shows the recommended configuration with gotestsum.
+    See [configuration docs](config.md/#runner) for more details.
 
 ## 🌒 Rocks.nvim
 
