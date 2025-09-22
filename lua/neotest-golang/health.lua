@@ -16,10 +16,12 @@ function M.check()
   M.is_problematic_path()
   M.treesitter_parser_installed("go")
   M.is_plugin_available("neotest")
-  M.is_plugin_available("nvim-treesitter")
   M.is_plugin_available("nio")
   M.is_plugin_available("plenary")
   M.race_detection_enabled_without_cgo_enabled()
+
+  start("nvim-treesitter (optional)")
+  M.is_plugin_available("nvim-treesitter")
 
   start("DAP (optional)")
   M.binary_found_on_path("dlv")
