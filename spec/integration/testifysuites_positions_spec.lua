@@ -12,6 +12,7 @@ describe("Integration: testify suites positions test", function()
       -- ===== ARRANGE =====
       local test_options = options.get()
       test_options.runner = "gotestsum"
+      test_options.testify_enabled = true
       options.set(test_options)
 
       local position_id = vim.uv.cwd()
@@ -41,12 +42,36 @@ describe("Integration: testify suites positions test", function()
             status = "passed",
             errors = {},
           },
-          -- Individual test results
-          [position_id .. "::TestExampleTestSuite"] = {
+          -- All the individual test method results
+          [position_id .. "::TestExampleTestSuite2::TestExample"] = {
             status = "passed",
             errors = {},
           },
-          [position_id .. "::TestExampleTestSuite2"] = {
+          [position_id .. "::TestExampleTestSuite2::TestExample2"] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. "::TestExampleTestSuite::TestExample"] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. "::TestExampleTestSuite::TestExample2"] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. "::TestExampleTestSuite::TestSubTestOperand1"] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. '::TestExampleTestSuite::TestSubTestOperand1::"subtest"'] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. "::TestExampleTestSuite::TestSubTestOperand2"] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. '::TestExampleTestSuite::TestSubTestOperand2::"subtest"'] = {
             status = "passed",
             errors = {},
           },

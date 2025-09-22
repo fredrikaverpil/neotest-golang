@@ -12,6 +12,7 @@ describe("Integration: testify othersuite test", function()
       -- ===== ARRANGE =====
       local test_options = options.get()
       test_options.runner = "gotestsum"
+      test_options.testify_enabled = true
       options.set(test_options)
 
       local position_id = vim.uv.cwd()
@@ -41,11 +42,8 @@ describe("Integration: testify othersuite test", function()
             status = "passed",
             errors = {},
           },
-          -- Individual test results
-          [position_id .. "::TestOtherTestSuite"] = {
-            status = "passed",
-            errors = {},
-          },
+          -- NOTE: TestOtherTestSuite is not present because this test suite
+          -- has no actual test methods - only the setup/suite function
         },
         run_spec = {
           command = {}, -- this will be replaced in the assertion
@@ -79,6 +77,8 @@ describe("Integration: testify othersuite test", function()
         got.run_spec.context.stop_filestream
       want.run_spec.context.test_output_json_filepath =
         got.run_spec.context.test_output_json_filepath
+      want.run_spec.context.runner_exec_context =
+        got.run_spec.context.runner_exec_context
 
       -- Copy dynamic strategy_result fields
       want.strategy_result.output = got.strategy_result.output
