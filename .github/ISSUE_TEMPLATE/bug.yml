@@ -17,28 +17,28 @@ body:
           required: true
         - label: I have searched the existing [issues](https://github.com/fredrikaverpil/neotest-golang/issues).
           required: true
-  - type: input
-    attributes:
-      label: "Neovim version (nvim -v)"
-      placeholder: "0.10.0 commit db1b0ee3b30f"
-    validations:
-      required: true
-  - type: input
-    attributes:
-      label: "Operating system/version"
-      placeholder: "MacOS 14.5"
-    validations:
-      required: true
   - type: textarea
     attributes:
       label: Output from `:checkhealth neotest-golang`
-      description: Please provide the output.
+      description: Please provide the complete output (includes Neovim version, OS, and configuration details).
       render: text
       placeholder: |
         neotest-golang: require("neotest-golang.health").check()
 
-        - OK Go binary found on PATH: ...
+        Requirements ~
+        - OK Neovim version 0.10.0 is supported (>= 0.10.0)
+        - OK Go binary found on PATH: /usr/local/bin/go
+        - Go version: go version go1.21.0 darwin/amd64
         - OK Found go.mod file for ... in ...
+
+        nvim-treesitter (optional) ~
+        - OK nvim-treesitter is available
+        - OK nvim-treesitter appears to be on 'main' branch (recommended for neotest-golang v2+)
+
+        Configuration ~
+        - Current neotest-golang configuration:
+        -   runner: go
+        -   go_test_args: {}
     validations:
       required: true
   - type: textarea
