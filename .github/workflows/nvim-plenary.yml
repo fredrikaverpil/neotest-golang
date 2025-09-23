@@ -86,6 +86,22 @@ jobs:
           fi
       - name: gotestsum version
         run: gotestsum --version
+      - name: "Debug: go list"
+        shell: bash
+        working-directory: tests/go
+        run: |
+          go list -f '{
+          "Dir": {{printf "%q" .Dir}},
+          "ImportPath": "{{.ImportPath}}",
+          "Name": "{{.Name}}",
+          "TestGoFiles": [{{range $i, $f := .TestGoFiles}}{{if ne $i 0}},{{end}}"{{$f}}"{{end}}],
+          "XTestGoFiles": [{{range $i, $f := .XTestGoFiles}}{{if ne $i 0}},{{end}}"{{$f}}"{{end}}],
+          "Module": { "GoMod": {{printf "%q" .Module.GoMod}} }
+          }]' ./...
+      - name: "Debug: go test"
+        shell: bash
+        working-directory: tests/go
+        run: go test -v -json ./... || true
       - name: Install Task
         uses: go-task/setup-task@v1
       - name: Run tests
