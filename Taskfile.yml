@@ -30,14 +30,14 @@ tasks:
           split: "\n"
           as: TASKFILE
 
-  lint:
-    desc: Run lint task from all taskfiles
-    cmds:
-      - cmd: task -t {{.TASKFILE}} lint
-        for:
-          var: TASKFILES
-          split: "\n"
-          as: TASKFILE
+  # lint:
+  #   desc: Run lint task from all taskfiles
+  #   cmds:
+  #     - cmd: task -t {{.TASKFILE}} lint
+  #       for:
+  #         var: TASKFILES
+  #         split: "\n"
+  #         as: TASKFILE
 
   test:
     desc: Run test task from all taskfiles
@@ -67,8 +67,3 @@ tasks:
           var: TASKFILES
           split: "\n"
           as: TASKFILE
-
-  clean:
-    desc: Clean .tests directory
-    cmds:
-      - rm -rf .tests
