@@ -82,7 +82,16 @@ function M.execute_adapter_direct(position_id)
   assert(type(position_id) == "string", "position_id must be a string")
 
   -- Parse position ID to extract components
-  local base_path, test_components = position_id:match("^([^:]+)(.*)")
+  -- Handle Windows drive letters (C:, D:, etc.) by looking for :: test separators specifically
+  local base_path, test_components
+  local double_colon_pos = position_id:find("::")
+  if double_colon_pos then
+    base_path = position_id:sub(1, double_colon_pos - 1)
+    test_components = position_id:sub(double_colon_pos)
+  else
+    base_path = position_id
+    test_components = ""
+  end
   local has_test_parts = test_components and test_components ~= ""
 
   -- Infer intent from position ID format
