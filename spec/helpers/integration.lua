@@ -1,5 +1,7 @@
 --- Integration test utilities for end-to-end Go test execution
 
+local lib = require("neotest-golang.lib")
+
 ---@class AdapterExecutionResult
 ---@field tree neotest.Tree The discovered test tree
 ---@field results table<string, neotest.Result> The processed test results
@@ -191,7 +193,7 @@ function M.execute_adapter_direct(position_id)
     local dir_position = {
       type = "dir",
       path = base_path,
-      name = vim.fn.fnamemodify(base_path, ":t"),
+      name = lib.find.get_filename(base_path),
       id = base_path,
       range = { 0, 0, 0, 0 },
     }

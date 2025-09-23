@@ -158,8 +158,8 @@ function M.pos_id_to_filename(pos_id)
     and file_path:match("%.go$")
     and (file_path:match("/") or file_path:match("\\"))
   then
-    -- Extract just the filename from the full path using cross-platform method
-    return vim.fs.basename(file_path)
+    -- Extract just the filename from the full path using our Windows-safe utility
+    return find.get_filename(file_path)
   end
 
   return nil
