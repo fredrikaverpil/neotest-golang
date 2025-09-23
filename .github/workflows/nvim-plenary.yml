@@ -30,7 +30,7 @@ jobs:
       - name: Neovim version
         run: nvim --version
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: tests/go/go.mod
           cache: true
