@@ -11,7 +11,9 @@ local M = {}
 
 function M.check()
   start("Requirements")
+  M.neovim_version_check()
   M.binary_found_on_path("go")
+  M.go_version_check()
   M.go_mod_found()
   M.is_problematic_path()
   M.treesitter_parser_installed("go")
@@ -22,6 +24,7 @@ function M.check()
 
   start("nvim-treesitter (optional)")
   M.is_plugin_available("nvim-treesitter")
+  M.nvim_treesitter_branch_check()
 
   start("DAP (optional)")
   M.binary_found_on_path("dlv")
@@ -35,6 +38,9 @@ function M.check()
 
   start("Sanitization (optional)")
   M.sanitization_enabled_but_no_utf8_lib()
+
+  start("Configuration")
+  M.display_current_configuration()
 end
 
 function M.binary_found_on_path(executable, supress_warn)
@@ -110,10 +116,11 @@ function M.is_plugin_available(plugin)
 end
 
 function M.treesitter_parser_installed(lang)
-  if vim.treesitter.language.add(lang) then
+  local has_parser = pcall(vim.treesitter.language.add, lang)
+  if has_parser then
     ok("Treesitter parser for " .. lang .. " is installed")
   else
-    warn("Treesitter parser for " .. lang .. " is not installed")
+    error("Treesitter parser for " .. lang .. " is not installed")
   end
 end
 
@@ -191,8 +198,150 @@ function M.sanitization_enabled_but_no_utf8_lib()
     else
       warn("utf8.nvim is not available")
     end
+  else
+    ok("Sanitization is disabled")
   end
-  ok("Sanitization is disabled")
+end
+
+function M.neovim_version_check()
+  local version = vim.version()
+  local version_str =
+    string.format("%d.%d.%d", version.major, version.minor, version.patch)
+
+  if version.major > 0 or (version.major == 0 and version.minor >= 10) then
+    ok("Neovim version " .. version_str .. " is supported (>= 0.10.0)")
+  else
+    error(
+      "Neovim version "
+        .. version_str
+        .. " is not supported (requires >= 0.10.0)"
+    )
+  end
+end
+
+function M.go_version_check()
+  if vim.fn.executable("go") == 1 then
+    local handle = io.popen("go version 2>/dev/null")
+    if handle then
+      local result = handle:read("*a")
+      handle:close()
+      if result and result ~= "" then
+        local version_info = result:gsub("\n", "")
+        ok("Go version: " .. version_info)
+      else
+        warn("Could not determine Go version")
+      end
+    else
+      warn("Could not execute 'go version' command")
+    end
+  end
+end
+
+function M.nvim_treesitter_branch_check()
+  if not pcall(require, "nvim-treesitter") then
+    return
+  end
+
+  -- Try multiple common installation paths
+  local potential_paths = {
+    vim.fn.stdpath("data") .. "/lazy/nvim-treesitter",
+    vim.fn.stdpath("data") .. "/site/pack/packer/start/nvim-treesitter",
+    vim.fn.stdpath("data") .. "/site/pack/packer/opt/nvim-treesitter",
+    vim.fn.stdpath("config") .. "/pack/*/start/nvim-treesitter",
+    vim.fn.stdpath("config") .. "/pack/*/opt/nvim-treesitter",
+  }
+
+  local ts_path = nil
+  for _, path in ipairs(potential_paths) do
+    if path:find("%*") then
+      -- Handle glob patterns
+      local matches = vim.fn.glob(path, false, true)
+      if #matches > 0 then
+        ts_path = matches[1]
+        break
+      end
+    else
+      -- Direct path check
+      if vim.fn.isdirectory(path) == 1 then
+        ts_path = path
+        break
+      end
+    end
+  end
+
+  if not ts_path then
+    info("Could not locate nvim-treesitter installation path")
+    return
+  end
+
+  -- Check for files that distinguish main vs master branch
+  local main_indicators =
+    { "lua/nvim-treesitter/async.lua", "lua/nvim-treesitter/config.lua" }
+  local master_indicators = {
+    "lua/nvim-treesitter/configs.lua",
+    "lua/nvim-treesitter/query.lua",
+    "lua/nvim-treesitter/locals.lua",
+  }
+
+  local has_main_files = false
+  local has_master_files = false
+
+  for _, file in ipairs(main_indicators) do
+    if vim.fn.filereadable(ts_path .. "/" .. file) == 1 then
+      has_main_files = true
+      break
+    end
+  end
+
+  for _, file in ipairs(master_indicators) do
+    if vim.fn.filereadable(ts_path .. "/" .. file) == 1 then
+      has_master_files = true
+      break
+    end
+  end
+
+  if has_main_files and not has_master_files then
+    ok(
+      "nvim-treesitter appears to be on 'main' branch (recommended for neotest-golang v2+)"
+    )
+  elseif has_master_files and not has_main_files then
+    error(
+      "nvim-treesitter appears to be on 'master' branch (neotest-golang v2+ requires 'main' branch)"
+    )
+  elseif has_main_files and has_master_files then
+    warn(
+      "nvim-treesitter branch detection inconclusive (found indicators for both branches)"
+    )
+  else
+    warn(
+      "Could not determine nvim-treesitter branch (no known indicators found in "
+        .. ts_path
+        .. ")"
+    )
+  end
+end
+
+function M.display_current_configuration()
+  local current_options = options.get()
+
+  info("Current neotest-golang configuration:")
+  info("  runner: " .. (current_options.runner or "go"))
+  info("  go_test_args: " .. vim.inspect(current_options.go_test_args or {}))
+  info(
+    "  dap_go_enabled: " .. tostring(current_options.dap_go_enabled or false)
+  )
+  info(
+    "  testify_enabled: " .. tostring(current_options.testify_enabled or false)
+  )
+  info(
+    "  warn_test_name_dupes: "
+      .. tostring(current_options.warn_test_name_dupes or false)
+  )
+  info(
+    "  warn_test_not_executed: "
+      .. tostring(current_options.warn_test_not_executed or false)
+  )
+  info("  sanitization: " .. tostring(current_options.sanitization or false))
 end
 
 return M
