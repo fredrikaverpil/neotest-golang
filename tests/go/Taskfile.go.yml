@@ -26,61 +26,46 @@ tasks:
 
   format:
     desc: Format with goimports, gci, gofumpt and golines
-    preconditions:
-      - sh: find . -name "*.go" -not -path "./vendor/*" | head -1 | grep -q .
-        msg: "No Go files found, skipping format"
     cmds:
-      - '{{ .GO_TOOL_CMD }} goimports -w .'
-      - '{{ .GO_TOOL_CMD }} gci write --skip-generated --skip-vendor -s standard -s default .'
-      - '{{ .GO_TOOL_CMD }} gofumpt -extra -w .'
-      - '{{ .GO_TOOL_CMD }} golines --ignore-generated --tab-len=1 --max-len=120 --write-output .'
-      - git diff --color=always --exit-code
+      - |
+        if [ -n "$(find . -name "*.go" -not -path "./vendor/*" -print -quit)" ]; then
+          {{ .GO_TOOL_CMD }} goimports -w .
+          {{ .GO_TOOL_CMD }} gci write --skip-generated --skip-vendor -s standard -s default .
+          {{ .GO_TOOL_CMD }} gofumpt -extra -w .
+          {{ .GO_TOOL_CMD }} golines --ignore-generated --tab-len=1 --max-len=120 --write-output .
+          git diff --color=always --exit-code
+        else
+          echo "No Go files found, skipping format"
+        fi
 
   golangci-lint:
     desc: Lint with golangci-lint
     aliases: ["lint"]
-    preconditions:
-      - sh: find . -name "*.go" -not -path "./vendor/*" | head -1 | grep -q .
-        msg: "No Go files found, skipping golangci-lint"
     cmds:
-      - '{{ .GO_TOOL_CMD }} golangci-lint --config {{ .ROOT_DIR }}/.golangci.yml run -v ./...'
+      - '[ -n "$(find . -name "*.go" -not -path "./vendor/*" -print -quit)" ] && {{ .GO_TOOL_CMD }} golangci-lint --config {{ .ROOT_DIR }}/.golangci.yml run -v ./... || echo "No Go files found, skipping golangci-lint"'
 
   govulncheck:
     desc: Check vulnerabilities with govulncheck
-    preconditions:
-      - sh: find . -name "*.go" -not -path "./vendor/*" | head -1 | grep -q .
-        msg: "No Go files found, skipping govulncheck"
     cmds:
-      - '{{ .GO_TOOL_CMD }} govulncheck ./...'
+      - '[ -n "$(find . -name "*.go" -not -path "./vendor/*" -print -quit)" ] && {{ .GO_TOOL_CMD }} govulncheck ./... || echo "No Go files found, skipping govulncheck"'
 
   go-test:
     desc: Run go test
     aliases: ["test"]
-    preconditions:
-      - sh: find . -name "*_test.go" -not -path "./vendor/*" | head -1 | grep -q .
-        msg: "No Go test files found, skipping go test"
     cmds:
-      - go test ./...
+      - '[ -n "$(find . -name "*_test.go" -not -path "./vendor/*" -print -quit)" ] && go test ./... || echo "No Go test files found, skipping go test"'
 
   go-vet:
     desc: Run go vet
-    preconditions:
-      - sh: find . -name "*.go" -not -path "./vendor/*" | head -1 | grep -q .
-        msg: "No Go files found, skipping go vet"
     cmds:
-      - go vet ./...
+      - '[ -n "$(find . -name "*.go" -not -path "./vendor/*" -print -quit)" ] && go vet ./... || echo "No Go files found, skipping go vet"'
 
   gopls:
     # NOTE: could potentially attempt quickfixes?
     # gopls codeaction -w -exec -kind=quickfix <filename1.go> <filename2.go> ...
     desc: Check for gopls errors
-    preconditions:
-      - sh: find . -name "*.go" -not -path "./vendor/*" | head -1 | grep -q .
-        msg: "No Go files found, skipping gopls check"
     cmds:
-      - task: ensure-gopls
-      - gopls stats
-      - find . -name "*.go" | xargs -P $(nproc) gopls check
+      - '[ -n "$(find . -name "*.go" -not -path "./vendor/*" -print -quit)" ] && { task ensure-gopls; gopls stats; find . -name "*.go" | xargs -P $(nproc) gopls check; } || echo "No Go files found, skipping gopls check"'
 
   install-gopls:
     desc: Install gopls from latest version

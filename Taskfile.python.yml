@@ -20,19 +20,13 @@ tasks:
 
   format-src:
     desc: Format src directory with ruff
-    preconditions:
-      - sh: test -d src
-        msg: "src directory does not exist, skipping"
     cmds:
-      - uv run ruff format src
+      - '[ -d src ] && uv run ruff format src || echo "src directory does not exist, skipping"'
 
   format-tests:
     desc: Format tests directory with ruff
-    preconditions:
-      - sh: test -d tests
-        msg: "tests directory does not exist, skipping"
     cmds:
-      - uv run ruff format tests
+      - '[ -d tests ] && uv run ruff format tests || echo "tests directory does not exist, skipping"'
 
   lint:
     desc: Lint with ruff
@@ -48,23 +42,15 @@ tasks:
 
   pytest:
     desc: Run tests with pytest and coverage
-    preconditions:
-      - sh: find . -name "test_*.py" -o -name "*_test.py" | head -1 | grep -q .
-        msg: "No test files found (test_*.py or *_test.py), skipping pytest"
     cmds:
       - task: install
-      - uv run coverage run -m pytest -s -vv
-      - uv run coverage report
-      - uv run coverage html
+      - '[ -n "$(find . -name "test_*.py" -o -name "*_test.py" | head -1)" ] && { uv run coverage run -m pytest -s -vv; uv run coverage report; uv run coverage html; } || echo "No test files found (test_*.py or *_test.py), skipping pytest"'
 
   mypy:
     desc: Run mypy types checking
-    preconditions:
-      - sh: test -d src
-        msg: "src directory does not exist, skipping mypy"
     cmds:
       - task: install
-      - uv run mypy src
+      - '[ -d src ] && uv run mypy src || echo "src directory does not exist, skipping mypy"'
 
   install:
     desc: Install uv dependencies

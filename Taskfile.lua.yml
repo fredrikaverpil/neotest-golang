@@ -5,6 +5,8 @@
 version: '3'
 
 vars:
+  ROOT_DIR:
+    sh: git rev-parse --show-toplevel
   TOOLS_DIR:
     sh: |
       git_root=$(git rev-parse --show-toplevel 2>/dev/null)
@@ -25,7 +27,7 @@ tasks:
     desc: Format Lua files with stylua
     cmds:
       - task: ensure-stylua
-      - stylua --config-path stylua.toml .
+      - stylua --config-path {{.ROOT_DIR}}/stylua.toml .
       - git diff --color=always --exit-code
 
   install-stylua:
