@@ -1,4 +1,5 @@
 local _ = require("plenary")
+local find = require("neotest-golang.lib.find")
 local options = require("neotest-golang.options")
 
 -- Load integration helpers
@@ -109,7 +110,7 @@ describe("Integration: nested subpackage2 test", function()
             errors = {},
           },
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(position_id)] = {
+          [find.get_directory(position_id)] = {
             status = "passed",
             errors = {},
           },
@@ -196,7 +197,7 @@ describe("Integration: nested subpackage2 test", function()
             errors = {},
           },
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(position_id)] = {
+          [find.get_directory(position_id)] = {
             status = "passed",
             errors = {},
           },

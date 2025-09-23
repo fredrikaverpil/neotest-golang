@@ -3,6 +3,7 @@
 
 local async = require("neotest.async")
 
+local find = require("neotest-golang.lib.find")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
@@ -132,8 +133,8 @@ function M.populate_missing_dir_results(tree, results)
   for pos_id, result in pairs(results) do
     -- Check if this is a file position (ends with .go but no "::")
     if pos_id:match("%.go$") and not pos_id:find("::") then
-      -- Extract directory path using vim.fs.dirname
-      local dir_path = vim.fs.dirname(pos_id)
+      -- Extract directory path using find.get_directory for Windows compatibility
+      local dir_path = find.get_directory(pos_id)
 
       if dir_path and dir_path ~= "." then
         if not dir_to_files[dir_path] then
@@ -154,8 +155,8 @@ function M.populate_missing_dir_results(tree, results)
   for pos_id, result in pairs(results) do
     -- Check if this is a directory position (no .go and no ::)
     if not pos_id:match("%.go$") and not pos_id:find("::") then
-      -- Extract parent directory path
-      local parent_dir = vim.fs.dirname(pos_id)
+      -- Extract parent directory path using find.get_directory for Windows compatibility
+      local parent_dir = find.get_directory(pos_id)
 
       if parent_dir and parent_dir ~= "." and parent_dir ~= pos_id then
         if not dir_to_subdirs[parent_dir] then

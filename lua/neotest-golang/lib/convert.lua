@@ -1,3 +1,4 @@
+local find = require("neotest-golang.lib.find")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
 require("neotest-golang.lib.types")
@@ -122,7 +123,7 @@ end
 ---@return string|nil Import path or nil if not found
 function M.file_path_to_import_path(file_path, import_to_dir)
   -- Get the directory containing the file using cross-platform path handling
-  local file_dir = vim.fs.dirname(file_path)
+  local file_dir = find.get_directory(file_path)
   if not file_dir or file_dir == "" then
     return nil
   end

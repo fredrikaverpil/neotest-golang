@@ -1,4 +1,5 @@
 local _ = require("plenary")
+local find = require("neotest-golang.lib.find")
 local options = require("neotest-golang.options")
 
 -- Load integration helpers
@@ -24,12 +25,12 @@ describe("Integration: individual test example", function()
       local want = {
         results = {
           -- Parent directory result
-          [vim.fs.dirname(vim.fs.dirname(position_id_file))] = {
+          [find.get_directory(find.get_directory(position_id_file))] = {
             status = "passed",
             errors = {},
           },
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(position_id_file)] = {
+          [find.get_directory(position_id_file)] = {
             status = "passed",
             errors = {},
           },

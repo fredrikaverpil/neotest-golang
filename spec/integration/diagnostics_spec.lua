@@ -1,4 +1,5 @@
 local _ = require("plenary")
+local find = require("neotest-golang.lib.find")
 local options = require("neotest-golang.options")
 
 -- Load integration helpers
@@ -33,7 +34,7 @@ describe("Integration: diagnostics test", function()
             },
           },
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(position_id)] = {
+          [find.get_directory(position_id)] = {
             status = "passed", -- Directory shows passed due to aggregation logic
             errors = {
               {
