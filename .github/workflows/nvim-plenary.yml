@@ -106,5 +106,35 @@ jobs:
         uses: go-task/setup-task@v1
       - name: Run tests
         shell: bash
-        run: task test-plenary
+        run: |
+          if ! task test-plenary; then
+            echo "::group::Neovim logs"
+            echo "Tests failed, searching for nvim logs..."
+            
+            # Common nvim log locations across platforms
+            LOG_PATHS=(
+              "$HOME/.local/state/nvim"
+              "$HOME/.cache/nvim"
+              "$HOME/Library/Caches/nvim"
+              "$LOCALAPPDATA/nvim-data"
+              "/tmp"
+              "."
+            )
+            
+            for path in "${LOG_PATHS[@]}"; do
+              if [ -d "$path" ]; then
+                echo "Checking $path for logs..."
+                find "$path" -name "*.log" -type f 2>/dev/null | while read -r logfile; do
+                  if [ -f "$logfile" ]; then
+                    echo "=== $logfile ==="
+                    cat "$logfile" 2>/dev/null || echo "Could not read $logfile"
+                    echo
+                  fi
+                done
+              fi
+            done
+            
+            echo "::endgroup::"
+            exit 1
+          fi
 
