@@ -26,6 +26,7 @@ return {
         build = function()
           vim.cmd([[:TSUpdate go]])
         end,
+      },
       {
         "fredrikaverpil/neotest-golang",
         version = "*",  -- Optional, but recommended
