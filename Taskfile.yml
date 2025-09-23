@@ -67,8 +67,3 @@ tasks:
           var: TASKFILES
           split: "\n"
           as: TASKFILE
-
-  clean:
-    desc: Clean .tests directory
-    cmds:
-      - rm -rf .tests
