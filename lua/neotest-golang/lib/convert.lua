@@ -121,9 +121,9 @@ end
 ---@param import_to_dir table<string, string> Mapping of import paths to directories
 ---@return string|nil Import path or nil if not found
 function M.file_path_to_import_path(file_path, import_to_dir)
-  -- Get the directory containing the file
-  local file_dir = file_path:match("(.+)/[^/]+$")
-  if not file_dir then
+  -- Get the directory containing the file using cross-platform path handling
+  local file_dir = vim.fs.dirname(file_path)
+  if not file_dir or file_dir == "" then
     return nil
   end
 
@@ -150,11 +150,15 @@ function M.pos_id_to_filename(pos_id)
     return nil
   end
 
-  -- Check if it looks like a file path (contains "/" and ends with ".go")
+  -- Check if it looks like a file path (ends with ".go" and contains path separators)
   local file_path = pos_id:match("^([^:]+)")
-  if file_path and file_path:match("%.go$") and file_path:match("/") then
-    -- Extract just the filename from the full path
-    return file_path:match("([^/]+)$")
+  if
+    file_path
+    and file_path:match("%.go$")
+    and (file_path:match("/") or file_path:match("\\"))
+  then
+    -- Extract just the filename from the full path using cross-platform method
+    return vim.fs.basename(file_path)
   end
 
   return nil
