@@ -3,10 +3,10 @@
 
 name: goreleaser
 
-# on:
-#   push:
-#     tags:
-#       - "v*.*.*"
+on:
+  push:
+    tags:
+      - "v*.*.*"
 
 permissions:
   contents: write
@@ -16,4 +16,5 @@ jobs:
     uses: fredrikaverpil/github/.github/workflows/goreleaser.yml@main
     with:
       go-version-file: go.mod
+      skip-releases: true
     secrets: inherit
