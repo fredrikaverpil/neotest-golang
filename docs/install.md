@@ -20,13 +20,17 @@ return {
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
       "antoinemadec/FixCursorHold.nvim",
-      { "nvim-treesitter/nvim-treesitter", branch = "main" }, -- Optional
+      {
+        "nvim-treesitter/nvim-treesitter", -- Optional, but recommended
+        branch = "main"  -- NOTE; not the master branch!
+        build = function()
+          vim.cmd([[:TSUpdate go]])
+        end,
       {
         "fredrikaverpil/neotest-golang",
         version = "*",  -- Optional, but recommended
         build = function()
           vim.system({"go", "install", "gotest.tools/gotestsum@latest"}):wait() -- Optional, but recommended
-          vim.cmd([[:TSUpdate go]])  -- Optional
         end,
       },
     },
@@ -52,55 +56,43 @@ details._
     For increased stability and fewer updates, set `version = "*"` to track official releases.
 
     - `version = "*"` → Latest stable release (recommended)
-    - `version = false` → Latest from main branch (cutting edge)
-    - Specific versions → Not recommended (you'll miss important fixes)
+    - `version = false` → Latest from main branch
+    - Specific versions → Not recommended
 
 !!! danger "Required: Go tree-sitter parser"
 
-    **What's required:** The [Go tree-sitter parser](https://github.com/tree-sitter/tree-sitter-go)
-    is required for neotest-golang to detect and parse Go tests.
-
-    **Installation options:**
-
-    1. **Via nvim-treesitter** (recommended):
-       ```vim
-       :TSInstall go
-       :TSUpdate go
-       ```
-
-    2. **Alternative methods:** You can install the parser via system package managers, Nix, or other means.
-
-    **When nvim-treesitter is required:**
-    - **Always required** for [testify suite features](config.md#testify_enabled)
-    - Optional for basic test discovery (parser can be installed via alternative methods)
-
-    **Important version requirement:**
-    ⚠️ **BREAKING**: neotest-golang v2+ requires the Go parser from nvim-treesitter's
+    - The [tree-sitter-go parser](https://github.com/tree-sitter/tree-sitter-go) is required for neotest-golang to detect and parse Go tests.
+        - Installation options:
+            1. Via nvim-treesitter (recommended):
+               ```vim
+               :TSInstall go
+               :TSUpdate go
+               ```
+            2. Alternative methods: You can install the parser via system package managers, Nix, or other means.
+    - Nvim-treesitter is optional for basic test discovery (parser can be installed via alternative methods) but
+      _required_ for [testify suite features](config.md#testify_enabled)
+    - ⚠️ neotest-golang v2+ requires the Go parser from nvim-treesitter's
     [`main` branch](https://github.com/nvim-treesitter/nvim-treesitter/tree/main).
     The frozen `master` branch is not supported.
-
-    **Parser stability notice:**
-    The tree-sitter-go project doesn't use semantic versioning and may introduce
-    breaking changes without notice. Neotest-golang tracks nvim-treesitter's curated
-    parser versions to provide stability, but parser updates can still potentially break
-    functionality. The community actively maintains compatibility with parser updates,
-    ensuring broad ecosystem support.
-
-    If you experience issues after updating, consider rolling back the parser version.
-    You can check the exact parser version being used in nvim-treesitter's
-    [`parsers.lua`](https://github.com/nvim-treesitter/nvim-treesitter/blob/main/lua/nvim-treesitter/parsers.lua).
+        - The tree-sitter-go project doesn't use semantic versioning and may introduce
+        breaking changes without notice. Neotest-golang tracks nvim-treesitter's curated
+        parser versions to provide stability, but parser updates can still potentially break
+        neotest-golang functionality.
+        - If you experience issues after the parser, consider rolling back nvim-treesitter and re-installing the parser.
+        You can check the exact parser version being used in nvim-treesitter's
+        [`parsers.lua`](https://github.com/nvim-treesitter/nvim-treesitter/blob/main/lua/nvim-treesitter/parsers.lua).
 
 !!! tip "Recommended: Use gotestsum runner"
 
-    **Why gotestsum?** Although neotest-golang works with `go test -json`, there are
+    Although neotest-golang works with `go test -json`, there are
     many issues with reading JSON from stdout (corruption, truncation, ANSI codes).
-    For examples, see [common problems](trouble.md#common_problems).
+    For examples, see [common problems](trouble.md#common-problems).
 
-    **Solution:** Use [`gotestsum`](https://github.com/gotestyourself/gotestsum)
-    as your test runner for maximum stability. It writes clean JSON to file instead
-    of stdout, eliminating parsing issues entirely.
+    It is recommended to use [`gotestsum`](https://github.com/gotestyourself/gotestsum)
+    as your test runner for maximum stability. It writes JSON to file instead
+    of stdout, eliminating all such stdout issues entirely.
 
-    The example above shows the recommended configuration with gotestsum.
+    The installation example above shows the recommended configuration with gotestsum.
     See [configuration docs](config.md/#runner) for more details.
 
 ## 🌒 Rocks.nvim
