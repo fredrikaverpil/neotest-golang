@@ -199,33 +199,45 @@ function M.populate_missing_dir_results(tree, results)
           vim.list_extend(all_errors, file_result.errors)
         end
 
-        -- Collect output
+        -- Collect output (but only if file actually has meaningful output)
         if file_result.output then
           local file_output_lines = async.fn.readfile(file_result.output)
-          vim.list_extend(combined_output, file_output_lines)
+          if #file_output_lines > 0 then
+            vim.list_extend(combined_output, file_output_lines)
+          end
         end
       end
 
-      -- Only create directory result if we have files and actual output content
-      if #file_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
-        -- Write combined output to file
-        local dir_output_path = vim.fs.normalize(async.fn.tempname())
-        async.fn.writefile(combined_output, dir_output_path)
+      -- Check if there's meaningful output content (more than just header)
+      local has_meaningful_output = #combined_output > 1 -- > 1 because we always add header
 
-        -- Create or update directory node result
+      -- Create or update directory node result
+      if #file_entries > 0 then
         if dir_result then
-          -- Update existing result with aggregated output
-          dir_result.output = dir_output_path
+          -- Update existing result with aggregated data
+          if has_meaningful_output then
+            local dir_output_path = vim.fs.normalize(async.fn.tempname())
+            async.fn.writefile(combined_output, dir_output_path)
+            dir_result.output = dir_output_path
+          end
           if #all_errors > 0 then
             dir_result.errors = all_errors
           end
         else
           -- Create new directory node result
-          results[dir_path] = {
+          local new_result = {
             status = dir_status,
-            output = dir_output_path,
             errors = all_errors,
           }
+
+          -- Only add output field if there's meaningful content
+          if has_meaningful_output then
+            local dir_output_path = vim.fs.normalize(async.fn.tempname())
+            async.fn.writefile(combined_output, dir_output_path)
+            new_result.output = dir_output_path
+          end
+
+          results[dir_path] = new_result
         end
       end
     end
