@@ -51,10 +51,7 @@ jobs:
       - name: gotestsum version
         run: gotestsum --version
       - name: Install Task
-        uses: arduino/setup-task@v2
-        with:
-          version: 3.x
-          # repo-token: ${{ secrets.GITHUB_TOKEN }}
+        uses: go-task/setup-task@v1
       - name: Run tests
         run: task test-plenary
 
