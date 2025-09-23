@@ -5,6 +5,8 @@ local options = require("neotest-golang.options")
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
+local utils_path = vim.uv.cwd() .. "/spec/helpers/utils.lua"
+local utils = dofile(utils_path)
 
 describe("Integration: nested subpackage2 test", function()
   it(
@@ -16,7 +18,8 @@ describe("Integration: nested subpackage2 test", function()
       options.set(test_options)
 
       -- Test the entire nested directory structure
-      local position_id = vim.uv.cwd() .. "/tests/go/internal/nested"
+      local position_id =
+        utils.normalize_path(vim.uv.cwd() .. "/tests/go/internal/nested")
       position_id = integration.normalize_path(position_id)
 
       -- Calculate nested directory position ID (same as position_id in this case)
@@ -105,7 +108,7 @@ describe("Integration: nested subpackage2 test", function()
       local want = {
         results = {
           -- Parent directory result (created by hierarchical aggregation)
-          [vim.uv.cwd() .. "/tests/go/internal/nested"] = {
+          [utils.normalize_path(vim.uv.cwd() .. "/tests/go/internal/nested")] = {
             status = "passed",
             errors = {},
           },
@@ -192,7 +195,9 @@ describe("Integration: nested subpackage2 test", function()
       local want = {
         results = {
           -- Parent directory result (created by hierarchical aggregation)
-          [vim.uv.cwd() .. "/tests/go/internal/nested/subpackage2"] = {
+          [utils.normalize_path(
+            vim.uv.cwd() .. "/tests/go/internal/nested/subpackage2"
+          )] = {
             status = "passed",
             errors = {},
           },

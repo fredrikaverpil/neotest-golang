@@ -5,6 +5,8 @@ local options = require("neotest-golang.options")
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
+local utils_path = vim.uv.cwd() .. "/spec/helpers/utils.lua"
+local utils = dofile(utils_path)
 
 describe("Integration: diagnostics test", function()
   it(
@@ -23,7 +25,7 @@ describe("Integration: diagnostics test", function()
       local want = {
         results = {
           -- Parent directory result (created by hierarchical aggregation)
-          [vim.uv.cwd() .. "/tests/go/internal"] = {
+          [utils.normalize_path(vim.uv.cwd() .. "/tests/go/internal")] = {
             status = "passed",
             errors = {
               {

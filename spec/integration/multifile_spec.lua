@@ -5,6 +5,8 @@ local options = require("neotest-golang.options")
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
+local utils_path = vim.uv.cwd() .. "/spec/helpers/utils.lua"
+local utils = dofile(utils_path)
 
 describe("Integration: multifile test", function()
   it(
@@ -15,7 +17,8 @@ describe("Integration: multifile test", function()
       test_options.runner = "gotestsum"
       options.set(test_options)
 
-      local pos_id_dir = vim.uv.cwd() .. "/tests/go/internal/multifile"
+      local pos_id_dir =
+        utils.normalize_path(vim.uv.cwd() .. "/tests/go/internal/multifile")
       pos_id_dir = integration.normalize_path(pos_id_dir)
 
       local pos_id_first = pos_id_dir .. "/first_file_test.go"

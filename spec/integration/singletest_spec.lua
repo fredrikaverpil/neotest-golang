@@ -16,9 +16,17 @@ describe("Integration: individual test example", function()
       options.set(test_options)
 
       local position_id_file = vim.uv.cwd()
-        .. "/tests/go/internal/singletest/singletest_test.go"
-      local position_id_test = integration.normalize_path(position_id_file)
-        .. "::TestOne"
+        .. find.os_path_sep
+        .. "tests"
+        .. find.os_path_sep
+        .. "go"
+        .. find.os_path_sep
+        .. "internal"
+        .. find.os_path_sep
+        .. "singletest"
+        .. find.os_path_sep
+        .. "singletest_test.go"
+      local position_id_test = position_id_file .. "::TestOne"
 
       -- Expected complete adapter execution result - only TestOne should run
       ---@type AdapterExecutionResult

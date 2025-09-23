@@ -28,7 +28,7 @@ describe("Integration: test states", function()
       local want = {
         results = {
           -- Parent directory result (created by hierarchical aggregation)
-          [vim.uv.cwd() .. "/tests/go/internal"] = {
+          [vim.uv.cwd() .. find.os_path_sep .. "tests" .. find.os_path_sep .. "go" .. find.os_path_sep .. "internal"] = {
             status = "passed",
             errors = {},
           },
