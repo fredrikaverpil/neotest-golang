@@ -11,7 +11,7 @@ jobs:
   plenary:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         version: [stable, nightly]
     runs-on: ${{ matrix.os }}
     steps:
@@ -33,9 +33,41 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version-file: tests/go/go.mod
-          cache: true
-          cache-dependency-path: tests/go/go.sum
+          cache: false
+      - name: Cache Go tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/bin
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-tools-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-tools-
+      - name: Cache Windows build tools
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\ProgramData\chocolatey\lib
+            C:\msys64
+          key: ${{ runner.os }}-build-tools-${{ hashFiles('.github/workflows/nvim-plenary.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-tools-
+      - name: Setup build tools (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          # Check if tools are already installed from cache
+          if (!(Test-Path "C:\msys64\usr\bin\find.exe")) {
+            # Install MinGW for tree-sitter compilation
+            choco install mingw -y
+            # Install MSYS2 which includes GNU find and other Unix tools
+            choco install msys2 -y
+          }
+          # Add MSYS2 bin to PATH (this includes GNU find)
+          echo "C:\msys64\usr\bin" >> $env:GITHUB_PATH
       - name: Verify build tools
+        shell: bash
         run: |
           gcc --version
           node --version
@@ -45,13 +77,18 @@ jobs:
       - name: Verify tree-sitter-cli
         run: tree-sitter --version
       - name: Install gotestsum
-        run: go install gotest.tools/gotestsum@latest
-      - name: go version
-        run: go version
+        shell: bash
+        run: |
+          if ! command -v gotestsum &> /dev/null; then
+            go install gotest.tools/gotestsum@latest
+          else
+            echo "gotestsum already installed"
+          fi
       - name: gotestsum version
         run: gotestsum --version
       - name: Install Task
         uses: go-task/setup-task@v1
       - name: Run tests
+        shell: bash
         run: task test-plenary
 
