@@ -110,10 +110,11 @@ function M.is_plugin_available(plugin)
 end
 
 function M.treesitter_parser_installed(lang)
-  if vim.treesitter.language.add(lang) then
+  local has_parser = pcall(vim.treesitter.language.add, lang)
+  if has_parser then
     ok("Treesitter parser for " .. lang .. " is installed")
   else
-    warn("Treesitter parser for " .. lang .. " is not installed")
+    error("Treesitter parser for " .. lang .. " is not installed")
   end
 end
 
