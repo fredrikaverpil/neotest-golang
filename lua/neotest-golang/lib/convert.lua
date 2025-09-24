@@ -1,6 +1,7 @@
 local find = require("neotest-golang.lib.find")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
+local path = require("neotest-golang.lib.path")
 require("neotest-golang.lib.types")
 
 local M = {}
@@ -123,7 +124,7 @@ end
 ---@return string|nil Import path or nil if not found
 function M.file_path_to_import_path(file_path, import_to_dir)
   -- Get the directory containing the file using cross-platform path handling
-  local file_dir = find.get_directory(file_path)
+  local file_dir = path.get_directory(file_path)
   if not file_dir or file_dir == "" then
     return nil
   end
@@ -170,40 +171,17 @@ function M.pos_id_to_filename(pos_id)
   end
 
   -- Extract file path using Windows-safe method
-  local file_path = M.extract_file_path_from_pos_id(pos_id)
+  local file_path = path.extract_file_path_from_pos_id(pos_id)
   if
     file_path
     and file_path:match("%.go$")
     and (file_path:match("/") or file_path:match("\\"))
   then
     -- Extract just the filename from the full path using platform-conditional utility
-    return M.get_filename_fast(file_path)
+    return path.get_filename_fast(file_path)
   end
 
   return nil
-end
-
----Platform-conditional filename extraction for optimal performance
----Uses fast vim.fs.basename for POSIX-style paths, safe find.get_filename for Windows-style paths
----@param path string File path to extract filename from
----@return string|nil Filename or nil if path is invalid
-function M.get_filename_fast(path)
-  if not path or type(path) ~= "string" or path == "" then
-    return nil
-  end
-
-  -- Detect Windows-style paths (drive letters, UNC paths, backslashes)
-  local is_windows_path = path:match("^[A-Za-z]:") -- Drive letter
-    or path:match("^\\\\") -- UNC path
-    or path:match("\\") -- Contains backslashes
-
-  if is_windows_path then
-    -- Windows-style path: Use our Windows-safe implementation
-    return find.get_filename(path)
-  else
-    -- POSIX-style path: Use fast built-in C function
-    return vim.fs.basename(path)
-  end
 end
 
 return M

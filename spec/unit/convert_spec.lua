@@ -419,7 +419,7 @@ describe("Platform-conditional path utilities", function()
         return original_basename(path)
       end
 
-      local result = lib.convert.get_filename_fast("/path/to/file_test.go")
+      local result = lib.path.get_filename_fast("/path/to/file_test.go")
 
       -- Verify the fast path was used
       assert.is_true(basename_called)
@@ -441,8 +441,7 @@ describe("Platform-conditional path utilities", function()
       end
 
       -- Test with Windows path
-      local result =
-        lib.convert.get_filename_fast("D:\\\\project\\\\file_test.go")
+      local result = lib.path.get_filename_fast("D:\\\\project\\\\file_test.go")
 
       -- Should work correctly with Windows paths
       assert.equals("file_test.go", result)
@@ -462,7 +461,7 @@ describe("Platform-conditional path utilities", function()
       end
 
       local result =
-        lib.convert.get_filename_fast("\\\\\\\\server\\\\share\\\\file_test.go")
+        lib.path.get_filename_fast("\\\\\\\\server\\\\share\\\\file_test.go")
 
       assert.equals("file_test.go", result)
 
@@ -479,11 +478,11 @@ describe("Platform-conditional path utilities", function()
 
         -- Test that function works correctly with POSIX-style paths
         local posix_result =
-          lib.convert.get_filename_fast("/unix/path/file_test.go")
+          lib.path.get_filename_fast("/unix/path/file_test.go")
         assert.equals("file_test.go", posix_result)
 
         -- Test that function exists and is callable (Windows path testing done in Windows-specific test)
-        assert.is_function(lib.convert.get_filename_fast)
+        assert.is_function(lib.path.get_filename_fast)
       end
     )
   end)

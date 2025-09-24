@@ -2,6 +2,7 @@
 
 local convert = require("neotest-golang.lib.convert")
 local logger = require("neotest-golang.lib.logging")
+local path = require("neotest-golang.lib.path")
 
 local M = {}
 
@@ -35,7 +36,7 @@ function M.warn_duplicate_tests(tree)
           local subtest_name = parts[#parts]
 
           -- Extract file path from position ID
-          local file_path = convert.extract_file_path_from_pos_id(pos.id)
+          local file_path = path.extract_file_path_from_pos_id(pos.id)
           if file_path then
             -- Create composite key (file_path + parent_test) to ensure duplicates are only flagged within the same file
             local composite_key = file_path .. "::" .. parent_test_name

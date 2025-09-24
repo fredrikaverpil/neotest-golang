@@ -11,6 +11,7 @@ M.diagnostics = require("neotest-golang.lib.diagnostics")
 M.json = require("neotest-golang.lib.json")
 M.logging = require("neotest-golang.lib.logging")
 M.mapping = require("neotest-golang.lib.mapping")
+M.path = require("neotest-golang.lib.path")
 M.sanitize = require("neotest-golang.lib.sanitize")
 M.stream = require("neotest-golang.lib.stream")
 

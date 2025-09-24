@@ -323,7 +323,7 @@ function M.populate_missing_file_results(tree, results)
     -- Check if this is a test position (contains "::")
     if pos_id:find("::") then
       -- Extract file path using Windows-safe method
-      local file_path = lib.convert.extract_file_path_from_pos_id(pos_id)
+      local file_path = lib.path.extract_file_path_from_pos_id(pos_id)
 
       if file_path and file_path:match("%.go$") then
         if not file_to_tests[file_path] then
