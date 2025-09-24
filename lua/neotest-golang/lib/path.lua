@@ -6,13 +6,13 @@ local M = {}
 -- Platform-specific path separator
 M.os_path_sep = package.config:sub(1, 1) -- "/" on Unix, "\" on Windows
 
---- Get directory part of a path (Windows-safe replacement for fnamemodify(path, ":h")).
+--- Get directory part of a path (Windows-safe replacement for vim.fn.fnamemodify(path, ":h")).
 --- Preserves original path separators to avoid Windows path breakage.
 --- @param path string File or directory path
 --- @return string Directory part of the path
 function M.get_directory(path)
   if not path or path == "" then
-    return "."
+    return "." -- Return current directory for empty/nil paths (matches vim.fn.fnamemodify behavior)
   end
 
   -- Handle edge cases
@@ -31,7 +31,7 @@ function M.get_directory(path)
   end
 
   if last_sep_pos == 0 then
-    -- No separator found, it's just a filename
+    -- No separator found, it's just a filename - return current directory (matches vim.fn.fnamemodify behavior)
     return "."
   elseif last_sep_pos == 1 then
     -- Root directory
@@ -42,7 +42,7 @@ function M.get_directory(path)
   end
 end
 
---- Get filename part of a path (Windows-safe replacement for fnamemodify(path, ":t")).
+--- Get filename part of a path (Windows-safe replacement for vim.fn.fnamemodify(path, ":t")).
 --- Preserves original path separators to avoid Windows path breakage.
 --- @param path string File or directory path
 --- @return string Filename part of the path

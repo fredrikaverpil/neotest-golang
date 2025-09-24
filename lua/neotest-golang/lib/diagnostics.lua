@@ -24,7 +24,6 @@ M.assertion_patterns = {
 }
 
 ---Captures both "go:123: message" and "filename.go:123: message" formats
----Updated to handle Windows paths with drive letters, backslashes, and UNC paths
 ---Pattern breakdown: ^%s* (optional whitespace) (.*go) (any chars ending in go) :(%d+): (number) (.*) (message)
 M.go_output_pattern = "^%s*(.*go):(%d+): (.*)"
 

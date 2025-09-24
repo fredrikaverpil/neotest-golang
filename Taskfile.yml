@@ -5,6 +5,7 @@ version: '3'
 
 vars:
   TASKFILES:
+    # Note: Uses sh/bash shell even on Windows (available through MSYS2, Git Bash, etc.)
     sh: |
       case "$(uname -s)" in
         CYGWIN*|MINGW32*|MINGW64*|MSYS*)

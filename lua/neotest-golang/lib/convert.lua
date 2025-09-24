@@ -123,7 +123,6 @@ end
 ---@param import_to_dir table<string, string> Mapping of import paths to directories
 ---@return string|nil Import path or nil if not found
 function M.file_path_to_import_path(file_path, import_to_dir)
-  -- Get the directory containing the file using cross-platform path handling
   local file_dir = path.get_directory(file_path)
   if not file_dir or file_dir == "" then
     return nil
@@ -144,7 +143,7 @@ function M.file_path_to_import_path(file_path, import_to_dir)
   return nil
 end
 
----Extract file path from Neotest position ID (handles Windows drive letters correctly)
+---Extract file path from Neotest position ID
 ---@param pos_id string Position ID like "/path/to/file_test.go::TestName" or "D:\\path\\file_test.go::TestName"
 ---@return string|nil File path part before "::" or nil if not found
 function M.extract_file_path_from_pos_id(pos_id)
@@ -170,7 +169,6 @@ function M.pos_id_to_filename(pos_id)
     return nil
   end
 
-  -- Extract file path using Windows-safe method
   local file_path = path.extract_file_path_from_pos_id(pos_id)
   if
     file_path
