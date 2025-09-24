@@ -1,13 +1,10 @@
 local _ = require("plenary")
-local find = require("neotest-golang.lib.find")
 local options = require("neotest-golang.options")
 local path = require("neotest-golang.lib.path")
 
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
-local utils_path = vim.uv.cwd() .. "/spec/helpers/utils.lua"
-local utils = dofile(utils_path)
 
 describe("Integration: multifile test", function()
   it(
@@ -19,13 +16,12 @@ describe("Integration: multifile test", function()
       options.set(test_options)
 
       local pos_id_dir =
-        utils.normalize_path(vim.uv.cwd() .. "/tests/go/internal/multifile")
-      pos_id_dir = integration.normalize_path(pos_id_dir)
+        path.normalize_path(vim.uv.cwd() .. "/tests/go/internal/multifile")
 
       local pos_id_first = pos_id_dir .. "/first_file_test.go"
       local pos_id_second = pos_id_dir .. "/second_file_test.go"
-      pos_id_first = integration.normalize_path(pos_id_first)
-      pos_id_second = integration.normalize_path(pos_id_second)
+      pos_id_first = path.normalize_path(pos_id_first)
+      pos_id_second = path.normalize_path(pos_id_second)
 
       ---@type AdapterExecutionResult
       local want = {

@@ -1,5 +1,4 @@
 local _ = require("plenary")
-local find = require("neotest-golang.lib.find")
 local options = require("neotest-golang.options")
 local path = require("neotest-golang.lib.path")
 
@@ -44,7 +43,7 @@ describe("Integration: individual test example", function()
             errors = {},
           },
           -- File-level result
-          [integration.normalize_path(position_id_file)] = {
+          [path.normalize_path(position_id_file)] = {
             status = "passed",
             errors = {},
           },

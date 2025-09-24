@@ -1,5 +1,4 @@
 local _ = require("plenary")
-local find = require("neotest-golang.lib.find")
 local options = require("neotest-golang.options")
 local path = require("neotest-golang.lib.path")
 
@@ -18,7 +17,7 @@ describe("Integration: special characters test", function()
 
       local position_id = vim.uv.cwd()
         .. "/tests/go/internal/specialchars/special_characters_test.go"
-      position_id = integration.normalize_path(position_id)
+      position_id = path.normalize_path(position_id)
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult

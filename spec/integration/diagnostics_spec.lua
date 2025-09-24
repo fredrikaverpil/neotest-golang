@@ -1,13 +1,10 @@
 local _ = require("plenary")
-local find = require("neotest-golang.lib.find")
 local options = require("neotest-golang.options")
 local path = require("neotest-golang.lib.path")
 
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
-local utils_path = vim.uv.cwd() .. "/spec/helpers/utils.lua"
-local utils = dofile(utils_path)
 
 describe("Integration: diagnostics test", function()
   it(
@@ -20,13 +17,13 @@ describe("Integration: diagnostics test", function()
 
       local position_id = vim.uv.cwd()
         .. "/tests/go/internal/diagnostics/diagnostics_test.go"
-      position_id = integration.normalize_path(position_id)
+      position_id = path.normalize_path(position_id)
 
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Parent directory result (created by hierarchical aggregation)
-          [utils.normalize_path(vim.uv.cwd() .. "/tests/go/internal")] = {
+          [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal")] = {
             status = "passed",
             errors = {
               {

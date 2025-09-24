@@ -299,14 +299,6 @@ function M.execute_adapter_direct(position_id)
   }
 end
 
---- Normalize Windows paths for cross-platform testing
---- @param path string
---- @return string
-function M.normalize_path(path)
-  local utils = dofile(vim.uv.cwd() .. "/spec/helpers/utils.lua")
-  return utils.normalize_path(path)
-end
-
 --- Process test output manually to populate individual test results
 --- This replicates the streaming mechanism but works on completed output
 --- @param tree neotest.Tree The discovered test tree
