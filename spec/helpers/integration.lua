@@ -171,7 +171,7 @@ function M.execute_adapter_direct(position_id)
     end)
 
     for _, file in ipairs(dir_scan or {}) do
-      table.insert(test_files, base_path .. "/" .. file)
+      table.insert(test_files, base_path .. lib.find.os_path_sep .. file)
     end
 
     local all_nodes = {}
