@@ -3,6 +3,7 @@
 
 local async = require("neotest.async")
 
+local convert = require("neotest-golang.lib.convert")
 local find = require("neotest-golang.lib.find")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.lib.logging")
@@ -323,8 +324,8 @@ function M.populate_missing_file_results(tree, results)
   for pos_id, result in pairs(results) do
     -- Check if this is a test position (contains "::")
     if pos_id:find("::") then
-      -- Extract file path (everything before first "::")
-      local file_path = pos_id:match("^([^:]+)")
+      -- Extract file path using Windows-safe method
+      local file_path = convert.extract_file_path_from_pos_id(pos_id)
 
       if file_path and file_path:match("%.go$") then
         if not file_to_tests[file_path] then
