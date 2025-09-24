@@ -143,6 +143,24 @@ function M.file_path_to_import_path(file_path, import_to_dir)
   return nil
 end
 
+---Extract file path from Neotest position ID (handles Windows drive letters correctly)
+---@param pos_id string Position ID like "/path/to/file_test.go::TestName" or "D:\\path\\file_test.go::TestName"
+---@return string|nil File path part before "::" or nil if not found
+function M.extract_file_path_from_pos_id(pos_id)
+  if not pos_id or type(pos_id) ~= "string" then
+    return nil
+  end
+
+  -- Find the first occurrence of "::" (which separates file path from test path)
+  local separator_pos = pos_id:find("::")
+  if separator_pos then
+    return pos_id:sub(1, separator_pos - 1)
+  end
+
+  -- If no "::" found, treat the entire string as the file path
+  return pos_id
+end
+
 ---Convert Neotest position ID to Go test filename
 ---@param pos_id string Position ID like "/path/to/file_test.go::TestName" or synthetic ID like "github.com/pkg::TestName"
 ---@return string|nil Filename like "file_test.go" or nil if not a file path
@@ -151,8 +169,8 @@ function M.pos_id_to_filename(pos_id)
     return nil
   end
 
-  -- Check if it looks like a file path (ends with ".go" and contains path separators)
-  local file_path = pos_id:match("^([^:]+)")
+  -- Extract file path using Windows-safe method
+  local file_path = M.extract_file_path_from_pos_id(pos_id)
   if
     file_path
     and file_path:match("%.go$")

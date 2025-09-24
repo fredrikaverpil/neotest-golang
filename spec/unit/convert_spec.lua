@@ -284,10 +284,89 @@ describe("to_dir_position_id", function()
   end)
 end)
 
+describe("extract_file_path_from_pos_id", function()
+  it("extracts Unix-style file paths correctly", function()
+    local pos_id = "/home/user/project/file_test.go::TestName"
+    local expected = "/home/user/project/file_test.go"
+
+    local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("extracts Windows-style file paths correctly with drive letter", function()
+    local pos_id =
+      "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go::TestOne"
+    local expected =
+      "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go"
+
+    local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("extracts Windows-style file paths with forward slashes", function()
+    local pos_id =
+      "D:/a/neotest-golang/tests/go/internal/multifile/first_file_test.go::TestOne"
+    local expected =
+      "D:/a/neotest-golang/tests/go/internal/multifile/first_file_test.go"
+
+    local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("handles complex test names with subtests", function()
+    local pos_id =
+      'D:\\\\path\\\\file_test.go::TestName::"SubTest"::"NestedTest"'
+    local expected = "D:\\\\path\\\\file_test.go"
+
+    local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("handles position IDs without test separators", function()
+    local pos_id = "D:\\\\path\\\\file_test.go"
+    local expected = "D:\\\\path\\\\file_test.go"
+
+    local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("returns nil for invalid input", function()
+    assert.is_nil(lib.convert.extract_file_path_from_pos_id(nil))
+    assert.is_nil(lib.convert.extract_file_path_from_pos_id(123))
+    assert.is_nil(lib.convert.extract_file_path_from_pos_id(""))
+  end)
+
+  it(
+    "should not be confused by Windows drive letter colons (regression test)",
+    function()
+      -- This tests the specific issue where "D:" was extracted instead of the full path
+      local pos_id =
+        "D:\\\\a\\\\neotest-golang\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go::TestOne"
+      local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+
+      -- The old regex would return "D" instead of the full path
+      assert.is_not.equal("D", result)
+      assert.are.equal(
+        "D:\\\\a\\\\neotest-golang\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go",
+        result
+      )
+    end
+  )
+end)
+
 describe("pos_id_to_filename", function()
   it("extracts filename from file path position ID", function()
     local pos_id = "/path/to/pkg/file_test.go::TestName"
     local expected = "file_test.go"
+
+    local result = lib.convert.pos_id_to_filename(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("extracts filename from Windows path with drive letter", function()
+    local pos_id =
+      "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go::TestOne"
+    local expected = "first_file_test.go"
 
     local result = lib.convert.pos_id_to_filename(pos_id)
     assert.are.equal(expected, result)
