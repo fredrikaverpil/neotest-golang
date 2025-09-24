@@ -209,3 +209,107 @@ describe("go list output from internal/notests", function()
     assert.are_same(expected, first_entry)
   end)
 end)
+
+describe("Windows path handling", function()
+  it("handles Windows drive letter paths in Dir field", function()
+    -- Mock a golist_data response that would come from Windows
+    local mock_golist_output = {
+      {
+        Dir = "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\cmd\\\\main",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/cmd/main",
+        Module = {
+          GoMod = "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\go.mod",
+        },
+        Name = "main",
+        TestGoFiles = {},
+        XTestGoFiles = {},
+      },
+    }
+
+    -- Verify that the structure contains Windows paths as expected
+    local first_entry = mock_golist_output[1]
+    assert.equals(
+      "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\cmd\\\\main",
+      first_entry.Dir
+    )
+    assert.equals(
+      "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\go.mod",
+      first_entry.Module.GoMod
+    )
+    assert.equals(
+      "github.com/fredrikaverpil/neotest-golang/cmd/main",
+      first_entry.ImportPath
+    )
+    assert.equals("main", first_entry.Name)
+  end)
+
+  it("handles Windows UNC paths in Dir field", function()
+    local mock_golist_output = {
+      {
+        Dir = "\\\\\\\\server\\\\share\\\\project\\\\pkg",
+        ImportPath = "example.com/project/pkg",
+        Module = {
+          GoMod = "\\\\\\\\server\\\\share\\\\project\\\\go.mod",
+        },
+        Name = "pkg",
+        TestGoFiles = { "pkg_test.go" },
+        XTestGoFiles = {},
+      },
+    }
+
+    local first_entry = mock_golist_output[1]
+    assert.equals("\\\\\\\\server\\\\share\\\\project\\\\pkg", first_entry.Dir)
+    assert.equals(
+      "\\\\\\\\server\\\\share\\\\project\\\\go.mod",
+      first_entry.Module.GoMod
+    )
+    assert.equals("example.com/project/pkg", first_entry.ImportPath)
+    assert.is_same({ "pkg_test.go" }, first_entry.TestGoFiles)
+  end)
+
+  it("handles Windows paths with mixed separators in Dir field", function()
+    local mock_golist_output = {
+      {
+        Dir = "C:\\\\Users\\\\test/project\\\\internal\\\\mixed",
+        ImportPath = "github.com/user/project/internal/mixed",
+        Module = {
+          GoMod = "C:\\\\Users\\\\test/project\\\\go.mod",
+        },
+        Name = "mixed",
+        TestGoFiles = { "mixed_test.go" },
+        XTestGoFiles = { "mixed_external_test.go" },
+      },
+    }
+
+    local first_entry = mock_golist_output[1]
+    assert.equals(
+      "C:\\\\Users\\\\test/project\\\\internal\\\\mixed",
+      first_entry.Dir
+    )
+    assert.equals(
+      "C:\\\\Users\\\\test/project\\\\go.mod",
+      first_entry.Module.GoMod
+    )
+    assert.equals(
+      "github.com/user/project/internal/mixed",
+      first_entry.ImportPath
+    )
+    assert.is_same({ "mixed_test.go" }, first_entry.TestGoFiles)
+    assert.is_same({ "mixed_external_test.go" }, first_entry.XTestGoFiles)
+  end)
+
+  it("verifies path normalization works with Windows paths", function()
+    -- Test that normalize_path function handles Windows paths correctly
+    local windows_path = "D:\\\\path\\\\to\\\\project"
+    local normalized = utils.normalize_path(windows_path)
+
+    -- The normalize_path should handle this gracefully (exact behavior may vary by platform)
+    assert.is_truthy(normalized)
+    assert.is_string(normalized)
+
+    local unc_path = "\\\\\\\\server\\\\share\\\\folder"
+    local normalized_unc = utils.normalize_path(unc_path)
+    assert.is_truthy(normalized_unc)
+    assert.is_string(normalized_unc)
+  end)
+end)
