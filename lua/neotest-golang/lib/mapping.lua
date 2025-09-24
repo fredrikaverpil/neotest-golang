@@ -10,7 +10,6 @@ local M = {}
 ---@param golist_data table The 'go list -json' output
 ---@return table<string, string> Lookup table: go_test_key -> pos_id
 function M.build_position_lookup(tree, golist_data)
-  local lookup = {}
   local stats = { processed = 0, mapped = 0, failed = 0 }
 
   -- Build import_path -> directory mapping for fast package resolution
@@ -21,10 +20,11 @@ function M.build_position_lookup(tree, golist_data)
     end
   end
 
+  logger.debug("Import to directory mapping: " .. vim.inspect(import_to_dir))
+
   -- First pass: collect all test nodes with their resolved package + go test name
   ---@type { package_import: string, go_test_name: string, pos_id: string }[]
   local collected = {}
-
   for _, node in tree:iter_nodes() do
     local pos = node:data()
     if pos.type == "test" then
@@ -51,41 +51,28 @@ function M.build_position_lookup(tree, golist_data)
     end
   end
 
-  -- Helper to add mapping without overwriting existing keys
-  local function add_mapping(key, pos_id)
-    if not lookup[key] then
-      lookup[key] = pos_id
-      stats.mapped = stats.mapped + 1
-      logger.debug("Mapped: " .. key .. " -> " .. pos_id)
-    end
-  end
+  logger.debug("Collected test nodes: " .. vim.inspect(collected))
 
-  -- Track exact keys to avoid creating phantom prefix mappings
-  local exact_keys = {}
+  -- Example of position id:
+  -- /Users/fredrik/code/public/neotest-golang/tests/go/internal/specialchars/special_characters_test.go::TestNames::"Mixed case with space"
+  --
+  -- Example of collected iten:
+  -- {
+  --   go_test_name = "TestNames/Mixed_case_with_space",
+  --   package_import = "github.com/fredrikaverpil/neotest-golang/internal/specialchars",
+  --   pos_id = '/Users/fredrik/code/public/neotest-golang/tests/go/internal/specialchars/special_characters_test.go::TestNames::"Mixed case with space"'
+  -- }
+  --
+  -- Example of lookup entry [internal_id] = pos.id:
+  -- ["github.com/fredrikaverpil/neotest-golang/internal/specialchars::TestNames/Mixed_case_with_space"] = '/Users/fredrik/code/public/neotest-golang/tests/go/internal/specialchars/special_characters_test.go::TestNames::"Mixed case with space"',
 
-  -- Second pass: add exact mappings for all tests
+  local lookup = {}
   for _, item in ipairs(collected) do
-    local key = item.package_import .. "::" .. item.go_test_name
-    add_mapping(key, item.pos_id)
-    exact_keys[key] = true
+    local internal_key = item.package_import .. "::" .. item.go_test_name
+    lookup[internal_key] = item.pos_id
+    stats.mapped = stats.mapped + 1
   end
-
-  -- Third pass: only add prefix keys if that exact test node exists in the tree
-  for _, item in ipairs(collected) do
-    local segments =
-      vim.split(item.go_test_name, "/", { plain = true, trimempty = true })
-    if #segments > 1 then
-      local prefix = nil
-      for i, seg in ipairs(segments) do
-        prefix = (i == 1) and seg or (prefix .. "/" .. seg)
-        local key = item.package_import .. "::" .. prefix
-        if exact_keys[key] then
-          -- Do not overwrite existing exact mappings (e.g., top-level test nodes)
-          add_mapping(key, item.pos_id)
-        end
-      end
-    end
-  end
+  logger.debug("Lookup table: " .. vim.inspect(lookup))
 
   logger.debug("Position mapping stats:" .. vim.inspect(stats))
   return lookup
@@ -108,10 +95,10 @@ function M.get_pos_id(lookup, package_import, test_name)
   local success = pos_id ~= nil
   metrics.record_position_lookup(success)
 
-  if not pos_id then
+  if not success then
     -- Collect failed mappings for bulk reporting to avoid spam during streaming
+    logger.debug("No position mapping found for key: " .. internal_key)
     M._failed_mappings[internal_key] = true
-    logger.debug("Test was executed but not detected: " .. internal_key)
   end
 
   return pos_id
