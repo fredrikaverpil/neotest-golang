@@ -56,7 +56,7 @@ function M.build_position_lookup(tree, golist_data)
   -- Example of position id:
   -- /Users/fredrik/code/public/neotest-golang/tests/go/internal/specialchars/special_characters_test.go::TestNames::"Mixed case with space"
   --
-  -- Example of collected iten:
+  -- Example of collected item:
   -- {
   --   go_test_name = "TestNames/Mixed_case_with_space",
   --   package_import = "github.com/fredrikaverpil/neotest-golang/internal/specialchars",
@@ -97,7 +97,6 @@ function M.get_pos_id(lookup, package_import, test_name)
 
   if not success then
     -- Collect failed mappings for bulk reporting to avoid spam during streaming
-    logger.debug("No position mapping found for key: " .. internal_key)
     M._failed_mappings[internal_key] = true
   end
 
@@ -110,7 +109,7 @@ function M.report_failed_mappings()
     local failed_list = vim.tbl_keys(M._failed_mappings)
     table.sort(failed_list)
 
-    local message = "Tests executed but not detected ("
+    local message = "Tests executed but not detected by tree-sitter query ("
       .. #failed_list
       .. " tests):\n"
       .. table.concat(failed_list, "\n")
