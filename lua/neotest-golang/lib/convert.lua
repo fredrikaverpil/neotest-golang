@@ -130,7 +130,7 @@ function M.file_path_to_import_path(file_path, import_to_dir)
 
   -- Find matching import path
   for import_path, dir in pairs(import_to_dir) do
-    if dir == file_dir then
+    if vim.fs.normalize(dir) == vim.fs.normalize(file_dir) then
       return import_path
     end
   end
