@@ -147,7 +147,7 @@ end
 ---@param pos_id string Position ID like "/path/to/file_test.go::TestName" or "D:\\path\\file_test.go::TestName"
 ---@return string|nil File path part before "::" or nil if not found
 function M.extract_file_path_from_pos_id(pos_id)
-  if not pos_id or type(pos_id) ~= "string" then
+  if not pos_id or type(pos_id) ~= "string" or pos_id == "" then
     return nil
   end
 
