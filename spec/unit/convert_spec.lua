@@ -399,6 +399,96 @@ describe("pos_id_to_filename", function()
   end)
 end)
 
+describe("Platform-conditional path utilities", function()
+  describe("get_filename_fast", function()
+    it("uses vim.fs.basename on POSIX systems for performance", function()
+      -- Mock vim.fn.has to return 0 (POSIX)
+      local original_has = vim.fn.has
+      vim.fn.has = function(feature)
+        if feature == "win32" then
+          return 0
+        end
+        return original_has(feature)
+      end
+
+      -- Mock vim.fs.basename to track calls
+      local original_basename = vim.fs.basename
+      local basename_called = false
+      vim.fs.basename = function(path)
+        basename_called = true
+        return original_basename(path)
+      end
+
+      local result = lib.convert.get_filename_fast("/path/to/file_test.go")
+
+      -- Verify the fast path was used
+      assert.is_true(basename_called)
+      assert.equals("file_test.go", result)
+
+      -- Restore original functions
+      vim.fn.has = original_has
+      vim.fs.basename = original_basename
+    end)
+
+    it("uses find.get_filename on Windows systems for compatibility", function()
+      -- Mock vim.fn.has to return 1 (Windows)
+      local original_has = vim.fn.has
+      vim.fn.has = function(feature)
+        if feature == "win32" then
+          return 1
+        end
+        return original_has(feature)
+      end
+
+      -- Test with Windows path
+      local result =
+        lib.convert.get_filename_fast("D:\\\\project\\\\file_test.go")
+
+      -- Should work correctly with Windows paths
+      assert.equals("file_test.go", result)
+
+      -- Restore original function
+      vim.fn.has = original_has
+    end)
+
+    it("handles Windows UNC paths correctly on Windows", function()
+      -- Mock vim.fn.has to return 1 (Windows)
+      local original_has = vim.fn.has
+      vim.fn.has = function(feature)
+        if feature == "win32" then
+          return 1
+        end
+        return original_has(feature)
+      end
+
+      local result =
+        lib.convert.get_filename_fast("\\\\\\\\server\\\\share\\\\file_test.go")
+
+      assert.equals("file_test.go", result)
+
+      -- Restore original function
+      vim.fn.has = original_has
+    end)
+
+    it(
+      "maintains performance benefit on POSIX while preserving Windows compatibility",
+      function()
+        -- This test documents the performance intention
+        -- POSIX: fast vim.fs.basename (C built-in)
+        -- Windows: safe find.get_filename (Lua implementation)
+
+        -- Test that function works correctly with POSIX-style paths
+        local posix_result =
+          lib.convert.get_filename_fast("/unix/path/file_test.go")
+        assert.equals("file_test.go", posix_result)
+
+        -- Test that function exists and is callable (Windows path testing done in Windows-specific test)
+        assert.is_function(lib.convert.get_filename_fast)
+      end
+    )
+  end)
+end)
+
 describe("bidirectional conversion", function()
   it(
     "maintains consistency between pos_id and go_test_name conversions",

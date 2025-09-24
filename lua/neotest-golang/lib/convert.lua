@@ -176,11 +176,34 @@ function M.pos_id_to_filename(pos_id)
     and file_path:match("%.go$")
     and (file_path:match("/") or file_path:match("\\"))
   then
-    -- Extract just the filename from the full path using our Windows-safe utility
-    return find.get_filename(file_path)
+    -- Extract just the filename from the full path using platform-conditional utility
+    return M.get_filename_fast(file_path)
   end
 
   return nil
+end
+
+---Platform-conditional filename extraction for optimal performance
+---Uses fast vim.fs.basename for POSIX-style paths, safe find.get_filename for Windows-style paths
+---@param path string File path to extract filename from
+---@return string|nil Filename or nil if path is invalid
+function M.get_filename_fast(path)
+  if not path or type(path) ~= "string" or path == "" then
+    return nil
+  end
+
+  -- Detect Windows-style paths (drive letters, UNC paths, backslashes)
+  local is_windows_path = path:match("^[A-Za-z]:") -- Drive letter
+    or path:match("^\\\\") -- UNC path
+    or path:match("\\") -- Contains backslashes
+
+  if is_windows_path then
+    -- Windows-style path: Use our Windows-safe implementation
+    return find.get_filename(path)
+  else
+    -- POSIX-style path: Use fast built-in C function
+    return vim.fs.basename(path)
+  end
 end
 
 return M
