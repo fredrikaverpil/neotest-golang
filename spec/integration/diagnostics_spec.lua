@@ -1,6 +1,7 @@
 local _ = require("plenary")
 local find = require("neotest-golang.lib.find")
 local options = require("neotest-golang.options")
+local path = require("neotest-golang.lib.path")
 
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
@@ -36,7 +37,7 @@ describe("Integration: diagnostics test", function()
             },
           },
           -- Directory-level result (created by file aggregation)
-          [find.get_directory(position_id)] = {
+          [path.get_directory(position_id)] = {
             status = "passed", -- Directory shows passed due to aggregation logic
             errors = {
               {

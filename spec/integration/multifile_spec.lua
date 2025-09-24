@@ -1,6 +1,7 @@
 local _ = require("plenary")
 local find = require("neotest-golang.lib.find")
 local options = require("neotest-golang.options")
+local path = require("neotest-golang.lib.path")
 
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
@@ -30,7 +31,7 @@ describe("Integration: multifile test", function()
       local want = {
         results = {
           -- Parent directory result
-          [find.get_directory(pos_id_dir)] = {
+          [path.get_directory(pos_id_dir)] = {
             status = "passed",
             errors = {},
           },

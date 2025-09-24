@@ -12,7 +12,7 @@ local M = {}
 --- @return neotest.RunSpec|nil Runspec for executing tests in the namespace
 function M.build(pos, tree)
   local pos_path_folderpath =
-    string.match(pos.path, "(.+)" .. lib.find.os_path_sep)
+    string.match(pos.path, "(.+)" .. lib.path.os_path_sep)
 
   local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
 

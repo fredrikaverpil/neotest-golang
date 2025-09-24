@@ -27,8 +27,8 @@ function M.build(pos, tree, strategy)
     return nil -- NOTE: logger.error will throw an error, but the LSP doesn't see it.
   end
 
-  local go_mod_folderpath = find.get_directory(go_mod_filepath)
-  local pos_path_folderpath = find.get_directory(pos.path)
+  local go_mod_folderpath = lib.path.get_directory(go_mod_filepath)
+  local pos_path_folderpath = lib.path.get_directory(pos.path)
   local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
 
   local errors = nil
@@ -41,7 +41,7 @@ function M.build(pos, tree, strategy)
 
   -- find the go package that corresponds to the pos.path
   local package_name = "./..."
-  local pos_path_filename = find.get_filename(pos.path)
+  local pos_path_filename = lib.path.get_filename(pos.path)
 
   for _, golist_item in ipairs(golist_data) do
     if golist_item.TestGoFiles ~= nil then

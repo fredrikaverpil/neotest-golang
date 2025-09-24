@@ -67,7 +67,7 @@ function M.go_mod_found()
   local go_mod_filepath = nil
   local filepaths = lib.find.go_test_filepaths(vim.fn.getcwd())
   for _, filepath in ipairs(filepaths) do
-    local start_path = lib.find.get_directory(filepath)
+    local start_path = lib.path.get_directory(filepath)
     go_mod_filepath = lib.find.file_upwards("go.mod", start_path)
     if go_mod_filepath ~= nil then
       ok("Found go.mod file for " .. filepath .. " in " .. go_mod_filepath)
@@ -83,7 +83,7 @@ function M.is_problematic_path()
   local go_mod_filepath = nil
   local filepaths = lib.find.go_test_filepaths(vim.fn.getcwd())
   for _, filepath in ipairs(filepaths) do
-    local start_path = lib.find.get_directory(filepath)
+    local start_path = lib.path.get_directory(filepath)
     go_mod_filepath = lib.find.file_upwards("go.mod", start_path)
     local sysname = vim.uv.os_uname().sysname
     local problematic_paths = {

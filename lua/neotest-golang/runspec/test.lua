@@ -14,7 +14,7 @@ local M = {}
 --- @param strategy string|nil Strategy to use (e.g., "dap" for debugging)
 --- @return neotest.RunSpec|nil Runspec for executing the test
 function M.build(pos, tree, strategy)
-  local pos_path_folderpath = find.get_directory(pos.path)
+  local pos_path_folderpath = lib.path.get_directory(pos.path)
 
   local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
 

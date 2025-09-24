@@ -1,6 +1,7 @@
 local _ = require("plenary")
 local find = require("neotest-golang.lib.find")
 local options = require("neotest-golang.options")
+local path = require("neotest-golang.lib.path")
 
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
@@ -16,15 +17,15 @@ describe("Integration: individual test example", function()
       options.set(test_options)
 
       local position_id_file = vim.uv.cwd()
-        .. find.os_path_sep
+        .. path.os_path_sep
         .. "tests"
-        .. find.os_path_sep
+        .. path.os_path_sep
         .. "go"
-        .. find.os_path_sep
+        .. path.os_path_sep
         .. "internal"
-        .. find.os_path_sep
+        .. path.os_path_sep
         .. "singletest"
-        .. find.os_path_sep
+        .. path.os_path_sep
         .. "singletest_test.go"
       local position_id_test = position_id_file .. "::TestOne"
 
@@ -33,12 +34,12 @@ describe("Integration: individual test example", function()
       local want = {
         results = {
           -- Parent directory result
-          [find.get_directory(find.get_directory(position_id_file))] = {
+          [path.get_directory(path.get_directory(position_id_file))] = {
             status = "passed",
             errors = {},
           },
           -- Directory-level result (created by file aggregation)
-          [find.get_directory(position_id_file)] = {
+          [path.get_directory(position_id_file)] = {
             status = "passed",
             errors = {},
           },
