@@ -1,5 +1,6 @@
 local _ = require("plenary")
 local options = require("neotest-golang.options")
+local path = require("neotest-golang.lib.path")
 
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
@@ -15,26 +16,34 @@ describe("Integration: individual test example", function()
       options.set(test_options)
 
       local position_id_file = vim.uv.cwd()
-        .. "/tests/go/internal/singletest/singletest_test.go"
-      local position_id_test = integration.normalize_path(position_id_file)
-        .. "::TestOne"
+        .. path.os_path_sep
+        .. "tests"
+        .. path.os_path_sep
+        .. "go"
+        .. path.os_path_sep
+        .. "internal"
+        .. path.os_path_sep
+        .. "singletest"
+        .. path.os_path_sep
+        .. "singletest_test.go"
+      local position_id_test = position_id_file .. "::TestOne"
 
       -- Expected complete adapter execution result - only TestOne should run
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Parent directory result
-          [vim.fs.dirname(vim.fs.dirname(position_id_file))] = {
+          [path.get_directory(path.get_directory(position_id_file))] = {
             status = "passed",
             errors = {},
           },
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(position_id_file)] = {
+          [path.get_directory(position_id_file)] = {
             status = "passed",
             errors = {},
           },
           -- File-level result
-          [integration.normalize_path(position_id_file)] = {
+          [path.normalize_path(position_id_file)] = {
             status = "passed",
             errors = {},
           },

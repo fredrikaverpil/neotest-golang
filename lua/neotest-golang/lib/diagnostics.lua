@@ -24,7 +24,8 @@ M.assertion_patterns = {
 }
 
 ---Captures both "go:123: message" and "filename.go:123: message" formats
-M.go_output_pattern = "^%s*([%w_%-%.]*go):(%d+): (.*)"
+---Pattern breakdown: ^%s* (optional whitespace) (.*go) (any chars ending in go) :(%d+): (number) (.*) (message)
+M.go_output_pattern = "^%s*(.*go):(%d+): (.*)"
 
 ---Parse Go test output line and classify as hint or error
 ---@param line string The line to parse
@@ -112,8 +113,13 @@ function M.process_diagnostics(test_entry)
 
   ---@type neotest.Error[]
   local errors = {}
-  local test_filename =
-    convert.pos_id_to_filename(test_entry.metadata.position_id)
+
+  -- Cache filename extraction at test entry level to avoid repeated expensive operations
+  if not test_entry.metadata._cached_filename then
+    test_entry.metadata._cached_filename =
+      convert.pos_id_to_filename(test_entry.metadata.position_id)
+  end
+  local test_filename = test_entry.metadata._cached_filename
   local error_set = {}
 
   -- Process each output part directly

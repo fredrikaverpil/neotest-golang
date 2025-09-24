@@ -5,7 +5,18 @@ version: '3'
 
 vars:
   TASKFILES:
-    sh: find . -type f -name "Taskfile.*.yml" -not -path "*/node_modules/*" -not -path "*/.git/*" | sort
+    # Note: Uses sh/bash shell even on Windows (available through MSYS2, Git Bash, etc.)
+    sh: |
+      case "$(uname -s)" in
+        CYGWIN*|MINGW32*|MINGW64*|MSYS*)
+          # Windows - use PowerShell
+          powershell -Command "Get-ChildItem -Recurse -Filter 'Taskfile.*.yml' | Where-Object { \$_.FullName -notmatch 'node_modules|\.git' } | ForEach-Object { \$_.FullName -replace [regex]::Escape((Get-Location).Path), '.' -replace '\\\\', '/' } | Sort-Object"
+          ;;
+        *)
+          # Unix-like (Linux, macOS)
+          find . -name "Taskfile.*.yml" -type f | grep -v node_modules | grep -v .git | sort
+          ;;
+      esac
 
 tasks:
   default:

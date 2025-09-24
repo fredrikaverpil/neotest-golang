@@ -1,5 +1,7 @@
+local find = require("neotest-golang.lib.find")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
+local path = require("neotest-golang.lib.path")
 require("neotest-golang.lib.types")
 
 local M = {}
@@ -121,15 +123,14 @@ end
 ---@param import_to_dir table<string, string> Mapping of import paths to directories
 ---@return string|nil Import path or nil if not found
 function M.file_path_to_import_path(file_path, import_to_dir)
-  -- Get the directory containing the file
-  local file_dir = file_path:match("(.+)/[^/]+$")
-  if not file_dir then
+  local file_dir = path.get_directory(file_path)
+  if not file_dir or file_dir == "" then
     return nil
   end
 
   -- Find matching import path
   for import_path, dir in pairs(import_to_dir) do
-    if dir == file_dir then
+    if vim.fs.normalize(dir) == vim.fs.normalize(file_dir) then
       return import_path
     end
   end
@@ -142,6 +143,24 @@ function M.file_path_to_import_path(file_path, import_to_dir)
   return nil
 end
 
+---Extract file path from Neotest position ID
+---@param pos_id string Position ID like "/path/to/file_test.go::TestName" or "D:\\path\\file_test.go::TestName"
+---@return string|nil File path part before "::" or nil if not found
+function M.extract_file_path_from_pos_id(pos_id)
+  if not pos_id or type(pos_id) ~= "string" or pos_id == "" then
+    return nil
+  end
+
+  -- Find the first occurrence of "::" (which separates file path from test path)
+  local separator_pos = pos_id:find("::")
+  if separator_pos then
+    return pos_id:sub(1, separator_pos - 1)
+  end
+
+  -- If no "::" found, treat the entire string as the file path
+  return pos_id
+end
+
 ---Convert Neotest position ID to Go test filename
 ---@param pos_id string Position ID like "/path/to/file_test.go::TestName" or synthetic ID like "github.com/pkg::TestName"
 ---@return string|nil Filename like "file_test.go" or nil if not a file path
@@ -150,11 +169,14 @@ function M.pos_id_to_filename(pos_id)
     return nil
   end
 
-  -- Check if it looks like a file path (contains "/" and ends with ".go")
-  local file_path = pos_id:match("^([^:]+)")
-  if file_path and file_path:match("%.go$") and file_path:match("/") then
-    -- Extract just the filename from the full path
-    return file_path:match("([^/]+)$")
+  local file_path = path.extract_file_path_from_pos_id(pos_id)
+  if
+    file_path
+    and file_path:match("%.go$")
+    and (file_path:match("/") or file_path:match("\\"))
+  then
+    -- Extract just the filename from the full path using platform-conditional utility
+    return path.get_filename_fast(file_path)
   end
 
   return nil

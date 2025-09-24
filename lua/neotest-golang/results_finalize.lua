@@ -132,8 +132,7 @@ function M.populate_missing_dir_results(tree, results)
   for pos_id, result in pairs(results) do
     -- Check if this is a file position (ends with .go but no "::")
     if pos_id:match("%.go$") and not pos_id:find("::") then
-      -- Extract directory path using vim.fs.dirname
-      local dir_path = vim.fs.dirname(pos_id)
+      local dir_path = lib.path.get_directory(pos_id)
 
       if dir_path and dir_path ~= "." then
         if not dir_to_files[dir_path] then
@@ -154,8 +153,7 @@ function M.populate_missing_dir_results(tree, results)
   for pos_id, result in pairs(results) do
     -- Check if this is a directory position (no .go and no ::)
     if not pos_id:match("%.go$") and not pos_id:find("::") then
-      -- Extract parent directory path
-      local parent_dir = vim.fs.dirname(pos_id)
+      local parent_dir = lib.path.get_directory(pos_id)
 
       if parent_dir and parent_dir ~= "." and parent_dir ~= pos_id then
         if not dir_to_subdirs[parent_dir] then
@@ -198,33 +196,45 @@ function M.populate_missing_dir_results(tree, results)
           vim.list_extend(all_errors, file_result.errors)
         end
 
-        -- Collect output
+        -- Collect output (but only if file actually has meaningful output)
         if file_result.output then
           local file_output_lines = async.fn.readfile(file_result.output)
-          vim.list_extend(combined_output, file_output_lines)
+          if #file_output_lines > 0 then
+            vim.list_extend(combined_output, file_output_lines)
+          end
         end
       end
 
-      -- Only create directory result if we have files and actual output content
-      if #file_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
-        -- Write combined output to file
-        local dir_output_path = vim.fs.normalize(async.fn.tempname())
-        async.fn.writefile(combined_output, dir_output_path)
+      -- Check if there's meaningful output content (more than just header)
+      local has_meaningful_output = #combined_output > 1 -- > 1 because we always add header
 
-        -- Create or update directory node result
+      -- Create or update directory node result
+      if #file_entries > 0 then
         if dir_result then
-          -- Update existing result with aggregated output
-          dir_result.output = dir_output_path
+          -- Update existing result with aggregated data
+          if has_meaningful_output then
+            local dir_output_path = vim.fs.normalize(async.fn.tempname())
+            async.fn.writefile(combined_output, dir_output_path)
+            dir_result.output = dir_output_path
+          end
           if #all_errors > 0 then
             dir_result.errors = all_errors
           end
         else
           -- Create new directory node result
-          results[dir_path] = {
+          local new_result = {
             status = dir_status,
-            output = dir_output_path,
             errors = all_errors,
           }
+
+          -- Only add output field if there's meaningful content
+          if has_meaningful_output then
+            local dir_output_path = vim.fs.normalize(async.fn.tempname())
+            async.fn.writefile(combined_output, dir_output_path)
+            new_result.output = dir_output_path
+          end
+
+          results[dir_path] = new_result
         end
       end
     end
@@ -310,8 +320,7 @@ function M.populate_missing_file_results(tree, results)
   for pos_id, result in pairs(results) do
     -- Check if this is a test position (contains "::")
     if pos_id:find("::") then
-      -- Extract file path (everything before first "::")
-      local file_path = pos_id:match("^([^:]+)")
+      local file_path = lib.path.extract_file_path_from_pos_id(pos_id)
 
       if file_path and file_path:match("%.go$") then
         if not file_to_tests[file_path] then

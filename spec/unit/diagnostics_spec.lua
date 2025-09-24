@@ -57,6 +57,99 @@ describe("parse_diagnostic_line", function()
       end
     end
   end)
+
+  describe("Windows path handling", function()
+    it("parses Windows paths with drive letters and backslashes", function()
+      local cases = {
+        {
+          line = "D:\\\\project\\\\test.go:123: debug message",
+          expected = {
+            filename = "D:\\\\project\\\\test.go",
+            line_number = 123,
+            message = "debug message",
+            severity = vim.diagnostic.severity.HINT,
+          },
+        },
+        {
+          line = "C:\\\\Users\\\\test\\\\project\\\\my_test.go:456: panic: error occurred",
+          expected = {
+            filename = "C:\\\\Users\\\\test\\\\project\\\\my_test.go",
+            line_number = 456,
+            message = "panic: error occurred",
+            severity = vim.diagnostic.severity.ERROR,
+          },
+        },
+        {
+          line = "  C:\\\\temp\\\\file_test.go:789: indented Windows message",
+          expected = {
+            filename = "C:\\\\temp\\\\file_test.go",
+            line_number = 789,
+            message = "indented Windows message",
+            severity = vim.diagnostic.severity.HINT,
+          },
+        },
+      }
+
+      for _, case in ipairs(cases) do
+        local res = lib.diagnostics.parse_diagnostic_line(case.line)
+        if case.expected then
+          assert.is_not_nil(res, "Should parse: " .. case.line)
+          assert.equals(case.expected.filename, res.filename)
+          assert.equals(case.expected.line_number, res.line_number)
+          assert.equals(case.expected.message, res.message)
+          assert.equals(case.expected.severity, res.severity)
+        else
+          assert.is_nil(res, "Should not parse: " .. case.line)
+        end
+      end
+    end)
+
+    it("parses Windows UNC paths", function()
+      local cases = {
+        {
+          line = "\\\\\\\\server\\\\share\\\\project\\\\test.go:100: UNC path message",
+          expected = {
+            filename = "\\\\\\\\server\\\\share\\\\project\\\\test.go",
+            line_number = 100,
+            message = "UNC path message",
+            severity = vim.diagnostic.severity.HINT,
+          },
+        },
+      }
+
+      for _, case in ipairs(cases) do
+        local res = lib.diagnostics.parse_diagnostic_line(case.line)
+        assert.is_not_nil(res, "Should parse: " .. case.line)
+        assert.equals(case.expected.filename, res.filename)
+        assert.equals(case.expected.line_number, res.line_number)
+        assert.equals(case.expected.message, res.message)
+        assert.equals(case.expected.severity, res.severity)
+      end
+    end)
+
+    it("parses Windows paths with mixed separators", function()
+      local cases = {
+        {
+          line = "C:\\\\Users\\\\test/project\\\\mixed_test.go:200: mixed separator message",
+          expected = {
+            filename = "C:\\\\Users\\\\test/project\\\\mixed_test.go",
+            line_number = 200,
+            message = "mixed separator message",
+            severity = vim.diagnostic.severity.HINT,
+          },
+        },
+      }
+
+      for _, case in ipairs(cases) do
+        local res = lib.diagnostics.parse_diagnostic_line(case.line)
+        assert.is_not_nil(res, "Should parse: " .. case.line)
+        assert.equals(case.expected.filename, res.filename)
+        assert.equals(case.expected.line_number, res.line_number)
+        assert.equals(case.expected.message, res.message)
+        assert.equals(case.expected.severity, res.severity)
+      end
+    end)
+  end)
 end)
 
 describe("is_hint_message", function()
@@ -215,4 +308,210 @@ describe("process_diagnostics", function()
       assert.is_true(vim.tbl_contains(one_index_lines, 3))
     end
   )
+
+  describe("Windows path handling in position_id", function()
+    it(
+      "filters diagnostics by Windows test filename from position_id",
+      function()
+        local test_entry = {
+          metadata = {
+            position_id = "D:\\\\\\\\a\\\\\\\\neotest-golang\\\\\\\\tests\\\\\\\\go\\\\\\\\internal\\\\\\\\multifile\\\\\\\\first_file_test.go::TestOne",
+            output_parts = {
+              table.concat({
+                "first_file_test.go:10: Starting Windows test",
+                "other_test.go:11: Should be ignored",
+              }, "\n"),
+              "  first_file_test.go:12: panic: Windows boom",
+              "go:13: some Windows harness line",
+            },
+          },
+        }
+
+        local errs = lib.diagnostics.process_diagnostics(test_entry)
+
+        assert.equals(2, #errs)
+
+        local by_line = {}
+        for _, e in ipairs(errs) do
+          by_line[e.line] = e
+        end
+
+        assert.is_not_nil(by_line[9])
+        assert.is_not_nil(by_line[11])
+        assert.equals("Starting Windows test", by_line[9].message)
+        assert.equals(vim.diagnostic.severity.HINT, by_line[9].severity)
+        assert.equals("panic: Windows boom", by_line[11].message)
+        assert.equals(vim.diagnostic.severity.ERROR, by_line[11].severity)
+      end
+    )
+
+    it("handles Windows UNC paths in position_id", function()
+      local test_entry = {
+        metadata = {
+          position_id = "\\\\\\\\\\\\\\\\server\\\\\\\\share\\\\\\\\project\\\\\\\\unc_test.go::TestUNC",
+          output_parts = {
+            "unc_test.go:5: UNC path diagnostic",
+            "other_file.go:6: Should be filtered out",
+          },
+        },
+      }
+
+      local errs = lib.diagnostics.process_diagnostics(test_entry)
+
+      assert.equals(1, #errs)
+      assert.equals(4, errs[1].line) -- 0-indexed
+      assert.equals("UNC path diagnostic", errs[1].message)
+    end)
+
+    it("handles Windows paths with mixed separators in position_id", function()
+      local test_entry = {
+        metadata = {
+          position_id = "C:\\\\\\\\Users\\\\\\\\test/project\\\\\\\\mixed_test.go::TestMixed",
+          output_parts = {
+            "mixed_test.go:15: Mixed separator test",
+          },
+        },
+      }
+
+      local errs = lib.diagnostics.process_diagnostics(test_entry)
+
+      assert.equals(1, #errs)
+      assert.equals(14, errs[1].line) -- 0-indexed
+      assert.equals("Mixed separator test", errs[1].message)
+    end)
+  end)
+
+  describe("Performance: filename caching", function()
+    it(
+      "caches filename extraction to avoid repeated expensive operations",
+      function()
+        local test_entry = {
+          metadata = {
+            position_id = "/abs/path/my_test.go::TestSomething",
+            output_parts = {
+              "my_test.go:10: First diagnostic",
+              "my_test.go:15: Second diagnostic",
+              "my_test.go:20: Third diagnostic",
+            },
+          },
+        }
+
+        -- Process diagnostics - should cache filename on first extraction
+        local errs = lib.diagnostics.process_diagnostics(test_entry)
+
+        -- Verify caching worked
+        assert.equals("my_test.go", test_entry.metadata._cached_filename)
+        assert.equals(3, #errs)
+
+        -- All diagnostics should be included since they match cached filename
+        assert.equals("First diagnostic", errs[1].message)
+        assert.equals("Second diagnostic", errs[2].message)
+        assert.equals("Third diagnostic", errs[3].message)
+      end
+    )
+
+    it("handles Windows drive letter paths in caching", function()
+      local test_entry = {
+        metadata = {
+          position_id = "D:\\\\project\\\\windows_test.go::TestWindows",
+          output_parts = {
+            "windows_test.go:5: Windows diagnostic one",
+            "windows_test.go:10: Windows diagnostic two",
+          },
+        },
+      }
+
+      local errs = lib.diagnostics.process_diagnostics(test_entry)
+
+      -- Verify Windows filename cached correctly
+      assert.equals("windows_test.go", test_entry.metadata._cached_filename)
+      assert.equals(2, #errs)
+      assert.equals("Windows diagnostic one", errs[1].message)
+      assert.equals("Windows diagnostic two", errs[2].message)
+    end)
+
+    it("handles Windows UNC paths in caching", function()
+      local test_entry = {
+        metadata = {
+          position_id = "\\\\\\\\server\\\\share\\\\project\\\\unc_test.go::TestUNC",
+          output_parts = {
+            "unc_test.go:15: UNC diagnostic",
+          },
+        },
+      }
+
+      local errs = lib.diagnostics.process_diagnostics(test_entry)
+
+      -- Verify UNC filename cached correctly
+      assert.equals("unc_test.go", test_entry.metadata._cached_filename)
+      assert.equals(1, #errs)
+      assert.equals("UNC diagnostic", errs[1].message)
+    end)
+
+    it("filters out diagnostics when cached filename doesn't match", function()
+      local test_entry = {
+        metadata = {
+          position_id = "/abs/path/target_test.go::TestTarget",
+          output_parts = {
+            "target_test.go:5: Should be included",
+            "other_test.go:10: Should be filtered out",
+            "target_test.go:15: Should be included",
+          },
+        },
+      }
+
+      local errs = lib.diagnostics.process_diagnostics(test_entry)
+
+      -- Verify correct filename cached and filtering worked
+      assert.equals("target_test.go", test_entry.metadata._cached_filename)
+      assert.equals(2, #errs)
+      assert.equals("Should be included", errs[1].message)
+      assert.equals("Should be included", errs[2].message)
+    end)
+
+    it("handles position_id without file extension gracefully", function()
+      local test_entry = {
+        metadata = {
+          position_id = "github.com/pkg/module::TestSomething",
+          output_parts = {
+            "go:5: Some diagnostic",
+            "module_test.go:10: Another diagnostic",
+          },
+        },
+      }
+
+      local errs = lib.diagnostics.process_diagnostics(test_entry)
+
+      -- When no filename can be extracted, should include all diagnostics
+      assert.is_nil(test_entry.metadata._cached_filename)
+      assert.equals(2, #errs)
+    end)
+
+    it("reuses cached filename across multiple calls", function()
+      local test_entry = {
+        metadata = {
+          position_id = "/abs/path/reuse_test.go::TestReuse",
+          output_parts = {
+            "reuse_test.go:5: First call",
+          },
+        },
+      }
+
+      -- First call should cache
+      local errs1 = lib.diagnostics.process_diagnostics(test_entry)
+      assert.equals("reuse_test.go", test_entry.metadata._cached_filename)
+      assert.equals(1, #errs1)
+
+      -- Add more output and call again
+      test_entry.metadata.output_parts = {
+        "reuse_test.go:10: Second call",
+      }
+
+      -- Second call should reuse cache
+      local errs2 = lib.diagnostics.process_diagnostics(test_entry)
+      assert.equals("reuse_test.go", test_entry.metadata._cached_filename)
+      assert.equals(1, #errs2)
+      assert.equals("Second call", errs2[1].message)
+    end)
+  end)
 end)

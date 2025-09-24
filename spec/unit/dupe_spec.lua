@@ -231,4 +231,119 @@ describe("Duplicate subtest detection", function()
       )
     end)
   end)
+
+  describe("Windows path handling", function()
+    local original_warn
+    local captured_warnings = {}
+
+    before_each(function()
+      captured_warnings = {}
+      local logger = require("neotest-golang.lib.logging")
+      original_warn = logger.warn
+      logger.warn = function(msg, notify)
+        table.insert(captured_warnings, { msg = msg, notify = notify })
+      end
+    end)
+
+    after_each(function()
+      if original_warn then
+        require("neotest-golang.lib.logging").warn = original_warn
+      end
+    end)
+
+    it("detects duplicates with Windows drive letter paths", function()
+      local positions = {
+        create_test_position(
+          'D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go::TestDupe::"foo"::"bar"'
+        ),
+        create_test_position(
+          'D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go::TestDupe::"foo"::"bar"'
+        ),
+      }
+      local tree = create_tree_from_positions(positions)
+
+      dupe.warn_duplicate_tests(tree)
+
+      assert.are.equal(1, #captured_warnings)
+      local warning = captured_warnings[1]
+      assert.is_true(warning.notify)
+      assert.is_true(
+        string.find(warning.msg, "Found duplicate subtest names:") ~= nil
+      )
+      assert.is_true(string.find(warning.msg, "TestDupe/foo::bar") ~= nil)
+    end)
+
+    it("detects duplicates with Windows UNC paths", function()
+      local positions = {
+        create_test_position(
+          '\\\\\\\\server\\\\share\\\\project\\\\test_file.go::TestDupe::"same"'
+        ),
+        create_test_position(
+          '\\\\\\\\server\\\\share\\\\project\\\\test_file.go::TestDupe::"same"'
+        ),
+      }
+      local tree = create_tree_from_positions(positions)
+
+      dupe.warn_duplicate_tests(tree)
+
+      assert.are.equal(1, #captured_warnings)
+      local warning = captured_warnings[1]
+      assert.is_true(string.find(warning.msg, "TestDupe::same") ~= nil)
+    end)
+
+    it("detects duplicates with mixed Windows path separators", function()
+      local positions = {
+        create_test_position(
+          'C:\\\\Users\\\\test/project\\\\mixed_test.go::TestMixed::"duplicate"'
+        ),
+        create_test_position(
+          'C:\\\\Users\\\\test/project\\\\mixed_test.go::TestMixed::"duplicate"'
+        ),
+      }
+      local tree = create_tree_from_positions(positions)
+
+      dupe.warn_duplicate_tests(tree)
+
+      assert.are.equal(1, #captured_warnings)
+      local warning = captured_warnings[1]
+      assert.is_true(string.find(warning.msg, "TestMixed::duplicate") ~= nil)
+    end)
+
+    it("handles Windows paths with deeply nested subtests", function()
+      local positions = {
+        create_test_position(
+          'D:\\\\path\\\\to\\\\file_test.go::TestDeep::"level1"::"level2"::"level3"::"final"'
+        ),
+        create_test_position(
+          'D:\\\\path\\\\to\\\\file_test.go::TestDeep::"level1"::"level2"::"level3"::"final"'
+        ),
+      }
+      local tree = create_tree_from_positions(positions)
+
+      dupe.warn_duplicate_tests(tree)
+
+      assert.are.equal(1, #captured_warnings)
+      local warning = captured_warnings[1]
+      assert.is_true(
+        string.find(warning.msg, "TestDeep/level1/level2/level3::final") ~= nil
+      )
+    end)
+
+    it("ignores duplicates across different Windows test files", function()
+      local positions = {
+        create_test_position(
+          'C:\\\\proj\\\\first_test.go::TestSame::"duplicate"'
+        ),
+        create_test_position(
+          'C:\\\\proj\\\\second_test.go::TestSame::"duplicate"'
+        ),
+      }
+      local tree = create_tree_from_positions(positions)
+
+      dupe.warn_duplicate_tests(tree)
+
+      -- Should not warn since they're in different files
+      assert.are.equal(0, #captured_warnings)
+    end)
+  end)
 end)

@@ -284,10 +284,89 @@ describe("to_dir_position_id", function()
   end)
 end)
 
+describe("extract_file_path_from_pos_id", function()
+  it("extracts Unix-style file paths correctly", function()
+    local pos_id = "/home/user/project/file_test.go::TestName"
+    local expected = "/home/user/project/file_test.go"
+
+    local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("extracts Windows-style file paths correctly with drive letter", function()
+    local pos_id =
+      "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go::TestOne"
+    local expected =
+      "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go"
+
+    local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("extracts Windows-style file paths with forward slashes", function()
+    local pos_id =
+      "D:/a/neotest-golang/tests/go/internal/multifile/first_file_test.go::TestOne"
+    local expected =
+      "D:/a/neotest-golang/tests/go/internal/multifile/first_file_test.go"
+
+    local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("handles complex test names with subtests", function()
+    local pos_id =
+      'D:\\\\path\\\\file_test.go::TestName::"SubTest"::"NestedTest"'
+    local expected = "D:\\\\path\\\\file_test.go"
+
+    local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("handles position IDs without test separators", function()
+    local pos_id = "D:\\\\path\\\\file_test.go"
+    local expected = "D:\\\\path\\\\file_test.go"
+
+    local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("returns nil for invalid input", function()
+    assert.is_nil(lib.convert.extract_file_path_from_pos_id(nil))
+    assert.is_nil(lib.convert.extract_file_path_from_pos_id(123))
+    assert.is_nil(lib.convert.extract_file_path_from_pos_id(""))
+  end)
+
+  it(
+    "should not be confused by Windows drive letter colons (regression test)",
+    function()
+      -- This tests the specific issue where "D:" was extracted instead of the full path
+      local pos_id =
+        "D:\\\\a\\\\neotest-golang\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go::TestOne"
+      local result = lib.convert.extract_file_path_from_pos_id(pos_id)
+
+      -- The old regex would return "D" instead of the full path
+      assert.is_not.equal("D", result)
+      assert.are.equal(
+        "D:\\\\a\\\\neotest-golang\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go",
+        result
+      )
+    end
+  )
+end)
+
 describe("pos_id_to_filename", function()
   it("extracts filename from file path position ID", function()
     local pos_id = "/path/to/pkg/file_test.go::TestName"
     local expected = "file_test.go"
+
+    local result = lib.convert.pos_id_to_filename(pos_id)
+    assert.are.equal(expected, result)
+  end)
+
+  it("extracts filename from Windows path with drive letter", function()
+    local pos_id =
+      "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\internal\\\\multifile\\\\first_file_test.go::TestOne"
+    local expected = "first_file_test.go"
 
     local result = lib.convert.pos_id_to_filename(pos_id)
     assert.are.equal(expected, result)
@@ -317,6 +396,95 @@ describe("pos_id_to_filename", function()
 
     local result = lib.convert.pos_id_to_filename(pos_id)
     assert.is_nil(result)
+  end)
+end)
+
+describe("Platform-conditional path utilities", function()
+  describe("get_filename_fast", function()
+    it("uses vim.fs.basename on POSIX systems for performance", function()
+      -- Mock vim.fn.has to return 0 (POSIX)
+      local original_has = vim.fn.has
+      vim.fn.has = function(feature)
+        if feature == "win32" then
+          return 0
+        end
+        return original_has(feature)
+      end
+
+      -- Mock vim.fs.basename to track calls
+      local original_basename = vim.fs.basename
+      local basename_called = false
+      vim.fs.basename = function(path)
+        basename_called = true
+        return original_basename(path)
+      end
+
+      local result = lib.path.get_filename_fast("/path/to/file_test.go")
+
+      -- Verify the fast path was used
+      assert.is_true(basename_called)
+      assert.equals("file_test.go", result)
+
+      -- Restore original functions
+      vim.fn.has = original_has
+      vim.fs.basename = original_basename
+    end)
+
+    it("uses find.get_filename on Windows systems for compatibility", function()
+      -- Mock vim.fn.has to return 1 (Windows)
+      local original_has = vim.fn.has
+      vim.fn.has = function(feature)
+        if feature == "win32" then
+          return 1
+        end
+        return original_has(feature)
+      end
+
+      -- Test with Windows path
+      local result = lib.path.get_filename_fast("D:\\\\project\\\\file_test.go")
+
+      -- Should work correctly with Windows paths
+      assert.equals("file_test.go", result)
+
+      -- Restore original function
+      vim.fn.has = original_has
+    end)
+
+    it("handles Windows UNC paths correctly on Windows", function()
+      -- Mock vim.fn.has to return 1 (Windows)
+      local original_has = vim.fn.has
+      vim.fn.has = function(feature)
+        if feature == "win32" then
+          return 1
+        end
+        return original_has(feature)
+      end
+
+      local result =
+        lib.path.get_filename_fast("\\\\\\\\server\\\\share\\\\file_test.go")
+
+      assert.equals("file_test.go", result)
+
+      -- Restore original function
+      vim.fn.has = original_has
+    end)
+
+    it(
+      "maintains performance benefit on POSIX while preserving Windows compatibility",
+      function()
+        -- This test documents the performance intention
+        -- POSIX: fast vim.fs.basename (C built-in)
+        -- Windows: safe find.get_filename (Lua implementation)
+
+        -- Test that function works correctly with POSIX-style paths
+        local posix_result =
+          lib.path.get_filename_fast("/unix/path/file_test.go")
+        assert.equals("file_test.go", posix_result)
+
+        -- Test that function exists and is callable (Windows path testing done in Windows-specific test)
+        assert.is_function(lib.path.get_filename_fast)
+      end
+    )
   end)
 end)
 

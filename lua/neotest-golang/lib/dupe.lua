@@ -2,16 +2,17 @@
 
 local convert = require("neotest-golang.lib.convert")
 local logger = require("neotest-golang.lib.logging")
+local path = require("neotest-golang.lib.path")
 
 local M = {}
 
---- Find duplicate subtests within the same parent test
+--- Find duplicate subtests within the same parent test and file
 --- @param tree neotest.Tree The neotest tree structure
 function M.warn_duplicate_tests(tree)
-  -- Build a map of parent test -> list of subtest names
+  -- Build a map of (file_path, parent_test) -> list of subtest names
   local parent_to_subtests = {}
 
-  -- First pass: collect all test positions and organize by parent
+  -- First pass: collect all test positions and organize by parent and file
   for _, node in tree:iter_nodes() do
     local pos = node:data()
     if pos.type == "test" then
@@ -34,19 +35,26 @@ function M.warn_duplicate_tests(tree)
           -- Get the subtest name (last part)
           local subtest_name = parts[#parts]
 
-          -- Initialize parent entry if it doesn't exist
-          if not parent_to_subtests[parent_test_name] then
-            parent_to_subtests[parent_test_name] = {}
-          end
+          -- Extract file path from position ID
+          local file_path = path.extract_file_path_from_pos_id(pos.id)
+          if file_path then
+            -- Create composite key (file_path + parent_test) to ensure duplicates are only flagged within the same file
+            local composite_key = file_path .. "::" .. parent_test_name
 
-          -- Track this subtest under its parent
-          if not parent_to_subtests[parent_test_name][subtest_name] then
-            parent_to_subtests[parent_test_name][subtest_name] = {}
+            -- Initialize parent entry if it doesn't exist
+            if not parent_to_subtests[composite_key] then
+              parent_to_subtests[composite_key] = {}
+            end
+
+            -- Track this subtest under its parent (within the same file)
+            if not parent_to_subtests[composite_key][subtest_name] then
+              parent_to_subtests[composite_key][subtest_name] = {}
+            end
+            table.insert(
+              parent_to_subtests[composite_key][subtest_name],
+              pos.id
+            )
           end
-          table.insert(
-            parent_to_subtests[parent_test_name][subtest_name],
-            pos.id
-          )
         end
       end
     end
@@ -56,7 +64,9 @@ function M.warn_duplicate_tests(tree)
   local duplicate_set = {}
   local found_duplicates = false
 
-  for parent_test_name, subtests in pairs(parent_to_subtests) do
+  for composite_key, subtests in pairs(parent_to_subtests) do
+    -- Extract parent test name from composite key for display purposes
+    local parent_test_name = composite_key:match("::(.+)$")
     for subtest_name, pos_ids in pairs(subtests) do
       if #pos_ids > 1 then
         found_duplicates = true

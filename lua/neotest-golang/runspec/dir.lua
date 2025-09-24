@@ -1,6 +1,7 @@
 --- Helpers to build the command and context around running all tests of
 --- a Go package.
 
+local find = require("neotest-golang.lib.find")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
@@ -27,7 +28,7 @@ local function find_go_package_import_path(pos, golist_data)
     if
       (
         golist_item.Module.GoMod
-          == pos.path .. lib.find.os_path_sep .. "go.mod"
+          == pos.path .. lib.path.os_path_sep .. "go.mod"
         and golist_item.Name == "main"
       ) or (pos.path == golist_item.Dir and golist_item.Name == "main")
     then
@@ -64,7 +65,7 @@ local function find_go_package_import_path(pos, golist_data)
       end
     end
 
-    package_import_path = vim.fn.fnamemodify(shortest, ":h") .. "/..."
+    package_import_path = lib.path.get_directory(shortest) .. "/..."
     return package_import_path
   end
 

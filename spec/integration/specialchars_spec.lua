@@ -1,5 +1,6 @@
 local _ = require("plenary")
 local options = require("neotest-golang.options")
+local path = require("neotest-golang.lib.path")
 
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
@@ -16,7 +17,7 @@ describe("Integration: special characters test", function()
 
       local position_id = vim.uv.cwd()
         .. "/tests/go/internal/specialchars/special_characters_test.go"
-      position_id = integration.normalize_path(position_id)
+      position_id = path.normalize_path(position_id)
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
@@ -27,12 +28,12 @@ describe("Integration: special characters test", function()
       local want = {
         results = {
           -- Parent directory result
-          [vim.fs.dirname(vim.fs.dirname(position_id))] = {
+          [path.get_directory(path.get_directory(position_id))] = {
             status = "passed",
             errors = {},
           },
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(position_id)] = {
+          [path.get_directory(position_id)] = {
             status = "passed",
             errors = {},
           },

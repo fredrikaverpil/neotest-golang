@@ -1,5 +1,6 @@
 local _ = require("plenary")
 local options = require("neotest-golang.options")
+local path = require("neotest-golang.lib.path")
 
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
@@ -14,9 +15,8 @@ describe("Integration: nested subpackage2 test", function()
       test_options.runner = "gotestsum"
       options.set(test_options)
 
-      -- Test the entire nested directory structure
-      local position_id = vim.uv.cwd() .. "/tests/go/internal/nested"
-      position_id = integration.normalize_path(position_id)
+      local position_id =
+        path.normalize_path(vim.uv.cwd() .. "/tests/go/internal/nested")
 
       -- Calculate nested directory position ID (same as position_id in this case)
       local nested_dir_id = position_id
@@ -98,18 +98,18 @@ describe("Integration: nested subpackage2 test", function()
 
       local position_id = vim.uv.cwd()
         .. "/tests/go/internal/nested/subpackage2/subpackage2_test.go"
-      position_id = integration.normalize_path(position_id)
+      position_id = path.normalize_path(position_id)
 
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Parent directory result (created by hierarchical aggregation)
-          [vim.uv.cwd() .. "/tests/go/internal/nested"] = {
+          [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal/nested")] = {
             status = "passed",
             errors = {},
           },
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(position_id)] = {
+          [path.get_directory(position_id)] = {
             status = "passed",
             errors = {},
           },
@@ -185,18 +185,20 @@ describe("Integration: nested subpackage2 test", function()
 
       local position_id = vim.uv.cwd()
         .. "/tests/go/internal/nested/subpackage2/subpackage3/subpackage3_test.go"
-      position_id = integration.normalize_path(position_id)
+      position_id = path.normalize_path(position_id)
 
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Parent directory result (created by hierarchical aggregation)
-          [vim.uv.cwd() .. "/tests/go/internal/nested/subpackage2"] = {
+          [path.normalize_path(
+            vim.uv.cwd() .. "/tests/go/internal/nested/subpackage2"
+          )] = {
             status = "passed",
             errors = {},
           },
           -- Directory-level result (created by file aggregation)
-          [vim.fs.dirname(position_id)] = {
+          [path.get_directory(position_id)] = {
             status = "passed",
             errors = {},
           },

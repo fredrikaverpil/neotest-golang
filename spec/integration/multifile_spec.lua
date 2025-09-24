@@ -1,5 +1,6 @@
 local _ = require("plenary")
 local options = require("neotest-golang.options")
+local path = require("neotest-golang.lib.path")
 
 -- Load integration helpers
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
@@ -14,19 +15,19 @@ describe("Integration: multifile test", function()
       test_options.runner = "gotestsum"
       options.set(test_options)
 
-      local pos_id_dir = vim.uv.cwd() .. "/tests/go/internal/multifile"
-      pos_id_dir = integration.normalize_path(pos_id_dir)
+      local pos_id_dir =
+        path.normalize_path(vim.uv.cwd() .. "/tests/go/internal/multifile")
 
       local pos_id_first = pos_id_dir .. "/first_file_test.go"
       local pos_id_second = pos_id_dir .. "/second_file_test.go"
-      pos_id_first = integration.normalize_path(pos_id_first)
-      pos_id_second = integration.normalize_path(pos_id_second)
+      pos_id_first = path.normalize_path(pos_id_first)
+      pos_id_second = path.normalize_path(pos_id_second)
 
       ---@type AdapterExecutionResult
       local want = {
         results = {
           -- Parent directory result
-          [vim.fs.dirname(pos_id_dir)] = {
+          [path.get_directory(pos_id_dir)] = {
             status = "passed",
             errors = {},
           },

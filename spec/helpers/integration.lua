@@ -1,5 +1,7 @@
 --- Integration test utilities for end-to-end Go test execution
 
+local lib = require("neotest-golang.lib")
+
 ---@class AdapterExecutionResult
 ---@field tree neotest.Tree The discovered test tree
 ---@field results table<string, neotest.Result> The processed test results
@@ -82,7 +84,16 @@ function M.execute_adapter_direct(position_id)
   assert(type(position_id) == "string", "position_id must be a string")
 
   -- Parse position ID to extract components
-  local base_path, test_components = position_id:match("^([^:]+)(.*)")
+  -- Handle Windows drive letters (C:, D:, etc.) by looking for :: test separators specifically
+  local base_path, test_components
+  local double_colon_pos = position_id:find("::")
+  if double_colon_pos then
+    base_path = position_id:sub(1, double_colon_pos - 1)
+    test_components = position_id:sub(double_colon_pos)
+  else
+    base_path = position_id
+    test_components = ""
+  end
   local has_test_parts = test_components and test_components ~= ""
 
   -- Infer intent from position ID format
@@ -160,7 +171,7 @@ function M.execute_adapter_direct(position_id)
     end)
 
     for _, file in ipairs(dir_scan or {}) do
-      table.insert(test_files, base_path .. "/" .. file)
+      table.insert(test_files, base_path .. lib.path.os_path_sep .. file)
     end
 
     local all_nodes = {}
@@ -182,7 +193,7 @@ function M.execute_adapter_direct(position_id)
     local dir_position = {
       type = "dir",
       path = base_path,
-      name = vim.fn.fnamemodify(base_path, ":t"),
+      name = lib.path.get_filename(base_path),
       id = base_path,
       range = { 0, 0, 0, 0 },
     }
@@ -286,14 +297,6 @@ function M.execute_adapter_direct(position_id)
     run_spec = run_spec,
     strategy_result = strategy_result,
   }
-end
-
---- Normalize Windows paths for cross-platform testing
---- @param path string
---- @return string
-function M.normalize_path(path)
-  local utils = dofile(vim.uv.cwd() .. "/spec/helpers/utils.lua")
-  return utils.normalize_path(path)
 end
 
 --- Process test output manually to populate individual test results

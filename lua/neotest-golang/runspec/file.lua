@@ -1,6 +1,7 @@
 --- Helpers to build the command and context around running all tests of a file.
 
 local dap = require("neotest-golang.features.dap")
+local find = require("neotest-golang.lib.find")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
@@ -26,8 +27,8 @@ function M.build(pos, tree, strategy)
     return nil -- NOTE: logger.error will throw an error, but the LSP doesn't see it.
   end
 
-  local go_mod_folderpath = vim.fn.fnamemodify(go_mod_filepath, ":h")
-  local pos_path_folderpath = vim.fn.fnamemodify(pos.path, ":h")
+  local go_mod_folderpath = lib.path.get_directory(go_mod_filepath)
+  local pos_path_folderpath = lib.path.get_directory(pos.path)
   local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
 
   local errors = nil
@@ -40,7 +41,7 @@ function M.build(pos, tree, strategy)
 
   -- find the go package that corresponds to the pos.path
   local package_name = "./..."
-  local pos_path_filename = vim.fn.fnamemodify(pos.path, ":t")
+  local pos_path_filename = lib.path.get_filename(pos.path)
 
   for _, golist_item in ipairs(golist_data) do
     if golist_item.TestGoFiles ~= nil then

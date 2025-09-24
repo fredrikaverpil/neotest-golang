@@ -1,6 +1,7 @@
 --- Helpers to build the command and context around running a single test.
 
 local dap = require("neotest-golang.features.dap")
+local find = require("neotest-golang.lib.find")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
@@ -13,7 +14,7 @@ local M = {}
 --- @param strategy string|nil Strategy to use (e.g., "dap" for debugging)
 --- @return neotest.RunSpec|nil Runspec for executing the test
 function M.build(pos, tree, strategy)
-  local pos_path_folderpath = vim.fn.fnamemodify(pos.path, ":h")
+  local pos_path_folderpath = lib.path.get_directory(pos.path)
 
   local golist_data, golist_error = lib.cmd.golist_data(pos_path_folderpath)
 
