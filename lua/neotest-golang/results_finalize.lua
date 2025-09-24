@@ -3,8 +3,6 @@
 
 local async = require("neotest.async")
 
-local convert = require("neotest-golang.lib.convert")
-local find = require("neotest-golang.lib.find")
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
@@ -135,7 +133,7 @@ function M.populate_missing_dir_results(tree, results)
     -- Check if this is a file position (ends with .go but no "::")
     if pos_id:match("%.go$") and not pos_id:find("::") then
       -- Extract directory path using find.get_directory for Windows compatibility
-      local dir_path = find.get_directory(pos_id)
+      local dir_path = lib.find.get_directory(pos_id)
 
       if dir_path and dir_path ~= "." then
         if not dir_to_files[dir_path] then
@@ -157,7 +155,7 @@ function M.populate_missing_dir_results(tree, results)
     -- Check if this is a directory position (no .go and no ::)
     if not pos_id:match("%.go$") and not pos_id:find("::") then
       -- Extract parent directory path using find.get_directory for Windows compatibility
-      local parent_dir = find.get_directory(pos_id)
+      local parent_dir = lib.find.get_directory(pos_id)
 
       if parent_dir and parent_dir ~= "." and parent_dir ~= pos_id then
         if not dir_to_subdirs[parent_dir] then
@@ -325,7 +323,7 @@ function M.populate_missing_file_results(tree, results)
     -- Check if this is a test position (contains "::")
     if pos_id:find("::") then
       -- Extract file path using Windows-safe method
-      local file_path = convert.extract_file_path_from_pos_id(pos_id)
+      local file_path = lib.convert.extract_file_path_from_pos_id(pos_id)
 
       if file_path and file_path:match("%.go$") then
         if not file_to_tests[file_path] then
