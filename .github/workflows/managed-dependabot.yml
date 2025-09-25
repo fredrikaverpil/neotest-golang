@@ -13,7 +13,8 @@ on:
     - cron: "0 9 * * 1"
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
   id-token: write
 
 jobs:
