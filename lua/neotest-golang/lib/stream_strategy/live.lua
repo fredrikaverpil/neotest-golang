@@ -15,7 +15,43 @@ function M.create_stream(json_filepath)
       logger.debug(
         "Setting up gotestsum live streaming for file: " .. json_filepath
       )
+
+      -- Check file path before writing
+      local pre_write_stat = vim.uv.fs_stat(json_filepath)
+      logger.debug({
+        "JSON file pre-write check",
+        filepath = json_filepath,
+        exists_before_write = pre_write_stat ~= nil,
+        timestamp = os.time(),
+        process_id = vim.fn.getpid(),
+      })
+
+      -- Initialize empty JSON file for gotestsum streaming
+      logger.debug(
+        "Writing empty content to initialize JSON file: " .. json_filepath
+      )
       neotest_lib.files.write(json_filepath, "")
+
+      -- Verify file was created successfully
+      local post_write_stat = vim.uv.fs_stat(json_filepath)
+      logger.debug({
+        "JSON file post-write verification",
+        filepath = json_filepath,
+        exists_after_write = post_write_stat ~= nil,
+        file_size = post_write_stat and post_write_stat.size or "unknown",
+        file_mode = post_write_stat and post_write_stat.mode or "unknown",
+        timestamp = os.time(),
+      })
+
+      if not post_write_stat then
+        logger.error(
+          "Failed to create JSON file for streaming: " .. json_filepath
+        )
+      else
+        logger.debug("Successfully initialized JSON file for streaming")
+      end
+
+      logger.debug("Starting neotest file stream for: " .. json_filepath)
       return neotest_lib.files.stream_lines(json_filepath)
     else
       local error_msg =

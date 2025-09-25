@@ -116,8 +116,30 @@ function M.test_command(go_test_required_args, fallback)
   if runner == "go" then
     cmd = M.go_test(go_test_required_args)
   elseif runner == "gotestsum" then
+    logger.debug("Creating gotestsum JSON filepath...")
+    local raw_tempname = async.fn.tempname()
     json_filepath = path.normalize_path(raw_tempname)
+    logger.debug({
+      "Gotestsum JSON filepath created",
+      raw_tempname = raw_tempname,
+      normalized_filepath = json_filepath,
+      timestamp = os.time(),
+      process_id = vim.fn.getpid(),
+    })
+
+    -- Check if file path is accessible immediately after creation
+    local filepath_stat = vim.uv.fs_stat(json_filepath)
+    logger.debug({
+      "JSON filepath accessibility check",
+      filepath = json_filepath,
+      exists = filepath_stat ~= nil,
+      stat = filepath_stat,
+    })
+
     cmd = M.gotestsum(go_test_required_args, json_filepath)
+    logger.debug(
+      "Gotestsum command built with JSON filepath: " .. json_filepath
+    )
   end
 
   logger.info("Test command: " .. table.concat(cmd, " "))

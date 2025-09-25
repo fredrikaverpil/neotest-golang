@@ -17,6 +17,11 @@ local M = {}
 --- @param tree neotest.Tree
 --- @return table<string, neotest.Result>
 function M.test_results(spec, result, tree)
+  logger.debug({
+    "Test results",
+    result = result,
+  })
+
   --- @type RunspecContext
   local context = spec.context
 
@@ -68,11 +73,57 @@ function M.test_results(spec, result, tree)
     if not context.test_output_json_filepath then
       logger.error("Gotestsum JSON output file path not provided")
     end
+
+    logger.debug({
+      "Reading gotestsum JSON file",
+      filepath = context.test_output_json_filepath,
+      timestamp = os.time(),
+      process_id = vim.fn.getpid(),
+    })
+
     local file_stat = vim.uv.fs_stat(context.test_output_json_filepath)
+    logger.debug({
+      "Gotestsum JSON file stat check",
+      filepath = context.test_output_json_filepath,
+      exists = file_stat ~= nil,
+      size = file_stat and file_stat.size or "unknown",
+      mode = file_stat and file_stat.mode or "unknown",
+      mtime = file_stat and file_stat.mtime or "unknown",
+    })
+
     if not file_stat or file_stat.size == 0 then -- check if file exists and is non-empty
-      logger.error("Gotestsum JSON output file is missing or empty")
+      logger.error({
+        "Gotestsum JSON output file is missing or empty",
+        filepath = context.test_output_json_filepath,
+        exists = file_stat ~= nil,
+        size = file_stat and file_stat.size or "unknown",
+      })
     end
-    output = async.fn.readfile(context.test_output_json_filepath)
+
+    logger.debug(
+      "Attempting to read gotestsum JSON file: "
+        .. context.test_output_json_filepath
+    )
+    local read_success, read_result =
+      pcall(async.fn.readfile, context.test_output_json_filepath)
+
+    if not read_success then
+      logger.error({
+        "Failed to read gotestsum JSON file",
+        filepath = context.test_output_json_filepath,
+        error = read_result,
+      })
+      output = {}
+    else
+      output = read_result
+      logger.debug({
+        "Successfully read gotestsum JSON file",
+        filepath = context.test_output_json_filepath,
+        lines_count = #output,
+        first_line_preview = output[1] and string.sub(output[1], 1, 100)
+          or "empty",
+      })
+    end
   end
   logger.debug({ "Runner '" .. runner .. "', raw output: ", output })
 

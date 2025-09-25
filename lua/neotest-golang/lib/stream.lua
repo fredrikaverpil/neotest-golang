@@ -158,6 +158,12 @@ function M.new(tree, golist_data, json_filepath)
       -- Optimized: Direct cache population eliminates intermediate results and copy loop
       results_stream.make_stream_results_with_cache(accum, M.cached_results)
 
+      -- log the length of the cache after processing
+      logger.debug(
+        "Cached results count after processing: "
+          .. vim.tbl_count(M.cached_results)
+      )
+
       -- Return the cache for compatibility with existing streaming interface
       return M.cached_results
     end

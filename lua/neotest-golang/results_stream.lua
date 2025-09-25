@@ -7,6 +7,7 @@
 local colorize = require("neotest-golang.lib.colorize")
 local convert = require("neotest-golang.lib.convert")
 local diagnostics = require("neotest-golang.lib.diagnostics")
+local logger = require("neotest-golang.lib.logging")
 local mapping = require("neotest-golang.lib.mapping")
 local metrics = require("neotest-golang.lib.metrics")
 local path = require("neotest-golang.lib.path")
@@ -225,6 +226,14 @@ function M.make_stream_results_with_cache(accum, cache)
   for _, test_entry in pairs(accum) do
     if test_entry.metadata.position_id ~= nil then
       if test_entry.metadata.state ~= "finalized" then
+        logger.debug({
+          "Test entry output_parts",
+          position_id = test_entry.metadata.position_id,
+          output_parts_count = test_entry.metadata.output_parts
+              and #test_entry.metadata.output_parts
+            or 0,
+        })
+
         if test_entry.metadata.output_parts then
           test_entry.result.errors = diagnostics.process_diagnostics(test_entry)
         end
@@ -234,27 +243,95 @@ function M.make_stream_results_with_cache(accum, cache)
           test_entry.metadata.output_parts
           and #test_entry.metadata.output_parts > 0
         then
+          logger.debug({
+            "Creating output file for test result",
+            position_id = test_entry.metadata.position_id,
+            output_parts_count = #test_entry.metadata.output_parts,
+            timestamp = os.time(),
+            process_id = vim.fn.getpid(),
+          })
+
           local temp_path = async.fn.tempname()
+          logger.debug({
+            "Generated tempname for output file",
+            position_id = test_entry.metadata.position_id,
+            raw_tempname = temp_path,
+            timestamp = os.time(),
+          })
+
           if temp_path and temp_path ~= "" then
             test_entry.metadata.output_path = path.normalize_path(temp_path)
+            logger.debug({
+              "Normalized output path",
+              position_id = test_entry.metadata.position_id,
+              raw_path = temp_path,
+              normalized_path = test_entry.metadata.output_path,
+            })
+
+            -- Check if path is accessible before writing
+            local pre_write_stat =
+              vim.uv.fs_stat(test_entry.metadata.output_path)
+            logger.debug({
+              "Output file pre-write check",
+              position_id = test_entry.metadata.position_id,
+              filepath = test_entry.metadata.output_path,
+              exists_before_write = pre_write_stat ~= nil,
+            })
 
             -- Write file synchronously - ensures availability when result is cached
             local output_lines =
               colorize.colorize_parts(test_entry.metadata.output_parts)
+
+            logger.debug({
+              "Writing output file",
+              position_id = test_entry.metadata.position_id,
+              filepath = test_entry.metadata.output_path,
+              lines_count = #output_lines,
+            })
 
             local success = pcall(
               async.fn.writefile,
               output_lines,
               test_entry.metadata.output_path
             )
+
             if not success then
+              logger.error({
+                "Failed to write output file",
+                position_id = test_entry.metadata.position_id,
+                filepath = test_entry.metadata.output_path,
+              })
               -- If file write fails, clear the output path so test still completes without output file
               test_entry.metadata.output_path = nil
             else
+              -- Verify file was written successfully
+              local post_write_stat =
+                vim.uv.fs_stat(test_entry.metadata.output_path)
+              logger.debug({
+                "Output file write verification",
+                position_id = test_entry.metadata.position_id,
+                filepath = test_entry.metadata.output_path,
+                exists_after_write = post_write_stat ~= nil,
+                file_size = post_write_stat and post_write_stat.size
+                  or "unknown",
+              })
+
               -- Record successful file write for metrics
               local file_size = #table.concat(output_lines, "\n")
               metrics.record_file_write(file_size)
+              logger.debug({
+                "Successfully wrote output file",
+                position_id = test_entry.metadata.position_id,
+                filepath = test_entry.metadata.output_path,
+                content_size = file_size,
+              })
             end
+          else
+            logger.error({
+              "Invalid tempname generated for output file",
+              position_id = test_entry.metadata.position_id,
+              tempname = temp_path,
+            })
           end
         end
 
