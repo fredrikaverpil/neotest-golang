@@ -9,8 +9,11 @@ Neotest-golang is tested using
 lua unit tests and integration tests.
 
 Tests can be executed either from within Neovim (using neotest-plenary) or in
-the terminal. To run all tests from the terminal, simply execute `task test` in
-the terminal (requires [Taskfile](https://github.com/go-task/task)).
+the terminal. To run tests from the terminal, use these commands (requires
+[Taskfile](https://github.com/go-task/task)):
+
+- `task test` - Run all tests
+- `task test-file -- spec/unit/convert_spec.lua` - Run a single test file
 
 !!! warning "Tests timing out"
 
@@ -21,13 +24,8 @@ the terminal (requires [Taskfile](https://github.com/go-task/task)).
 
 ## Test execution flow
 
-When you run `task test` (or, rather `task test-plenary`), the following
-sequence occurs:
+When you run tests, the following sequence occurs:
 
-- Neovim launches headlessly with the command:
-  ```sh
-  nvim --headless --noplugin -i NONE -u spec/bootstrap.lua -c "PlenaryBustedDirectory spec/ { minimal_init = 'spec/minimal_init.lua', timeout = 500000 }"
-  ```
 - Bootstrap script runs first (`spec/bootstrap.lua`): - Resets Neovim's runtime
   path to a clean state - Downloads and installs required plugins (e.g.
   plenary.nvim, neotest, nvim-nio, nvim-treesitter) - Configures the test

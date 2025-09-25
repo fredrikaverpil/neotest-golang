@@ -70,6 +70,11 @@ tasks:
     cmds:
       - cmd: nvim --headless --noplugin -i NONE -u spec/bootstrap.lua -c "PlenaryBustedDirectory spec/ { minimal_init = 'spec/minimal_init.lua', timeout = 500000 }"
 
+  test-file:
+    desc: Run a single test file with Neovim and plenary
+    cmds:
+      - cmd: nvim --headless --noplugin -i NONE -u spec/bootstrap.lua -c "lua require('plenary.test_harness').test_directory_command('{{.CLI_ARGS}} { minimal_init = \"spec/minimal_init.lua\", timeout = 500000 }')"
+
   install:
     desc: Run install task from all taskfiles
     cmds:
