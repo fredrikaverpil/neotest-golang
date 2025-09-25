@@ -1,4 +1,18 @@
 --- Integration test utilities for end-to-end Go test execution
+---
+--- This module provides three execution modes that mirror Neotest's internal behavior:
+---
+--- 1. Synchronous Execution (blocking)
+---    execute_adapter_direct(position_id)
+---    execute_adapter_direct(position_id, false)
+---
+--- 2. Async Execution (single test with streaming)
+---    execute_adapter_direct(position_id, true)
+---    Uses vim.system() + nio.control.future() for async handling
+---
+--- 3. Concurrent Execution (multiple tests in parallel)
+---    execute_adapter_concurrent(position_ids, true)
+---    Uses nio.run() to launch multiple tests simultaneously, just like Neotest
 
 local lib = require("neotest-golang.lib")
 
@@ -10,7 +24,7 @@ local lib = require("neotest-golang.lib")
 
 local M = {}
 
---- Execute command and return strategy result
+--- Execute command synchronously and return strategy result (legacy)
 --- @param run_spec neotest.RunSpec The built run specification
 --- @return table strategy_result The execution result from strategy
 local function execute_command(run_spec)
@@ -66,6 +80,80 @@ local function execute_command(run_spec)
   end)
 end
 
+--- Execute command asynchronously using vim.system with nio futures
+--- @param run_spec neotest.RunSpec The built run specification
+--- @param on_stream_output function Optional callback for streaming output lines
+--- @return table strategy_result The execution result from strategy
+local function execute_command_async(run_spec, on_stream_output)
+  local nio = require("nio")
+
+  return nio.tests.with_async_context(function()
+    print("[ASYNC] Go test command:", vim.inspect(run_spec.command))
+    print("[ASYNC] Working directory:", run_spec.cwd)
+    print("[ASYNC] Using async vim.system execution...")
+
+    -- Normalize env
+    local env = run_spec.env
+    if env and vim.tbl_isempty(env) then
+      env = nil
+    end
+
+    local start_time = vim.fn.reltime()
+
+    -- Use vim.system() async with nio future
+    local future = nio.control.future()
+
+    local handle = vim.system(run_spec.command, {
+      cwd = run_spec.cwd,
+      env = env,
+      text = true,
+    }, function(obj)
+      -- This callback runs when the process completes
+      future.set(obj)
+    end)
+
+    -- Wait for the async process to complete
+    local sys = future.wait()
+    local elapsed_time = vim.fn.reltimestr(vim.fn.reltime(start_time))
+
+    -- Persist stdout/stderr to a temp file for debugging/fallbacks
+    local output_path = nil
+    if
+      (sys.stdout and sys.stdout ~= "") or (sys.stderr and sys.stderr ~= "")
+    then
+      output_path = vim.fs.normalize(nio.fn.tempname())
+      local lines = {}
+      if sys.stdout and sys.stdout ~= "" then
+        for line in sys.stdout:gmatch("[^\r\n]+") do
+          table.insert(lines, line)
+        end
+      end
+      if sys.stderr and sys.stderr ~= "" then
+        table.insert(lines, "")
+        table.insert(lines, "=== stderr ===")
+        for line in sys.stderr:gmatch("[^\r\n]+") do
+          table.insert(lines, line)
+        end
+      end
+      nio.fn.writefile(lines, output_path)
+    end
+
+    print(
+      "[ASYNC] Process completed in",
+      elapsed_time,
+      "seconds, exit code:",
+      sys.code,
+      "output path:",
+      output_path
+    )
+
+    return {
+      code = sys.code or 1,
+      output = output_path,
+    }
+  end)
+end
+
 --- Execute a real test using the adapter's build_spec and results methods directly
 --- This bypasses neotest.run.run and calls the adapter interface directly
 ---
@@ -77,8 +165,9 @@ end
 --- "/path/to/file_test.go::TestFunction::\"SubTest\"::\"TableTest\"" -- Nested subtest
 ---
 --- @param position_id string Neotest position ID (directory, file, or test position)
+--- @param use_async boolean? Whether to use async streaming execution (default: false for compatibility)
 --- @return AdapterExecutionResult result Complete execution result
-function M.execute_adapter_direct(position_id)
+function M.execute_adapter_direct(position_id, use_async)
   -- Validate arguments
   assert(position_id, "position_id is required")
   assert(type(position_id) == "string", "position_id must be a string")
@@ -265,8 +354,24 @@ function M.execute_adapter_direct(position_id)
   assert(run_spec, "Failed to build run spec for " .. position_id)
   assert(run_spec.command, "Run spec should have a command")
 
-  -- Execute the command
-  local strategy_result = execute_command(run_spec)
+  -- Execute the command (async or sync based on flag)
+  local strategy_result
+  local streaming_output = {}
+
+  if use_async then
+    -- Async execution with streaming
+    local function on_stream_output(chunk)
+      table.insert(streaming_output, "[STREAM] " .. chunk)
+      print("[STREAM] " .. chunk:sub(1, 100) .. (#chunk > 100 and "..." or ""))
+    end
+
+    strategy_result = execute_command_async(run_spec, on_stream_output)
+    print("[ASYNC] Collected", #streaming_output, "streaming chunks")
+  else
+    -- Legacy sync execution
+    strategy_result = execute_command(run_spec)
+  end
+
   assert(strategy_result, "Failed to get strategy result")
 
   -- Process test output manually to seed cached results
@@ -308,7 +413,6 @@ end
 --- @return table<string, neotest.Result> Individual test results
 function M.process_test_output_manually(tree, golist_data, output_path, context)
   local async = require("neotest.async")
-  local lib = require("neotest-golang.lib")
   local options = require("neotest-golang.options")
   local results_stream = require("neotest-golang.results_stream")
 
@@ -366,6 +470,174 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
 
   -- Return a reference to the updated cache
   return lib.stream.cached_results
+end
+
+--- Validate diagnostic errors for specific test positions
+--- @param results table<string, AdapterExecutionResult> The execution results
+--- @param position_id string The position ID to check
+--- @param expected_errors table[] Expected error messages and line numbers
+--- @return boolean success Whether validation passed
+function M.validate_diagnostic_errors(results, position_id, expected_errors)
+  local result = results[position_id]
+  if not result then
+    error("No result found for position: " .. position_id)
+  end
+
+  local test_result = result.results[position_id]
+  if not test_result then
+    error("No test result found for position: " .. position_id)
+  end
+
+  if not test_result.errors or #test_result.errors == 0 then
+    if #expected_errors > 0 then
+      error("Expected errors but found none for: " .. position_id)
+    end
+    return true
+  end
+
+  -- Sort both expected and actual errors by line number for comparison
+  local actual_errors = vim.deepcopy(test_result.errors)
+  table.sort(actual_errors, function(a, b)
+    return a.line < b.line
+  end)
+  table.sort(expected_errors, function(a, b)
+    return (a.line or 0) < (b.line or 0)
+  end)
+
+  if #actual_errors ~= #expected_errors then
+    error(
+      string.format(
+        "Expected %d errors but got %d for %s",
+        #expected_errors,
+        #actual_errors,
+        position_id
+      )
+    )
+  end
+
+  for i, expected in ipairs(expected_errors) do
+    local actual = actual_errors[i]
+
+    if
+      expected.message and not actual.message:find(expected.message, 1, true)
+    then
+      error(
+        string.format(
+          "Expected error message '%s' but got '%s' for %s",
+          expected.message,
+          actual.message,
+          position_id
+        )
+      )
+    end
+
+    if expected.line and actual.line ~= expected.line then
+      error(
+        string.format(
+          "Expected error at line %d but got line %d for %s",
+          expected.line,
+          actual.line,
+          position_id
+        )
+      )
+    end
+
+    if expected.severity and actual.severity ~= expected.severity then
+      error(
+        string.format(
+          "Expected severity %d but got %d for %s",
+          expected.severity,
+          actual.severity,
+          position_id
+        )
+      )
+    end
+  end
+
+  return true
+end
+
+--- Execute multiple tests concurrently like Neotest does
+--- @param position_ids string[] List of position IDs to execute concurrently
+--- @param use_async boolean? Whether to use async execution (default: true for concurrent)
+--- @return table<string, AdapterExecutionResult> results Map of position_id to execution result
+function M.execute_adapter_concurrent(position_ids, use_async)
+  assert(position_ids, "position_ids is required")
+  assert(type(position_ids) == "table", "position_ids must be a table")
+  assert(#position_ids > 0, "position_ids must not be empty")
+
+  -- Force async for concurrent execution
+  use_async = use_async ~= false
+
+  local nio = require("nio")
+
+  return nio.tests.with_async_context(function()
+    local futures = {}
+    local results = {}
+
+    print(
+      string.format(
+        "[CONCURRENT] Starting %d test executions in parallel...",
+        #position_ids
+      )
+    )
+    local start_time = vim.fn.reltime()
+
+    -- Launch all tests concurrently
+    for i, position_id in ipairs(position_ids) do
+      local future = nio.control.future()
+      futures[position_id] = future
+
+      -- Launch each execution in parallel
+      nio.run(function()
+        local success, result =
+          pcall(M.execute_adapter_direct, position_id, use_async)
+        if success then
+          future.set({ success = true, result = result })
+        else
+          future.set({ success = false, error = result })
+        end
+      end)
+
+      print(
+        string.format(
+          "[CONCURRENT] Launched test %d/%d: %s",
+          i,
+          #position_ids,
+          position_id
+        )
+      )
+    end
+
+    -- Collect all results
+    for position_id, future in pairs(futures) do
+      local outcome = future.wait()
+      if outcome.success then
+        results[position_id] = outcome.result
+        print(string.format("[CONCURRENT] ✅ Completed: %s", position_id))
+      else
+        print(
+          string.format(
+            "[CONCURRENT] ❌ Failed: %s - %s",
+            position_id,
+            outcome.error
+          )
+        )
+        results[position_id] = { error = outcome.error }
+      end
+    end
+
+    local elapsed_time = vim.fn.reltimestr(vim.fn.reltime(start_time))
+    print(
+      string.format(
+        "[CONCURRENT] All %d tests completed in %s seconds",
+        #position_ids,
+        elapsed_time
+      )
+    )
+
+    return results
+  end)
 end
 
 return M
