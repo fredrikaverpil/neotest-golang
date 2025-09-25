@@ -20,8 +20,9 @@ describe("Integration: positions test", function()
       position_id = path.normalize_path(position_id)
 
       -- ===== ACT =====
+      print("\n[TEST] Running positions test with ASYNC execution...")
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(position_id)
+      local got = integration.execute_adapter_direct(position_id, true) -- ASYNC EXECUTION
 
       -- Expected complete adapter execution result
       ---@type AdapterExecutionResult
