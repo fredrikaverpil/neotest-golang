@@ -87,6 +87,10 @@ describe("Integration: positions test", function()
             status = "passed",
             errors = {},
           },
+          [position_id .. "::TestTableTestInlineCompositeWithFieldAccess"] = {
+            status = "passed",
+            errors = {},
+          },
           [position_id .. "::TestStructNotTableTest"] = {
             status = "passed",
             errors = {},
@@ -177,6 +181,14 @@ describe("Integration: positions test", function()
             errors = {},
           },
           [position_id .. '::TestTableTestMap::"TableTest2"'] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. '::TestTableTestInlineCompositeWithFieldAccess::"user1"'] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. '::TestTableTestInlineCompositeWithFieldAccess::"user2"'] = {
             status = "passed",
             errors = {},
           },

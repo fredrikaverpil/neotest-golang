@@ -217,6 +217,34 @@ func TestTableTestMap(t *testing.T) {
 	}
 }
 
+// Table test with inline composite literal and field access for test name.
+func TestTableTestInlineCompositeWithFieldAccess(t *testing.T) {
+	type User struct {
+		Name        string
+		DisplayName string
+		ID          int
+	}
+
+	for _, tt := range []*User{
+		{
+			Name:        "user1",
+			DisplayName: "User One",
+			ID:          1,
+		},
+		{
+			Name:        "user2",
+			DisplayName: "User Two",
+			ID:          2,
+		},
+	} {
+		t.Run(tt.Name, func(t *testing.T) {
+			if tt.ID == 0 {
+				t.Fail()
+			}
+		})
+	}
+}
+
 // Struct which is not a table test.
 func TestStructNotTableTest(t *testing.T) {
 	type item struct {
