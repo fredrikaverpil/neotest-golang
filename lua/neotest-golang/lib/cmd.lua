@@ -2,6 +2,7 @@
 
 local async = require("neotest.async")
 
+local cgo = require("neotest-golang.lib.cgo")
 local extra_args = require("neotest-golang.lib.extra_args")
 local json = require("neotest-golang.lib.json")
 local logger = require("neotest-golang.lib.logging")
@@ -132,6 +133,14 @@ function M.go_test(go_test_required_args)
   if type(args) == "function" then
     args = args()
   end
+
+  -- Validate CGO requirements for -race flag
+  local is_valid, error_message = cgo.validate_cgo_requirements(args)
+  if not is_valid then
+    logger.error("CGO validation failed: " .. error_message, true)
+    error("neotest-golang: " .. error_message)
+  end
+
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
   cmd = vim.list_extend(vim.deepcopy(cmd), args)
   return cmd
@@ -152,6 +161,14 @@ function M.gotestsum(go_test_required_args, json_filepath)
   if type(go_test_args) == "function" then
     go_test_args = go_test_args()
   end
+
+  -- Validate CGO requirements for -race flag
+  local is_valid, error_message = cgo.validate_cgo_requirements(go_test_args)
+  if not is_valid then
+    logger.error("CGO validation failed: " .. error_message, true)
+    error("neotest-golang: " .. error_message)
+  end
+
   cmd = vim.list_extend(vim.deepcopy(cmd), gotestsum_args)
   cmd = vim.list_extend(vim.deepcopy(cmd), { "--" })
   cmd = vim.list_extend(vim.deepcopy(cmd), go_test_required_args)
