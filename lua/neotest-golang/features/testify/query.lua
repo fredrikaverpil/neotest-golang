@@ -1,6 +1,7 @@
 --- Helper functions around running Treesitter queries.
 
 local options = require("neotest-golang.options")
+local query_loader = require("neotest-golang.lib.query_loader")
 
 -- NOTE: this import cannot be removed. If removing it, lua tests will fail with:
 -- E5560: nvim_create_augroup must not be called in a fast event context.
@@ -8,44 +9,14 @@ require("nvim-treesitter")
 
 local M = {}
 
-M.namespace_query = [[
-  ; query for detecting receiver type and treat as Neotest namespace.
+M.namespace_query =
+  query_loader.load_query("features/testify/queries/namespace.scm")
 
-  ; func (suite *testSuite) TestSomething() { // @namespace_name
-  ;  // test code
-  ; }
-  (method_declaration
-    receiver: (parameter_list
-      (parameter_declaration
-        type: (pointer_type
-          (type_identifier) @namespace_name
-        )
-      )
-    )
-    name: (field_identifier) @test_function (#match? @test_function "^(Test|Example)") (#not-match? @test_function "^TestMain$")
-  ) @namespace_definition
-]]
-
-M.test_method_query = [[
-   ; query for test method
-  (method_declaration
-    name: (field_identifier) @test.name (#match? @test.name "^(Test|Example)") (#not-match? @test.name "^TestMain$")
-  ) @test.definition
-]]
+M.test_method_query =
+  query_loader.load_query("features/testify/queries/test_method.scm")
 
 M.subtest_query = string.format(
-  [[
-   ; query for subtest, like s.Run(), suite.Run()
-  (call_expression
-    function: (selector_expression
-      operand: (identifier) @test.operand (#match? @test.operand "%s")
-      field: (field_identifier) @test.method (#match? @test.method "^Run$")
-    )
-    arguments: (argument_list
-      . (interpreted_string_literal) @test.name
-    )
-  ) @test.definition
-]],
+  query_loader.load_query("features/testify/queries/subtest.scm"),
   options.get().testify_operand
 )
 
