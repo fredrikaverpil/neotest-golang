@@ -71,6 +71,37 @@ function M.build_position_lookup(tree, golist_data)
     local internal_key = item.package_import .. "::" .. item.go_test_name
     lookup[internal_key] = item.pos_id
     stats.mapped = stats.mapped + 1
+
+    -- Generate lookup entries for parent tests
+    -- For go_test_name like "TestName/TestSubtest", also create entry for "TestName"
+    local test_parts = vim.split(item.go_test_name, "/")
+    if #test_parts > 1 then
+      -- Split pos_id to reconstruct parent position IDs
+      local pos_parts = vim.split(item.pos_id, "::")
+      if #pos_parts >= 2 then
+        -- Build parent test entries by progressively reducing the test path
+        for i = 1, #test_parts - 1 do
+          local parent_test_name =
+            table.concat(vim.list_slice(test_parts, 1, i), "/")
+          local parent_internal_key = item.package_import
+            .. "::"
+            .. parent_test_name
+
+          if not lookup[parent_internal_key] then
+            -- Reconstruct parent pos_id: file_path::parent_test_name
+            local parent_pos_id = pos_parts[1] .. "::" .. pos_parts[2]
+            lookup[parent_internal_key] = parent_pos_id
+            stats.mapped = stats.mapped + 1
+          end
+        end
+      end
+    end
+
+    -- also generate lookup for package only (no test name)
+    local internal_pkg_key = item.package_import
+    if not lookup[internal_pkg_key] then
+      lookup[internal_pkg_key] = item.pos_id
+    end
   end
   logger.debug("Lookup table: " .. vim.inspect(lookup))
 
