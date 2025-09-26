@@ -305,6 +305,52 @@ M.table_tests_map = [[
   )
 ]]
 
+M.table_tests_inline_field_access = [[
+  ;; query for table tests with inline composite literal and field access for test name
+  (for_statement
+    (range_clause
+      left: (expression_list
+        (identifier)
+        (identifier) @test.case
+      )
+      right: (composite_literal
+        body: (literal_value
+          (literal_element
+            (literal_value
+              (keyed_element
+                (literal_element
+                  (identifier) @test.field.name
+                )
+                (literal_element
+                  (interpreted_string_literal) @test.name
+                )
+              )
+            ) @test.definition
+          )
+        )
+      )
+    )
+    body: (block
+      (statement_list
+        (expression_statement
+          (call_expression
+            function: (selector_expression
+              operand: (identifier) @test.operand (#match? @test.operand "^[t]$")
+              field: (field_identifier) @test.method (#match? @test.method "^Run$")
+            )
+            arguments: (argument_list
+              (selector_expression
+                operand: (identifier) @test.case1 (#eq? @test.case @test.case1)
+                field: (field_identifier) @test.field.name1 (#eq? @test.field.name @test.field.name1)
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+]]
+
 --- Check if Go tree-sitter parser is available
 --- @return boolean True if Go parser is available, false otherwise
 function M.has_go_parser()
@@ -335,6 +381,7 @@ function M.detect_tests(file_path)
     .. M.table_tests_unkeyed
     .. M.table_tests_loop_unkeyed
     .. M.table_tests_map
+    .. M.table_tests_inline_field_access
 
   if options.get().testify_enabled == true then
     -- detect receiver types (as namespaces) and test methods.
