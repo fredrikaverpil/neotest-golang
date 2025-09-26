@@ -122,26 +122,38 @@ describe("mapping module", function()
 
       -- Should not have entry for file node
       assert.is_nil(result["example.com/repo/pkg::"])
+
+      -- Should have package-only entry
+      assert.are.equal(
+        "/path/to/pkg/file_test.go::TestName",
+        result["example.com/repo/pkg"]
+      )
     end)
 
-    it(
-      "does not add phantom prefix keys for non-existent parent tests",
-      function()
-        local result =
-          lib.mapping.build_position_lookup(mock_tree, mock_golist_data)
+    it("generates parent test lookup entries for nested tests", function()
+      local result =
+        lib.mapping.build_position_lookup(mock_tree, mock_golist_data)
 
-        -- Deep node exact mapping remains
-        assert.are.equal(
-          deep_pos_id,
-          result["example.com/repo/pkg::TestMain/Level1/Level2/Level3"]
-        )
+      -- Deep node exact mapping remains
+      assert.are.equal(
+        deep_pos_id,
+        result["example.com/repo/pkg::TestMain/Level1/Level2/Level3"]
+      )
 
-        -- Intermediate and top-level prefixes should NOT map when corresponding nodes do not exist
-        assert.is_nil(result["example.com/repo/pkg::TestMain/Level1/Level2"])
-        assert.is_nil(result["example.com/repo/pkg::TestMain/Level1"])
-        assert.is_nil(result["example.com/repo/pkg::TestMain"])
-      end
-    )
+      -- Parent test entries should now be generated
+      assert.are.equal(
+        "/path/to/pkg/file_test.go::TestMain",
+        result["example.com/repo/pkg::TestMain"]
+      )
+      assert.are.equal(
+        "/path/to/pkg/file_test.go::TestMain",
+        result["example.com/repo/pkg::TestMain/Level1"]
+      )
+      assert.are.equal(
+        "/path/to/pkg/file_test.go::TestMain",
+        result["example.com/repo/pkg::TestMain/Level1/Level2"]
+      )
+    end)
 
     it("handles empty tree", function()
       local empty_tree = {

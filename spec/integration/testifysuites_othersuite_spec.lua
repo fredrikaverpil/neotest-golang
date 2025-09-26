@@ -43,6 +43,11 @@ describe("Integration: testify othersuite test", function()
             status = "passed",
             errors = {},
           },
+          -- Parent test suite result (now detected due to parent lookup generation)
+          [position_id .. "::TestOtherTestSuite"] = {
+            status = "passed",
+            errors = {},
+          },
           -- Cross-file testify suite: TestOther method is defined in positions_test.go
           -- but should appear under TestOtherTestSuite namespace when processing othersuite_test.go
           [position_id .. "::TestOtherTestSuite::TestOther"] = {

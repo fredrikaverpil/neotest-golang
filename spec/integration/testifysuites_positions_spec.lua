@@ -44,6 +44,15 @@ describe("Integration: testify suites positions test", function()
             status = "passed",
             errors = {},
           },
+          -- Parent test suite results (now detected due to parent lookup generation)
+          [position_id .. "::TestExampleTestSuite"] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. "::TestExampleTestSuite2"] = {
+            status = "passed",
+            errors = {},
+          },
           -- All the individual test method results
           [position_id .. "::TestExampleTestSuite2::TestExample"] = {
             status = "passed",
