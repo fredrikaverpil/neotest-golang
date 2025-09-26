@@ -9,6 +9,7 @@ local convert = require("neotest-golang.lib.convert")
 local diagnostics = require("neotest-golang.lib.diagnostics")
 local mapping = require("neotest-golang.lib.mapping")
 local metrics = require("neotest-golang.lib.metrics")
+local path = require("neotest-golang.lib.path")
 require("neotest-golang.lib.types")
 
 local async = require("neotest.async")
@@ -235,7 +236,7 @@ function M.make_stream_results_with_cache(accum, cache)
         then
           local temp_path = async.fn.tempname()
           if temp_path and temp_path ~= "" then
-            test_entry.metadata.output_path = vim.fs.normalize(temp_path)
+            test_entry.metadata.output_path = path.normalize_path(temp_path)
 
             -- Write file synchronously - ensures availability when result is cached
             local output_lines =

@@ -54,7 +54,7 @@ local function execute_command(run_spec)
     if
       (sys.stdout and sys.stdout ~= "") or (sys.stderr and sys.stderr ~= "")
     then
-      output_path = vim.fs.normalize(vim.fn.tempname())
+      output_path = lib.path.normalize_path(vim.fn.tempname())
       local lines = {}
       if sys.stdout and sys.stdout ~= "" then
         for line in sys.stdout:gmatch("[^\r\n]+") do
@@ -121,7 +121,7 @@ local function execute_command_async(run_spec, on_stream_output)
     if
       (sys.stdout and sys.stdout ~= "") or (sys.stderr and sys.stderr ~= "")
     then
-      output_path = vim.fs.normalize(nio.fn.tempname())
+      output_path = lib.path.normalize_path(nio.fn.tempname())
       local lines = {}
       if sys.stdout and sys.stdout ~= "" then
         for line in sys.stdout:gmatch("[^\r\n]+") do

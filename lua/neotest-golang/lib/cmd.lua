@@ -7,6 +7,7 @@ local extra_args = require("neotest-golang.lib.extra_args")
 local json = require("neotest-golang.lib.json")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
+local path = require("neotest-golang.lib.path")
 require("neotest-golang.lib.types")
 
 ---@alias RunnerType "go" | "gotestsum"
@@ -115,7 +116,7 @@ function M.test_command(go_test_required_args, fallback)
   if runner == "go" then
     cmd = M.go_test(go_test_required_args)
   elseif runner == "gotestsum" then
-    json_filepath = vim.fs.normalize(async.fn.tempname())
+    json_filepath = path.normalize_path(raw_tempname)
     cmd = M.gotestsum(go_test_required_args, json_filepath)
   end
 
