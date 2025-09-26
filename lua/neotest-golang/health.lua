@@ -221,7 +221,15 @@ end
 
 function M.go_version_check()
   if vim.fn.executable("go") == 1 then
-    local handle = io.popen("go version 2>/dev/null")
+    local cmd = "go version"
+    -- Add appropriate error redirection based on OS
+    if is_windows_uname() then
+      cmd = cmd .. " 2>nul"
+    else
+      cmd = cmd .. " 2>/dev/null"
+    end
+
+    local handle = io.popen(cmd)
     if handle then
       local result = handle:read("*a")
       handle:close()
