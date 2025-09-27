@@ -13,11 +13,6 @@
 --- 3. Concurrent Execution (multiple tests in parallel)
 ---    execute_adapter_concurrent(position_ids, true)
 ---    Uses nio.run() to launch multiple tests simultaneously, just like Neotest
----
---- 4. Race Condition Testing (async without test strategy override)
----    execute_adapter_direct(position_id, { use_async = true, disable_test_strategy = true })
----    execute_concurrent_tests_raw(position_ids)
----    Deliberately bypasses test strategy to trigger tempfile race conditions
 
 local lib = require("neotest-golang.lib")
 
@@ -29,7 +24,6 @@ local lib = require("neotest-golang.lib")
 
 ---@class ExecutionOpts
 ---@field use_async boolean? Whether to use async streaming execution (default: false)
----@field disable_test_strategy boolean? If true, bypasses test strategy to trigger race conditions (default: false)
 
 local M = {}
 
@@ -184,7 +178,6 @@ function M.execute_adapter_direct(position_id, opts)
   -- Extract options with defaults
   opts = opts or {}
   local use_async = opts.use_async or false
-  local disable_test_strategy = opts.disable_test_strategy or false
 
   -- Parse position ID to extract components
   -- Handle Windows drive letters (C:, D:, etc.) by looking for :: test separators specifically
@@ -254,13 +247,10 @@ function M.execute_adapter_direct(position_id, opts)
   local nio = require("nio")
   local adapter = require("neotest-golang")
 
-  -- Set up test stream strategy for integration tests (unless disabled for race condition testing)
+  -- Set up test stream strategy for integration tests
   local lib_stream = require("neotest-golang.lib.stream")
-  if not disable_test_strategy then
-    local test_strategy = require("neotest-golang.lib.stream_strategy.test")
-    lib_stream.set_test_strategy(test_strategy)
-  end
-  -- When disable_test_strategy=true, skip test strategy to trigger race conditions
+  local test_strategy = require("neotest-golang.lib.stream_strategy.test")
+  lib_stream.set_test_strategy(test_strategy)
 
   local tree, full_tree
 
@@ -656,74 +646,6 @@ function M.execute_adapter_concurrent(position_ids, use_async)
       )
     )
 
-    return results
-  end)
-end
-
---- Execute multiple tests concurrently with race condition testing (no test strategy override)
---- This deliberately bypasses test strategy to trigger tempfile race conditions
---- @param position_ids string[] List of position IDs to execute concurrently
---- @return AdapterExecutionResult[] results Array of execution results
-function M.execute_concurrent_tests_raw(position_ids)
-  assert(position_ids and #position_ids > 0, "position_ids cannot be empty")
-
-  local nio = require("nio")
-
-  return nio.tests.with_async_context(function()
-    local futures = {}
-    local results = {}
-
-    print(
-      "🚀 Launching",
-      #position_ids,
-      "concurrent tests (RAW MODE - no test strategy)..."
-    )
-
-    -- Launch all tests concurrently using race condition mode
-    for i, position_id in ipairs(position_ids) do
-      local future = nio.control.future()
-      futures[position_id] = future
-
-      -- Launch each execution in parallel with disable_test_strategy=true
-      nio.run(function()
-        print("🏃 Starting concurrent test", i, ":", position_id)
-        local success, result = pcall(M.execute_adapter_direct, position_id, {
-          use_async = true,
-          disable_test_strategy = true, -- This triggers race conditions
-        })
-        if success then
-          print("✅ Completed concurrent test", i, ":", position_id)
-          future.set({ success = true, result = result })
-        else
-          print(
-            "❌ Failed concurrent test",
-            i,
-            ":",
-            position_id,
-            "Error:",
-            result
-          )
-          future.set({ success = false, error = result })
-        end
-      end)
-    end
-
-    -- Wait for all futures to complete
-    for i, position_id in ipairs(position_ids) do
-      local future_result = futures[position_id].wait()
-      if future_result.success then
-        table.insert(results, future_result.result)
-      else
-        error(
-          "Test execution failed for "
-            .. position_id
-            .. ": "
-            .. future_result.error
-        )
-      end
-    end
-
-    print("🏁 All concurrent tests completed")
     return results
   end)
 end
