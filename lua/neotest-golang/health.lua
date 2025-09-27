@@ -443,25 +443,7 @@ end
 
 function M.display_current_configuration()
   local current_options = options.get()
-
-  info("Current neotest-golang configuration:")
-  info("  runner: " .. (current_options.runner or "go"))
-  info("  go_test_args: " .. vim.inspect(current_options.go_test_args or {}))
-  info(
-    "  dap_go_enabled: " .. tostring(current_options.dap_go_enabled or false)
-  )
-  info(
-    "  testify_enabled: " .. tostring(current_options.testify_enabled or false)
-  )
-  info(
-    "  warn_test_name_dupes: "
-      .. tostring(current_options.warn_test_name_dupes or false)
-  )
-  info(
-    "  warn_test_not_executed: "
-      .. tostring(current_options.warn_test_not_executed or false)
-  )
-  info("  sanitization: " .. tostring(current_options.sanitization or false))
+  info(vim.inspect(current_options))
 end
 
 return M
