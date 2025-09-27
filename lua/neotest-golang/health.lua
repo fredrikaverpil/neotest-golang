@@ -6,6 +6,7 @@ local info = vim.health.info or vim.health.report_info
 
 local lib = require("neotest-golang.lib")
 local options = require("neotest-golang.options")
+local path = require("neotest-golang.lib.path")
 
 local M = {}
 
@@ -87,7 +88,11 @@ function M.is_problematic_path()
     go_mod_filepath = lib.find.file_upwards("go.mod", start_path)
     local sysname = vim.uv.os_uname().sysname
     local problematic_paths = {
-      Darwin = { "/private/tmp", "/tmp", vim.fs.normalize("~/Public") },
+      Darwin = {
+        "/private/tmp",
+        "/tmp",
+        path.normalize_path(vim.fn.expand("~/Public")),
+      },
       Linux = { "/tmp" },
     }
     if problematic_paths[sysname] == nil then

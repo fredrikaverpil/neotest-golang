@@ -14,6 +14,7 @@
 ---    execute_adapter_concurrent(position_ids, use_streaming)
 
 local lib = require("neotest-golang.lib")
+local path = require("neotest-golang.lib.path")
 
 ---@class AdapterExecutionResult
 ---@field tree neotest.Tree The discovered test tree
@@ -56,7 +57,7 @@ local function execute_command(run_spec)
     if
       (sys.stdout and sys.stdout ~= "") or (sys.stderr and sys.stderr ~= "")
     then
-      output_path = vim.fs.normalize(vim.fn.tempname())
+      output_path = path.normalize_path(vim.fn.tempname())
       local lines = {}
       if sys.stdout and sys.stdout ~= "" then
         for line in sys.stdout:gmatch("[^\r\n]+") do
@@ -128,7 +129,7 @@ local function execute_command_streaming(run_spec, tree)
     -- Create output file
     local output_path = nil
     if #output_lines > 0 then
-      output_path = vim.fs.normalize(nio.fn.tempname())
+      output_path = path.normalize_path(nio.fn.tempname())
       nio.fn.writefile(output_lines, output_path)
     end
 
