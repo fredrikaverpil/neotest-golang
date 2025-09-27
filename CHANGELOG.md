@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/fredrikaverpil/neotest-golang/compare/v2.1.0...v2.1.1) (2025-09-27)
+
+
+### Bug Fixes
+
+* warn rather than error ([#442](https://github.com/fredrikaverpil/neotest-golang/issues/442)) ([5ac935e](https://github.com/fredrikaverpil/neotest-golang/commit/5ac935efdb3f62f13da068e82953d2a5d6b7e3d8))
+
 ## [2.1.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.0.0...v2.1.0) (2025-09-27)
 
 
