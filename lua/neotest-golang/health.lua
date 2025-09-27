@@ -11,6 +11,9 @@ local path = require("neotest-golang.lib.path")
 local M = {}
 
 function M.check()
+  start("System Information")
+  M.operating_system_info()
+
   start("Requirements")
   M.neovim_version_check()
   M.binary_found_on_path("go")
@@ -91,7 +94,7 @@ function M.is_problematic_path()
       Darwin = {
         "/private/tmp",
         "/tmp",
-        path.normalize_path(vim.fn.expand("~/Public")),
+        path.normalize_path(os.getenv("HOME") .. "/Public"),
       },
       Linux = { "/tmp" },
     }
@@ -334,27 +337,113 @@ function M.nvim_treesitter_branch_check()
   end
 end
 
+function M.operating_system_info()
+  local os_info = vim.uv.os_uname()
+  local sysname = os_info.sysname
+  local release = os_info.release or ""
+  local version = os_info.version or ""
+
+  -- Basic OS detection
+  local os_display = sysname
+  local additional_info = {}
+
+  -- Windows detection
+  if sysname:lower():find("windows") then
+    os_display = "Windows"
+    if release ~= "" then
+      table.insert(additional_info, "Version: " .. release)
+    end
+
+  -- macOS detection
+  elseif sysname:lower():find("darwin") then
+    os_display = "macOS"
+    if release ~= "" then
+      table.insert(additional_info, "Kernel: " .. release)
+    end
+
+  -- Linux detection (including WSL)
+  elseif sysname:lower():find("linux") then
+    local is_wsl = false
+    local wsl_info = ""
+
+    -- Check for WSL
+    local proc_version_file = io.open("/proc/version", "r")
+    if proc_version_file then
+      local proc_version = proc_version_file:read("*a")
+      proc_version_file:close()
+
+      if
+        proc_version:lower():find("microsoft")
+        or proc_version:lower():find("wsl")
+      then
+        is_wsl = true
+        if proc_version:lower():find("wsl2") then
+          wsl_info = "WSL2"
+        else
+          wsl_info = "WSL1"
+        end
+      end
+    end
+
+    -- Try to get Linux distribution info
+    local distro_info = ""
+    local os_release_file = io.open("/etc/os-release", "r")
+    if os_release_file then
+      local content = os_release_file:read("*a")
+      os_release_file:close()
+
+      -- Look for PRETTY_NAME first, then NAME
+      local pretty_name = content:match('PRETTY_NAME="([^"]*)"')
+      if pretty_name then
+        distro_info = pretty_name
+      else
+        local name = content:match('NAME="([^"]*)"')
+        if name then
+          distro_info = name
+        end
+      end
+    end
+
+    -- Build display string
+    if is_wsl then
+      if distro_info ~= "" then
+        os_display = wsl_info .. " (" .. distro_info .. ")"
+      else
+        os_display = wsl_info .. " (Linux)"
+      end
+    else
+      if distro_info ~= "" then
+        os_display = distro_info
+      else
+        os_display = "Linux"
+      end
+    end
+
+    if release ~= "" then
+      table.insert(additional_info, "Kernel: " .. release)
+    end
+
+  -- Other Unix-like systems
+  else
+    os_display = sysname
+    if release ~= "" then
+      table.insert(additional_info, "Release: " .. release)
+    end
+  end
+
+  -- Display the information
+  local main_info = "Operating System: " .. os_display
+  ok(main_info)
+
+  -- Display additional info if available
+  for _, info_text in ipairs(additional_info) do
+    info("  " .. info_text)
+  end
+end
+
 function M.display_current_configuration()
   local current_options = options.get()
-
-  info("Current neotest-golang configuration:")
-  info("  runner: " .. (current_options.runner or "go"))
-  info("  go_test_args: " .. vim.inspect(current_options.go_test_args or {}))
-  info(
-    "  dap_go_enabled: " .. tostring(current_options.dap_go_enabled or false)
-  )
-  info(
-    "  testify_enabled: " .. tostring(current_options.testify_enabled or false)
-  )
-  info(
-    "  warn_test_name_dupes: "
-      .. tostring(current_options.warn_test_name_dupes or false)
-  )
-  info(
-    "  warn_test_not_executed: "
-      .. tostring(current_options.warn_test_not_executed or false)
-  )
-  info("  sanitization: " .. tostring(current_options.sanitization or false))
+  info(vim.inspect(current_options))
 end
 
 return M
