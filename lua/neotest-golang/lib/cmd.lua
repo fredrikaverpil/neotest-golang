@@ -138,7 +138,7 @@ function M.go_test(go_test_required_args)
   -- Validate CGO requirements for -race flag
   local is_valid, error_message = cgo.validate_cgo_requirements(args)
   if not is_valid then
-    logger.error("CGO validation failed: " .. error_message, true)
+    logger.warn("CGO validation failed: " .. error_message, true)
     error("neotest-golang: " .. error_message)
   end
 
@@ -166,7 +166,7 @@ function M.gotestsum(go_test_required_args, json_filepath)
   -- Validate CGO requirements for -race flag
   local is_valid, error_message = cgo.validate_cgo_requirements(go_test_args)
   if not is_valid then
-    logger.error("CGO validation failed: " .. error_message, true)
+    logger.warn("CGO validation failed: " .. error_message, true)
     error("neotest-golang: " .. error_message)
   end
 
