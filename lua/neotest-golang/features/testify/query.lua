@@ -20,6 +20,9 @@ M.subtest_query = string.format(
   options.get().testify_operand
 )
 
+M.table_tests_map_query =
+  query_loader.load_query("features/testify/queries/table_tests_map.scm")
+
 --- Run a TreeSitter query on a file and return the matches.
 --- @param filepath string The path to the file to query
 --- @param query_string string The TreeSitter query string
