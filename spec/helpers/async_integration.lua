@@ -5,6 +5,7 @@
 ---
 --- 1. Single Async Execution (with real streaming)
 ---    execute_adapter_async(position_id)
+---    Supports: directory, file, or individual test positions
 ---    Uses real async streaming without test strategy override to expose race conditions
 ---
 --- 2. Concurrent Execution (multiple tests in parallel)
@@ -106,8 +107,44 @@ function M.execute_adapter_async(position_id)
         "Could not find test matching position ID: " .. position_id
       )
       tree = target_test_position
+    elseif inferred_type == "dir" then
+      -- Directory position: use adapter's directory discovery
+      -- This properly handles Go package discovery and build_spec generation
+      local dir_position = {
+        type = "dir",
+        path = base_path,
+        name = lib.path.get_filename(base_path),
+        id = base_path,
+        range = { 0, 0, 0, 0 },
+      }
+
+      -- Create minimal tree for directory position
+      tree = {
+        _key = function()
+          return base_path
+        end,
+        data = function()
+          return dir_position
+        end,
+        children = function()
+          return {}
+        end,
+        iter_nodes = function()
+          return pairs({
+            {
+              data = function()
+                return dir_position
+              end,
+            },
+          })
+        end,
+        iter = function()
+          return pairs({ [base_path] = dir_position })
+        end,
+      }
+      full_tree = tree
     else
-      error("Directory async testing not yet implemented")
+      error("Unsupported position type: " .. tostring(inferred_type))
     end
 
     -- Build run spec with test pattern if needed
