@@ -6,7 +6,7 @@ local path = require("neotest-golang.lib.path")
 local integration_path = vim.uv.cwd() .. "/spec/helpers/integration.lua"
 local integration = dofile(integration_path)
 
-describe("Integration: comprehensive concurrent execution", function()
+describe("Integration: concurrent execution", function()
   it("executes all major test scenarios concurrently", function()
     -- ===== ARRANGE =====
     local test_options = options.get()
@@ -15,7 +15,7 @@ describe("Integration: comprehensive concurrent execution", function()
 
     local base_path = vim.uv.cwd()
 
-    -- Comprehensive list of different test scenarios to run concurrently
+    -- List of different test scenarios to run concurrently
     local positions = {
       -- Single tests from different files
       path.normalize_path(
@@ -212,8 +212,8 @@ describe("Integration: comprehensive concurrent execution", function()
     print("  - Multiple test files (singletest, positions, diagnostics)")
     print("  - Various test patterns (simple, subtests, table tests)")
     print("  - Different test outcomes (passing, failing)")
-    print("  - Comprehensive Go test functionality")
-    print("[TEST] Concurrent comprehensive execution completed successfully!")
+    print("  - Go test functionality")
+    print("[TEST] Concurrent execution completed successfully!")
   end)
 
   it(

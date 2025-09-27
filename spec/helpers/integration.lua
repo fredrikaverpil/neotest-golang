@@ -4,11 +4,14 @@
 ---
 --- 1. Synchronous Execution (blocking)
 ---    execute_adapter_direct(position_id)
----    execute_adapter_direct(position_id, {}) -- explicit empty opts
+---    execute_adapter_direct(position_id, { use_streaming = false })
 ---
---- 2. True Streaming Execution (real-time event processing)
+--- 2. Streaming Execution (leverages adapter's stream functionality)
 ---    execute_adapter_direct(position_id, { use_streaming = true })
----    Processes gotestsum JSON events line-by-line as they arrive, just like Neotest
+---    Uses the adapter's existing stream function to process test output
+---
+--- 3. Concurrent Execution (multiple tests with streaming)
+---    execute_adapter_concurrent(position_ids, use_streaming)
 
 local lib = require("neotest-golang.lib")
 
@@ -23,7 +26,7 @@ local lib = require("neotest-golang.lib")
 
 local M = {}
 
---- Execute command synchronously and return strategy result (legacy)
+--- Execute command synchronously and return strategy result
 --- @param run_spec neotest.RunSpec The built run specification
 --- @return table strategy_result The execution result from strategy
 local function execute_command(run_spec)
@@ -103,7 +106,7 @@ local function execute_command_streaming(run_spec, tree)
     -- Use vim.system() async with streaming
     local future = nio.control.future()
 
-    local handle = vim.system(run_spec.command, {
+    vim.system(run_spec.command, {
       cwd = run_spec.cwd,
       env = env,
       text = true,
@@ -566,8 +569,8 @@ function M.execute_adapter_concurrent(position_ids, use_streaming)
   assert(type(position_ids) == "table", "position_ids must be a table")
   assert(#position_ids > 0, "position_ids must not be empty")
 
-  -- Force streaming for concurrent execution
-  use_streaming = use_streaming ~= false
+  -- Default to streaming for concurrent execution
+  use_streaming = use_streaming == nil and true or use_streaming
 
   local nio = require("nio")
 
