@@ -1,4 +1,17 @@
 --- Integration test utilities for end-to-end Go test execution
+---
+--- This module provides execution modes that mirror Neotest's internal behavior:
+---
+--- 1. Synchronous Execution (blocking)
+---    execute_adapter_direct(position_id)
+---    execute_adapter_direct(position_id, { use_streaming = false })
+---
+--- 2. Streaming Execution (leverages adapter's stream functionality)
+---    execute_adapter_direct(position_id, { use_streaming = true })
+---    Uses the adapter's existing stream function to process test output
+---
+--- 3. Concurrent Execution (multiple tests with streaming)
+---    execute_adapter_concurrent(position_ids, use_streaming)
 
 local lib = require("neotest-golang.lib")
 
@@ -8,9 +21,12 @@ local lib = require("neotest-golang.lib")
 ---@field run_spec neotest.RunSpec The built run specification
 ---@field strategy_result table The execution result from strategy
 
+---@class ExecutionOpts
+---@field use_streaming boolean? Whether to use true streaming execution with real-time event processing (default: false)
+
 local M = {}
 
---- Execute command and return strategy result
+--- Execute command synchronously and return strategy result
 --- @param run_spec neotest.RunSpec The built run specification
 --- @return table strategy_result The execution result from strategy
 local function execute_command(run_spec)
@@ -66,6 +82,84 @@ local function execute_command(run_spec)
   end)
 end
 
+--- Execute command with true streaming using adapter's stream functionality
+--- @param run_spec neotest.RunSpec The built run specification
+--- @param tree neotest.Tree The discovered test tree
+--- @return table strategy_result The execution result from strategy
+local function execute_command_streaming(run_spec, tree)
+  local nio = require("nio")
+
+  return nio.tests.with_async_context(function()
+    print("[STREAMING] Go test command:", vim.inspect(run_spec.command))
+    print("[STREAMING] Working directory:", run_spec.cwd)
+    print("[STREAMING] Using adapter's streaming functionality...")
+
+    -- Normalize env
+    local env = run_spec.env
+    if env and vim.tbl_isempty(env) then
+      env = nil
+    end
+
+    local start_time = vim.fn.reltime()
+    local output_lines = {}
+
+    -- Use vim.system() async with streaming
+    local future = nio.control.future()
+
+    vim.system(run_spec.command, {
+      cwd = run_spec.cwd,
+      env = env,
+      text = true,
+      stdout = function(err, chunk)
+        if chunk then
+          for line in chunk:gmatch("[^\r\n]+") do
+            table.insert(output_lines, line)
+          end
+        end
+      end,
+    }, function(obj)
+      future.set(obj)
+    end)
+
+    -- Wait for completion
+    local sys = future.wait()
+    local elapsed_time = vim.fn.reltimestr(vim.fn.reltime(start_time))
+
+    -- Create output file
+    local output_path = nil
+    if #output_lines > 0 then
+      output_path = vim.fs.normalize(nio.fn.tempname())
+      nio.fn.writefile(output_lines, output_path)
+    end
+
+    -- Process streaming results using adapter's stream function if available
+    if run_spec.stream then
+      print("[STREAMING] Using adapter's stream function to process output...")
+      local stream_fn = run_spec.stream(function()
+        return output_lines
+      end)
+      -- Call the stream function to process all events
+      stream_fn()
+    end
+
+    print(
+      "[STREAMING] Process completed in",
+      elapsed_time,
+      "seconds, exit code:",
+      sys.code,
+      "processed",
+      #output_lines,
+      "lines, output path:",
+      output_path
+    )
+
+    return {
+      code = sys.code or 1,
+      output = output_path,
+    }
+  end)
+end
+
 --- Execute a real test using the adapter's build_spec and results methods directly
 --- This bypasses neotest.run.run and calls the adapter interface directly
 ---
@@ -77,11 +171,16 @@ end
 --- "/path/to/file_test.go::TestFunction::\"SubTest\"::\"TableTest\"" -- Nested subtest
 ---
 --- @param position_id string Neotest position ID (directory, file, or test position)
+--- @param opts ExecutionOpts? Optional execution configuration
 --- @return AdapterExecutionResult result Complete execution result
-function M.execute_adapter_direct(position_id)
+function M.execute_adapter_direct(position_id, opts)
   -- Validate arguments
   assert(position_id, "position_id is required")
   assert(type(position_id) == "string", "position_id must be a string")
+
+  -- Extract options with defaults
+  opts = opts or {}
+  local use_streaming = opts.use_streaming or false
 
   -- Parse position ID to extract components
   -- Handle Windows drive letters (C:, D:, etc.) by looking for :: test separators specifically
@@ -265,8 +364,17 @@ function M.execute_adapter_direct(position_id)
   assert(run_spec, "Failed to build run spec for " .. position_id)
   assert(run_spec.command, "Run spec should have a command")
 
-  -- Execute the command
-  local strategy_result = execute_command(run_spec)
+  -- Execute the command (streaming or sync based on flag)
+  local strategy_result
+
+  if use_streaming then
+    -- True streaming execution using adapter's stream functionality
+    strategy_result = execute_command_streaming(run_spec, full_tree)
+  else
+    -- Legacy sync execution
+    strategy_result = execute_command(run_spec)
+  end
+
   assert(strategy_result, "Failed to get strategy result")
 
   -- Process test output manually to seed cached results
@@ -308,7 +416,6 @@ end
 --- @return table<string, neotest.Result> Individual test results
 function M.process_test_output_manually(tree, golist_data, output_path, context)
   local async = require("neotest.async")
-  local lib = require("neotest-golang.lib")
   local options = require("neotest-golang.options")
   local results_stream = require("neotest-golang.results_stream")
 
@@ -366,6 +473,177 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
 
   -- Return a reference to the updated cache
   return lib.stream.cached_results
+end
+
+--- Validate diagnostic errors for specific test positions
+--- @param results table<string, AdapterExecutionResult> The execution results
+--- @param position_id string The position ID to check
+--- @param expected_errors table[] Expected error messages and line numbers
+--- @return boolean success Whether validation passed
+function M.validate_diagnostic_errors(results, position_id, expected_errors)
+  local result = results[position_id]
+  if not result then
+    error("No result found for position: " .. position_id)
+  end
+
+  local test_result = result.results[position_id]
+  if not test_result then
+    error("No test result found for position: " .. position_id)
+  end
+
+  if not test_result.errors or #test_result.errors == 0 then
+    if #expected_errors > 0 then
+      error("Expected errors but found none for: " .. position_id)
+    end
+    return true
+  end
+
+  -- Sort both expected and actual errors by line number for comparison
+  local actual_errors = vim.deepcopy(test_result.errors)
+  table.sort(actual_errors, function(a, b)
+    return a.line < b.line
+  end)
+  table.sort(expected_errors, function(a, b)
+    return (a.line or 0) < (b.line or 0)
+  end)
+
+  if #actual_errors ~= #expected_errors then
+    error(
+      string.format(
+        "Expected %d errors but got %d for %s",
+        #expected_errors,
+        #actual_errors,
+        position_id
+      )
+    )
+  end
+
+  for i, expected in ipairs(expected_errors) do
+    local actual = actual_errors[i]
+
+    if
+      expected.message and not actual.message:find(expected.message, 1, true)
+    then
+      error(
+        string.format(
+          "Expected error message '%s' but got '%s' for %s",
+          expected.message,
+          actual.message,
+          position_id
+        )
+      )
+    end
+
+    if expected.line and actual.line ~= expected.line then
+      error(
+        string.format(
+          "Expected error at line %d but got line %d for %s",
+          expected.line,
+          actual.line,
+          position_id
+        )
+      )
+    end
+
+    if expected.severity and actual.severity ~= expected.severity then
+      error(
+        string.format(
+          "Expected severity %d but got %d for %s",
+          expected.severity,
+          actual.severity,
+          position_id
+        )
+      )
+    end
+  end
+
+  return true
+end
+
+--- Execute multiple tests concurrently with streaming
+--- @param position_ids string[] List of position IDs to execute concurrently
+--- @param use_streaming boolean? Whether to use streaming execution (default: true for concurrent)
+--- @return table<string, AdapterExecutionResult> results Map of position_id to execution result
+function M.execute_adapter_concurrent(position_ids, use_streaming)
+  assert(position_ids, "position_ids is required")
+  assert(type(position_ids) == "table", "position_ids must be a table")
+  assert(#position_ids > 0, "position_ids must not be empty")
+
+  -- Default to streaming for concurrent execution
+  use_streaming = use_streaming == nil and true or use_streaming
+
+  local nio = require("nio")
+
+  return nio.tests.with_async_context(function()
+    local futures = {}
+    local results = {}
+
+    print(
+      string.format(
+        "[CONCURRENT] Starting %d test executions in parallel...",
+        #position_ids
+      )
+    )
+    local start_time = vim.fn.reltime()
+
+    -- Launch all tests concurrently
+    for i, position_id in ipairs(position_ids) do
+      local future = nio.control.future()
+      futures[position_id] = future
+
+      -- Launch each execution in parallel
+      nio.run(function()
+        local success, result = pcall(
+          M.execute_adapter_direct,
+          position_id,
+          { use_streaming = use_streaming }
+        )
+        if success then
+          future.set({ success = true, result = result })
+        else
+          future.set({ success = false, error = result })
+        end
+      end)
+
+      print(
+        string.format(
+          "[CONCURRENT] Launched test %d/%d: %s",
+          i,
+          #position_ids,
+          position_id
+        )
+      )
+    end
+
+    -- Collect all results
+    for position_id, future in pairs(futures) do
+      local outcome = future.wait()
+      if outcome.success then
+        results[position_id] = outcome.result
+        print(string.format("[CONCURRENT] ✅ Completed: %s", position_id))
+      else
+        print(
+          string.format(
+            "[CONCURRENT] ❌ Failed: %s - %s",
+            position_id,
+            outcome.error
+          )
+        )
+        results[position_id] = { error = outcome.error }
+      end
+    end
+
+    local elapsed_time = vim.fn.reltimestr(vim.fn.reltime(start_time))
+    print(
+      string.format(
+        "[CONCURRENT] All %d tests completed in %s seconds",
+        #position_ids,
+        elapsed_time
+      )
+    )
+
+    return results
+  end)
 end
 
 return M

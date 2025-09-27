@@ -19,10 +19,6 @@ describe("Integration: packaging whitebox test", function()
         .. "/tests/go/internal/packaging/whitebox_test.go"
       position_id = path.normalize_path(position_id)
 
-      -- ===== ACT =====
-      ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(position_id)
-
       -- Expected complete adapter execution result
       ---@type AdapterExecutionResult
       local want = {
@@ -66,6 +62,13 @@ describe("Integration: packaging whitebox test", function()
           end,
         },
       }
+
+      -- ===== ACT =====
+      ---@type AdapterExecutionResult
+      local got = integration.execute_adapter_direct(
+        position_id,
+        { use_streaming = true }
+      )
 
       -- ===== ASSERT =====
 

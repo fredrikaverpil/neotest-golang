@@ -117,8 +117,7 @@ When running `task test-plenary`, Neovim launches headlessly and:
 3. **Streaming Support**: Recent additions include streaming strategy support
    for live test output
 
-4. **Error Handling**: Comprehensive logging through
-   `lua/neotest-golang/logging.lua`
+4. **Error Handling**: Logging through `lua/neotest-golang/logging.lua`
 
 ## Dependencies
 

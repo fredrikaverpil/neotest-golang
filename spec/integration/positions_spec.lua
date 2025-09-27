@@ -19,10 +19,6 @@ describe("Integration: positions test", function()
         .. "/tests/go/internal/positions/positions_test.go"
       position_id = path.normalize_path(position_id)
 
-      -- ===== ACT =====
-      ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(position_id)
-
       -- Expected complete adapter execution result
       ---@type AdapterExecutionResult
       local want = {
@@ -212,8 +208,15 @@ describe("Integration: positions test", function()
         },
       }
 
-      -- ===== ASSERT =====
+      -- ===== ACT =====
+      print("\n[TEST] Running positions test with ASYNC execution...")
+      ---@type AdapterExecutionResult
+      local got = integration.execute_adapter_direct(
+        position_id,
+        { use_streaming = true }
+      )
 
+      -- ===== ASSERT =====
       -- Copy dynamic run_spec fields
       want.run_spec.command = got.run_spec.command
       want.run_spec.cwd = got.run_spec.cwd
