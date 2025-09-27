@@ -19,10 +19,6 @@ describe("Integration: treesitter precision test", function()
         .. "/tests/go/internal/precision/treesitter_precision_test.go"
       position_id = path.normalize_path(position_id)
 
-      -- ===== ACT =====
-      ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(position_id)
-
       -- Expected complete adapter execution result
       -- Note: Only actual Go test functions should be detected, not benchmarks or fuzz tests
       ---@type AdapterExecutionResult
@@ -73,8 +69,11 @@ describe("Integration: treesitter precision test", function()
         },
       }
 
-      -- ===== ASSERT =====
+      -- ===== ACT =====
+      ---@type AdapterExecutionResult
+      local got = integration.execute_adapter_direct(position_id)
 
+      -- ===== ASSERT =====
       -- Copy dynamic run_spec fields
       want.run_spec.command = got.run_spec.command
       want.run_spec.cwd = got.run_spec.cwd
