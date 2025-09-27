@@ -1,18 +1,14 @@
 --- Integration test utilities for end-to-end Go test execution
 ---
---- This module provides multiple execution modes that mirror Neotest's internal behavior:
+--- This module provides execution modes that mirror Neotest's internal behavior:
 ---
 --- 1. Synchronous Execution (blocking)
 ---    execute_adapter_direct(position_id)
 ---    execute_adapter_direct(position_id, {}) -- explicit empty opts
 ---
---- 2. Async Execution (single test with streaming)
----    execute_adapter_direct(position_id, { use_async = true })
----    Uses vim.system() + nio.control.future() for async handling
----
---- 3. Concurrent Execution (multiple tests in parallel)
----    execute_adapter_concurrent(position_ids, true)
----    Uses nio.run() to launch multiple tests simultaneously, just like Neotest
+--- 2. True Streaming Execution (real-time event processing)
+---    execute_adapter_direct(position_id, { use_streaming = true })
+---    Processes gotestsum JSON events line-by-line as they arrive, just like Neotest
 
 local lib = require("neotest-golang.lib")
 
@@ -23,7 +19,7 @@ local lib = require("neotest-golang.lib")
 ---@field strategy_result table The execution result from strategy
 
 ---@class ExecutionOpts
----@field use_async boolean? Whether to use async streaming execution (default: false)
+---@field use_streaming boolean? Whether to use true streaming execution with real-time event processing (default: false)
 
 local M = {}
 
@@ -83,17 +79,17 @@ local function execute_command(run_spec)
   end)
 end
 
---- Execute command asynchronously using vim.system with nio futures
+--- Execute command with true streaming using adapter's stream functionality
 --- @param run_spec neotest.RunSpec The built run specification
---- @param on_stream_output function Optional callback for streaming output lines
+--- @param tree neotest.Tree The discovered test tree
 --- @return table strategy_result The execution result from strategy
-local function execute_command_async(run_spec, on_stream_output)
+local function execute_command_streaming(run_spec, tree)
   local nio = require("nio")
 
   return nio.tests.with_async_context(function()
-    print("[ASYNC] Go test command:", vim.inspect(run_spec.command))
-    print("[ASYNC] Working directory:", run_spec.cwd)
-    print("[ASYNC] Using async vim.system execution...")
+    print("[STREAMING] Go test command:", vim.inspect(run_spec.command))
+    print("[STREAMING] Working directory:", run_spec.cwd)
+    print("[STREAMING] Using adapter's streaming functionality...")
 
     -- Normalize env
     local env = run_spec.env
@@ -102,51 +98,55 @@ local function execute_command_async(run_spec, on_stream_output)
     end
 
     local start_time = vim.fn.reltime()
+    local output_lines = {}
 
-    -- Use vim.system() async with nio future
+    -- Use vim.system() async with streaming
     local future = nio.control.future()
 
     local handle = vim.system(run_spec.command, {
       cwd = run_spec.cwd,
       env = env,
       text = true,
+      stdout = function(err, chunk)
+        if chunk then
+          for line in chunk:gmatch("[^\r\n]+") do
+            table.insert(output_lines, line)
+          end
+        end
+      end,
     }, function(obj)
-      -- This callback runs when the process completes
       future.set(obj)
     end)
 
-    -- Wait for the async process to complete
+    -- Wait for completion
     local sys = future.wait()
     local elapsed_time = vim.fn.reltimestr(vim.fn.reltime(start_time))
 
-    -- Persist stdout/stderr to a temp file for debugging/fallbacks
+    -- Create output file
     local output_path = nil
-    if
-      (sys.stdout and sys.stdout ~= "") or (sys.stderr and sys.stderr ~= "")
-    then
+    if #output_lines > 0 then
       output_path = vim.fs.normalize(nio.fn.tempname())
-      local lines = {}
-      if sys.stdout and sys.stdout ~= "" then
-        for line in sys.stdout:gmatch("[^\r\n]+") do
-          table.insert(lines, line)
-        end
-      end
-      if sys.stderr and sys.stderr ~= "" then
-        table.insert(lines, "")
-        table.insert(lines, "=== stderr ===")
-        for line in sys.stderr:gmatch("[^\r\n]+") do
-          table.insert(lines, line)
-        end
-      end
-      nio.fn.writefile(lines, output_path)
+      nio.fn.writefile(output_lines, output_path)
+    end
+
+    -- Process streaming results using adapter's stream function if available
+    if run_spec.stream then
+      print("[STREAMING] Using adapter's stream function to process output...")
+      local stream_fn = run_spec.stream(function()
+        return output_lines
+      end)
+      -- Call the stream function to process all events
+      stream_fn()
     end
 
     print(
-      "[ASYNC] Process completed in",
+      "[STREAMING] Process completed in",
       elapsed_time,
       "seconds, exit code:",
       sys.code,
-      "output path:",
+      "processed",
+      #output_lines,
+      "lines, output path:",
       output_path
     )
 
@@ -177,7 +177,7 @@ function M.execute_adapter_direct(position_id, opts)
 
   -- Extract options with defaults
   opts = opts or {}
-  local use_async = opts.use_async or false
+  local use_streaming = opts.use_streaming or false
 
   -- Parse position ID to extract components
   -- Handle Windows drive letters (C:, D:, etc.) by looking for :: test separators specifically
@@ -361,19 +361,12 @@ function M.execute_adapter_direct(position_id, opts)
   assert(run_spec, "Failed to build run spec for " .. position_id)
   assert(run_spec.command, "Run spec should have a command")
 
-  -- Execute the command (async or sync based on flag)
+  -- Execute the command (streaming or sync based on flag)
   local strategy_result
-  local streaming_output = {}
 
-  if use_async then
-    -- Async execution with streaming
-    local function on_stream_output(chunk)
-      table.insert(streaming_output, "[STREAM] " .. chunk)
-      print("[STREAM] " .. chunk:sub(1, 100) .. (#chunk > 100 and "..." or ""))
-    end
-
-    strategy_result = execute_command_async(run_spec, on_stream_output)
-    print("[ASYNC] Collected", #streaming_output, "streaming chunks")
+  if use_streaming then
+    -- True streaming execution using adapter's stream functionality
+    strategy_result = execute_command_streaming(run_spec, full_tree)
   else
     -- Legacy sync execution
     strategy_result = execute_command(run_spec)
@@ -564,17 +557,17 @@ function M.validate_diagnostic_errors(results, position_id, expected_errors)
   return true
 end
 
---- Execute multiple tests concurrently like Neotest does
+--- Execute multiple tests concurrently with streaming
 --- @param position_ids string[] List of position IDs to execute concurrently
---- @param use_async boolean? Whether to use async execution (default: true for concurrent)
+--- @param use_streaming boolean? Whether to use streaming execution (default: true for concurrent)
 --- @return table<string, AdapterExecutionResult> results Map of position_id to execution result
-function M.execute_adapter_concurrent(position_ids, use_async)
+function M.execute_adapter_concurrent(position_ids, use_streaming)
   assert(position_ids, "position_ids is required")
   assert(type(position_ids) == "table", "position_ids must be a table")
   assert(#position_ids > 0, "position_ids must not be empty")
 
-  -- Force async for concurrent execution
-  use_async = use_async ~= false
+  -- Force streaming for concurrent execution
+  use_streaming = use_streaming ~= false
 
   local nio = require("nio")
 
@@ -600,7 +593,7 @@ function M.execute_adapter_concurrent(position_ids, use_async)
         local success, result = pcall(
           M.execute_adapter_direct,
           position_id,
-          { use_async = use_async }
+          { use_streaming = use_streaming }
         )
         if success then
           future.set({ success = true, result = result })

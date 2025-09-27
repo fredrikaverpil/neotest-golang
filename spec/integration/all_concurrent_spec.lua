@@ -256,8 +256,10 @@ describe("Integration: comprehensive concurrent execution", function()
       local seq_start = vim.fn.reltime()
       local seq_results = {}
       for _, position_id in ipairs(positions) do
-        seq_results[position_id] =
-          integration.execute_adapter_direct(position_id, { use_async = true })
+        seq_results[position_id] = integration.execute_adapter_direct(
+          position_id,
+          { use_streaming = true }
+        )
       end
       local seq_duration = vim.fn.reltimefloat(vim.fn.reltime(seq_start))
 

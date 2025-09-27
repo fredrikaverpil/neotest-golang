@@ -130,8 +130,10 @@ describe("Integration: individual test example", function()
     -- ===== ACT =====
     print("\n[TEST] Starting SYNC execution for timing...")
     local start_time = vim.fn.reltime()
-    local got_sync =
-      integration.execute_adapter_direct(position_id_test, { use_async = true })
+    local got_sync = integration.execute_adapter_direct(
+      position_id_test,
+      { use_streaming = true }
+    )
     local sync_duration = vim.fn.reltimestr(vim.fn.reltime(start_time))
 
     -- ===== ASSERT =====
@@ -165,8 +167,10 @@ describe("Integration: individual test example", function()
     -- ===== ACT =====
     print("\n[TEST] Starting ASYNC execution with streaming...")
     local start_time = vim.fn.reltime()
-    local got_async =
-      integration.execute_adapter_direct(position_id_test, { use_async = true })
+    local got_async = integration.execute_adapter_direct(
+      position_id_test,
+      { use_streaming = true }
+    )
     local async_duration = vim.fn.reltimestr(vim.fn.reltime(start_time))
 
     -- ===== ASSERT =====
