@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.1.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.0.0...v2.1.0) (2025-09-27)
+
+
+### Features
+
+* early validation for -race flag CGO requirements ([#435](https://github.com/fredrikaverpil/neotest-golang/issues/435)) ([096d363](https://github.com/fredrikaverpil/neotest-golang/commit/096d363505cecca37aeeb12245d22039817e9ade))
+* move treesitter queries to scm files ([#437](https://github.com/fredrikaverpil/neotest-golang/issues/437)) ([8a4a1de](https://github.com/fredrikaverpil/neotest-golang/commit/8a4a1dee307eafe553241f8b5f3337151678394e))
+* table tests with inline composite literal and field access ([#431](https://github.com/fredrikaverpil/neotest-golang/issues/431)) ([e387947](https://github.com/fredrikaverpil/neotest-golang/commit/e387947d2d6d11512decff238ed2c0ae1b039bb2))
+
+
+### Bug Fixes
+
+* over-engineered mapping ([#425](https://github.com/fredrikaverpil/neotest-golang/issues/425)) ([2aaf654](https://github.com/fredrikaverpil/neotest-golang/commit/2aaf654d99b12f9fbdd035f3c0d40a2efe56df67))
+* position lookup should contain sub-test entries ([#430](https://github.com/fredrikaverpil/neotest-golang/issues/430)) ([6ce59c6](https://github.com/fredrikaverpil/neotest-golang/commit/6ce59c6efb669211c71b64c71a5b0056de18cf34))
+* structured logging ([#429](https://github.com/fredrikaverpil/neotest-golang/issues/429)) ([389a8d9](https://github.com/fredrikaverpil/neotest-golang/commit/389a8d920f303dbb0b30ff3d05abff438d9b23f9))
+* subtests appearing twice in some cases ([#436](https://github.com/fredrikaverpil/neotest-golang/issues/436)) ([0fc8254](https://github.com/fredrikaverpil/neotest-golang/commit/0fc8254061abbad7be87e61ecf9154ca9a36e42f))
+* version detection on windows ([#432](https://github.com/fredrikaverpil/neotest-golang/issues/432)) ([970a6b0](https://github.com/fredrikaverpil/neotest-golang/commit/970a6b0d21af47d95057b9344771be0243869545))
+* vim.fs.normalize -&gt; lib.path.normalize_path ([#438](https://github.com/fredrikaverpil/neotest-golang/issues/438)) ([8c1f32b](https://github.com/fredrikaverpil/neotest-golang/commit/8c1f32b6eceb34be6f8c261bcdf7a236982d820e))
+* windows support ([#422](https://github.com/fredrikaverpil/neotest-golang/issues/422)) ([493e9fa](https://github.com/fredrikaverpil/neotest-golang/commit/493e9faabb5d3da713bd98761783f32b8b783404))
+
 ## [2.0.0](https://github.com/fredrikaverpil/neotest-golang/compare/v1.15.1...v2.0.0) (2025-09-22)
 
 
