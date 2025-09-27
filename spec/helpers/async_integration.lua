@@ -1,5 +1,15 @@
 --- Async integration test utilities for reproducing race conditions
 --- Unlike regular integration.lua, this uses real streaming to expose concurrency bugs
+---
+--- This module provides async execution modes designed to trigger race conditions:
+---
+--- 1. Single Async Execution (with real streaming)
+---    execute_adapter_async(position_id)
+---    Uses real async streaming without test strategy override to expose race conditions
+---
+--- 2. Concurrent Execution (multiple tests in parallel)
+---    execute_concurrent_tests(position_ids)
+---    Uses nio.run() to launch multiple tests simultaneously, triggering tempfile races
 
 local lib = require("neotest-golang.lib")
 local options = require("neotest-golang.options")
@@ -24,14 +34,14 @@ function M.execute_adapter_async(position_id)
 
   local nio = require("nio")
   local adapter = require("neotest-golang")
+  local async = require("neotest.async")
 
   -- CRITICAL: Do NOT set test strategy - use real live streaming
   -- This allows concurrent stream processing that can expose race conditions
   local lib_stream = require("neotest-golang.lib.stream")
   -- lib_stream.set_test_strategy(test_strategy) -- INTENTIONALLY COMMENTED OUT
 
-  return nio.tests.with_async_context(function()
-    -- Parse position ID (reuse logic from integration.lua)
+  -- Parse position ID (reuse logic from integration.lua)
     local base_path, test_components
     local double_colon_pos = position_id:find("::")
     if double_colon_pos then
@@ -123,20 +133,74 @@ function M.execute_adapter_async(position_id)
     -- CRITICAL: Don't set test strategy to force real streaming
     -- This ensures concurrent tempfile creation in results_stream.lua
 
-    -- For simplicity, just run the build_spec to show we're building concurrent commands
-    -- The race condition occurs during streaming, not during final result collection
-    -- So just demonstrating concurrent command building is sufficient for race reproduction
+    -- Execute the command to get real output for streaming processing
+    local strategy_result
+    do
+      -- Normalize env
+      local env = run_spec.env
+      if env and vim.tbl_isempty(env) then
+        env = nil
+      end
+
+      -- Run the process asynchronously to trigger real concurrency
+      local future = nio.control.future()
+      local handle = vim.system(run_spec.command, {
+        cwd = run_spec.cwd,
+        env = env,
+        text = true,
+      }, function(obj)
+        future.set(obj)
+      end)
+
+      local sys = future.wait()
+
+      -- Create temp file with output (similar to integration.lua)
+      local output_path = nil
+      if (sys.stdout and sys.stdout ~= "") or (sys.stderr and sys.stderr ~= "") then
+        output_path = vim.fs.normalize(async.fn.tempname())
+        local lines = {}
+        if sys.stdout and sys.stdout ~= "" then
+          for line in sys.stdout:gmatch("[^\r\n]+") do
+            table.insert(lines, line)
+          end
+        end
+        if sys.stderr and sys.stderr ~= "" then
+          table.insert(lines, "")
+          table.insert(lines, "=== stderr ===")
+          for line in sys.stderr:gmatch("[^\r\n]+") do
+            table.insert(lines, line)
+          end
+        end
+        async.fn.writefile(lines, output_path)
+      end
+
+      strategy_result = {
+        code = sys.code or 1,
+        output = output_path,
+      }
+    end
+
+    -- Process test output manually to populate streaming results cache
+    -- This is what triggers the tempfile creation in results_stream.lua
+    if strategy_result.output then
+      local integration = require("spec.helpers.integration")
+      integration.process_test_output_manually(
+        full_tree,
+        run_spec.context.golist_data,
+        strategy_result.output,
+        run_spec.context
+      )
+    end
+
+    -- Process results through adapter to get final results with temp files
+    local results = adapter.results(run_spec, strategy_result, full_tree)
 
     return {
       tree = full_tree,
-      results = {}, -- Empty results since we're focused on race reproduction
+      results = results,
       run_spec = run_spec,
-      strategy_result = {
-        code = 0,
-        output = nil,
-      },
+      strategy_result = strategy_result,
     }
-  end)
 end
 
 --- Execute multiple tests concurrently to trigger race conditions
@@ -149,22 +213,38 @@ function M.execute_concurrent_tests(position_ids)
 
   return nio.tests.with_async_context(function()
     local futures = {}
-    local async_runners = {}
+    local results = {}
 
-    -- Create async runners for each position
+    print("🚀 Launching", #position_ids, "concurrent tests...")
+
+    -- Launch all tests concurrently using nio.run + future pattern
     for i, position_id in ipairs(position_ids) do
-      table.insert(async_runners, function()
+      local future = nio.control.future()
+      futures[position_id] = future
+
+      -- Launch each execution in parallel
+      nio.run(function()
         print("🏃 Starting concurrent test", i, ":", position_id)
-        local result = M.execute_adapter_async(position_id)
-        print("✅ Completed concurrent test", i, ":", position_id)
-        return result
+        local success, result = pcall(M.execute_adapter_async, position_id)
+        if success then
+          print("✅ Completed concurrent test", i, ":", position_id)
+          future.set({ success = true, result = result })
+        else
+          print("❌ Failed concurrent test", i, ":", position_id, "Error:", result)
+          future.set({ success = false, error = result })
+        end
       end)
     end
 
-    print("🚀 Launching", #async_runners, "concurrent tests...")
-
-    -- Execute all runners concurrently
-    local results = nio.gather(async_runners)
+    -- Wait for all futures to complete
+    for i, position_id in ipairs(position_ids) do
+      local future_result = futures[position_id].wait()
+      if future_result.success then
+        table.insert(results, future_result.result)
+      else
+        error("Test execution failed for " .. position_id .. ": " .. future_result.error)
+      end
+    end
 
     print("🏁 All concurrent tests completed")
     return results
@@ -176,69 +256,6 @@ end
 --- @param position_id string Single test position to run multiple times
 --- @param iterations integer Number of concurrent iterations (default: 5)
 --- @return AsyncAdapterExecutionResult[] results Array of execution results
-function M.stress_test_race_condition(position_id, iterations)
-  iterations = iterations or 5
-  print(
-    "💥 Starting stress test:",
-    iterations,
-    "concurrent iterations of",
-    position_id
-  )
 
-  -- Create array of same position ID repeated
-  local position_ids = {}
-  for i = 1, iterations do
-    table.insert(position_ids, position_id)
-  end
-
-  local results = M.execute_concurrent_tests(position_ids)
-
-  -- Analyze results for race condition indicators
-  local missing_outputs = 0
-  local failed_tests = 0
-  local temp_paths = {}
-
-  for i, result in ipairs(results) do
-    for pos_id, test_result in pairs(result.results) do
-      if test_result.status == "failed" then
-        failed_tests = failed_tests + 1
-      end
-
-      if test_result.output then
-        if temp_paths[test_result.output] then
-          print(
-            "🐛 RACE CONDITION DETECTED: Duplicate output path:",
-            test_result.output
-          )
-        else
-          temp_paths[test_result.output] = true
-        end
-
-        -- Check if output file actually exists
-        if vim.fn.filereadable(test_result.output) == 0 then
-          missing_outputs = missing_outputs + 1
-          print(
-            "🐛 RACE CONDITION DETECTED: Missing output file:",
-            test_result.output
-          )
-        end
-      end
-    end
-  end
-
-  print("📈 Stress test analysis:")
-  print("  - Total iterations:", iterations)
-  print("  - Failed tests:", failed_tests)
-  print("  - Missing output files:", missing_outputs)
-  print("  - Unique temp paths:", vim.tbl_count(temp_paths))
-
-  if missing_outputs > 0 or vim.tbl_count(temp_paths) < iterations then
-    print("🎯 Race condition successfully reproduced!")
-  else
-    print("😕 No race condition detected in this run")
-  end
-
-  return results
-end
 
 return M
