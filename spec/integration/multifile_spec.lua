@@ -76,7 +76,8 @@ describe("Integration: multifile test", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(pos_id_dir)
+      local got =
+        integration.execute_adapter_direct(pos_id_dir, { use_streaming = true })
 
       -- ===== ASSERT =====
       want.tree = got.tree

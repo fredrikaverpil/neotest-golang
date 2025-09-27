@@ -19,7 +19,8 @@ describe("Integration: query duplicates test", function()
 
     -- ===== ACT =====
     print("\n[TEST] Running query duplicates test...")
-    local got = integration.execute_adapter_direct(position_id)
+    local got =
+      integration.execute_adapter_direct(position_id, { use_streaming = true })
 
     -- ===== ASSERT =====
     -- Check that the tree was discovered

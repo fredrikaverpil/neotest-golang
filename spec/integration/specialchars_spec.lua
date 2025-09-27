@@ -99,7 +99,10 @@ describe("Integration: special characters test", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(position_id)
+      local got = integration.execute_adapter_direct(
+        position_id,
+        { use_streaming = true }
+      )
 
       -- ===== ASSERT =====
       -- Copy dynamic run_spec fields
