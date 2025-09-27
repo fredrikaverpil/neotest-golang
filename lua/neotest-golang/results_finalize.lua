@@ -213,7 +213,7 @@ function M.populate_missing_dir_results(tree, results)
         if dir_result then
           -- Update existing result with aggregated data
           if has_meaningful_output then
-            local dir_output_path = vim.fs.normalize(async.fn.tempname())
+            local dir_output_path = lib.path.normalize_path(async.fn.tempname())
             async.fn.writefile(combined_output, dir_output_path)
             dir_result.output = dir_output_path
           end
@@ -229,7 +229,7 @@ function M.populate_missing_dir_results(tree, results)
 
           -- Only add output field if there's meaningful content
           if has_meaningful_output then
-            local dir_output_path = vim.fs.normalize(async.fn.tempname())
+            local dir_output_path = lib.path.normalize_path(async.fn.tempname())
             async.fn.writefile(combined_output, dir_output_path)
             new_result.output = dir_output_path
           end
@@ -281,7 +281,7 @@ function M.populate_missing_dir_results(tree, results)
       -- Only create parent directory result if we have subdirectories and actual output content
       if #subdir_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
         -- Write combined output to file
-        local parent_output_path = vim.fs.normalize(async.fn.tempname())
+        local parent_output_path = lib.path.normalize_path(async.fn.tempname())
         async.fn.writefile(combined_output, parent_output_path)
 
         -- Create or update parent directory node result
@@ -373,7 +373,7 @@ function M.populate_missing_file_results(tree, results)
       -- Only create file result if we have tests and actual output content
       if #test_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
         -- Write combined output to file
-        local file_output_path = vim.fs.normalize(async.fn.tempname())
+        local file_output_path = lib.path.normalize_path(async.fn.tempname())
         async.fn.writefile(combined_output, file_output_path)
 
         -- Create or update file node result
@@ -422,7 +422,7 @@ function M.create_root_result(results_data, result, gotest_output)
   -- Single-pass colorization of all parts
   local full_output = lib.colorize.colorize_parts(output_parts)
 
-  local output = vim.fs.normalize(async.fn.tempname())
+  local output = lib.path.normalize_path(async.fn.tempname())
   async.fn.writefile(full_output, output)
 
   return {
