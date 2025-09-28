@@ -100,6 +100,9 @@ The general workflow of adding a new integration test:
 
    -- Run a nested subtest
    local result = integration.execute_adapter_direct("/path/to/file_test.go::TestFunction::\"SubTest\"::\"TableTest\"")
+
+   -- Use blocking/synchronous execution (legacy, but could potentially be useful for debugging)
+   local result = integration.execute_adapter_direct("/path/to/file_test.go", { use_blocking = true })
    ```
 
 ### Best practices
@@ -120,7 +123,8 @@ When writing tests...
   - Run all tests in dir: `/path/to/folder`
   - Run all tests in file: `/path/to/folder/file_test.go`
   - Run test (and/or sub-tests): `/path/to/folder/file_test.go::TestSomething`
-    or `/path/to/folder/file_test.go::TestSomething::"TestSubTest"`:
+    or `/path/to/folder/file_test.go::TestSomething::"TestSubTest"`
+  - Use `{ use_blocking = true }` option for synchronous execution
 
 ## Debugging Testify Suite Issues
 

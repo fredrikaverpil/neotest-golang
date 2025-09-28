@@ -73,10 +73,7 @@ describe("Integration: singletest test", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(
-        position_id,
-        { use_streaming = true }
-      )
+      local got = integration.execute_adapter_direct(position_id)
 
       -- ===== ASSERT =====
       -- Copy dynamic fields from got to want for comparison
@@ -170,10 +167,7 @@ describe("Integration: singletest test", function()
 
     -- ===== ACT =====
     ---@type AdapterExecutionResult
-    local got = integration.execute_adapter_direct(
-      position_id_test,
-      { use_streaming = true }
-    )
+    local got = integration.execute_adapter_direct(position_id_test)
 
     -- ===== ASSERT =====
 
