@@ -51,10 +51,7 @@ describe("Integration: nested subpackage2 test", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(
-        position_id,
-        { use_streaming = true }
-      )
+      local got = integration.execute_adapter_direct(position_id)
 
       -- ===== ASSERT =====
       want.tree = got.tree
@@ -148,10 +145,7 @@ describe("Integration: nested subpackage2 test", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(
-        position_id,
-        { use_streaming = true }
-      )
+      local got = integration.execute_adapter_direct(position_id)
 
       -- ===== ASSERT =====
       want.tree = got.tree
@@ -240,10 +234,7 @@ describe("Integration: nested subpackage2 test", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(
-        position_id,
-        { use_streaming = true }
-      )
+      local got = integration.execute_adapter_direct(position_id)
 
       -- ===== ASSERT =====
       want.tree = got.tree

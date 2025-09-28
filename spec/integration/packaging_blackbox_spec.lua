@@ -65,10 +65,7 @@ describe("Integration: packaging blackbox test", function()
 
       -- ===== ACT =====
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(
-        position_id,
-        { use_streaming = true }
-      )
+      local got = integration.execute_adapter_direct(position_id)
 
       -- ===== ASSERT =====
       -- Copy dynamic run_spec fields

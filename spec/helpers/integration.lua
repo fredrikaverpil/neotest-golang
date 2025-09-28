@@ -2,16 +2,15 @@
 ---
 --- This module provides execution modes that mirror Neotest's internal behavior:
 ---
---- 1. Synchronous Execution (blocking)
+--- 1. Streaming Execution (default - leverages adapter's stream functionality)
 ---    execute_adapter_direct(position_id)
----    execute_adapter_direct(position_id, { use_streaming = false })
----
---- 2. Streaming Execution (leverages adapter's stream functionality)
----    execute_adapter_direct(position_id, { use_streaming = true })
 ---    Uses the adapter's existing stream function to process test output
 ---
---- 3. Concurrent Execution (multiple tests with streaming)
----    execute_adapter_concurrent(position_ids, use_streaming)
+--- 2. Synchronous Execution (blocking)
+---    execute_adapter_direct(position_id, { use_blocking = true })
+---
+--- 3. Concurrent Execution (multiple tests with streaming by default)
+---    execute_adapter_concurrent(position_ids, use_blocking)
 
 local lib = require("neotest-golang.lib")
 local path = require("neotest-golang.lib.path")
@@ -23,7 +22,7 @@ local path = require("neotest-golang.lib.path")
 ---@field strategy_result table The execution result from strategy
 
 ---@class ExecutionOpts
----@field use_streaming boolean? Whether to use true streaming execution with real-time event processing (default: false)
+---@field use_blocking boolean? Whether to use synchronous blocking execution instead of streaming (default: false)
 
 local M = {}
 
@@ -181,7 +180,7 @@ function M.execute_adapter_direct(position_id, opts)
 
   -- Extract options with defaults
   opts = opts or {}
-  local use_streaming = opts.use_streaming or false
+  local use_blocking = opts.use_blocking or false
 
   -- Parse position ID to extract components
   -- Handle Windows drive letters (C:, D:, etc.) by looking for :: test separators specifically
@@ -365,15 +364,15 @@ function M.execute_adapter_direct(position_id, opts)
   assert(run_spec, "Failed to build run spec for " .. position_id)
   assert(run_spec.command, "Run spec should have a command")
 
-  -- Execute the command (streaming or sync based on flag)
+  -- Execute the command (streaming by default, sync if blocking is requested)
   local strategy_result
 
-  if use_streaming then
-    -- True streaming execution using adapter's stream functionality
-    strategy_result = execute_command_streaming(run_spec, full_tree)
-  else
+  if use_blocking then
     -- Legacy sync execution
     strategy_result = execute_command(run_spec)
+  else
+    -- Default streaming execution using adapter's stream functionality
+    strategy_result = execute_command_streaming(run_spec, full_tree)
   end
 
   assert(strategy_result, "Failed to get strategy result")
@@ -563,15 +562,15 @@ end
 
 --- Execute multiple tests concurrently with streaming
 --- @param position_ids string[] List of position IDs to execute concurrently
---- @param use_streaming boolean? Whether to use streaming execution (default: true for concurrent)
+--- @param use_blocking boolean? Whether to use blocking execution instead of streaming (default: false)
 --- @return table<string, AdapterExecutionResult> results Map of position_id to execution result
-function M.execute_adapter_concurrent(position_ids, use_streaming)
+function M.execute_adapter_concurrent(position_ids, use_blocking)
   assert(position_ids, "position_ids is required")
   assert(type(position_ids) == "table", "position_ids must be a table")
   assert(#position_ids > 0, "position_ids must not be empty")
 
   -- Default to streaming for concurrent execution
-  use_streaming = use_streaming == nil and true or use_streaming
+  use_blocking = use_blocking or false
 
   local nio = require("nio")
 
@@ -597,7 +596,7 @@ function M.execute_adapter_concurrent(position_ids, use_streaming)
         local success, result = pcall(
           M.execute_adapter_direct,
           position_id,
-          { use_streaming = use_streaming }
+          { use_blocking = use_blocking }
         )
         if success then
           future.set({ success = true, result = result })

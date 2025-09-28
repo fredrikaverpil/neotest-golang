@@ -211,10 +211,7 @@ describe("Integration: positions test", function()
       -- ===== ACT =====
       print("\n[TEST] Running positions test with ASYNC execution...")
       ---@type AdapterExecutionResult
-      local got = integration.execute_adapter_direct(
-        position_id,
-        { use_streaming = true }
-      )
+      local got = integration.execute_adapter_direct(position_id)
 
       -- ===== ASSERT =====
       -- Copy dynamic run_spec fields
