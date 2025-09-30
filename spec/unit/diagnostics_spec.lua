@@ -1,6 +1,95 @@
 local lib = require("neotest-golang.lib")
 
+describe("parse_testify_line", function()
+  it("parses testify Error Trace output when testify_enabled", function()
+    -- Enable testify for these tests
+    local options = require("neotest-golang.options")
+    local original_testify_enabled = options.get().testify_enabled
+    options.set({ testify_enabled = true })
+
+    local cases = {
+      {
+        line = "    	Error Trace:	/Users/fredrik/code/public/neotest-golang/tests/go/internal/testifysuites/hints_test.go:14",
+        expected = {
+          filename = "hints_test.go",
+          line_number = 14,
+          message = "assertion failed",
+          severity = vim.diagnostic.severity.ERROR,
+        },
+      },
+      {
+        line = "        	Error Trace:	/path/to/my_test.go:42",
+        expected = {
+          filename = "my_test.go",
+          line_number = 42,
+          message = "assertion failed",
+          severity = vim.diagnostic.severity.ERROR,
+        },
+      },
+      {
+        line = "Error Trace:	simple_test.go:100",
+        expected = {
+          filename = "simple_test.go",
+          line_number = 100,
+          message = "assertion failed",
+          severity = vim.diagnostic.severity.ERROR,
+        },
+      },
+      -- Should not match these
+      { line = "Error:      	Should be false", expected = nil },
+      { line = "Test:       	TestHints", expected = nil },
+      { line = "=== RUN   TestSomething", expected = nil },
+    }
+
+    for _, case in ipairs(cases) do
+      local res = lib.diagnostics.parse_diagnostic_line(case.line)
+      if case.expected then
+        assert.is_not_nil(res, "Should parse: " .. case.line)
+        assert.equals(case.expected.filename, res.filename)
+        assert.equals(case.expected.line_number, res.line_number)
+        assert.equals(case.expected.message, res.message)
+        assert.equals(case.expected.severity, res.severity)
+      else
+        assert.is_nil(res, "Should not parse: " .. case.line)
+      end
+    end
+
+    -- Restore original setting
+    options.set({ testify_enabled = original_testify_enabled })
+  end)
+
+  it("does not parse testify lines when testify_enabled is false", function()
+    local options = require("neotest-golang.options")
+    local original_testify_enabled = options.get().testify_enabled
+    options.set({ testify_enabled = false })
+
+    local line =
+      "    	Error Trace:	/Users/fredrik/code/neotest-golang/hints_test.go:14"
+    local res = lib.diagnostics.parse_diagnostic_line(line)
+
+    -- Should not parse testify format when disabled
+    assert.is_nil(res)
+
+    -- Restore original setting
+    options.set({ testify_enabled = original_testify_enabled })
+  end)
+end)
+
 describe("parse_diagnostic_line", function()
+  it("skips lines with empty messages (testify compatibility)", function()
+    -- These lines appear in testify output before the Error Trace line
+    local empty_message_cases = {
+      "hints_test.go:14: ",
+      "hints_test.go:15:   ",
+      "  my_test.go:42: ",
+    }
+
+    for _, line in ipairs(empty_message_cases) do
+      local res = lib.diagnostics.parse_diagnostic_line(line)
+      assert.is_nil(res, "Should skip empty message: " .. line)
+    end
+  end)
+
   it("parses filename/line/message and sets severity", function()
     local cases = {
       {
