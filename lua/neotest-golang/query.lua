@@ -60,9 +60,15 @@ function M.detect_tests(file_path)
     .. M.table_tests_inline_field_access
 
   if options.get().testify_enabled == true then
-    -- detect receiver types (as namespaces) and test methods.
-    -- Note: subtest detection for both t.Run() and suite.Run() is now
-    -- combined in test_function.scm to avoid query conflicts
+    -- Testify queries are ADDITIVE - they work on top of regular queries.
+    -- This allows detection of both regular Go tests and testify suites in the same file.
+    --
+    -- Adds detection for:
+    -- - Receiver types (as namespaces): func (s *Suite) TestXxx()
+    -- - Test methods on those receivers
+    --
+    -- Note: Subtest detection for both t.Run() and suite.Run() is already
+    -- combined in test_function.scm to avoid query conflicts.
     query = query
       .. testify.query.namespace_query
       .. testify.query.test_method_query
