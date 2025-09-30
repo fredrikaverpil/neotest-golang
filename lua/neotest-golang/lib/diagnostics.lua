@@ -13,9 +13,6 @@ M.error_patterns = {
   "nil pointer dereference",
   "index out of range",
   "slice bounds out of range",
-}
-
-M.assertion_patterns = {
   "expected.*but.*got",
   "expected.*but.*",
   "expected.*actual",
@@ -85,13 +82,6 @@ function M.is_hint_message(message)
 
   -- Check error patterns
   for _, pattern in ipairs(M.error_patterns) do
-    if lower_message:match(pattern:lower()) then
-      return false
-    end
-  end
-
-  -- Check assertion patterns
-  for _, pattern in ipairs(M.assertion_patterns) do
     if lower_message:match(pattern:lower()) then
       return false
     end
