@@ -1,3 +1,27 @@
+; ============================================================================
+; RESPONSIBILITY: Table tests with unkeyed (positional) struct literals
+; ============================================================================
+; Detects table tests where:
+; 1. Test cases use positional (unkeyed) field syntax
+; 2. Cases are in a named slice variable: tt := []struct{...}
+; 3. First field is the test name (string literal)
+; 4. Loop accesses the test case variable directly in t.Run()
+;
+; Example pattern:
+;   tt := []struct{
+;     name string
+;     want int
+;   }{
+;     {"test1", 1},  // ← unkeyed: fields in order, no "name:"
+;   }
+;   for _, tc := range tt {
+;     t.Run(tc.name, func(t *testing.T) { ... })
+;   }
+;
+; DISTINGUISHING FEATURE: literal_element without keyed_element wrapper.
+; The first string literal is assumed to be the test name.
+; ============================================================================
+
 ; query for table tests with inline structs (not keyed)
 (block
   (statement_list
