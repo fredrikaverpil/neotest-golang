@@ -4,15 +4,15 @@ require("neotest-golang.lib.types")
 local M = {}
 
 M.error_indicators = {
-  ["panic:"] = true,
-  ["fatal error:"] = true,
-  ["assertion failed"] = true,
-  ["error:"] = true,
-  ["fail:"] = true,
-  ["runtime error:"] = true,
-  ["nil pointer dereference"] = true,
-  ["index out of range"] = true,
-  ["slice bounds out of range"] = true,
+  "panic:",
+  "fatal error:",
+  "assertion failed",
+  "error:",
+  "fail:",
+  "runtime error:",
+  "nil pointer dereference",
+  "index out of range",
+  "slice bounds out of range",
 }
 
 M.assertion_patterns = {
@@ -83,8 +83,8 @@ function M.is_hint_message(message)
 
   local lower_message = message:lower()
 
-  -- Check hash lookup for common error indicators (O(1))
-  for indicator, _ in pairs(M.error_indicators) do
+  -- Check for common error indicators
+  for _, indicator in ipairs(M.error_indicators) do
     if lower_message:find(indicator, 1, true) then -- plain text search
       return false
     end
