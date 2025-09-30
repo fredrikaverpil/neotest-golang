@@ -3,7 +3,7 @@ require("neotest-golang.lib.types")
 
 local M = {}
 
-M.error_indicators = {
+M.error_patterns = {
   "panic:",
   "fatal error:",
   "assertion failed",
@@ -83,14 +83,14 @@ function M.is_hint_message(message)
 
   local lower_message = message:lower()
 
-  -- Check for common error indicators
-  for _, indicator in ipairs(M.error_indicators) do
-    if lower_message:find(indicator, 1, true) then -- plain text search
+  -- Check error patterns
+  for _, pattern in ipairs(M.error_patterns) do
+    if lower_message:match(pattern:lower()) then
       return false
     end
   end
 
-  -- Check assertion patterns that require regex matching
+  -- Check assertion patterns
   for _, pattern in ipairs(M.assertion_patterns) do
     if lower_message:match(pattern:lower()) then
       return false
