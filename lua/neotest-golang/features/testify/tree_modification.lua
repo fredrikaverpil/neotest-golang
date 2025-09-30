@@ -274,9 +274,31 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     table.insert(root_children, create_tree_node(suite_pos, suite_children))
   end
 
-  -- Add regular tests
+  -- Add regular tests with their subtests
   for _, test_pos in ipairs(regular_tests) do
-    table.insert(root_children, create_tree_node(test_pos, {}))
+    ---@type neotest.Tree[]
+    local test_children = {}
+
+    -- Find subtests that belong to this regular test
+    for _, subtest_pos in ipairs(subtests) do
+      -- Check if this subtest belongs to this test (not already assigned to a suite method)
+      if subtest_pos.id:find("::" .. test_pos.name .. "::", 1, true) then
+        -- Make sure it's not a suite subtest (those were already processed above)
+        local already_processed = false
+        for _, suite_pos in pairs(suite_functions) do
+          if subtest_pos.id:find("::" .. suite_pos.name .. "::", 1, true) then
+            already_processed = true
+            break
+          end
+        end
+
+        if not already_processed then
+          table.insert(test_children, create_tree_node(subtest_pos, {}))
+        end
+      end
+    end
+
+    table.insert(root_children, create_tree_node(test_pos, test_children))
   end
 
   -- Create new tree with file as root and updated children

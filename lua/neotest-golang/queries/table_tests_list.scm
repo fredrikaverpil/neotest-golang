@@ -35,4 +35,3 @@
                   (#eq? @test.case @test.case1)
                   field: (field_identifier) @test.field.name1
                   (#eq? @test.field.name @test.field.name1))))))))))
-
