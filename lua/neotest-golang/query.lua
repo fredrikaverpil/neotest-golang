@@ -24,6 +24,9 @@ M.table_tests_loop_unkeyed =
 
 M.table_tests_map = query_loader.load_query("queries/table_tests_map.scm")
 
+M.table_tests_inline_field_access =
+  query_loader.load_query("queries/table_tests_inline_field_access.scm")
+
 --- Check if Go tree-sitter parser is available
 --- @return boolean True if Go parser is available, false otherwise
 function M.has_go_parser()
@@ -54,6 +57,7 @@ function M.detect_tests(file_path)
     .. M.table_tests_unkeyed
     .. M.table_tests_loop_unkeyed
     .. M.table_tests_map
+    .. M.table_tests_inline_field_access
 
   if options.get().testify_enabled == true then
     -- detect receiver types (as namespaces) and test methods.

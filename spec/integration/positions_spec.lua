@@ -83,7 +83,10 @@ describe("Integration: positions test", function()
             status = "passed",
             errors = {},
           },
-          -- Removed: TestTableTestInlineCompositeWithFieldAccess (not in v1.15.1)
+          [position_id .. "::TestTableTestInlineCompositeWithFieldAccess"] = {
+            status = "passed",
+            errors = {},
+          },
           [position_id .. "::TestStructNotTableTest"] = {
             status = "passed",
             errors = {},
@@ -177,7 +180,14 @@ describe("Integration: positions test", function()
             status = "passed",
             errors = {},
           },
-          -- Removed: TestTableTestInlineCompositeWithFieldAccess subtests (not in v1.15.1)
+          [position_id .. '::TestTableTestInlineCompositeWithFieldAccess::"user1"'] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. '::TestTableTestInlineCompositeWithFieldAccess::"user2"'] = {
+            status = "passed",
+            errors = {},
+          },
         },
         run_spec = {
           command = {}, -- this will be replaced in the assertion

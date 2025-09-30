@@ -5,6 +5,8 @@
       (identifier)
       (identifier) @test.case)
     right: (composite_literal
+      type: (slice_type
+        element: (pointer_type))
       body: (literal_value
         (literal_element
           (literal_value
@@ -28,4 +30,3 @@
               (#eq? @test.case @test.case1)
               field: (field_identifier) @test.field.name1
               (#eq? @test.field.name @test.field.name1))))))))
-
