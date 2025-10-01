@@ -11,11 +11,6 @@ local lookup_table = lookup.get_lookup()
 ---@type string[]
 local ignore_filepaths_during_init = {}
 
--- Cache for namespace query results to avoid re-parsing files
--- Key: file_path, Value: namespace_matches table
----@type table<string, table>
-local namespace_cache = {}
-
 --- Modify the neotest tree, so that testify suites can be executed
 --- as Neotest namespaces.
 ---
@@ -81,68 +76,27 @@ function M.modify_neotest_tree(file_path, tree)
   return modified_tree
 end
 
---- Get namespace matches for a file, with caching
---- @param file_path string The path to the file to query
---- @param query_string string The TreeSitter query string
---- @return table The namespace matches
-local function get_namespace_matches_cached(file_path, query_string)
-  -- Check cache first
-  if namespace_cache[file_path] then
-    return namespace_cache[file_path]
-  end
-
-  -- Not in cache, run the query
-  local testify = require("neotest-golang.features.testify")
-  local matches = testify.query.run_query_on_file(file_path, query_string)
-
-  -- Cache the result
-  namespace_cache[file_path] = matches
-
-  return matches
-end
-
 --- Create proper testify hierarchy where receiver methods become children of suite functions
 --- @param tree neotest.Tree The original tree
 --- @param replacements table<string, string> Receiver type to suite function mappings
 --- @param global_lookup_table table The global lookup table for cross-file method discovery
 --- @return neotest.Tree The tree with proper testify hierarchy
 function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
-  local testify = require("neotest-golang.features.testify")
-
-  -- Create a map of method name to all instances across all files
+  -- Build method_positions map from lookup table data (no re-parsing!)
   ---@type table<string, table[]>
   local method_positions = {}
 
-  -- Search across ALL files for receiver methods
   if global_lookup_table then
-    for file_path, _ in pairs(global_lookup_table) do
-      ---@type table
-      local namespace_matches = get_namespace_matches_cached(
-        file_path,
-        testify.query.namespace_query
-      )
-
-      if
-        namespace_matches.namespace_name
-        and namespace_matches.namespace_definition
-      then
-        for i, receiver_match in ipairs(namespace_matches.namespace_name) do
-          ---@type table
-          local definition_match = namespace_matches.namespace_definition[i]
-          if definition_match then
-            ---@type string | nil
-            local method_name =
-              definition_match.text:match("func %([^)]+%) (%w+)%(")
-            if method_name then
-              if not method_positions[method_name] then
-                method_positions[method_name] = {}
-              end
-              table.insert(method_positions[method_name], {
-                receiver = receiver_match.text,
-                definition = definition_match,
-                source_file = file_path,
-              })
-            end
+    for file_path, file_data in pairs(global_lookup_table) do
+      if file_data.methods then
+        -- Aggregate method information from all files
+        for method_name, instances in pairs(file_data.methods) do
+          if not method_positions[method_name] then
+            method_positions[method_name] = {}
+          end
+          -- Add all instances of this method from this file
+          for _, instance in ipairs(instances) do
+            table.insert(method_positions[method_name], instance)
           end
         end
       end
@@ -383,12 +337,6 @@ function M.find_method_receiver(method_pos, method_instances, target_receiver)
 
   -- Fallback: if no range info, don't assign to avoid duplicates
   return false
-end
-
---- Clear the namespace cache (useful for testing or when files are modified)
---- @return nil
-function M.clear_namespace_cache()
-  namespace_cache = {}
 end
 
 return M
