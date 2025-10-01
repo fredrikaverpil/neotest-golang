@@ -11,6 +11,11 @@ local lookup_table = lookup.get_lookup()
 ---@type string[]
 local ignore_filepaths_during_init = {}
 
+-- Cache for namespace query results to avoid re-parsing files
+-- Key: file_path, Value: namespace_matches table
+---@type table<string, table>
+local namespace_cache = {}
+
 --- Modify the neotest tree, so that testify suites can be executed
 --- as Neotest namespaces.
 ---
@@ -76,6 +81,26 @@ function M.modify_neotest_tree(file_path, tree)
   return modified_tree
 end
 
+--- Get namespace matches for a file, with caching
+--- @param file_path string The path to the file to query
+--- @param query_string string The TreeSitter query string
+--- @return table The namespace matches
+local function get_namespace_matches_cached(file_path, query_string)
+  -- Check cache first
+  if namespace_cache[file_path] then
+    return namespace_cache[file_path]
+  end
+
+  -- Not in cache, run the query
+  local testify = require("neotest-golang.features.testify")
+  local matches = testify.query.run_query_on_file(file_path, query_string)
+
+  -- Cache the result
+  namespace_cache[file_path] = matches
+
+  return matches
+end
+
 --- Create proper testify hierarchy where receiver methods become children of suite functions
 --- @param tree neotest.Tree The original tree
 --- @param replacements table<string, string> Receiver type to suite function mappings
@@ -92,7 +117,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   if global_lookup_table then
     for file_path, _ in pairs(global_lookup_table) do
       ---@type table
-      local namespace_matches = testify.query.run_query_on_file(
+      local namespace_matches = get_namespace_matches_cached(
         file_path,
         testify.query.namespace_query
       )
@@ -358,6 +383,12 @@ function M.find_method_receiver(method_pos, method_instances, target_receiver)
 
   -- Fallback: if no range info, don't assign to avoid duplicates
   return false
+end
+
+--- Clear the namespace cache (useful for testing or when files are modified)
+--- @return nil
+function M.clear_namespace_cache()
+  namespace_cache = {}
 end
 
 return M
