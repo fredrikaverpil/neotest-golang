@@ -82,42 +82,21 @@ end
 --- @param global_lookup_table table The global lookup table for cross-file method discovery
 --- @return neotest.Tree The tree with proper testify hierarchy
 function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
-  local testify = require("neotest-golang.features.testify")
-
-  -- Create a map of method name to all instances across all files
+  -- Build method_positions map from lookup table data (no re-parsing!)
   ---@type table<string, table[]>
   local method_positions = {}
 
-  -- Search across ALL files for receiver methods
   if global_lookup_table then
-    for file_path, _ in pairs(global_lookup_table) do
-      ---@type table
-      local namespace_matches = testify.query.run_query_on_file(
-        file_path,
-        testify.query.namespace_query
-      )
-
-      if
-        namespace_matches.namespace_name
-        and namespace_matches.namespace_definition
-      then
-        for i, receiver_match in ipairs(namespace_matches.namespace_name) do
-          ---@type table
-          local definition_match = namespace_matches.namespace_definition[i]
-          if definition_match then
-            ---@type string | nil
-            local method_name =
-              definition_match.text:match("func %([^)]+%) (%w+)%(")
-            if method_name then
-              if not method_positions[method_name] then
-                method_positions[method_name] = {}
-              end
-              table.insert(method_positions[method_name], {
-                receiver = receiver_match.text,
-                definition = definition_match,
-                source_file = file_path,
-              })
-            end
+    for file_path, file_data in pairs(global_lookup_table) do
+      if file_data.methods then
+        -- Aggregate method information from all files
+        for method_name, instances in pairs(file_data.methods) do
+          if not method_positions[method_name] then
+            method_positions[method_name] = {}
+          end
+          -- Add all instances of this method from this file
+          for _, instance in ipairs(instances) do
+            table.insert(method_positions[method_name], instance)
           end
         end
       end
@@ -274,9 +253,31 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     table.insert(root_children, create_tree_node(suite_pos, suite_children))
   end
 
-  -- Add regular tests
+  -- Add regular tests with their subtests
   for _, test_pos in ipairs(regular_tests) do
-    table.insert(root_children, create_tree_node(test_pos, {}))
+    ---@type neotest.Tree[]
+    local test_children = {}
+
+    -- Find subtests that belong to this regular test
+    for _, subtest_pos in ipairs(subtests) do
+      -- Check if this subtest belongs to this test (not already assigned to a suite method)
+      if subtest_pos.id:find("::" .. test_pos.name .. "::", 1, true) then
+        -- Make sure it's not a suite subtest (those were already processed above)
+        local already_processed = false
+        for _, suite_pos in pairs(suite_functions) do
+          if subtest_pos.id:find("::" .. suite_pos.name .. "::", 1, true) then
+            already_processed = true
+            break
+          end
+        end
+
+        if not already_processed then
+          table.insert(test_children, create_tree_node(subtest_pos, {}))
+        end
+      end
+    end
+
+    table.insert(root_children, create_tree_node(test_pos, test_children))
   end
 
   -- Create new tree with file as root and updated children

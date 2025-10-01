@@ -155,12 +155,42 @@ function M.generate_data(file_path)
   data = {
     package = package_name,
     replacements = {},
+    methods = {}, -- Add methods collection
   }
 
   for i, struct in ipairs(matches.suite_struct or {}) do
     local func = matches.test_function[i]
     if func then
       data.replacements[struct.text] = func.text
+    end
+  end
+
+  -- Second pass: collect method information for cross-file support
+  -- Run namespace query to find all receiver methods in this file
+  local namespace_matches =
+    query.run_query_on_file(file_path, query.namespace_query)
+
+  if
+    namespace_matches.namespace_name and namespace_matches.namespace_definition
+  then
+    for i, receiver_match in ipairs(namespace_matches.namespace_name) do
+      local definition_match = namespace_matches.namespace_definition[i]
+      if definition_match then
+        -- Extract method name from the definition
+        local method_name =
+          definition_match.text:match("func %([^)]+%) (%w+)%(")
+        if method_name then
+          -- Store method info: name -> {receiver, definition, source_file}
+          if not data.methods[method_name] then
+            data.methods[method_name] = {}
+          end
+          table.insert(data.methods[method_name], {
+            receiver = receiver_match.text,
+            definition = definition_match,
+            source_file = file_path,
+          })
+        end
+      end
     end
   end
 

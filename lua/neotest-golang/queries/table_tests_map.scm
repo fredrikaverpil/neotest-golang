@@ -1,3 +1,28 @@
+; ============================================================================
+; RESPONSIBILITY: Map-based table-driven tests
+; ============================================================================
+; Detects table tests where:
+; 1. Test cases are defined as a map: testCases := map[string]TestCase{...}
+; 2. Map keys are test names (string literals)
+; 3. Map values are test case data
+; 4. Loop iterates with key and value: for name, tc := range testCases
+; 5. Loop body calls t.Run with the map key as the test name
+;
+; Example pattern:
+;   testCases := map[string]struct{
+;     want int
+;   }{
+;     "test1": {want: 1},
+;     "test2": {want: 2},
+;   }
+;   for name, tc := range testCases {
+;     t.Run(name, func(t *testing.T) { ... })
+;   }
+;
+; DISTINGUISHING FEATURE: Uses map literal instead of slice literal.
+; The map key (string) becomes the test name.
+; ============================================================================
+
 ; query for map table tests
 (block
   (statement_list
@@ -31,4 +56,3 @@
               arguments: (argument_list
                 ((identifier) @test.key.name1
                   (#eq? @test.key.name @test.key.name1))))))))))
-
