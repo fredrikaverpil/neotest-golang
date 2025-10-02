@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.2](https://github.com/fredrikaverpil/neotest-golang/compare/v2.1.1...v2.1.2) (2025-10-02)
+
+
+### Bug Fixes
+
+* **testify:** restore v1.15.1 behavior (perf, subtests) ([#448](https://github.com/fredrikaverpil/neotest-golang/issues/448)) ([619981e](https://github.com/fredrikaverpil/neotest-golang/commit/619981e7028e1ec575ce66ac520abcbda9554293))
+
 ## [2.1.1](https://github.com/fredrikaverpil/neotest-golang/compare/v2.1.0...v2.1.1) (2025-09-27)
 
 
