@@ -162,12 +162,8 @@ function M.process_diagnostics(test_entry)
   ---@type neotest.Error[]
   local errors = {}
 
-  -- Cache filename extraction at test entry level to avoid repeated expensive operations
-  if not test_entry.metadata._cached_filename then
-    test_entry.metadata._cached_filename =
-      convert.pos_id_to_filename(test_entry.metadata.position_id)
-  end
-  local test_filename = test_entry.metadata._cached_filename
+  local test_filename =
+    convert.pos_id_to_filename(test_entry.metadata.position_id)
   local error_set = {}
 
   -- Process each output part directly
