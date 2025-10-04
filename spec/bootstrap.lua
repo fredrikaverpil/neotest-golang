@@ -11,7 +11,7 @@ local PLUGINS = {
   ["nvim-treesitter"] = {
     url = "https://github.com/nvim-treesitter/nvim-treesitter",
     branch = "main",
-    hash = "99bd52ba56a4b7c9a8cc50a6140180755e76fac6",
+    hash = "77362027f7aa850c87419fd571151e76b0b342a6",
   },
   neotest = {
     url = "https://github.com/nvim-neotest/neotest",
