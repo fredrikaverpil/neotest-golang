@@ -6,20 +6,20 @@ require("neotest-golang.lib.types")
 local M = {}
 
 M.error_patterns = {
-  "panic:",
-  "fatal error:",
+  "---fail:",
   "assertion failed",
   "error:",
-  "fail:",
-  "runtime error:",
-  "nil pointer dereference",
-  "index out of range",
-  "slice bounds out of range",
-  "expected.*but.*got",
-  "expected.*but.*",
   "expected.*actual",
+  "expected.*but.*",
+  "expected.*but.*got",
+  "fail:",
+  "fatal error:",
+  "index out of range",
+  "nil pointer dereference",
+  "panic:",
+  "runtime error:",
+  "slice bounds out of range",
   "test.*failed",
-  "---fail:",
 }
 
 ---Captures both "go:123: message" and "filename.go:123: message" formats
