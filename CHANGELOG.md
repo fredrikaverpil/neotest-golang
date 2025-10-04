@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.3](https://github.com/fredrikaverpil/neotest-golang/compare/v2.1.2...v2.1.3) (2025-10-04)
+
+
+### Bug Fixes
+
+* testify assertion detection ([#447](https://github.com/fredrikaverpil/neotest-golang/issues/447)) ([beb468c](https://github.com/fredrikaverpil/neotest-golang/commit/beb468cdb0549e1125b5eafd351035214b9fed3a))
+
 ## [2.1.2](https://github.com/fredrikaverpil/neotest-golang/compare/v2.1.1...v2.1.2) (2025-10-02)
 
 
