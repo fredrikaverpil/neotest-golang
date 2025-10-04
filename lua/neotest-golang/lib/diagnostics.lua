@@ -26,10 +26,6 @@ M.error_patterns = {
 ---Pattern breakdown: ^%s* (optional whitespace) (.*go) (any chars ending in go) :(%d+): (number) (.*) (message)
 M.go_output_pattern = "^%s*(.*go):(%d+): (.*)"
 
--- =============================================================================
--- STANDARD GO PARSING
--- =============================================================================
-
 ---Parse Go test output line and classify as hint or error
 ---@param line string The line to parse
 ---@param context table|nil Optional context to maintain state across multiple lines for testify parsing
