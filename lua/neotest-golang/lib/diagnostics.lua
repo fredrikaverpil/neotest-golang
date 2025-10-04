@@ -82,7 +82,8 @@ function M.parse_diagnostic_line(line, context)
     line_number = parsed.line_number,
     message = parsed.message,
     severity = severity,
-  }, context
+  },
+    context
 end
 
 ---Parse a single line of Go test output
@@ -194,7 +195,8 @@ function M.process_diagnostics(test_entry)
       local lines = vim.split(part, "\n", { trimempty = true })
       for _, line in ipairs(lines) do
         -- Use context-aware parsing for multi-line patterns
-        local diagnostic, updated_context = M.parse_diagnostic_line(line, context)
+        local diagnostic, updated_context =
+          M.parse_diagnostic_line(line, context)
         context = updated_context or context
 
         if diagnostic then
