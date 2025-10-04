@@ -30,27 +30,47 @@ M.go_output_pattern = "^%s*(.*go):(%d+): (.*)"
 ---Pattern breakdown: ^%s* (optional whitespace) Error Trace:%s+ (literal) (.+%.go) (path ending in .go) :(%d+) (number)
 M.testify_pattern = "^%s*Error Trace:%s+(.+%.go):(%d+)"
 
+---Captures testify error message: "    Error:          Should be false"
+---Pattern breakdown: ^%s* (optional whitespace) Error:%s+ (literal) (.*) (error message)
+M.testify_error_pattern = "^%s*Error:%s+(.*)"
+
 ---Parse Go test output line and classify as hint or error
 ---@param line string The line to parse
+---@param context table|nil Optional context to maintain state across multiple lines for testify parsing
 ---@return table|nil Diagnostic data with {filename, line_number, message, severity} or nil if no match
-function M.parse_diagnostic_line(line)
+---@return table|nil Updated context for multi-line parsing
+function M.parse_diagnostic_line(line, context)
+  context = context or {}
+
   local parsed = M.parse_go_output_line(line)
 
-  -- If standard Go output parsing failed and testify is enabled, try testify pattern
+  -- If standard Go output parsing failed and testify is enabled, try testify patterns
   if not parsed then
     if options.get().testify_enabled then
-      parsed = M.parse_testify_line(line)
-      -- Testify assertions are always errors, not hints
-      if parsed then
-        return {
-          filename = parsed.filename,
-          line_number = parsed.line_number,
-          message = parsed.message,
-          severity = vim.diagnostic.severity.ERROR,
-        }
+      -- Check if this is a testify Error Trace line
+      local testify_trace = M.parse_testify_line(line)
+      if testify_trace then
+        -- Store the trace info for potential error message on next lines
+        context.testify_pending = testify_trace
+        return nil, context
+      end
+
+      -- Check if this is a testify Error message line and we have pending trace
+      if context.testify_pending then
+        local error_message = line:match(M.testify_error_pattern)
+        if error_message then
+          local result = {
+            filename = context.testify_pending.filename,
+            line_number = context.testify_pending.line_number,
+            message = error_message:gsub("^%s+", ""):gsub("%s+$", ""), -- trim whitespace
+            severity = vim.diagnostic.severity.ERROR,
+          }
+          context.testify_pending = nil -- Clear pending state
+          return result, context
+        end
       end
     end
-    return nil
+    return nil, context
   end
 
   local is_hint = M.is_hint_message(parsed.message)
@@ -62,7 +82,7 @@ function M.parse_diagnostic_line(line)
     line_number = parsed.line_number,
     message = parsed.message,
     severity = severity,
-  }
+  }, context
 end
 
 ---Parse a single line of Go test output
@@ -165,6 +185,7 @@ function M.process_diagnostics(test_entry)
   local test_filename =
     convert.pos_id_to_filename(test_entry.metadata.position_id)
   local error_set = {}
+  local context = {} -- Context for multi-line parsing (e.g., testify assertions)
 
   -- Process each output part directly
   for _, part in ipairs(test_entry.metadata.output_parts) do
@@ -172,8 +193,10 @@ function M.process_diagnostics(test_entry)
       -- Handle multi-line parts by splitting if needed
       local lines = vim.split(part, "\n", { trimempty = true })
       for _, line in ipairs(lines) do
-        -- Use optimized single-pass pattern matching
-        local diagnostic = M.parse_diagnostic_line(line)
+        -- Use context-aware parsing for multi-line patterns
+        local diagnostic, updated_context = M.parse_diagnostic_line(line, context)
+        context = updated_context or context
+
         if diagnostic then
           -- Filter diagnostics by filename if we have both filenames
           local should_include_diagnostic = true
