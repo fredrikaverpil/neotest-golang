@@ -1,6 +1,10 @@
 package diagnostics
 
-import "testing"
+import (
+	"testing"
+
+	"gotest.tools/v3/assert"
+)
 
 type dummy struct{}
 
@@ -29,5 +33,11 @@ func TestDiagnosticsSubTests(t *testing.T) {
 
 	t.Run("skip", func(t *testing.T) {
 		t.Skip("I'm a skip message")
+	})
+}
+
+func TestAssertV3(t *testing.T) {
+	t.Run("deep equal", func(t *testing.T) {
+		assert.DeepEqual(t, 1, 2)
 	})
 }

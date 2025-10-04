@@ -1,6 +1,20 @@
 local lib = require("neotest-golang.lib")
 
 describe("parse_diagnostic_line", function()
+  it("skips lines with empty messages (testify compatibility)", function()
+    -- These lines appear in testify output before the Error Trace line
+    local empty_message_cases = {
+      "hints_test.go:14: ",
+      "hints_test.go:15:   ",
+      "  my_test.go:42: ",
+    }
+
+    for _, line in ipairs(empty_message_cases) do
+      local res = lib.diagnostics.parse_diagnostic_line(line)
+      assert.is_nil(res, "Should skip empty message: " .. line)
+    end
+  end)
+
   it("parses filename/line/message and sets severity", function()
     local cases = {
       {
@@ -378,140 +392,6 @@ describe("process_diagnostics", function()
       assert.equals(1, #errs)
       assert.equals(14, errs[1].line) -- 0-indexed
       assert.equals("Mixed separator test", errs[1].message)
-    end)
-  end)
-
-  describe("Performance: filename caching", function()
-    it(
-      "caches filename extraction to avoid repeated expensive operations",
-      function()
-        local test_entry = {
-          metadata = {
-            position_id = "/abs/path/my_test.go::TestSomething",
-            output_parts = {
-              "my_test.go:10: First diagnostic",
-              "my_test.go:15: Second diagnostic",
-              "my_test.go:20: Third diagnostic",
-            },
-          },
-        }
-
-        -- Process diagnostics - should cache filename on first extraction
-        local errs = lib.diagnostics.process_diagnostics(test_entry)
-
-        -- Verify caching worked
-        assert.equals("my_test.go", test_entry.metadata._cached_filename)
-        assert.equals(3, #errs)
-
-        -- All diagnostics should be included since they match cached filename
-        assert.equals("First diagnostic", errs[1].message)
-        assert.equals("Second diagnostic", errs[2].message)
-        assert.equals("Third diagnostic", errs[3].message)
-      end
-    )
-
-    it("handles Windows drive letter paths in caching", function()
-      local test_entry = {
-        metadata = {
-          position_id = "D:\\\\project\\\\windows_test.go::TestWindows",
-          output_parts = {
-            "windows_test.go:5: Windows diagnostic one",
-            "windows_test.go:10: Windows diagnostic two",
-          },
-        },
-      }
-
-      local errs = lib.diagnostics.process_diagnostics(test_entry)
-
-      -- Verify Windows filename cached correctly
-      assert.equals("windows_test.go", test_entry.metadata._cached_filename)
-      assert.equals(2, #errs)
-      assert.equals("Windows diagnostic one", errs[1].message)
-      assert.equals("Windows diagnostic two", errs[2].message)
-    end)
-
-    it("handles Windows UNC paths in caching", function()
-      local test_entry = {
-        metadata = {
-          position_id = "\\\\\\\\server\\\\share\\\\project\\\\unc_test.go::TestUNC",
-          output_parts = {
-            "unc_test.go:15: UNC diagnostic",
-          },
-        },
-      }
-
-      local errs = lib.diagnostics.process_diagnostics(test_entry)
-
-      -- Verify UNC filename cached correctly
-      assert.equals("unc_test.go", test_entry.metadata._cached_filename)
-      assert.equals(1, #errs)
-      assert.equals("UNC diagnostic", errs[1].message)
-    end)
-
-    it("filters out diagnostics when cached filename doesn't match", function()
-      local test_entry = {
-        metadata = {
-          position_id = "/abs/path/target_test.go::TestTarget",
-          output_parts = {
-            "target_test.go:5: Should be included",
-            "other_test.go:10: Should be filtered out",
-            "target_test.go:15: Should be included",
-          },
-        },
-      }
-
-      local errs = lib.diagnostics.process_diagnostics(test_entry)
-
-      -- Verify correct filename cached and filtering worked
-      assert.equals("target_test.go", test_entry.metadata._cached_filename)
-      assert.equals(2, #errs)
-      assert.equals("Should be included", errs[1].message)
-      assert.equals("Should be included", errs[2].message)
-    end)
-
-    it("handles position_id without file extension gracefully", function()
-      local test_entry = {
-        metadata = {
-          position_id = "github.com/pkg/module::TestSomething",
-          output_parts = {
-            "go:5: Some diagnostic",
-            "module_test.go:10: Another diagnostic",
-          },
-        },
-      }
-
-      local errs = lib.diagnostics.process_diagnostics(test_entry)
-
-      -- When no filename can be extracted, should include all diagnostics
-      assert.is_nil(test_entry.metadata._cached_filename)
-      assert.equals(2, #errs)
-    end)
-
-    it("reuses cached filename across multiple calls", function()
-      local test_entry = {
-        metadata = {
-          position_id = "/abs/path/reuse_test.go::TestReuse",
-          output_parts = {
-            "reuse_test.go:5: First call",
-          },
-        },
-      }
-
-      -- First call should cache
-      local errs1 = lib.diagnostics.process_diagnostics(test_entry)
-      assert.equals("reuse_test.go", test_entry.metadata._cached_filename)
-      assert.equals(1, #errs1)
-
-      -- Add more output and call again
-      test_entry.metadata.output_parts = {
-        "reuse_test.go:10: Second call",
-      }
-
-      -- Second call should reuse cache
-      local errs2 = lib.diagnostics.process_diagnostics(test_entry)
-      assert.equals("reuse_test.go", test_entry.metadata._cached_filename)
-      assert.equals(1, #errs2)
-      assert.equals("Second call", errs2[1].message)
     end)
   end)
 end)

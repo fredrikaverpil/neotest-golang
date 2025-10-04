@@ -1,26 +1,24 @@
 local convert = require("neotest-golang.lib.convert")
+
 require("neotest-golang.lib.types")
 
 local M = {}
 
-M.error_indicators = {
-  ["panic:"] = true,
-  ["fatal error:"] = true,
-  ["assertion failed"] = true,
-  ["error:"] = true,
-  ["fail:"] = true,
-  ["runtime error:"] = true,
-  ["nil pointer dereference"] = true,
-  ["index out of range"] = true,
-  ["slice bounds out of range"] = true,
-}
-
-M.assertion_patterns = {
-  "expected.*but.*got",
-  "expected.*but.*",
-  "expected.*actual",
-  "test.*failed",
+M.error_patterns = {
   "---fail:",
+  "assertion failed",
+  "error:",
+  "expect.*actual",
+  "expect.*but.*",
+  "expect.*got",
+  "fail:",
+  "fatal error:",
+  "index out of range",
+  "nil pointer dereference",
+  "panic:",
+  "runtime error:",
+  "slice bounds out of range",
+  "test.*failed",
 }
 
 ---Captures both "go:123: message" and "filename.go:123: message" formats
@@ -29,23 +27,32 @@ M.go_output_pattern = "^%s*(.*go):(%d+): (.*)"
 
 ---Parse Go test output line and classify as hint or error
 ---@param line string The line to parse
+---@param context table|nil Optional context to maintain state across multiple lines for testify parsing
 ---@return table|nil Diagnostic data with {filename, line_number, message, severity} or nil if no match
-function M.parse_diagnostic_line(line)
+---@return table|nil Updated context for multi-line parsing
+function M.parse_diagnostic_line(line, context)
+  context = context or {}
+
+  -- Try standard Go output parsing first
   local parsed = M.parse_go_output_line(line)
-  if not parsed then
-    return nil
+  if parsed then
+    local is_hint = M.is_hint_message(parsed.message)
+    local severity = is_hint and vim.diagnostic.severity.HINT
+      or vim.diagnostic.severity.ERROR
+
+    return {
+      filename = parsed.filename,
+      line_number = parsed.line_number,
+      message = parsed.message,
+      severity = severity,
+    },
+      context
   end
 
-  local is_hint = M.is_hint_message(parsed.message)
-  local severity = is_hint and vim.diagnostic.severity.HINT
-    or vim.diagnostic.severity.ERROR
-
-  return {
-    filename = parsed.filename,
-    line_number = parsed.line_number,
-    message = parsed.message,
-    severity = severity,
-  }
+  -- If standard parsing failed, try testify-specific patterns
+  local testify_diagnostics =
+    require("neotest-golang.features.testify.diagnostics")
+  return testify_diagnostics.parse_testify_diagnostic(line, context)
 end
 
 ---Parse a single line of Go test output
@@ -58,6 +65,12 @@ function M.parse_go_output_line(line)
 
   local filename, line_number_str, message = line:match(M.go_output_pattern)
   if not filename or not line_number_str or not message then
+    return nil
+  end
+
+  -- Skip lines with empty messages (e.g., "hints_test.go:14: ")
+  -- These are typically followed by testify's multi-line assertion output
+  if message:match("^%s*$") then
     return nil
   end
 
@@ -83,15 +96,8 @@ function M.is_hint_message(message)
 
   local lower_message = message:lower()
 
-  -- Check hash lookup for common error indicators (O(1))
-  for indicator, _ in pairs(M.error_indicators) do
-    if lower_message:find(indicator, 1, true) then -- plain text search
-      return false
-    end
-  end
-
-  -- Check assertion patterns that require regex matching
-  for _, pattern in ipairs(M.assertion_patterns) do
+  -- Check error patterns
+  for _, pattern in ipairs(M.error_patterns) do
     if lower_message:match(pattern:lower()) then
       return false
     end
@@ -114,13 +120,10 @@ function M.process_diagnostics(test_entry)
   ---@type neotest.Error[]
   local errors = {}
 
-  -- Cache filename extraction at test entry level to avoid repeated expensive operations
-  if not test_entry.metadata._cached_filename then
-    test_entry.metadata._cached_filename =
-      convert.pos_id_to_filename(test_entry.metadata.position_id)
-  end
-  local test_filename = test_entry.metadata._cached_filename
+  local test_filename =
+    convert.pos_id_to_filename(test_entry.metadata.position_id)
   local error_set = {}
+  local context = {} -- Context for multi-line parsing (e.g., testify assertions)
 
   -- Process each output part directly
   for _, part in ipairs(test_entry.metadata.output_parts) do
@@ -128,8 +131,11 @@ function M.process_diagnostics(test_entry)
       -- Handle multi-line parts by splitting if needed
       local lines = vim.split(part, "\n", { trimempty = true })
       for _, line in ipairs(lines) do
-        -- Use optimized single-pass pattern matching
-        local diagnostic = M.parse_diagnostic_line(line)
+        -- Use context-aware parsing for multi-line patterns
+        local diagnostic, updated_context =
+          M.parse_diagnostic_line(line, context)
+        context = updated_context or context
+
         if diagnostic then
           -- Filter diagnostics by filename if we have both filenames
           local should_include_diagnostic = true

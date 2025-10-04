@@ -171,7 +171,8 @@ The value can also be passed in as a function.
 
 Default value: `false`
 
-Enable support for [testify](https://github.com/stretchr/testify) suites. Please
+Enable support for [testify](https://github.com/stretchr/testify) suites and
+other testify related features, such as testify-specific diagnostics. Please
 note that this requires `nvim-treesitter` (`main` branch).
 
 !!! warning "Not enabled by default"
