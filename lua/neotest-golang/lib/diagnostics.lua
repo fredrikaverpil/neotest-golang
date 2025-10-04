@@ -1,5 +1,4 @@
 local convert = require("neotest-golang.lib.convert")
-local options = require("neotest-golang.options")
 
 require("neotest-golang.lib.types")
 
