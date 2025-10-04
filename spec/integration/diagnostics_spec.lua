@@ -28,8 +28,8 @@ describe("Integration: diagnostics test", function()
             errors = {
               {
                 message = "top-level hint: this should be classified as a hint",
-                line = 9, -- 0-indexed: line 10 - 1
-                severity = 4, -- vim.diagnostic.severity.HINT
+                line = 13,
+                severity = 4,
               },
             },
           },
@@ -39,8 +39,8 @@ describe("Integration: diagnostics test", function()
             errors = {
               {
                 message = "top-level hint: this should be classified as a hint",
-                line = 9, -- 0-indexed: line 10 - 1
-                severity = 4, -- vim.diagnostic.severity.HINT
+                line = 13,
+                severity = 4,
               },
             },
           },
@@ -49,34 +49,39 @@ describe("Integration: diagnostics test", function()
             status = "failed", -- File fails because some tests fail
             errors = {
               {
-                message = "I'm an error message",
-                line = 26,
+                message = "top-level hint: this should be classified as a hint",
+                line = 13,
+                severity = 4,
+              },
+              {
+                message = "expected 42 but got 0",
+                line = 17,
+                severity = 1,
+              },
+              {
+                message = "not implemented yet",
+                line = 21,
                 severity = 4,
               },
               {
                 message = "I'm a logging hint message",
-                line = 22,
+                line = 26,
                 severity = 4,
               },
               {
-                message = "I'm a skip message",
+                message = "I'm an error message",
                 line = 30,
                 severity = 4,
               },
               {
-                message = "top-level hint: this should be classified as a hint",
-                line = 9, -- 0-indexed: line 10 - 1
-                severity = 4, -- vim.diagnostic.severity.HINT
+                message = "I'm a skip message",
+                line = 34,
+                severity = 4,
               },
               {
-                message = "expected 42 but got 0",
-                line = 13, -- 0-indexed: line 14 - 1
-                severity = 1, -- vim.diagnostic.severity.ERROR
-              },
-              {
-                message = "not implemented yet",
-                line = 17, -- 0-indexed: line 18 - 1
-                severity = 4, -- vim.diagnostic.severity.HINT
+                message = "assertion failed: ",
+                line = 40,
+                severity = 1,
               },
             },
           },
@@ -86,8 +91,8 @@ describe("Integration: diagnostics test", function()
             errors = {
               {
                 message = "top-level hint: this should be classified as a hint",
-                line = 9, -- 0-indexed: line 10 - 1
-                severity = 4, -- vim.diagnostic.severity.HINT
+                line = 13,
+                severity = 4,
               },
             },
           },
@@ -96,8 +101,8 @@ describe("Integration: diagnostics test", function()
             errors = {
               {
                 message = "expected 42 but got 0",
-                line = 13, -- 0-indexed: line 14 - 1
-                severity = 1, -- vim.diagnostic.severity.ERROR
+                line = 17,
+                severity = 1,
               },
             },
           },
@@ -106,8 +111,8 @@ describe("Integration: diagnostics test", function()
             errors = {
               {
                 message = "not implemented yet",
-                line = 17, -- 0-indexed: line 18 - 1
-                severity = 4, -- vim.diagnostic.severity.HINT
+                line = 21,
+                severity = 4,
               },
             },
           },
@@ -118,7 +123,7 @@ describe("Integration: diagnostics test", function()
           [position_id .. '::TestDiagnosticsSubTests::"error"'] = {
             errors = {
               {
-                line = 26,
+                line = 30,
                 message = "I'm an error message",
                 severity = 4,
               },
@@ -128,7 +133,7 @@ describe("Integration: diagnostics test", function()
           [position_id .. '::TestDiagnosticsSubTests::"log"'] = {
             errors = {
               {
-                line = 22,
+                line = 26,
                 message = "I'm a logging hint message",
                 severity = 4,
               },
@@ -138,12 +143,26 @@ describe("Integration: diagnostics test", function()
           [position_id .. '::TestDiagnosticsSubTests::"skip"'] = {
             errors = {
               {
-                line = 30,
+                line = 34,
                 message = "I'm a skip message",
                 severity = 4,
               },
             },
             status = "skipped",
+          },
+          [position_id .. "::TestAssertV3"] = {
+            status = "failed",
+            errors = {},
+          },
+          [position_id .. '::TestAssertV3::"deep equal"'] = {
+            status = "failed",
+            errors = {
+              {
+                message = "assertion failed: ",
+                line = 40,
+                severity = 1,
+              },
+            },
           },
         },
         run_spec = {
