@@ -26,13 +26,85 @@ M.error_patterns = {
 ---Pattern breakdown: ^%s* (optional whitespace) (.*go) (any chars ending in go) :(%d+): (number) (.*) (message)
 M.go_output_pattern = "^%s*(.*go):(%d+): (.*)"
 
+-- =============================================================================
+-- TESTIFY-SPECIFIC PARSING
+-- =============================================================================
+
 ---Captures testify assertion output format: "    Error Trace:	/path/to/file.go:123"
 ---Pattern breakdown: ^%s* (optional whitespace) Error Trace:%s+ (literal) (.+%.go) (path ending in .go) :(%d+) (number)
-M.testify_pattern = "^%s*Error Trace:%s+(.+%.go):(%d+)"
+local testify_trace_pattern = "^%s*Error Trace:%s+(.+%.go):(%d+)"
 
 ---Captures testify error message: "    Error:          Should be false"
 ---Pattern breakdown: ^%s* (optional whitespace) Error:%s+ (literal) (.*) (error message)
-M.testify_error_pattern = "^%s*Error:%s+(.*)"
+local testify_error_pattern = "^%s*Error:%s+(.*)"
+
+---Parse a testify assertion output line for Error Trace
+---@param line string The line to parse
+---@return table|nil Parsed data with {filename, line_number, message} or nil if no match
+local function parse_testify_trace_line(line)
+  if not line then
+    return nil
+  end
+
+  local filepath, line_number_str = line:match(testify_trace_pattern)
+  if not filepath or not line_number_str then
+    return nil
+  end
+
+  local line_number = tonumber(line_number_str)
+  if not line_number then
+    return nil
+  end
+
+  -- Extract just the filename from the full path
+  local filename = filepath:match("([^/]+%.go)$") or filepath
+
+  return {
+    filename = filename,
+    line_number = line_number,
+    message = "assertion failed", -- Generic message, actual error comes from subsequent lines
+  }
+end
+
+---Parse testify-specific diagnostic patterns
+---@param line string The line to parse
+---@param context table Context to maintain state across multiple lines
+---@return table|nil Diagnostic data with {filename, line_number, message, severity} or nil if no match
+---@return table Updated context for multi-line parsing
+local function parse_testify_diagnostic(line, context)
+  if not options.get().testify_enabled then
+    return nil, context
+  end
+
+  -- Check if this is a testify Error Trace line
+  local testify_trace = parse_testify_trace_line(line)
+  if testify_trace then
+    -- Store the trace info for potential error message on next lines
+    context.testify_pending = testify_trace
+    return nil, context
+  end
+
+  -- Check if this is a testify Error message line and we have pending trace
+  if context.testify_pending then
+    local error_message = line:match(testify_error_pattern)
+    if error_message then
+      local result = {
+        filename = context.testify_pending.filename,
+        line_number = context.testify_pending.line_number,
+        message = error_message:gsub("^%s+", ""):gsub("%s+$", ""), -- trim whitespace
+        severity = vim.diagnostic.severity.ERROR,
+      }
+      context.testify_pending = nil -- Clear pending state
+      return result, context
+    end
+  end
+
+  return nil, context
+end
+
+-- =============================================================================
+-- STANDARD GO PARSING
+-- =============================================================================
 
 ---Parse Go test output line and classify as hint or error
 ---@param line string The line to parse
@@ -42,48 +114,24 @@ M.testify_error_pattern = "^%s*Error:%s+(.*)"
 function M.parse_diagnostic_line(line, context)
   context = context or {}
 
+  -- Try standard Go output parsing first
   local parsed = M.parse_go_output_line(line)
+  if parsed then
+    local is_hint = M.is_hint_message(parsed.message)
+    local severity = is_hint and vim.diagnostic.severity.HINT
+      or vim.diagnostic.severity.ERROR
 
-  -- If standard Go output parsing failed and testify is enabled, try testify patterns
-  if not parsed then
-    if options.get().testify_enabled then
-      -- Check if this is a testify Error Trace line
-      local testify_trace = M.parse_testify_line(line)
-      if testify_trace then
-        -- Store the trace info for potential error message on next lines
-        context.testify_pending = testify_trace
-        return nil, context
-      end
-
-      -- Check if this is a testify Error message line and we have pending trace
-      if context.testify_pending then
-        local error_message = line:match(M.testify_error_pattern)
-        if error_message then
-          local result = {
-            filename = context.testify_pending.filename,
-            line_number = context.testify_pending.line_number,
-            message = error_message:gsub("^%s+", ""):gsub("%s+$", ""), -- trim whitespace
-            severity = vim.diagnostic.severity.ERROR,
-          }
-          context.testify_pending = nil -- Clear pending state
-          return result, context
-        end
-      end
-    end
-    return nil, context
+    return {
+      filename = parsed.filename,
+      line_number = parsed.line_number,
+      message = parsed.message,
+      severity = severity,
+    },
+      context
   end
 
-  local is_hint = M.is_hint_message(parsed.message)
-  local severity = is_hint and vim.diagnostic.severity.HINT
-    or vim.diagnostic.severity.ERROR
-
-  return {
-    filename = parsed.filename,
-    line_number = parsed.line_number,
-    message = parsed.message,
-    severity = severity,
-  },
-    context
+  -- If standard parsing failed, try testify-specific patterns
+  return parse_testify_diagnostic(line, context)
 end
 
 ---Parse a single line of Go test output
@@ -109,38 +157,6 @@ function M.parse_go_output_line(line)
   if not line_number then
     return nil
   end
-
-  return {
-    filename = filename,
-    line_number = line_number,
-    message = message,
-  }
-end
-
----Parse a testify assertion output line
----@param line string The line to parse
----@return table|nil Parsed data with {filename, line_number, message} or nil if no match
-function M.parse_testify_line(line)
-  if not line then
-    return nil
-  end
-
-  local filepath, line_number_str = line:match(M.testify_pattern)
-  if not filepath or not line_number_str then
-    return nil
-  end
-
-  local line_number = tonumber(line_number_str)
-  if not line_number then
-    return nil
-  end
-
-  -- Extract just the filename from the full path
-  local filename = filepath:match("([^/]+%.go)$") or filepath
-
-  -- For testify assertions, the message is typically "assertion failed"
-  -- The actual error details are in subsequent lines, but we'll use a generic message
-  local message = "assertion failed"
 
   return {
     filename = filename,
