@@ -23,6 +23,7 @@ describe("Integration: diagnostics test", function()
         results = {
           [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal")] = {
             errors = {
+              -- FIXME: seems we are missing the failing tests from diagnostics_test.go here?
               {
                 line = 9,
                 message = "hello world",
@@ -50,6 +51,7 @@ describe("Integration: diagnostics test", function()
             vim.uv.cwd() .. "/tests/go/internal/diagnostics"
           )] = {
             errors = {
+              -- FIXME: seems we are missing the failing tests from diagnostics_test.go here?
               {
                 line = 13,
                 message = "top-level hint: this should be classified as a hint",

@@ -23,7 +23,7 @@ describe("Integration: diagnostics test", function()
         results = {
           -- Parent directory result (created by hierarchical aggregation)
           [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal")] = {
-            status = "passed",
+            status = "passed", -- FIXME: this seems wrong, what about the failed diagnostics_test.go tests?
             errors = {
               {
                 message = "top-level hint: this should be classified as a hint",
@@ -36,6 +36,7 @@ describe("Integration: diagnostics test", function()
           [position_id] = {
             status = "failed",
             errors = {
+              -- FIXME: should we not also see the failing diagnostics tests?
               {
                 message = "top-level hint: this should be classified as a hint",
                 line = 13,

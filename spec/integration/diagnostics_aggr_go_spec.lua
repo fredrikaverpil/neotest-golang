@@ -19,6 +19,8 @@ describe("Integration: diagnostics test", function()
       position_id = path.normalize_path(position_id)
 
       ---@type AdapterExecutionResult
+      -- FIXME: should we not see positions for all the individual _test.go files inside the `want`?
+      -- Wea re only seeing dir positions and no file or test positions.
       local want = {
         results = {
           ["/Users/fredrik/code/public/neotest-golang/tests/go"] = {
@@ -35,6 +37,7 @@ describe("Integration: diagnostics test", function()
           },
           ["/Users/fredrik/code/public/neotest-golang/tests/go/internal"] = {
             errors = {
+              -- FIXME: this seems wrong, we are missing diagnostics_test.go errors
               {
                 line = 9,
                 message = "hello world",
@@ -60,13 +63,14 @@ describe("Integration: diagnostics test", function()
           },
           ["/Users/fredrik/code/public/neotest-golang/tests/go/internal/diagnostics"] = {
             errors = {
+              -- FIXME: this is wrong, we should have more tests and failing ones too. See diatnostics_spec.lua.
               {
                 line = 13,
                 message = "top-level hint: this should be classified as a hint",
                 severity = 4,
               },
             },
-            status = "passed",
+            status = "passed", -- FIXME: this is wrong, as tests below are failing
           },
           ["/Users/fredrik/code/public/neotest-golang/tests/go/internal/dupes"] = {
             errors = {},
