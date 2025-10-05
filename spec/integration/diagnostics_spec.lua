@@ -24,23 +24,83 @@ describe("Integration: diagnostics test", function()
         results = {
           -- Parent directory result (created by hierarchical aggregation)
           [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal")] = {
-            status = "passed",
+            status = "failed",
             errors = {
               {
                 message = "top-level hint: this should be classified as a hint",
                 line = 13,
                 severity = 4,
               },
+              {
+                message = "expected 42 but got 0",
+                line = 17,
+                severity = 1,
+              },
+              {
+                message = "not implemented yet",
+                line = 21,
+                severity = 4,
+              },
+              {
+                message = "I'm a logging hint message",
+                line = 26,
+                severity = 4,
+              },
+              {
+                message = "I'm an error message",
+                line = 30,
+                severity = 4,
+              },
+              {
+                message = "I'm a skip message",
+                line = 34,
+                severity = 4,
+              },
+              {
+                message = "assertion failed: ",
+                line = 40,
+                severity = 1,
+              },
             },
           },
           -- Directory-level result (created by file aggregation)
           [path.get_directory(position_id)] = {
-            status = "passed", -- Directory shows passed due to aggregation logic
+            status = "failed", -- Directory shows failed due to test failures
             errors = {
               {
                 message = "top-level hint: this should be classified as a hint",
                 line = 13,
                 severity = 4,
+              },
+              {
+                message = "expected 42 but got 0",
+                line = 17,
+                severity = 1,
+              },
+              {
+                message = "not implemented yet",
+                line = 21,
+                severity = 4,
+              },
+              {
+                message = "I'm a logging hint message",
+                line = 26,
+                severity = 4,
+              },
+              {
+                message = "I'm an error message",
+                line = 30,
+                severity = 4,
+              },
+              {
+                message = "I'm a skip message",
+                line = 34,
+                severity = 4,
+              },
+              {
+                message = "assertion failed: ",
+                line = 40,
+                severity = 1,
               },
             },
           },

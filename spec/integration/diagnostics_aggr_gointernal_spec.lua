@@ -23,9 +23,66 @@ describe("Integration: diagnostics test", function()
         results = {
           [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal")] = {
             errors = {
+              -- All errors from diagnostics package should propagate upward
               {
                 line = 13,
                 message = "top-level hint: this should be classified as a hint",
+                severity = 4,
+              },
+              {
+                line = 17,
+                message = "expected 42 but got 0",
+                severity = 1,
+              },
+              {
+                line = 21,
+                message = "not implemented yet",
+                severity = 4,
+              },
+              {
+                line = 26,
+                message = "I'm a logging hint message",
+                severity = 4,
+              },
+              {
+                line = 30,
+                message = "I'm an error message",
+                severity = 4,
+              },
+              {
+                line = 34,
+                message = "I'm a skip message",
+                severity = 4,
+              },
+              {
+                line = 40,
+                message = "assertion failed: ",
+                severity = 1,
+              },
+              -- All errors from teststates package should also propagate upward
+              {
+                line = 18,
+                message = "this test intentionally fails",
+                severity = 4,
+              },
+              {
+                line = 23,
+                message = "this test is intentionally skipped",
+                severity = 4,
+              },
+              {
+                line = 28,
+                message = "this test is also intentionally skipped",
+                severity = 4,
+              },
+              {
+                line = 38,
+                message = "this subtest intentionally fails",
+                severity = 4,
+              },
+              {
+                line = 49,
+                message = "this subtest is intentionally skipped",
                 severity = 4,
               },
             },
@@ -40,8 +97,38 @@ describe("Integration: diagnostics test", function()
                 message = "top-level hint: this should be classified as a hint",
                 severity = 4,
               },
+              {
+                line = 17,
+                message = "expected 42 but got 0",
+                severity = 1,
+              },
+              {
+                line = 21,
+                message = "not implemented yet",
+                severity = 4,
+              },
+              {
+                line = 26,
+                message = "I'm a logging hint message",
+                severity = 4,
+              },
+              {
+                line = 30,
+                message = "I'm an error message",
+                severity = 4,
+              },
+              {
+                line = 34,
+                message = "I'm a skip message",
+                severity = 4,
+              },
+              {
+                line = 40,
+                message = "assertion failed: ",
+                severity = 1,
+              },
             },
-            status = "passed",
+            status = "failed",
           },
           [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal/dupes")] = {
             errors = {},
@@ -100,8 +187,34 @@ describe("Integration: diagnostics test", function()
             status = "passed",
           },
           [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal/teststates")] = {
-            errors = {},
-            status = "passed",
+            errors = {
+              {
+                line = 18,
+                message = "this test intentionally fails",
+                severity = 4,
+              },
+              {
+                line = 23,
+                message = "this test is intentionally skipped",
+                severity = 4,
+              },
+              {
+                line = 28,
+                message = "this test is also intentionally skipped",
+                severity = 4,
+              },
+              {
+                line = 38,
+                message = "this subtest intentionally fails",
+                severity = 4,
+              },
+              {
+                line = 49,
+                message = "this subtest is intentionally skipped",
+                severity = 4,
+              },
+            },
+            status = "failed",
           },
         },
         run_spec = {

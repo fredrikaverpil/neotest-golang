@@ -86,7 +86,8 @@ function M.test_results(spec, result, tree)
   results = M.populate_missing_file_results(tree, results)
 
   -- Populate missing directory results with aggregated data from descendant files (bottom-up)
-  results = M.populate_missing_dir_results(tree, results, context)
+  results =
+    M.populate_missing_dir_results(tree, results, context, gotest_output)
 
   -- Register root node result in the cached results
   results[pos.id] = M.create_root_result(results[pos.id], result, gotest_output)
@@ -123,22 +124,49 @@ end
 --- Supports both direct file aggregation and hierarchical directory aggregation.
 --- @param tree neotest.Tree The neotest tree structure (unused but kept for compatibility)
 --- @param results table<string, neotest.Result> Current results
+--- @param context RunspecContext The runspec context
+--- @param gotest_output GoTestEvent[] Full test output events for error extraction
 --- @return table<string, neotest.Result> Updated results with missing directory results populated
-function M.populate_missing_dir_results(tree, results, context)
+function M.populate_missing_dir_results(tree, results, context, gotest_output)
+  -- First pass: Populate errors for failed leaf packages that don't have errors
+  for pos_id, result in pairs(results) do
+    -- Check if this is a package/directory position (no .go and no ::)
+    if not pos_id:match("%.go$") and not pos_id:find("::") then
+      -- If package failed but has no errors, extract them from gotest output
+      if
+        result.status == "failed" and (not result.errors or #result.errors == 0)
+      then
+        if gotest_output then
+          local package_import_path =
+            M.get_package_import_path(pos_id, context.golist_data)
+          if package_import_path then
+            local package_errors = M.extract_package_errors_from_gotest_output(
+              gotest_output,
+              package_import_path
+            )
+            if #package_errors > 0 then
+              result.errors = package_errors
+            end
+          end
+        end
+      end
+    end
+  end
+
   -- Group file results by directory path
   local dir_to_files = {}
 
-  -- Extract all file position IDs and group by directory path
+  -- Extract all package/directory position IDs and group by parent directory path
   for pos_id, result in pairs(results) do
-    -- Check if this is a file position (ends with .go but no "::")
-    if pos_id:match("%.go$") and not pos_id:find("::") then
-      local dir_path = lib.path.get_directory(pos_id)
+    -- Check if this is a package/directory position (no .go and no ::)
+    if not pos_id:match("%.go$") and not pos_id:find("::") then
+      local parent_dir = lib.path.get_directory(pos_id)
 
-      if dir_path and dir_path ~= "." then
-        if not dir_to_files[dir_path] then
-          dir_to_files[dir_path] = {}
+      if parent_dir and parent_dir ~= "." and parent_dir ~= pos_id then
+        if not dir_to_files[parent_dir] then
+          dir_to_files[parent_dir] = {}
         end
-        table.insert(dir_to_files[dir_path], {
+        table.insert(dir_to_files[parent_dir], {
           pos_id = pos_id,
           result = result,
         })
@@ -190,9 +218,24 @@ function M.populate_missing_dir_results(tree, results, context)
         dir_status = "skipped"
       end
 
-      -- Collect errors
-      if file_result.errors then
+      -- Collect errors - if file has no errors but has output and failed status, extract errors from output
+      if file_result.errors and #file_result.errors > 0 then
         vim.list_extend(all_errors, file_result.errors)
+      elseif file_result.status == "failed" then
+        if gotest_output then
+          -- Extract errors from full test output for failed packages
+          local package_import_path =
+            M.get_package_import_path(entry.pos_id, context.golist_data)
+          if package_import_path then
+            local package_errors = M.extract_package_errors_from_gotest_output(
+              gotest_output,
+              package_import_path
+            )
+            if #package_errors > 0 then
+              vim.list_extend(all_errors, package_errors)
+            end
+          end
+        end
       end
 
       -- Collect output (but only if file actually has meaningful output)
@@ -207,24 +250,22 @@ function M.populate_missing_dir_results(tree, results, context)
     -- Check if there's meaningful output content (more than just header)
     local has_meaningful_output = #combined_output > 1 -- > 1 because we always add header
 
-    -- Create or update directory node result
+    -- Always create directory result if we have files (unconditional aggregation)
     if #file_entries > 0 then
       if dir_result then
         -- Update existing result with aggregated data
         dir_result.status = dir_status
+        dir_result.errors = all_errors -- Always set errors
         if has_meaningful_output then
           local dir_output_path = lib.path.normalize_path(async.fn.tempname())
           async.fn.writefile(combined_output, dir_output_path)
           dir_result.output = dir_output_path
         end
-        if #all_errors > 0 then
-          dir_result.errors = all_errors
-        end
       else
-        -- Create new directory node result
+        -- Create new directory node result (always create)
         local new_result = {
           status = dir_status,
-          errors = all_errors,
+          errors = all_errors, -- Always include errors
         }
 
         -- Only add output field if there's meaningful content
@@ -262,9 +303,22 @@ function M.populate_missing_dir_results(tree, results, context)
         parent_status = "skipped"
       end
 
-      -- Collect ALL errors from subdirectories
-      if subdir_result.errors then
+      -- Collect ALL errors from subdirectories - extract from output if needed
+      if subdir_result.errors and #subdir_result.errors > 0 then
         vim.list_extend(all_errors, subdir_result.errors)
+      elseif subdir_result.status == "failed" and gotest_output then
+        -- Extract errors from full test output for failed subdirectories
+        local package_import_path =
+          M.get_package_import_path(entry.pos_id, context.golist_data)
+        if package_import_path then
+          local package_errors = M.extract_package_errors_from_gotest_output(
+            gotest_output,
+            package_import_path
+          )
+          if #package_errors > 0 then
+            vim.list_extend(all_errors, package_errors)
+          end
+        end
       end
 
       -- Collect output from subdirectories
@@ -274,26 +328,37 @@ function M.populate_missing_dir_results(tree, results, context)
       end
     end
 
-    -- Only create parent directory result if we have subdirectories and actual output content
-    if #subdir_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
-      -- Write combined output to file
-      local parent_output_path = lib.path.normalize_path(async.fn.tempname())
-      async.fn.writefile(combined_output, parent_output_path)
+    -- Always create parent directory result if we have subdirectories (unconditional aggregation)
+    if #subdir_entries > 0 then
+      local parent_output_path = nil
 
-      -- Create or update parent directory node result
+      -- Write combined output to file only if there's meaningful content
+      if #combined_output > 1 then -- > 1 because we always add header
+        parent_output_path = lib.path.normalize_path(async.fn.tempname())
+        async.fn.writefile(combined_output, parent_output_path)
+      end
+
+      -- Create or update parent directory node result (always aggregate status and errors)
       if parent_result then
-        -- Update existing result with aggregated output
-        parent_result.output = parent_output_path
-        if #all_errors > 0 then
-          parent_result.errors = all_errors
+        -- Update existing result with aggregated data
+        parent_result.status = parent_status
+        if parent_output_path then
+          parent_result.output = parent_output_path
         end
+        parent_result.errors = all_errors -- Always set errors, even if empty
       else
         -- Create new parent directory node result
-        results[parent_dir] = {
+        local new_result = {
           status = parent_status,
-          output = parent_output_path,
-          errors = all_errors,
+          errors = all_errors, -- Always include errors, even if empty
         }
+
+        -- Only add output field if there's meaningful content
+        if parent_output_path then
+          new_result.output = parent_output_path
+        end
+
+        results[parent_dir] = new_result
       end
     end
   end
@@ -437,6 +502,51 @@ function M.create_root_result(results_data, result, gotest_output)
     output = output,
     errors = results_data and results_data.errors or {},
   }
+end
+
+--- Get package import path from directory position ID using golist data
+--- @param pos_id string Directory position ID
+--- @param golist_data table The golist data
+--- @return string|nil Package import path
+function M.get_package_import_path(pos_id, golist_data)
+  for _, item in ipairs(golist_data) do
+    if item.Dir == pos_id then
+      return item.ImportPath
+    end
+  end
+  return nil
+end
+
+--- Extract errors for a specific package from the full gotest output
+--- @param gotest_output GoTestEvent[] Full test output events
+--- @param package_import_path string Package import path to filter by
+--- @return neotest.Error[] Extracted errors for the package
+function M.extract_package_errors_from_gotest_output(
+  gotest_output,
+  package_import_path
+)
+  local package_output_parts = {}
+
+  -- Collect all output for the specific package
+  for _, event in ipairs(gotest_output) do
+    if event.Package == package_import_path and event.Output then
+      table.insert(package_output_parts, event.Output)
+    end
+  end
+
+  if #package_output_parts == 0 then
+    return {}
+  end
+
+  -- Create a mock test_entry to use diagnostics.process_diagnostics
+  local mock_test_entry = {
+    metadata = {
+      output_parts = package_output_parts,
+      position_id = nil, -- We don't have a specific position for package-level extraction
+    },
+  }
+
+  return lib.diagnostics.process_diagnostics(mock_test_entry)
 end
 
 return M

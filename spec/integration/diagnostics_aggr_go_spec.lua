@@ -37,25 +37,64 @@ describe("Integration: diagnostics test", function()
           },
           ["/Users/fredrik/code/public/neotest-golang/tests/go/internal"] = {
             errors = {
-              -- FIXME: this seems wrong, we are missing diagnostics_test.go errors
-              {
-                line = 9,
-                message = "hello world",
-                severity = 4,
-              },
-              {
-                line = 10,
-                message = "whuat",
-                severity = 4,
-              },
               {
                 line = 13,
                 message = "top-level hint: this should be classified as a hint",
                 severity = 4,
               },
               {
-                line = 16,
-                message = "goodbye world",
+                line = 17,
+                message = "expected 42 but got 0",
+                severity = 1,
+              },
+              {
+                line = 18,
+                message = "this test intentionally fails",
+                severity = 4,
+              },
+              {
+                line = 21,
+                message = "not implemented yet",
+                severity = 4,
+              },
+              {
+                line = 23,
+                message = "this test is intentionally skipped",
+                severity = 4,
+              },
+              {
+                line = 26,
+                message = "I'm a logging hint message",
+                severity = 4,
+              },
+              {
+                line = 28,
+                message = "this test is also intentionally skipped",
+                severity = 4,
+              },
+              {
+                line = 30,
+                message = "I'm an error message",
+                severity = 4,
+              },
+              {
+                line = 34,
+                message = "I'm a skip message",
+                severity = 4,
+              },
+              {
+                line = 38,
+                message = "this subtest intentionally fails",
+                severity = 4,
+              },
+              {
+                line = 40,
+                message = "assertion failed: ",
+                severity = 1,
+              },
+              {
+                line = 49,
+                message = "this subtest is intentionally skipped",
                 severity = 4,
               },
             },
@@ -63,14 +102,43 @@ describe("Integration: diagnostics test", function()
           },
           ["/Users/fredrik/code/public/neotest-golang/tests/go/internal/diagnostics"] = {
             errors = {
-              -- FIXME: this is wrong, we should have more tests and failing ones too. See diatnostics_spec.lua.
               {
                 line = 13,
                 message = "top-level hint: this should be classified as a hint",
                 severity = 4,
               },
+              {
+                line = 17,
+                message = "expected 42 but got 0",
+                severity = 1,
+              },
+              {
+                line = 21,
+                message = "not implemented yet",
+                severity = 4,
+              },
+              {
+                line = 26,
+                message = "I'm a logging hint message",
+                severity = 4,
+              },
+              {
+                line = 30,
+                message = "I'm an error message",
+                severity = 4,
+              },
+              {
+                line = 34,
+                message = "I'm a skip message",
+                severity = 4,
+              },
+              {
+                line = 40,
+                message = "assertion failed: ",
+                severity = 1,
+              },
             },
-            status = "passed", -- FIXME: this is wrong, as tests below are failing
+            status = "failed",
           },
           ["/Users/fredrik/code/public/neotest-golang/tests/go/internal/dupes"] = {
             errors = {},
@@ -120,29 +188,35 @@ describe("Integration: diagnostics test", function()
             errors = {},
             status = "passed",
           },
-          ["/Users/fredrik/code/public/neotest-golang/tests/go/internal/testifysuites"] = {
+          ["/Users/fredrik/code/public/neotest-golang/tests/go/internal/teststates"] = {
             errors = {
               {
-                line = 9,
-                message = "hello world",
+                line = 18,
+                message = "this test intentionally fails",
                 severity = 4,
               },
               {
-                line = 10,
-                message = "whuat",
+                line = 23,
+                message = "this test is intentionally skipped",
                 severity = 4,
               },
               {
-                line = 16,
-                message = "goodbye world",
+                line = 28,
+                message = "this test is also intentionally skipped",
+                severity = 4,
+              },
+              {
+                line = 38,
+                message = "this subtest intentionally fails",
+                severity = 4,
+              },
+              {
+                line = 49,
+                message = "this subtest is intentionally skipped",
                 severity = 4,
               },
             },
             status = "failed",
-          },
-          ["/Users/fredrik/code/public/neotest-golang/tests/go/internal/teststates"] = {
-            errors = {},
-            status = "passed",
           },
         },
         run_spec = {
