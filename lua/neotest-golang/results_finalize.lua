@@ -86,7 +86,7 @@ function M.test_results(spec, result, tree)
   results = M.populate_missing_file_results(tree, results)
 
   -- Populate missing directory results with aggregated data from descendant files (bottom-up)
-  results = M.populate_missing_dir_results(tree, results)
+  results = M.populate_missing_dir_results(tree, results, context)
 
   -- Register root node result in the cached results
   results[pos.id] = M.create_root_result(results[pos.id], result, gotest_output)
@@ -124,7 +124,7 @@ end
 --- @param tree neotest.Tree The neotest tree structure (unused but kept for compatibility)
 --- @param results table<string, neotest.Result> Current results
 --- @return table<string, neotest.Result> Updated results with missing directory results populated
-function M.populate_missing_dir_results(tree, results)
+function M.populate_missing_dir_results(tree, results, context)
   -- Group file results by directory path
   local dir_to_files = {}
 
@@ -167,75 +167,74 @@ function M.populate_missing_dir_results(tree, results)
     end
   end
 
-  -- Create aggregated results for directories that need output
+  -- Create aggregated results for directories (always aggregate)
   for dir_path, file_entries in pairs(dir_to_files) do
     local dir_result = results[dir_path]
-    local needs_aggregation = not dir_result or not dir_result.output
 
-    if needs_aggregation then
-      local dir_status = "passed"
-      local all_errors = {}
-      local combined_output = {}
+    -- Always aggregate to ensure proper status and error propagation
+    local dir_status = "passed"
+    local all_errors = {}
+    local combined_output = {}
 
-      -- Add directory header
-      table.insert(combined_output, "=== Directory: " .. dir_path .. " ===")
+    -- Add directory header
+    table.insert(combined_output, "=== Directory: " .. dir_path .. " ===")
 
-      -- Aggregate file results
-      for _, entry in ipairs(file_entries) do
-        local file_result = entry.result
+    -- Aggregate file results
+    for _, entry in ipairs(file_entries) do
+      local file_result = entry.result
 
-        -- Aggregate status (failed > skipped > passed)
-        if file_result.status == "failed" then
-          dir_status = "failed"
-        elseif file_result.status == "skipped" and dir_status ~= "failed" then
-          dir_status = "skipped"
-        end
-
-        -- Collect errors
-        if file_result.errors then
-          vim.list_extend(all_errors, file_result.errors)
-        end
-
-        -- Collect output (but only if file actually has meaningful output)
-        if file_result.output then
-          local file_output_lines = async.fn.readfile(file_result.output)
-          if #file_output_lines > 0 then
-            vim.list_extend(combined_output, file_output_lines)
-          end
-        end
+      -- Aggregate status (failed > skipped > passed)
+      if file_result.status == "failed" then
+        dir_status = "failed"
+      elseif file_result.status == "skipped" and dir_status ~= "failed" then
+        dir_status = "skipped"
       end
 
-      -- Check if there's meaningful output content (more than just header)
-      local has_meaningful_output = #combined_output > 1 -- > 1 because we always add header
+      -- Collect errors
+      if file_result.errors then
+        vim.list_extend(all_errors, file_result.errors)
+      end
 
-      -- Create or update directory node result
-      if #file_entries > 0 then
-        if dir_result then
-          -- Update existing result with aggregated data
-          if has_meaningful_output then
-            local dir_output_path = lib.path.normalize_path(async.fn.tempname())
-            async.fn.writefile(combined_output, dir_output_path)
-            dir_result.output = dir_output_path
-          end
-          if #all_errors > 0 then
-            dir_result.errors = all_errors
-          end
-        else
-          -- Create new directory node result
-          local new_result = {
-            status = dir_status,
-            errors = all_errors,
-          }
-
-          -- Only add output field if there's meaningful content
-          if has_meaningful_output then
-            local dir_output_path = lib.path.normalize_path(async.fn.tempname())
-            async.fn.writefile(combined_output, dir_output_path)
-            new_result.output = dir_output_path
-          end
-
-          results[dir_path] = new_result
+      -- Collect output (but only if file actually has meaningful output)
+      if file_result.output then
+        local file_output_lines = async.fn.readfile(file_result.output)
+        if #file_output_lines > 0 then
+          vim.list_extend(combined_output, file_output_lines)
         end
+      end
+    end
+
+    -- Check if there's meaningful output content (more than just header)
+    local has_meaningful_output = #combined_output > 1 -- > 1 because we always add header
+
+    -- Create or update directory node result
+    if #file_entries > 0 then
+      if dir_result then
+        -- Update existing result with aggregated data
+        dir_result.status = dir_status
+        if has_meaningful_output then
+          local dir_output_path = lib.path.normalize_path(async.fn.tempname())
+          async.fn.writefile(combined_output, dir_output_path)
+          dir_result.output = dir_output_path
+        end
+        if #all_errors > 0 then
+          dir_result.errors = all_errors
+        end
+      else
+        -- Create new directory node result
+        local new_result = {
+          status = dir_status,
+          errors = all_errors,
+        }
+
+        -- Only add output field if there's meaningful content
+        if has_meaningful_output then
+          local dir_output_path = lib.path.normalize_path(async.fn.tempname())
+          async.fn.writefile(combined_output, dir_output_path)
+          new_result.output = dir_output_path
+        end
+
+        results[dir_path] = new_result
       end
     end
   end
@@ -243,62 +242,58 @@ function M.populate_missing_dir_results(tree, results)
   -- Process hierarchical directories (directories that aggregate from subdirectories)
   for parent_dir, subdir_entries in pairs(dir_to_subdirs) do
     local parent_result = results[parent_dir]
-    local needs_aggregation = not parent_result or not parent_result.output
+    local parent_status = "passed"
+    local all_errors = {}
+    local combined_output = {}
 
-    if needs_aggregation then
-      local parent_status = "passed"
-      local all_errors = {}
-      local combined_output = {}
+    -- Add directory header
+    table.insert(combined_output, "=== Directory: " .. parent_dir .. " ===")
 
-      -- Add directory header
-      table.insert(combined_output, "=== Directory: " .. parent_dir .. " ===")
+    -- Aggregate subdirectory results
+    for _, entry in ipairs(subdir_entries) do
+      local subdir_result = entry.result
 
-      -- Aggregate subdirectory results
-      for _, entry in ipairs(subdir_entries) do
-        local subdir_result = entry.result
-
-        -- Aggregate status (failed > skipped > passed)
-        if subdir_result.status == "failed" then
-          parent_status = "failed"
-        elseif
-          subdir_result.status == "skipped" and parent_status ~= "failed"
-        then
-          parent_status = "skipped"
-        end
-
-        -- Collect errors
-        if subdir_result.errors then
-          vim.list_extend(all_errors, subdir_result.errors)
-        end
-
-        -- Collect output from subdirectories
-        if subdir_result.output then
-          local subdir_output_lines = async.fn.readfile(subdir_result.output)
-          vim.list_extend(combined_output, subdir_output_lines)
-        end
+      -- Aggregate status (failed > skipped > passed) from subdirectories
+      if subdir_result.status == "failed" then
+        parent_status = "failed"
+      elseif
+        subdir_result.status == "skipped" and parent_status ~= "failed"
+      then
+        parent_status = "skipped"
       end
 
-      -- Only create parent directory result if we have subdirectories and actual output content
-      if #subdir_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
-        -- Write combined output to file
-        local parent_output_path = lib.path.normalize_path(async.fn.tempname())
-        async.fn.writefile(combined_output, parent_output_path)
+      -- Collect ALL errors from subdirectories
+      if subdir_result.errors then
+        vim.list_extend(all_errors, subdir_result.errors)
+      end
 
-        -- Create or update parent directory node result
-        if parent_result then
-          -- Update existing result with aggregated output
-          parent_result.output = parent_output_path
-          if #all_errors > 0 then
-            parent_result.errors = all_errors
-          end
-        else
-          -- Create new parent directory node result
-          results[parent_dir] = {
-            status = parent_status,
-            output = parent_output_path,
-            errors = all_errors,
-          }
+      -- Collect output from subdirectories
+      if subdir_result.output then
+        local subdir_output_lines = async.fn.readfile(subdir_result.output)
+        vim.list_extend(combined_output, subdir_output_lines)
+      end
+    end
+
+    -- Only create parent directory result if we have subdirectories and actual output content
+    if #subdir_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
+      -- Write combined output to file
+      local parent_output_path = lib.path.normalize_path(async.fn.tempname())
+      async.fn.writefile(combined_output, parent_output_path)
+
+      -- Create or update parent directory node result
+      if parent_result then
+        -- Update existing result with aggregated output
+        parent_result.output = parent_output_path
+        if #all_errors > 0 then
+          parent_result.errors = all_errors
         end
+      else
+        -- Create new parent directory node result
+        results[parent_dir] = {
+          status = parent_status,
+          output = parent_output_path,
+          errors = all_errors,
+        }
       end
     end
   end
@@ -334,63 +329,75 @@ function M.populate_missing_file_results(tree, results)
     end
   end
 
-  -- Create aggregated results for files that need output
+  -- Create aggregated results for files (always aggregate)
   for file_path, test_entries in pairs(file_to_tests) do
     local file_result = results[file_path]
-    local needs_aggregation = not file_result or not file_result.output
 
-    if needs_aggregation then
-      local file_status = "passed"
-      local all_errors = {}
-      local combined_output = {}
+    -- Always aggregate to ensure proper status and error propagation
+    local file_status = "passed"
+    local all_errors = {}
+    local combined_output = {}
 
-      -- Add file header
-      table.insert(combined_output, "=== File: " .. file_path .. " ===")
+    -- Add file header
+    table.insert(combined_output, "=== File: " .. file_path .. " ===")
 
-      -- Aggregate test results
-      for _, entry in ipairs(test_entries) do
-        local test_result = entry.result
+    -- Aggregate test results
+    for _, entry in ipairs(test_entries) do
+      local test_result = entry.result
 
-        -- Aggregate status (failed > skipped > passed)
-        if test_result.status == "failed" then
-          file_status = "failed"
-        elseif test_result.status == "skipped" and file_status ~= "failed" then
-          file_status = "skipped"
-        end
-
-        -- Collect errors
-        if test_result.errors then
-          vim.list_extend(all_errors, test_result.errors)
-        end
-
-        -- Collect output
-        if test_result.output then
-          local test_output_lines = async.fn.readfile(test_result.output)
-          vim.list_extend(combined_output, test_output_lines)
-        end
+      -- Aggregate status (failed > skipped > passed)
+      if test_result.status == "failed" then
+        file_status = "failed"
+      elseif test_result.status == "skipped" and file_status ~= "failed" then
+        file_status = "skipped"
       end
 
-      -- Only create file result if we have tests and actual output content
-      if #test_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
-        -- Write combined output to file
-        local file_output_path = lib.path.normalize_path(async.fn.tempname())
-        async.fn.writefile(combined_output, file_output_path)
+      -- Collect errors
+      if test_result.errors then
+        vim.list_extend(all_errors, test_result.errors)
+      end
 
-        -- Create or update file node result
-        if file_result then
-          -- Update existing result with aggregated output
-          file_result.output = file_output_path
-          if #all_errors > 0 then
-            file_result.errors = all_errors
-          end
-        else
-          -- Create new file node result
-          results[file_path] = {
-            status = file_status,
-            output = file_output_path,
-            errors = all_errors,
-          }
+      -- Collect output
+      if test_result.output then
+        local test_output_lines = async.fn.readfile(test_result.output)
+        vim.list_extend(combined_output, test_output_lines)
+      end
+    end
+
+    -- Only create file result if we have tests and actual output content
+    if #test_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
+      -- Write combined output to file
+      local file_output_path = lib.path.normalize_path(async.fn.tempname())
+      async.fn.writefile(combined_output, file_output_path)
+
+      -- Create or update file node result
+      if file_result then
+        -- Update existing result with aggregated output
+        file_result.status = file_status
+        file_result.output = file_output_path
+        if #all_errors > 0 then
+          file_result.errors = all_errors
         end
+      else
+        -- Create new file node result
+        results[file_path] = {
+          status = file_status,
+          output = file_output_path,
+          errors = all_errors,
+        }
+      end
+    elseif #test_entries > 0 then
+      -- Even without meaningful output, ensure status and errors are aggregated
+      if file_result then
+        file_result.status = file_status
+        if #all_errors > 0 then
+          file_result.errors = all_errors
+        end
+      else
+        results[file_path] = {
+          status = file_status,
+          errors = all_errors,
+        }
       end
     end
   end

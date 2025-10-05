@@ -23,33 +23,23 @@ describe("Integration: diagnostics test", function()
         results = {
           -- Parent directory result (created by hierarchical aggregation)
           [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal")] = {
-            status = "passed", -- FIXME: this seems wrong, what about the failed diagnostics_test.go tests?
+            status = "failed", -- Now properly aggregates failed status from subdirectories
             errors = {
               {
                 message = "top-level hint: this should be classified as a hint",
                 line = 13,
                 severity = 4,
               },
-            },
-          },
-          -- Current directory result (contains all aggregated test results)
-          [position_id] = {
-            status = "failed",
-            errors = {
-              -- FIXME: should we not also see the failing diagnostics tests?
               {
-                message = "top-level hint: this should be classified as a hint",
-                line = 13,
+                message = "expected 42 but got 0",
+                line = 17,
+                severity = 1,
+              },
+              {
+                message = "not implemented yet",
+                line = 21,
                 severity = 4,
               },
-            },
-          },
-          -- File-level result (gets aggregated errors from child tests)
-          [path.normalize_path(
-            vim.uv.cwd() .. "/tests/go/internal/diagnostics/diagnostics_test.go"
-          )] = {
-            status = "failed",
-            errors = {
               {
                 message = "I'm a logging hint message",
                 line = 26,
@@ -70,6 +60,12 @@ describe("Integration: diagnostics test", function()
                 line = 40,
                 severity = 1,
               },
+            },
+          },
+          -- Current directory result (contains all aggregated test results)
+          [position_id] = {
+            status = "failed",
+            errors = {
               {
                 message = "top-level hint: this should be classified as a hint",
                 line = 13,
@@ -84,6 +80,69 @@ describe("Integration: diagnostics test", function()
                 message = "not implemented yet",
                 line = 21,
                 severity = 4,
+              },
+              {
+                message = "I'm a logging hint message",
+                line = 26,
+                severity = 4,
+              },
+              {
+                message = "I'm an error message",
+                line = 30,
+                severity = 4,
+              },
+              {
+                message = "I'm a skip message",
+                line = 34,
+                severity = 4,
+              },
+              {
+                message = "assertion failed: ",
+                line = 40,
+                severity = 1,
+              },
+            },
+          },
+          -- File-level result (gets aggregated errors from child tests)
+          [path.normalize_path(
+            vim.uv.cwd() .. "/tests/go/internal/diagnostics/diagnostics_test.go"
+          )] = {
+            status = "failed",
+            errors = {
+              {
+                message = "top-level hint: this should be classified as a hint",
+                line = 13,
+                severity = 4,
+              },
+              {
+                message = "expected 42 but got 0",
+                line = 17,
+                severity = 1,
+              },
+              {
+                message = "not implemented yet",
+                line = 21,
+                severity = 4,
+              },
+              {
+                message = "I'm a logging hint message",
+                line = 26,
+                severity = 4,
+              },
+              {
+                message = "I'm an error message",
+                line = 30,
+                severity = 4,
+              },
+              {
+                message = "I'm a skip message",
+                line = 34,
+                severity = 4,
+              },
+              {
+                message = "assertion failed: ",
+                line = 40,
+                severity = 1,
               },
             },
           },

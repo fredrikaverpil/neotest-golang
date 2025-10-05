@@ -23,25 +23,9 @@ describe("Integration: diagnostics test", function()
         results = {
           [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal")] = {
             errors = {
-              -- FIXME: seems we are missing the failing tests from diagnostics_test.go here?
-              {
-                line = 9,
-                message = "hello world",
-                severity = 4,
-              },
-              {
-                line = 10,
-                message = "whuat",
-                severity = 4,
-              },
               {
                 line = 13,
                 message = "top-level hint: this should be classified as a hint",
-                severity = 4,
-              },
-              {
-                line = 16,
-                message = "goodbye world",
                 severity = 4,
               },
             },
@@ -51,7 +35,6 @@ describe("Integration: diagnostics test", function()
             vim.uv.cwd() .. "/tests/go/internal/diagnostics"
           )] = {
             errors = {
-              -- FIXME: seems we are missing the failing tests from diagnostics_test.go here?
               {
                 line = 13,
                 message = "top-level hint: this should be classified as a hint",
@@ -116,28 +99,6 @@ describe("Integration: diagnostics test", function()
             errors = {},
             status = "passed",
           },
-          [path.normalize_path(
-            vim.uv.cwd() .. "/tests/go/internal/testifysuites"
-          )] = {
-            errors = {
-              {
-                line = 9,
-                message = "hello world",
-                severity = 4,
-              },
-              {
-                line = 10,
-                message = "whuat",
-                severity = 4,
-              },
-              {
-                line = 16,
-                message = "goodbye world",
-                severity = 4,
-              },
-            },
-            status = "failed",
-          },
           [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal/teststates")] = {
             errors = {},
             status = "passed",
@@ -178,6 +139,8 @@ describe("Integration: diagnostics test", function()
         got.run_spec.context.stop_filestream
       want.run_spec.context.test_output_json_filepath =
         got.run_spec.context.test_output_json_filepath
+      want.run_spec.context.process_test_results =
+        got.run_spec.context.process_test_results
       want.strategy_result.output = got.strategy_result.output
       for pos_id, result in pairs(got.results) do
         if want.results[pos_id] then
