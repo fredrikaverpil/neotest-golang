@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.1.3](https://github.com/fredrikaverpil/neotest-golang/compare/v2.1.2...v2.1.3) (2025-10-05)
+
+
+### Bug Fixes
+
+* false-positive for duplicate test names ([#461](https://github.com/fredrikaverpil/neotest-golang/issues/461)) ([6da8bee](https://github.com/fredrikaverpil/neotest-golang/commit/6da8bee7a8049957d18f3e50186cb95320f237d5))
+* status/output for dirs (packages) were wrongly populated ([#457](https://github.com/fredrikaverpil/neotest-golang/issues/457)) ([89b781a](https://github.com/fredrikaverpil/neotest-golang/commit/89b781a133ffcd2ad0e577d8136de50356d9625b))
+* testify assertion detection ([#447](https://github.com/fredrikaverpil/neotest-golang/issues/447)) ([beb468c](https://github.com/fredrikaverpil/neotest-golang/commit/beb468cdb0549e1125b5eafd351035214b9fed3a))
+
 ## [2.1.2](https://github.com/fredrikaverpil/neotest-golang/compare/v2.1.1...v2.1.2) (2025-10-02)
 
 
