@@ -23,7 +23,7 @@ local M = {}
 ---@param position_lookup table<string, string> Position lookup table
 ---@return table<string, TestEntry>
 function M.process_event(golist_data, accum, e, position_lookup)
-  if e.Package then
+  if e.Package and not e.Test then
     local id = e.Package or "UNKNOWN_PACKAGE"
     accum = M.process_package(golist_data, accum, e, id)
   end
@@ -63,8 +63,8 @@ function M.process_package(golist_data, accum, e, id)
 
   -- Record output for package.
   if
-    accum[e.Package]
-    and accum[e.Package].metadata.state == "streaming"
+    accum[id]
+    and accum[id].metadata.state == "streaming"
     and e.Action == "output"
   then
     if e.Output then
@@ -86,8 +86,8 @@ function M.process_package(golist_data, accum, e, id)
 
   -- Register package results.
   if
-    accum[e.Package]
-    and accum[e.Package].metadata.state == "streaming"
+    accum[id]
+    and accum[id].metadata.state == "streaming"
     and (e.Action == "pass" or e.Action == "fail" or e.Action == "skip")
   then
     if e.Action == "pass" then
