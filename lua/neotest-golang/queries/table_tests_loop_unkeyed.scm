@@ -23,7 +23,6 @@
 ; - Unkeyed struct fields
 ; - First field is validated to be string type
 ; ============================================================================
-
 ; query for table tests with inline structs (not keyed, wrapped in loop)
 (for_statement
   (range_clause
@@ -41,6 +40,7 @@
       body: (literal_value
         (literal_element
           (literal_value
+            .
             (literal_element
               (interpreted_string_literal) @test.name)
             (literal_element)) @test.definition))))
@@ -59,4 +59,3 @@
               (#eq? @test.case @test.case1)
               field: (field_identifier) @test.field.name1
               (#eq? @test.field.name @test.field.name1))))))))
-

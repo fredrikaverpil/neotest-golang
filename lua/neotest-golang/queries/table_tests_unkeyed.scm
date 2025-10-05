@@ -21,7 +21,6 @@
 ; DISTINGUISHING FEATURE: literal_element without keyed_element wrapper.
 ; The first string literal is assumed to be the test name.
 ; ============================================================================
-
 ; query for table tests with inline structs (not keyed)
 (block
   (statement_list
@@ -33,6 +32,7 @@
           body: (literal_value
             (literal_element
               (literal_value
+                .
                 (literal_element
                   (interpreted_string_literal) @test.name)
                 (literal_element)) @test.definition)))))
@@ -56,4 +56,3 @@
                 (selector_expression
                   operand: (identifier) @test.case1
                   (#eq? @test.case @test.case1))))))))))
-
