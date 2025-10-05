@@ -3,7 +3,7 @@ package packaging_test
 import (
 	"testing"
 
-	"github.com/fredrikaverpil/neotest-golang/internal/packaging"
+	"github.com/fredrikaverpil/neotest-golang/tests/go/internal/packaging"
 )
 
 func TestBlackBox(t *testing.T) {

@@ -18,7 +18,7 @@ describe("Integration: testify suites positions test", function()
       options.set(test_options)
 
       local position_id = vim.uv.cwd()
-        .. "/tests/go/internal/testifysuites/positions_test.go"
+        .. "/tests/features/internal/testifysuites/positions_test.go"
       position_id = path.normalize_path(position_id)
 
       -- Expected complete adapter execution result

@@ -1,4 +1,4 @@
-module github.com/fredrikaverpil/neotest-golang
+module github.com/fredrikaverpil/neotest-golang/tests/go
 
 go 1.24
 

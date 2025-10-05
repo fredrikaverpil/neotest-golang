@@ -18,7 +18,7 @@ describe("Integration: testify suites diagnostics test", function()
       options.set(test_options)
 
       local position_id = vim.uv.cwd()
-        .. "/tests/go/internal/testifysuites/diagnostics_test.go"
+        .. "/tests/features/internal/testifysuites/diagnostics_test.go"
       position_id = path.normalize_path(position_id)
 
       -- Reuse a single canonical error list to avoid repetition

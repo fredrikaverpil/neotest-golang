@@ -9,7 +9,7 @@ describe("go list output from root", function()
     local first_entry = output[1]
     local expected = {
       Dir = path.normalize_path(tests_filepath .. "/cmd/main"),
-      ImportPath = "github.com/fredrikaverpil/neotest-golang/cmd/main",
+      ImportPath = "github.com/fredrikaverpil/neotest-golang/tests/go/cmd/main",
       Module = {
         GoMod = path.normalize_path(tests_filepath .. "/go.mod"),
       },
@@ -31,7 +31,7 @@ describe("go list output from internal", function()
 
     -- Find the positions package entry by ImportPath (order-agnostic)
     local positions_import =
-      "github.com/fredrikaverpil/neotest-golang/internal/positions"
+      "github.com/fredrikaverpil/neotest-golang/tests/go/internal/positions"
     local found
     for _, pkg in ipairs(output) do
       if pkg.ImportPath == positions_import then
@@ -66,7 +66,7 @@ describe("go list output from internal/positions", function()
     local first_entry = output[1]
     local expected = {
       Dir = path.normalize_path(positions_filepath),
-      ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/positions",
+      ImportPath = "github.com/fredrikaverpil/neotest-golang/tests/go/internal/positions",
       Module = {
         GoMod = path.normalize_path(tests_filepath .. "/go.mod"),
       },
@@ -89,7 +89,7 @@ describe("go list output from internal/nested", function()
     local expected = {
       {
         Dir = path.normalize_path(filepath .. "/subpackage2"),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/nested/subpackage2",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/tests/go/internal/nested/subpackage2",
         Module = {
           GoMod = path.normalize_path(tests_filepath .. "/go.mod"),
         },
@@ -99,7 +99,7 @@ describe("go list output from internal/nested", function()
       },
       {
         Dir = path.normalize_path(filepath .. "/subpackage2/subpackage3"),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/nested/subpackage2/subpackage3",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/tests/go/internal/nested/subpackage2/subpackage3",
         Module = {
           GoMod = path.normalize_path(tests_filepath .. "/go.mod"),
         },
@@ -123,7 +123,7 @@ describe("go list output from internal/packaging", function()
     local expected = {
       {
         Dir = path.normalize_path(filepath),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/packaging",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/tests/go/internal/packaging",
         Module = {
           GoMod = path.normalize_path(tests_filepath .. "/go.mod"),
         },
@@ -147,7 +147,7 @@ describe("go list output from internal/packaging", function()
     local expected = {
       {
         Dir = path.normalize_path(filepath),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/packaging",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/tests/go/internal/packaging",
         Module = {
           GoMod = path.normalize_path(tests_filepath .. "/go.mod"),
         },
@@ -171,7 +171,7 @@ describe("go list output from internal/multifile", function()
     local expected = {
       {
         Dir = path.normalize_path(filepath),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/multifile",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/tests/go/internal/multifile",
         Module = {
           GoMod = path.normalize_path(tests_filepath .. "/go.mod"),
         },
@@ -195,7 +195,7 @@ describe("go list output from internal/notests", function()
     local expected = {
       {
         Dir = path.normalize_path(filepath),
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/internal/notests",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/tests/go/internal/notests",
         Module = {
           GoMod = path.normalize_path(tests_filepath .. "/go.mod"),
         },
@@ -216,7 +216,7 @@ describe("Windows path handling", function()
     local mock_golist_output = {
       {
         Dir = "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\cmd\\\\main",
-        ImportPath = "github.com/fredrikaverpil/neotest-golang/cmd/main",
+        ImportPath = "github.com/fredrikaverpil/neotest-golang/tests/go/cmd/main",
         Module = {
           GoMod = "D:\\\\a\\\\neotest-golang\\\\tests\\\\go\\\\go.mod",
         },
@@ -237,7 +237,7 @@ describe("Windows path handling", function()
       first_entry.Module.GoMod
     )
     assert.equals(
-      "github.com/fredrikaverpil/neotest-golang/cmd/main",
+      "github.com/fredrikaverpil/neotest-golang/tests/go/cmd/main",
       first_entry.ImportPath
     )
     assert.equals("main", first_entry.Name)
