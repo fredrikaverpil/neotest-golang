@@ -22,27 +22,10 @@ describe("Integration: diagnostics test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
-          -- Parent directory result (created by hierarchical aggregation)
-          [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal")] = {
-            status = "passed",
-            errors = {
-              {
-                message = "top-level hint: this should be classified as a hint",
-                line = 13,
-                severity = 4,
-              },
-            },
-          },
-          -- Directory-level result (created by file aggregation)
+          -- Package-level result (from streaming) - no errors as streaming doesn't extract them
           [path.get_directory(position_id)] = {
-            status = "passed", -- Directory shows passed due to aggregation logic
-            errors = {
-              {
-                message = "top-level hint: this should be classified as a hint",
-                line = 13,
-                severity = 4,
-              },
-            },
+            status = "failed",
+            errors = {},
           },
           -- File-level result (gets aggregated errors from child tests)
           [position_id] = {

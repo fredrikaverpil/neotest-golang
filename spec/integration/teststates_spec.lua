@@ -23,14 +23,9 @@ describe("Integration: test states", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
-          -- Parent directory result (created by hierarchical aggregation)
-          [vim.uv.cwd() .. path.os_path_sep .. "tests" .. path.os_path_sep .. "go" .. path.os_path_sep .. "internal"] = {
-            status = "passed",
-            errors = {},
-          },
-          -- Directory-level result (created by file aggregation)
+          -- Package-level result (from streaming) - no errors as streaming doesn't extract them
           [path.get_directory(position_id)] = {
-            status = "passed",
+            status = "failed",
             errors = {},
           },
           -- File-level result

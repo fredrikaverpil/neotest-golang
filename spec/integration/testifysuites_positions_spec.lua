@@ -25,12 +25,7 @@ describe("Integration: testify suites positions test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
-          -- Parent directory result
-          [path.get_directory(path.get_directory(position_id))] = {
-            status = "passed",
-            errors = {},
-          },
-          -- Directory-level result (created by file aggregation)
+          -- Package-level result (from streaming)
           [path.get_directory(position_id)] = {
             status = "passed",
             errors = {},

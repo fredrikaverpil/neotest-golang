@@ -103,12 +103,7 @@ describe("Integration: nested subpackage2 test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
-          -- Parent directory result (created by hierarchical aggregation)
-          [path.normalize_path(vim.uv.cwd() .. "/tests/go/internal/nested")] = {
-            status = "passed",
-            errors = {},
-          },
-          -- Directory-level result (created by file aggregation)
+          -- Package-level result (from streaming)
           [path.get_directory(position_id)] = {
             status = "passed",
             errors = {},
@@ -190,14 +185,7 @@ describe("Integration: nested subpackage2 test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
-          -- Parent directory result (created by hierarchical aggregation)
-          [path.normalize_path(
-            vim.uv.cwd() .. "/tests/go/internal/nested/subpackage2"
-          )] = {
-            status = "passed",
-            errors = {},
-          },
-          -- Directory-level result (created by file aggregation)
+          -- Package-level result (from streaming)
           [path.get_directory(position_id)] = {
             status = "passed",
             errors = {},
