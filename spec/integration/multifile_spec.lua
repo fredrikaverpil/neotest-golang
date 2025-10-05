@@ -26,12 +26,7 @@ describe("Integration: multifile test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
-          -- Parent directory result
-          [path.get_directory(pos_id_dir)] = {
-            status = "passed",
-            errors = {},
-          },
-          -- Directory-level result
+          -- Directory-level result (from streaming - this IS the position being tested)
           [pos_id_dir] = {
             status = "passed",
             errors = {},

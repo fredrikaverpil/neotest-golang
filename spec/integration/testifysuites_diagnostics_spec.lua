@@ -34,15 +34,10 @@ describe("Integration: testify suites diagnostics test", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
-          -- Parent directory result
-          [path.get_directory(path.get_directory(position_id))] = {
-            status = "failed",
-            errors = common_errors,
-          },
-          -- Directory-level result
+          -- Package-level result (from streaming) - no errors as streaming doesn't extract them
           [path.get_directory(position_id)] = {
             status = "failed",
-            errors = common_errors,
+            errors = {},
           },
           -- File-level result
           [position_id] = {

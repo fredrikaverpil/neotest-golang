@@ -23,67 +23,10 @@ describe("Integration: test states", function()
       ---@type AdapterExecutionResult
       local want = {
         results = {
-          -- Parent directory result (created by hierarchical aggregation)
-          [vim.uv.cwd() .. path.os_path_sep .. "tests" .. path.os_path_sep .. "go" .. path.os_path_sep .. "internal"] = {
-            status = "failed",
-            errors = {
-              {
-                line = 18,
-                message = "this test intentionally fails",
-                severity = 4,
-              },
-              {
-                line = 23,
-                message = "this test is intentionally skipped",
-                severity = 4,
-              },
-              {
-                line = 28,
-                message = "this test is also intentionally skipped",
-                severity = 4,
-              },
-              {
-                line = 38,
-                message = "this subtest intentionally fails",
-                severity = 4,
-              },
-              {
-                line = 49,
-                message = "this subtest is intentionally skipped",
-                severity = 4,
-              },
-            },
-          },
-          -- Directory-level result (created by file aggregation)
+          -- Package-level result (from streaming) - no errors as streaming doesn't extract them
           [path.get_directory(position_id)] = {
             status = "failed",
-            errors = {
-              {
-                line = 18,
-                message = "this test intentionally fails",
-                severity = 4,
-              },
-              {
-                line = 23,
-                message = "this test is intentionally skipped",
-                severity = 4,
-              },
-              {
-                line = 28,
-                message = "this test is also intentionally skipped",
-                severity = 4,
-              },
-              {
-                line = 38,
-                message = "this subtest intentionally fails",
-                severity = 4,
-              },
-              {
-                line = 49,
-                message = "this subtest is intentionally skipped",
-                severity = 4,
-              },
-            },
+            errors = {},
           },
           -- File-level result
           [position_id] = {
