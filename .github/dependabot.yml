@@ -12,7 +12,7 @@ updates:
       - "dependencies"
 
   - package-ecosystem: "gomod"
-    directories: ["tests/go"]
+    directories: ["tests/features", "tests/go"]
     schedule:
       interval: "monthly"
     allow:
