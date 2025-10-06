@@ -39,9 +39,9 @@ and handles:
 
 ### Testing
 
-- **Run all tests**: `task test` or `task test-plenary`
+- **Run all tests**: `task test`
 - **Run tests with clean state**: `task test-clean && task test`
-- **Run specific test**: Use nvim with plenary directly
+- **Run specific test file**: `task test-file -- path/to/test_spec.lua`
 
 ### Linting and Formatting
 
@@ -75,7 +75,7 @@ Test files use the `*_spec.lua` naming convention.
 
 ### Test Execution Flow
 
-When running `task test-plenary`, Neovim launches headlessly and:
+When running `task test`, Neovim launches headlessly and:
 
 1. Bootstrap script resets runtime path and installs required plugins
 2. PlenaryBustedDirectory discovers and runs all `*_spec.lua` files
