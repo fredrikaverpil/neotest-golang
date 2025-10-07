@@ -237,6 +237,94 @@ describe("integration: stream classification", function()
   end)
 end)
 
+describe("testify diagnostics", function()
+  it("parses testify Error and Messages combination", function()
+    local testify_diagnostics =
+      require("neotest-golang.features.testify.diagnostics")
+    local options = require("neotest-golang.options")
+
+    -- Enable testify parsing
+    local test_options = options.get()
+    test_options.testify_enabled = true
+    options.set(test_options)
+
+    local context = {}
+    local lines = {
+      "    Error Trace:	/path/to/test.go:15",
+      "    Error:      	Should be false",
+      "    Test:       	TestHints",
+      "    Messages:   	we wanted false, but got true",
+    }
+
+    local results = {}
+    for _, line in ipairs(lines) do
+      local diagnostic, updated_context =
+        testify_diagnostics.parse_testify_diagnostic(line, context)
+      context = updated_context or context
+      if diagnostic then
+        table.insert(results, diagnostic)
+      end
+    end
+
+    -- Check for any final pending diagnostic
+    local final_diagnostic =
+      testify_diagnostics.finalize_testify_diagnostic(context)
+    if final_diagnostic then
+      table.insert(results, final_diagnostic)
+    end
+
+    assert.equals(1, #results)
+    assert.equals("test.go", results[1].filename)
+    assert.equals(15, results[1].line_number)
+    assert.equals(
+      "Should be false: we wanted false, but got true",
+      results[1].message
+    )
+    assert.equals(vim.diagnostic.severity.ERROR, results[1].severity)
+  end)
+
+  it("parses testify Error without Messages", function()
+    local testify_diagnostics =
+      require("neotest-golang.features.testify.diagnostics")
+    local options = require("neotest-golang.options")
+
+    -- Enable testify parsing
+    local test_options = options.get()
+    test_options.testify_enabled = true
+    options.set(test_options)
+
+    local context = {}
+    local lines = {
+      "    Error Trace:	/path/to/test.go:14",
+      "    Error:      	Should be false",
+      "    Test:       	TestHints",
+    }
+
+    local results = {}
+    for _, line in ipairs(lines) do
+      local diagnostic, updated_context =
+        testify_diagnostics.parse_testify_diagnostic(line, context)
+      context = updated_context or context
+      if diagnostic then
+        table.insert(results, diagnostic)
+      end
+    end
+
+    -- Check for any final pending diagnostic
+    local final_diagnostic =
+      testify_diagnostics.finalize_testify_diagnostic(context)
+    if final_diagnostic then
+      table.insert(results, final_diagnostic)
+    end
+
+    assert.equals(1, #results)
+    assert.equals("test.go", results[1].filename)
+    assert.equals(14, results[1].line_number)
+    assert.equals("Should be false", results[1].message)
+    assert.equals(vim.diagnostic.severity.ERROR, results[1].severity)
+  end)
+end)
+
 describe("process_diagnostics", function()
   it("filters diagnostics by test filename", function()
     local test_entry = {

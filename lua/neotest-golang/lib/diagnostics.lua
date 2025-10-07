@@ -164,6 +164,33 @@ function M.process_diagnostics(test_entry)
     end
   end
 
+  -- Check for any pending testify diagnostics at the end
+  local testify_diagnostics =
+    require("neotest-golang.features.testify.diagnostics")
+  local final_diagnostic =
+    testify_diagnostics.finalize_testify_diagnostic(context)
+  if final_diagnostic then
+    local should_include_diagnostic = true
+    if test_filename and final_diagnostic.filename then
+      should_include_diagnostic = (final_diagnostic.filename == test_filename)
+    end
+
+    if should_include_diagnostic then
+      local error_key = (final_diagnostic.line_number - 1)
+        .. ":"
+        .. final_diagnostic.message
+
+      if not error_set[error_key] then
+        error_set[error_key] = true
+        table.insert(errors, {
+          line = final_diagnostic.line_number - 1,
+          message = final_diagnostic.message,
+          severity = final_diagnostic.severity,
+        })
+      end
+    end
+  end
+
   return errors
 end
 
