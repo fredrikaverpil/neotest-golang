@@ -54,8 +54,56 @@ function M.init()
 
   -- Configure nvim-treesitter to use the site directory for parsers
   ---@type TSConfig
-  local treesitter_opts = { install_dir = site_dir }
+  local treesitter_opts = {
+    install_dir = site_dir,
+    parser_install_dir = site_dir .. "/parser",
+  }
   require("nvim-treesitter.config").setup(treesitter_opts)
+
+  -- Ensure treesitter is properly initialized
+  local ts_configs = require("nvim-treesitter.configs")
+  ts_configs.setup({
+    parser_install_dir = site_dir .. "/parser",
+    ensure_installed = {},
+    highlight = { enable = false }, -- Disable highlighting to avoid issues
+    incremental_selection = { enable = false },
+    textobjects = { enable = false },
+  })
+
+  -- Force reload treesitter parsers to ensure Go parser is recognized
+  local success, ts_parsers = pcall(require, "nvim-treesitter.parsers")
+  if success and ts_parsers then
+    -- Force a refresh of available parsers
+    pcall(function()
+      ts_parsers._parsers = nil
+      ts_parsers.available_parsers = nil
+    end)
+
+    -- Ensure the Go parser is properly registered
+    local parser_success, go_parser_info =
+      pcall(ts_parsers.get_parser_info, "go")
+    if not parser_success or not go_parser_info then
+      -- Manually register the Go parser if it's not found
+      pcall(function()
+        if ts_parsers.filetype_to_parsername then
+          ts_parsers.filetype_to_parsername.go = "go"
+        end
+      end)
+    end
+  end
+
+  -- Verify treesitter can create a parser for Go
+  local can_create_parser = pcall(function()
+    local ts = vim.treesitter
+    if ts and ts.get_parser then
+      return ts.get_parser
+    end
+    return nil
+  end)
+
+  if not can_create_parser then
+    print("Warning: treesitter parser functionality may not be available")
+  end
 
   -- Do not initialize Neotest here to avoid affecting unit tests
   -- The integration tests will set up neotest as needed

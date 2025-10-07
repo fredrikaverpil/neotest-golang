@@ -30,11 +30,51 @@ M.table_tests_inline_field_access =
 --- Check if Go tree-sitter parser is available
 --- @return boolean True if Go parser is available, false otherwise
 function M.has_go_parser()
+  -- Multiple fallback checks for Go parser availability
+
+  -- Method 1: Try vim.treesitter.language.add (newer API)
   if vim.treesitter.language and vim.treesitter.language.add then
-    return pcall(function()
+    local success = pcall(function()
       vim.treesitter.language.add("go")
     end)
+    if success then
+      return true
+    end
   end
+
+  -- Method 2: Try creating a parser directly
+  local parse_success = pcall(function()
+    local parser = vim.treesitter.get_parser(0, "go")
+    return parser ~= nil
+  end)
+  if parse_success then
+    return true
+  end
+
+  -- Method 3: Check if nvim-treesitter has the parser registered
+  local ts_parsers_success, ts_parsers =
+    pcall(require, "nvim-treesitter.parsers")
+  if ts_parsers_success and ts_parsers then
+    local info_success, info = pcall(ts_parsers.get_parser_info, "go")
+    if info_success and info then
+      return true
+    end
+  end
+
+  -- Method 4: Check for parser file existence
+  local parser_paths = {
+    ".tests/all/site/parser/go.so",
+    vim.fn.stdpath("data") .. "/lazy/nvim-treesitter/parser/go.so",
+    vim.fn.stdpath("data")
+      .. "/site/pack/packer/start/nvim-treesitter/parser/go.so",
+  }
+
+  for _, parser_path in ipairs(parser_paths) do
+    if vim.fn.filereadable(parser_path) == 1 then
+      return true
+    end
+  end
+
   return false
 end
 
@@ -75,15 +115,43 @@ function M.detect_tests(file_path)
   end
 
   ---@type neotest.Tree
-  local tree = lib.treesitter.parse_positions(file_path, query, opts)
+  local tree
+  local parse_success, parse_result = pcall(function()
+    return lib.treesitter.parse_positions(file_path, query, opts)
+  end)
+
+  if not parse_success then
+    logger.error(
+      "Failed to parse Go test file: " .. tostring(parse_result),
+      true
+    )
+    -- Return a minimal empty tree to prevent crashes
+    return lib.treesitter.parse_positions_from_string(
+      file_path,
+      "",
+      query,
+      opts
+    )
+  end
+
+  tree = parse_result
 
   if options.get().testify_enabled == true then
-    tree = testify.tree_modification.modify_neotest_tree(file_path, tree)
+    local testify_success, testify_result = pcall(function()
+      return testify.tree_modification.modify_neotest_tree(file_path, tree)
+    end)
+    if testify_success then
+      tree = testify_result
+    else
+      logger.warn(
+        "Failed to apply testify modifications: " .. tostring(testify_result)
+      )
+    end
   end
 
   -- Check for duplicate subtests in the tree
   if options.get().warn_test_name_dupes then
-    dupe.warn_duplicate_tests(tree)
+    pcall(dupe.warn_duplicate_tests, tree)
   end
 
   return tree

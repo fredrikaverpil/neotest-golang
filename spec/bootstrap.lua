@@ -101,14 +101,17 @@ function M.init()
     print("Created parser directory: " .. parser_dir)
   end
 
-  -- Configuare nvim-treesitter to use the site directory for parsers
+  -- Configure nvim-treesitter to use the site directory for parsers
   print("Configuring nvim-treesitter install directory...")
   ---@type TSConfig
-  local treesitter_opts = { install_dir = site_dir }
+  local treesitter_opts = {
+    install_dir = site_dir,
+    parser_install_dir = parser_dir,
+  }
   require("nvim-treesitter.config").setup(treesitter_opts)
 
   -- Install Go parser if not already installed
-  local parser_path = site_dir .. "/parser/go.so"
+  local parser_path = parser_dir .. "/go.so"
   local parser_installed = vim.fn.filereadable(parser_path) == 1
 
   if not parser_installed then
@@ -117,12 +120,31 @@ function M.init()
       return require("nvim-treesitter.install").install({ "go" }):wait(300000) -- wait max. 5 minutes
     end)
 
-    if not success then
+    if success then
+      print("Go parser installation completed")
+      -- Verify installation
+      local installed_after = vim.fn.filereadable(parser_path) == 1
+      if installed_after then
+        print("Go parser successfully installed at: " .. parser_path)
+      else
+        print("Warning: Go parser installation may not have completed properly")
+      end
+    else
       print("Parser installation failed: " .. tostring(result))
     end
   else
     print("Go parser already installed at: " .. parser_path)
   end
+
+  -- Initialize treesitter configs to ensure proper setup
+  local ts_configs = require("nvim-treesitter.configs")
+  ts_configs.setup({
+    parser_install_dir = parser_dir,
+    ensure_installed = {},
+    highlight = { enable = false }, -- Disable to avoid conflicts
+    incremental_selection = { enable = false },
+    textobjects = { enable = false },
+  })
 
   -- Do not initialize Neotest here to avoid affecting unit tests
   -- The integration tests will set up neotest as needed
