@@ -23,7 +23,6 @@
 ;
 ; HISTORICAL NOTE: Added post-v1.15.1 to support pointer-based table test patterns.
 ; ============================================================================
-
 ; query for table tests with inline composite literal and field access for test name
 (for_statement
   (range_clause

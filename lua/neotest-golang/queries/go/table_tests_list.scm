@@ -17,7 +17,6 @@
 ; SCOPE: Matches the test case definitions (the slice elements), not the loop.
 ; The loop body is validated to ensure it calls t.Run with the same field name.
 ; ============================================================================
-
 ; query for list table tests
 (block
   (statement_list

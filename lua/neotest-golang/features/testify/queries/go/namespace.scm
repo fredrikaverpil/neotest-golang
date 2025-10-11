@@ -20,7 +20,6 @@
 ; This is later processed by tree_modification.lua to map receiver types
 ; to their corresponding suite initialization functions (TestXxxSuite).
 ; ============================================================================
-
 ; query for detecting receiver type and treat as Neotest namespace.
 ; func (suite *testSuite) TestSomething() { // @namespace_name
 ;  // test code
@@ -33,4 +32,3 @@
   name: (field_identifier) @test_function
   (#match? @test_function "^(Test|Example)")
   (#not-match? @test_function "^TestMain$")) @namespace_definition
-

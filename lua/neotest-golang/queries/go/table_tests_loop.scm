@@ -20,7 +20,6 @@
 ; DISTINGUISHING FEATURE: Requires explicit struct type in the slice type.
 ; This distinguishes it from table_tests_inline_field_access which uses pointer types.
 ; ============================================================================
-
 ; query for list table tests (wrapped in loop)
 (for_statement
   (range_clause

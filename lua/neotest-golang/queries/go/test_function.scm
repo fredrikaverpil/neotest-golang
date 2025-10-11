@@ -21,7 +21,6 @@
 ; conflicts where one pattern would override the other, preventing proper detection
 ; of both regular and testify subtests simultaneously.
 ; ============================================================================
-
 ; query for test function
 ((function_declaration
   name: (identifier) @test.name)

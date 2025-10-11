@@ -22,7 +22,6 @@
 ; DISTINGUISHING FEATURE: Uses map literal instead of slice literal.
 ; The map key (string) becomes the test name.
 ; ============================================================================
-
 ; query for map table tests
 (block
   (statement_list

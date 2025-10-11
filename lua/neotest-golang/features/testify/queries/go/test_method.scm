@@ -19,10 +19,8 @@
 ; NOTE: The receiver information is captured separately by namespace.scm.
 ; This query focuses only on identifying which methods are tests.
 ; ============================================================================
-
 ; query for test method
 (method_declaration
   name: (field_identifier) @test.name
   (#match? @test.name "^(Test|Example)")
   (#not-match? @test.name "^TestMain$")) @test.definition
-

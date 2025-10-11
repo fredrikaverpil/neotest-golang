@@ -10,10 +10,10 @@ require("nvim-treesitter")
 local M = {}
 
 M.namespace_query =
-  query_loader.load_query("features/testify/queries/namespace.scm")
+  query_loader.load_query("features/testify/queries/go/namespace.scm")
 
 M.test_method_query =
-  query_loader.load_query("features/testify/queries/test_method.scm")
+  query_loader.load_query("features/testify/queries/go/test_method.scm")
 
 --- Run a TreeSitter query on a file and return the matches.
 --- @param filepath string The path to the file to query
