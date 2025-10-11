@@ -10,22 +10,22 @@ local testify = require("neotest-golang.features.testify")
 
 local M = {}
 
-M.test_function = query_loader.load_query("queries/test_function.scm")
+M.test_function = query_loader.load_query("queries/go/test_function.scm")
 
-M.table_tests_list = query_loader.load_query("queries/table_tests_list.scm")
+M.table_tests_list = query_loader.load_query("queries/go/table_tests_list.scm")
 
-M.table_tests_loop = query_loader.load_query("queries/table_tests_loop.scm")
+M.table_tests_loop = query_loader.load_query("queries/go/table_tests_loop.scm")
 
 M.table_tests_unkeyed =
-  query_loader.load_query("queries/table_tests_unkeyed.scm")
+  query_loader.load_query("queries/go/table_tests_unkeyed.scm")
 
 M.table_tests_loop_unkeyed =
-  query_loader.load_query("queries/table_tests_loop_unkeyed.scm")
+  query_loader.load_query("queries/go/table_tests_loop_unkeyed.scm")
 
-M.table_tests_map = query_loader.load_query("queries/table_tests_map.scm")
+M.table_tests_map = query_loader.load_query("queries/go/table_tests_map.scm")
 
 M.table_tests_inline_field_access =
-  query_loader.load_query("queries/table_tests_inline_field_access.scm")
+  query_loader.load_query("queries/go/table_tests_inline_field_access.scm")
 
 --- Check if Go tree-sitter parser is available
 --- @return boolean True if Go parser is available, false otherwise

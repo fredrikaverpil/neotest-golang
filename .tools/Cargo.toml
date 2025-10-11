@@ -8,3 +8,6 @@ edition = "2021"
 
 [dependencies]
 stylua = "2.0.2"
+
+# ts_query_ls must be installed from GitHub
+# cargo install --git https://github.com/ribru17/ts_query_ls ts_query_ls

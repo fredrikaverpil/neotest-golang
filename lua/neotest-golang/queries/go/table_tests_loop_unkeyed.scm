@@ -1,29 +1,36 @@
 ; ============================================================================
-; RESPONSIBILITY: Inline table tests with unkeyed (positional) struct literals
+; RESPONSIBILITY: Inline unkeyed table tests (no variable, positional fields)
 ; ============================================================================
-; Detects table tests where:
-; 1. Test cases are defined inline in the for-range statement
-; 2. Cases use positional (unkeyed) field syntax: {"test1", value}
-; 3. The slice has explicit struct type with named fields
-; 4. First field must be string type (the test name)
-; 5. Loop body calls t.Run with field access: tc.name
+; Detects table tests that combine two characteristics:
+; 1. INLINE: Slice defined directly in for-range (no separate variable)
+; 2. UNKEYED: Struct fields use positional syntax (no field names)
 ;
-; Example pattern:
+; Pattern structure:
+; 1. Inline slice: for _, tc := range []struct{...}{...}
+; 2. Positional fields: {"test1", 1} instead of {name: "test1", want: 1}
+; 3. First field must be string type (the test name)
+; 4. Loop body: t.Run(tc.name, ...)
+;
+; Example with captures:
 ;   for _, tc := range []struct{
 ;     name string
 ;     want int
 ;   }{
-;     {"test1", 1},  // ← unkeyed: no field names
+;     {"test1", 1},  // @test.name = "test1", @test.definition = entire struct
+;     {"test2", 2},  // No "name:" - values assigned by position
 ;   } {
 ;     t.Run(tc.name, func(t *testing.T) { ... })
 ;   }
 ;
+; What gets captured:
+; - @test.name = The first string literal (e.g., "test1")
+; - @test.definition = The entire struct literal (e.g., {"test1", 1})
+; - @test.field.name = The first field identifier from struct type (e.g., "name")
+;
 ; DISTINGUISHING FEATURES:
-; - Inline composite literal (no variable declaration)
-; - Unkeyed struct fields
-; - First field is validated to be string type
+; - No variable: tt := []struct{} (compare to table_tests_unkeyed.scm)
+; - No field keys: {name: "test1"} (compare to table_tests_loop.scm)
 ; ============================================================================
-; query for table tests with inline structs (not keyed, wrapped in loop)
 (for_statement
   (range_clause
     left: (expression_list

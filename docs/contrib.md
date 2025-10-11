@@ -39,6 +39,38 @@ query and play around. You can paste in queries from
 in the editor, to see how the query behaves and highlights parts of your Go test
 file.
 
+### Required query captures
+
+Neotest expects specific capture names in tree-sitter queries to build test
+positions. The core library (`neotest/lua/neotest/lib/treesitter/init.lua`)
+looks for these captures:
+
+**For tests:**
+
+- `@test.name` - The name/identifier of the test (required)
+- `@test.definition` - The AST node representing the entire test definition
+  (required)
+
+**For namespaces (e.g., testify suites):**
+
+- `@namespace.name` - The name/identifier of the namespace (required)
+- `@namespace.definition` - The AST node representing the entire namespace
+  definition (required)
+
+The `build_position` function in Neotest's treesitter library extracts text from
+the `.name` capture and uses the `.definition` capture's range to determine the
+position. These captures are then converted into `neotest.Position` objects with
+these fields:
+
+- `type` - Position type: `"test"` or `"namespace"` (or `"file"` / `"dir"`)
+- `path` - Absolute file path
+- `name` - Test or namespace name (extracted from `.name` capture)
+- `range` - Array of line/column positions from `.definition` capture's range
+
+Additional captures like `@test.method`, `@test.operand`, etc., can be used
+within queries for predicates and logic but are not directly consumed by
+Neotest's position builder.
+
 ## Previewing the documentation
 
 Install [uv](https://docs.astral.sh/uv/) with e.g. `brew install uv` or

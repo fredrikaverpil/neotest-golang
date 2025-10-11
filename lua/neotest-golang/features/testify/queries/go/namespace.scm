@@ -10,9 +10,14 @@
 ;   func (s *ExampleSuite) TestSomething(t *testing.T) { ... }
 ;
 ; This query captures:
-; - The receiver type identifier (e.g., "ExampleSuite")
+; - The receiver type identifier (e.g., "ExampleSuite") as @namespace_name
 ; - The method declaration itself
 ; - Only methods starting with "Test" or "Example"
+;
+; Example with capture annotation:
+;   func (suite *testSuite) TestSomething() { // @namespace_name captures "testSuite"
+;     // test code
+;   }
 ;
 ; The receiver type becomes a Neotest namespace, allowing the tree structure:
 ;   File -> TestXxxSuite (namespace) -> TestMethod (test)
@@ -20,11 +25,6 @@
 ; This is later processed by tree_modification.lua to map receiver types
 ; to their corresponding suite initialization functions (TestXxxSuite).
 ; ============================================================================
-
-; query for detecting receiver type and treat as Neotest namespace.
-; func (suite *testSuite) TestSomething() { // @namespace_name
-;  // test code
-; }
 (method_declaration
   receiver: (parameter_list
     (parameter_declaration
@@ -33,4 +33,3 @@
   name: (field_identifier) @test_function
   (#match? @test_function "^(Test|Example)")
   (#not-match? @test_function "^TestMain$")) @namespace_definition
-

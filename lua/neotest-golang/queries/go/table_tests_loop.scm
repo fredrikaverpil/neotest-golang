@@ -1,27 +1,34 @@
 ; ============================================================================
-; RESPONSIBILITY: Table-driven tests with inline slice of structs
+; RESPONSIBILITY: Table-driven tests with inline slice (no variable)
 ; ============================================================================
-; Detects table tests where:
-; 1. Test cases are defined inline in the for-range statement
-; 2. The slice has an explicit struct type: []struct{ name string }
-; 3. Each case has keyed fields: {name: "test1"}
-; 4. Loop body calls t.Run or similar with field access: tc.name
+; Detects table tests where the test case slice is defined directly in the
+; for-range statement (not in a separate variable).
 ;
-; Example pattern:
+; Pattern structure:
+; 1. Inline slice: for _, tc := range []struct{...}{...}
+; 2. Explicit struct type: []struct{ name string }
+; 3. Keyed struct fields: {name: "test1"}
+; 4. Loop body: t.Run(tc.name, ...)
+;
+; Example with captures:
 ;   for _, tc := range []struct{
 ;     name string
 ;     want int
 ;   }{
-;     {name: "test1", want: 1},
+;     {name: "test1", want: 1},  // @test.name = "test1", @test.definition = entire struct
+;     {name: "test2", want: 2},  // @test.name = "test2", @test.definition = entire struct
 ;   } {
 ;     t.Run(tc.name, func(t *testing.T) { ... })
 ;   }
 ;
-; DISTINGUISHING FEATURE: Requires explicit struct type in the slice type.
-; This distinguishes it from table_tests_inline_field_access which uses pointer types.
+; What gets captured:
+; - @test.name = The string value of the name field (e.g., "test1")
+; - @test.definition = The entire struct literal (e.g., {name: "test1", want: 1})
+; - @test.field.name = The field identifier (e.g., "name")
+;
+; DISTINGUISHING FEATURE: Slice type is []struct{}, not []*struct{}.
+; For pointer slices, see table_tests_inline_field_access.scm.
 ; ============================================================================
-
-; query for list table tests (wrapped in loop)
 (for_statement
   (range_clause
     left: (expression_list

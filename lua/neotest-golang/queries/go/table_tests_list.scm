@@ -1,24 +1,31 @@
 ; ============================================================================
-; RESPONSIBILITY: Table-driven tests with explicit slice variable
+; RESPONSIBILITY: Table-driven tests with named slice variable and keyed fields
 ; ============================================================================
-; Detects table tests where:
-; 1. Test cases are defined in a named slice variable: tt := []TestCase{...}
-; 2. Cases are iterated with for-range loop: for _, tc := range tt { ... }
-; 3. Each case has a "name" field accessed in t.Run(tc.name, ...)
+; Detects table tests where test cases are defined in a named variable with
+; keyed struct fields (e.g., {name: "test1"}).
 ;
-; Example pattern:
+; Pattern structure:
+; 1. Variable declaration: tt := []struct{ name string }{...}
+; 2. Struct fields use keys: {name: "test1", want: 42}
+; 3. For loop: for _, tc := range tt
+; 4. Loop body: t.Run(tc.name, ...)
+;
+; Example with captures:
 ;   tt := []struct{ name string }{
-;     {name: "test1"},
+;     {name: "test1"},  // @test.name = "test1", @test.definition = entire struct
+;     {name: "test2"},  // @test.name = "test2", @test.definition = entire struct
 ;   }
 ;   for _, tc := range tt {
 ;     t.Run(tc.name, func(t *testing.T) { ... })
 ;   }
 ;
-; SCOPE: Matches the test case definitions (the slice elements), not the loop.
-; The loop body is validated to ensure it calls t.Run with the same field name.
+; What gets captured:
+; - @test.name = The string value of the name field (e.g., "test1")
+; - @test.definition = The entire struct literal (e.g., {name: "test1"})
+; - @test.field.name = The field identifier (e.g., "name")
+;
+; The query validates that the same field is used in both the struct and t.Run().
 ; ============================================================================
-
-; query for list table tests
 (block
   (statement_list
     (short_var_declaration
