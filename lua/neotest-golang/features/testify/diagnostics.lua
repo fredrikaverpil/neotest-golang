@@ -63,6 +63,17 @@ function M.parse_testify_diagnostic(line, context)
   -- Check if this is a testify Error Trace line
   local testify_trace = parse_testify_trace_line(line)
   if testify_trace then
+    -- If we have a pending error with error_message, flush it first
+    if pending and pending.error_message then
+      local result = {
+        filename = pending.filename,
+        line_number = pending.line_number,
+        message = pending.error_message,
+        severity = vim.diagnostic.severity.ERROR,
+      }
+      context.testify_pending = testify_trace
+      return result, context
+    end
     context.testify_pending = testify_trace
     return nil, context
   end
@@ -87,22 +98,37 @@ function M.parse_testify_diagnostic(line, context)
     pending.error_message = pending.error_message
       .. ": "
       .. messages:gsub("^%s+", ""):gsub("%s+$", "")
+    -- Return the diagnostic with the message
+    local result = {
+      filename = pending.filename,
+      line_number = pending.line_number,
+      message = pending.error_message,
+      severity = vim.diagnostic.severity.ERROR,
+    }
+    context.testify_pending = nil
+    return result, context
   end
 
-  -- If this is a Test line and we haven't found Messages yet, keep pending
-  if not messages and line:match(testify_test_pattern) then
+  -- If this is a Test line, mark that we've seen it
+  if line:match(testify_test_pattern) then
+    pending.seen_test_line = true
     return nil, context
   end
 
-  -- Return the diagnostic (with or without Messages)
-  local result = {
-    filename = pending.filename,
-    line_number = pending.line_number,
-    message = pending.error_message,
-    severity = vim.diagnostic.severity.ERROR,
-  }
-  context.testify_pending = nil
-  return result, context
+  -- If we've seen the Test line and this isn't Messages, we're done
+  if pending.seen_test_line then
+    local result = {
+      filename = pending.filename,
+      line_number = pending.line_number,
+      message = pending.error_message,
+      severity = vim.diagnostic.severity.ERROR,
+    }
+    context.testify_pending = nil
+    return result, context
+  end
+
+  -- Otherwise, keep waiting (we're in the multiline error details)
+  return nil, context
 end
 
 return M
