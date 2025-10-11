@@ -1,33 +1,39 @@
 ; ============================================================================
 ; RESPONSIBILITY: Top-level test functions and subtests (both regular and testify)
 ; ============================================================================
-; This query detects:
-; 1. Top-level test functions: func TestXxx(t *testing.T) and func ExampleXxx()
-;    - Matches any function starting with "Test" or "Example"
-;    - Excludes TestMain (special function not run as a test)
+; This file contains two queries:
 ;
-; 2. Subtests created with .Run() method calls:
-;    - Regular Go subtests: t.Run("name", func(t *testing.T) {...})
-;    - Testify suite subtests: s.Run("name", func() {...}) or suite.Run("name", ...)
-;    - The operand pattern "^(t|s|suite)$" matches all three common variable names
+; QUERY 1: Top-level test functions
+; Captures: func TestXxx(t *testing.T) and func ExampleXxx()
+; - Matches any function starting with "Test" or "Example"
+; - Excludes TestMain (special function not run as a test)
 ;
-; COMBINED APPROACH: These patterns are combined in a single file to avoid
-; query conflicts. When separate, tree-sitter would see duplicate capture names
-; with different predicates, causing one to override the other.
+; Example with captures:
+;   func TestExample(t *testing.T) { // @test.name = "TestExample"
+;     // test body                   // @test.definition = entire function
+;   }
 ;
-; NOTE: suite.Run() detection is intentionally in this file, not in the testify
-; feature's queries. This is because both t.Run() and suite.Run() share the same
-; AST structure and capture names. Having them in separate files would cause
-; conflicts where one pattern would override the other, preventing proper detection
-; of both regular and testify subtests simultaneously.
+; QUERY 2: Subtests created with .Run() method calls
+; Captures: t.Run(), s.Run(), or suite.Run() calls
+; - Regular Go subtests: t.Run("name", func(t *testing.T) {...})
+; - Testify suite subtests: s.Run("name", func() {...})
+; - Matches operand "t", "s", or "suite"
+;
+; Example with captures:
+;   t.Run("subtest", func(t *testing.T) { // @test.name = "subtest"
+;     // ...                                // @test.definition = entire call
+;   })
+;
+; COMBINED APPROACH: These patterns are in a single file to avoid query conflicts.
+; Tree-sitter can't handle duplicate capture names with different predicates across
+; files - one would override the other. This is especially important for suite.Run()
+; which shares the same AST structure as t.Run().
 ; ============================================================================
-; query for test function
 ((function_declaration
   name: (identifier) @test.name)
   (#match? @test.name "^(Test|Example)")
   (#not-match? @test.name "^TestMain$")) @test.definition
 
-; query for subtest, like t.Run(), s.Run(), suite.Run()
 (call_expression
   function: (selector_expression
     operand: (identifier) @test.operand

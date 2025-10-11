@@ -1,27 +1,35 @@
 ; ============================================================================
-; RESPONSIBILITY: Table tests with unkeyed (positional) struct literals
+; RESPONSIBILITY: Table tests with unkeyed (positional) struct fields
 ; ============================================================================
-; Detects table tests where:
-; 1. Test cases use positional (unkeyed) field syntax
-; 2. Cases are in a named slice variable: tt := []struct{...}
-; 3. First field is the test name (string literal)
-; 4. Loop accesses the test case variable directly in t.Run()
+; Detects table tests where struct literals use positional syntax instead of
+; field names. Fields are assigned by position, not by name.
 ;
-; Example pattern:
+; Pattern structure:
+; 1. Variable declaration: tt := []struct{ name string; want int }{...}
+; 2. Unkeyed fields: {"test1", 1} instead of {name: "test1", want: 1}
+; 3. First field must be a string (the test name)
+; 4. For loop: for _, tc := range tt
+; 5. Loop body: t.Run(tc.name, ...)
+;
+; Example with captures:
 ;   tt := []struct{
 ;     name string
 ;     want int
 ;   }{
-;     {"test1", 1},  // ← unkeyed: fields in order, no "name:"
+;     {"test1", 1},  // @test.name = "test1", @test.definition = entire struct
+;     {"test2", 2},  // No "name:" prefix - values assigned by position
 ;   }
 ;   for _, tc := range tt {
 ;     t.Run(tc.name, func(t *testing.T) { ... })
 ;   }
 ;
-; DISTINGUISHING FEATURE: literal_element without keyed_element wrapper.
-; The first string literal is assumed to be the test name.
+; What gets captured:
+; - @test.name = The first string literal in the struct (e.g., "test1")
+; - @test.definition = The entire struct literal (e.g., {"test1", 1})
+;
+; DISTINGUISHING FEATURE: No field names in the struct literal.
+; Compare to table_tests_list.scm which uses {name: "test1"} syntax.
 ; ============================================================================
-; query for table tests with inline structs (not keyed)
 (block
   (statement_list
     (short_var_declaration

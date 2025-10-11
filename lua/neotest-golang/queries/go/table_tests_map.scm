@@ -1,28 +1,31 @@
 ; ============================================================================
 ; RESPONSIBILITY: Map-based table-driven tests
 ; ============================================================================
-; Detects table tests where:
-; 1. Test cases are defined as a map: testCases := map[string]TestCase{...}
-; 2. Map keys are test names (string literals)
-; 3. Map values are test case data
-; 4. Loop iterates with key and value: for name, tc := range testCases
-; 5. Loop body calls t.Run with the map key as the test name
+; Detects table tests where test cases are defined in a map with string keys.
 ;
-; Example pattern:
-;   testCases := map[string]struct{
-;     want int
-;   }{
-;     "test1": {want: 1},
-;     "test2": {want: 2},
+; Pattern structure:
+; 1. Variable declaration: testCases := map[string]TestCase{...}
+; 2. Map keys are string literals (the test names)
+; 3. Map values are the test case structs
+; 4. For loop: for name, tc := range testCases
+; 5. Loop body: t.Run(name, ...)
+;
+; Example with captures:
+;   testCases := map[string]struct{ want int }{
+;     "test1": {want: 1},  // @test.name = "test1", @test.definition = {want: 1}
+;     "test2": {want: 2},  // @test.name = "test2", @test.definition = {want: 2}
 ;   }
 ;   for name, tc := range testCases {
 ;     t.Run(name, func(t *testing.T) { ... })
 ;   }
 ;
-; DISTINGUISHING FEATURE: Uses map literal instead of slice literal.
-; The map key (string) becomes the test name.
+; What gets captured:
+; - @test.name = The string literal map key (e.g., "test1")
+; - @test.definition = The struct literal value (e.g., {want: 1})
+;
+; DISTINGUISHING FEATURE: Uses map[string]T instead of []T.
+; The map key becomes the test name, making it unique from slice-based patterns.
 ; ============================================================================
-; query for map table tests
 (block
   (statement_list
     (short_var_declaration

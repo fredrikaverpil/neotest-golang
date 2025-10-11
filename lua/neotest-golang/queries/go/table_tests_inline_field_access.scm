@@ -1,29 +1,33 @@
 ; ============================================================================
-; RESPONSIBILITY: Inline pointer slice table tests with field access
+; RESPONSIBILITY: Inline pointer slice table tests
 ; ============================================================================
-; Detects table tests where:
-; 1. Test cases are defined inline as a slice of pointers: []*Type{...}
-; 2. Cases are defined inline in the for-range statement (no variable)
-; 3. Each case uses keyed fields: {Name: "test1", ...}
-; 4. Loop body calls t.Run with field access to EXPORTED field: tt.Name
+; Detects table tests using a slice of pointers defined inline in the loop.
+; Pointers are often used when test cases need methods or need to be modified.
 ;
-; Example pattern:
+; Pattern structure:
+; 1. Inline pointer slice: for _, tt := range []*Type{...}
+; 2. Keyed struct fields: {Name: "test1", ID: 1}
+; 3. Field access in t.Run: t.Run(tt.Name, ...)
+; 4. Usually uses exported (capitalized) field names
+;
+; Example with captures:
 ;   for _, tt := range []*User{
-;     {Name: "test1", ID: 1},
-;     {Name: "test2", ID: 2},
+;     {Name: "test1", ID: 1},  // @test.name = "test1", @test.definition = entire struct
+;     {Name: "test2", ID: 2},  // @test.field.name = "Name"
 ;   } {
 ;     t.Run(tt.Name, func(t *testing.T) { ... })
 ;   }
 ;
-; DISTINGUISHING FEATURES:
-; - Requires pointer type in slice: []*Type (not []Type)
-; - This prevents duplicate matching with table_tests_loop.scm
-; - Typically used when test cases need to be modified or have methods
-; - Field accessed in t.Run is usually an exported (capitalized) field
+; What gets captured:
+; - @test.name = The string value of the name field (e.g., "test1")
+; - @test.definition = The entire struct literal (e.g., {Name: "test1", ID: 1})
+; - @test.field.name = The field identifier (e.g., "Name")
+;
+; DISTINGUISHING FEATURE: Pointer type []*Type instead of []Type.
+; This prevents collision with table_tests_loop.scm which handles []struct{}.
 ;
 ; HISTORICAL NOTE: Added post-v1.15.1 to support pointer-based table test patterns.
 ; ============================================================================
-; query for table tests with inline composite literal and field access for test name
 (for_statement
   (range_clause
     left: (expression_list
