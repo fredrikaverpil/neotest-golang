@@ -4,6 +4,8 @@
 version: '3'
 
 vars:
+  ROOT_DIR:
+    sh: git rev-parse --show-toplevel
   TASKFILES:
     # Note: Uses sh/bash shell even on Windows (available through MSYS2, Git Bash, etc.)
     sh: |
@@ -40,6 +42,7 @@ tasks:
           var: TASKFILES
           split: "\n"
           as: TASKFILE
+      - task: format-query
 
   # lint:
   #   desc: Run lint task from all taskfiles
@@ -83,3 +86,37 @@ tasks:
           var: TASKFILES
           split: "\n"
           as: TASKFILE
+
+  format-query:
+    desc: Format tree-sitter query files with ts_query_ls
+    cmds:
+      - task: ensure-ts_query_ls
+      - ts_query_ls format lua/neotest-golang/queries
+      - ts_query_ls format lua/neotest-golang/features/testify/queries
+      - git diff --color=always --exit-code
+
+  lint-query:
+    desc: Lint tree-sitter query files with ts_query_ls
+    cmds:
+      - task: ensure-ts_query_ls
+      - ts_query_ls check lua/neotest-golang/queries
+      - ts_query_ls check lua/neotest-golang/features/testify/queries
+
+  lint-query-fix:
+    desc: Lint and auto-fix tree-sitter query files
+    cmds:
+      - task: ensure-ts_query_ls
+      - ts_query_ls check lua/neotest-golang/queries --fix
+      - ts_query_ls check lua/neotest-golang/features/testify/queries --fix
+
+  install-ts_query_ls:
+    desc: Install ts_query_ls from GitHub
+    cmds:
+      - cargo install --git https://github.com/ribru17/ts_query_ls ts_query_ls
+
+  ensure-ts_query_ls:
+    internal: true
+    status:
+      - which ts_query_ls >/dev/null 2>&1
+    cmds:
+      - task: install-ts_query_ls

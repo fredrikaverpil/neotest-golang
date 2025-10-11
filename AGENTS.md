@@ -45,8 +45,11 @@ and handles:
 
 ### Linting and Formatting
 
-- **Format Lua code**: `task format` (uses stylua)
-- **Lint**: `task lint` (currently a no-op for Lua)
+- **Format all code**: `task format` (runs stylua and ts_query_ls)
+- **Format Lua code**: `task -t Taskfile.lua.yml format` (uses stylua)
+- **Format tree-sitter queries**: `task format-query` (uses ts_query_ls)
+- **Lint tree-sitter queries**: `task lint-query` (uses ts_query_ls)
+- **Lint and auto-fix queries**: `task lint-query-fix`
 - **Format Go test fixtures**: `task -t tests/go/Taskfile.go.yml format`
 - **Lint Go test fixtures**: `task -t tests/go/Taskfile.go.yml lint`
 
@@ -98,6 +101,7 @@ When running `task test`, Neovim launches headlessly and:
 
 - **`.lazy.lua`** - Local development configuration for lazy.nvim
 - **`stylua.toml`** - Code formatting rules for Lua
+- **`.tsqueryrc.json`** - Tree-sitter query language server configuration
 - **`.golangci.yml`** - Linting configuration for Go test fixtures
 - **`Taskfile.yml`** - Main task runner configuration
 - **`Taskfile.lua.yml`** - Lua-specific tasks
@@ -130,5 +134,6 @@ When running `task test`, Neovim launches headlessly and:
 - Core adapter logic in `lua/neotest-golang/`
 - Features and extensions in `lua/neotest-golang/features/`
 - Library utilities in `lua/neotest-golang/lib/`
+- Tree-sitter queries in `lua/neotest-golang/queries/go/` and `lua/neotest-golang/features/testify/queries/go/`
 - Test specifications in `spec/`
 - Go test fixtures in `tests/go/`
