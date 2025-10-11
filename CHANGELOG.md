@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.1.3...v2.2.0) (2025-10-11)
+
+
+### Features
+
+* **testify:** show error message (when available) ([#472](https://github.com/fredrikaverpil/neotest-golang/issues/472)) ([a3ee861](https://github.com/fredrikaverpil/neotest-golang/commit/a3ee8613d8071029759f5464e0157e4483eb45dd))
+
 ## [2.1.3](https://github.com/fredrikaverpil/neotest-golang/compare/v2.1.2...v2.1.3) (2025-10-05)
 
 
