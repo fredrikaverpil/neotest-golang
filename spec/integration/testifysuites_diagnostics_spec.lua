@@ -26,7 +26,7 @@ describe("Integration: testify suites diagnostics test", function()
         { line = 9, message = "hello world", severity = 4 }, -- line 10 in file (0-indexed)
         { line = 10, message = "whuat", severity = 4 }, -- line 11 in file (0-indexed)
         { line = 13, message = "Should be false", severity = 1 }, -- line 14 in file (0-indexed)
-        { line = 14, message = "Should be false", severity = 1 }, -- line 15 in file (0-indexed)
+        { line = 14, message = "Should be false: not shown", severity = 1 }, -- line 15 in file (0-indexed)
         { line = 16, message = "goodbye world", severity = 4 }, -- line 17 in file (0-indexed)
       }
 

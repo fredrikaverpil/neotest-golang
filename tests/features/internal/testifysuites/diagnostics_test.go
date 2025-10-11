@@ -12,7 +12,7 @@ func TestHints(t *testing.T) {
 
 	// Isn't shown
 	assert.False(t, true)
-	assert.Falsef(t, true, "no shown")
+	assert.Falsef(t, true, "not shown")
 
 	t.Log("goodbye world")
 }
