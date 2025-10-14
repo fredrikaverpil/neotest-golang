@@ -197,7 +197,8 @@ end
 --- Adapter options.
 setmetatable(M.Adapter, {
   __call = function(_, opts)
-    M.Adapter.options = options.setup(opts)
+    options.setup(opts)
+    M.Adapter.options = options.get()
     logger.debug(
       "Adapter loaded with options: " .. vim.inspect(M.Adapter.options)
     )
