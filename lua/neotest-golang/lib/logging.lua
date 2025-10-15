@@ -9,7 +9,7 @@ local function get_logger()
     ---@type neotest.Logger
     logger = require("neotest.logging").new(
       "neotest-golang",
-      { level = options.get().log_level, source_offset = 2 }
+      { level = options.get().log_level, source_offset = 1 }
     )
   end
 
