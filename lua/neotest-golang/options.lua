@@ -52,7 +52,6 @@ function M.setup(user_opts)
     for k, v in pairs(user_opts) do
       opts[k] = v
     end
-  else
   end
 end
 
