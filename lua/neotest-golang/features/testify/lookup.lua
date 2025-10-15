@@ -178,7 +178,7 @@ function M.generate_data(file_path)
       if definition_match then
         -- Extract method name from the definition
         local method_name =
-          definition_match.text:match("func %([^)]+%) (%w+)%(")
+          definition_match.text:match("func %([^)]+%) ([%w_]+)%(")
         if method_name then
           -- Store method info: name -> {receiver, definition, source_file}
           if not data.methods[method_name] then
