@@ -62,6 +62,7 @@ describe("go list output from features/internal", function()
         "diagnostics_test.go",
         "othersuite_test.go",
         "positions_test.go",
+        "regression_test.go",
         "subtest_test.go",
       },
       XTestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
@@ -91,6 +92,7 @@ describe("go list output from features/internal/testifysuites", function()
         "diagnostics_test.go",
         "othersuite_test.go",
         "positions_test.go",
+        "regression_test.go",
         "subtest_test.go",
       },
       XTestGoFiles = {}, -- NOTE: added here because of custom `go list -f` command
