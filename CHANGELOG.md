@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.3.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.2.0...v2.3.0) (2025-10-15)
+
+
+### Features
+
+* **logging:** add source offset ([#474](https://github.com/fredrikaverpil/neotest-golang/issues/474)) ([e207f66](https://github.com/fredrikaverpil/neotest-golang/commit/e207f660292cd0e899bd021b74422de9139f2825))
+
+
+### Bug Fixes
+
+* **logging:** source_offset should be set to 1 ([#476](https://github.com/fredrikaverpil/neotest-golang/issues/476)) ([c3b870e](https://github.com/fredrikaverpil/neotest-golang/commit/c3b870e592893c0f31f221864ceacc99868b2396))
+* show options in debug log ([#477](https://github.com/fredrikaverpil/neotest-golang/issues/477)) ([bf0b6ce](https://github.com/fredrikaverpil/neotest-golang/commit/bf0b6ce1f2b3bea8c2dd44278c5274b53ebe4a99))
+* **testify:** method name matching did not consider underscores ([#479](https://github.com/fredrikaverpil/neotest-golang/issues/479)) ([dcfa00a](https://github.com/fredrikaverpil/neotest-golang/commit/dcfa00a661a3941e5ebd7153f691032515aa2470))
+
 ## [2.2.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.1.3...v2.2.0) (2025-10-11)
 
 
