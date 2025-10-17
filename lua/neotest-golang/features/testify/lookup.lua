@@ -2,107 +2,23 @@
 
 local options = require("neotest-golang.options")
 local query = require("neotest-golang.features.testify.query")
+local query_loader = require("neotest-golang.lib.query_loader")
 
 local M = {}
 
 -- TreeSitter query for identifying testify suites and their components.
 -- Below, queries for the lookup between receiver and test suite.
 
-M.package_query = [[
-  ;; query:
-  ;;
-  ;; package main  // @package
-  (package_clause
-    (package_identifier) @package
-  )
-]]
+M.package_query =
+  query_loader.load_query("features/testify/queries/go/package.scm")
 
 M.suite_query = string.format(
-  [[
-  ;; query:
-  ;;
-  ;; func TestSuite(t *testing.T) {  // @test_function
-  ;;   suite.Run(t, new(testSuitestruct))  // @import_identifier, @run_method, @suite_receiver
-  ;; }
-  (function_declaration
-    name: (identifier) @test_function (#match? @test_function "^Test")
-    body: (block
-      (statement_list
-        (expression_statement
-          (call_expression
-            function: (selector_expression
-              operand: (identifier) @import_identifier (#match? @import_identifier "%s")
-              field: (field_identifier) @run_method (#match? @run_method "^Run$")
-            )
-            arguments: (argument_list
-              (identifier)
-              (call_expression
-                arguments: (argument_list
-                  (type_identifier) @suite_struct
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-  )
-]],
+  query_loader.load_query("features/testify/queries/go/suite.scm"),
   options.get().testify_import_identifier
 )
 
 M.test_function_query = string.format(
-  [[
-  ;; query:
-  ;;
-  ;; func TestSuite(t *testing.T) {  // @test_function
-  ;;   s := &testSuiteStruct{}  // @suite_struct
-  ;;   suite.Run(t, s) // @import_identifier, @run_method
-  ;; }
-  (function_declaration 
-    name: (identifier) @test_function (#match? @test_function "^Test")
-    parameters: (parameter_list 
-      (parameter_declaration 
-        name: (identifier) 
-        type: (pointer_type 
-          (qualified_type 
-            package: (package_identifier) 
-            name: (type_identifier)
-          )
-        )
-      )
-    ) 
-    body: (block
-      (statement_list
-        (short_var_declaration
-          left: (expression_list
-            (identifier)
-          )
-          right: (expression_list
-            (unary_expression
-              operand: (composite_literal
-                type: (type_identifier) @suite_struct
-                body: (literal_value)
-              )
-            )
-          )
-        )
-        (expression_statement
-          (call_expression
-            function: (selector_expression
-              operand: (identifier) @import_identifier (#match? @import_identifier "%s")
-              field: (field_identifier) @run_method (#match? @run_method "^Run$")
-            )
-            arguments: (argument_list
-              (identifier)
-              (identifier)
-            )
-          )
-        )
-      )
-    )
-  )
-]],
+  query_loader.load_query("features/testify/queries/go/test_function.scm"),
   options.get().testify_import_identifier
 )
 
