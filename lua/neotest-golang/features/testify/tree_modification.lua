@@ -6,7 +6,7 @@ local lookup = require("neotest-golang.features.testify.lookup")
 
 local M = {}
 
----@type table<string, any> | nil
+---@type TestifyLookupTable | nil
 local lookup_table = lookup.get_lookup()
 ---@type string[]
 local ignore_filepaths_during_init = {}
@@ -25,7 +25,7 @@ function M.modify_neotest_tree(file_path, tree)
   if vim.tbl_isempty(lookup_table) then
     ---@type string[]
     ignore_filepaths_during_init = lib.find.go_test_filepaths(vim.fn.getcwd())
-    ---@type table<string, any> | nil
+    ---@type TestifyLookupTable | nil
     lookup_table = lookup.initialize_lookup(ignore_filepaths_during_init)
   end
 
@@ -52,7 +52,7 @@ function M.modify_neotest_tree(file_path, tree)
   end
 
   -- Get file-specific mappings
-  ---@type table | nil
+  ---@type TestifyFileData | nil
   local file_data = lookup_table[file_path]
   if not file_data or not file_data.replacements then
     return tree
@@ -79,11 +79,11 @@ end
 --- Create proper testify hierarchy where receiver methods become children of suite functions
 --- @param tree neotest.Tree The original tree
 --- @param replacements table<string, string> Receiver type to suite function mappings
---- @param global_lookup_table table The global lookup table for cross-file method discovery
+--- @param global_lookup_table TestifyLookupTable The global lookup table for cross-file method discovery
 --- @return neotest.Tree The tree with proper testify hierarchy
 function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   -- Build method_positions map from lookup table data (no re-parsing!)
-  ---@type table<string, table[]>
+  ---@type table<string, TestifyMethodInstance[]>
   local method_positions = {}
 
   if global_lookup_table then
@@ -168,6 +168,51 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     end)
   end
 
+  -- Helper function to calculate namespace range that encompasses all children
+  ---@param namespace_pos neotest.Position The namespace position
+  ---@param children neotest.Tree[] List of child tree nodes
+  ---@return nil
+  local function adjust_namespace_range(namespace_pos, children)
+    if #children == 0 then
+      return
+    end
+
+    ---@type number | nil
+    local min_start = nil
+    ---@type number | nil
+    local max_end = nil
+
+    -- Find the min and max lines from all children with ranges
+    for _, child_tree in ipairs(children) do
+      ---@type neotest.Position
+      local child_pos = child_tree:data()
+      if child_pos.range then
+        if not min_start or child_pos.range[1] < min_start then
+          min_start = child_pos.range[1]
+        end
+        if not max_end or child_pos.range[3] > max_end then
+          max_end = child_pos.range[3]
+        end
+      end
+    end
+
+    -- If we found child ranges, adjust the namespace range
+    if min_start and max_end and namespace_pos.range then
+      -- Start from the earliest child, end at the latest of:
+      -- - last child's end line
+      -- - namespace's original end line (suite function)
+      namespace_pos.range[1] = min_start
+      namespace_pos.range[3] = math.max(max_end, namespace_pos.range[3])
+    elseif min_start and max_end then
+      -- Namespace had no range (synthetic), create one from children
+      namespace_pos.range = { min_start, 0, max_end, 0 }
+    end
+  end
+
+  -- Track which methods have been processed
+  ---@type table<string, boolean>
+  local processed_methods = {}
+
   -- Add suite functions as namespaces with their methods as children
   for suite_function, suite_pos in pairs(suite_functions) do
     -- Convert suite function to namespace
@@ -198,6 +243,9 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
       )
 
       if belongs_to_receiver then
+        -- Mark this method as processed
+        processed_methods[method_pos.name] = true
+
         -- Update the method's ID to include the namespace
         ---@type string
         local pattern = "::" .. method_pos.name .. "$"
@@ -250,7 +298,122 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
       end
     end
 
+    -- Adjust namespace range to encompass all children
+    adjust_namespace_range(suite_pos, suite_children)
+
     table.insert(root_children, create_tree_node(suite_pos, suite_children))
+  end
+
+  -- Handle orphaned receiver methods (methods whose suite is in another file)
+  ---@type table<string, {suite_pos: neotest.Position, methods: neotest.Tree[]}>
+  local synthetic_suites = {}
+
+  for _, method_pos in ipairs(receiver_methods) do
+    -- Skip methods that were already processed above
+    if not processed_methods[method_pos.name] then
+      -- Find which receiver this method belongs to
+      ---@type string | nil
+      local method_receiver = nil
+      ---@type TestifyMethodInstance[] | nil
+      local method_instances = method_positions[method_pos.name]
+
+      if method_instances and #method_instances > 0 then
+        -- Find the instance that matches this method's position
+        for _, instance in ipairs(method_instances) do
+          if instance.source_file == tree:data().path then
+            if
+              instance.definition
+              and instance.definition.node
+              and method_pos.range
+            then
+              ---@type TSNode
+              local node = instance.definition.node
+              ---@type number, number, number, number
+              local start_row, _, end_row, _ = node:range()
+              ---@type number
+              local method_start_line = method_pos.range[1]
+              ---@type number
+              local method_end_line = method_pos.range[3]
+
+              if
+                start_row <= method_end_line and end_row >= method_start_line
+              then
+                method_receiver = instance.receiver
+                break
+              end
+            end
+          end
+        end
+
+        -- Fallback: if only one instance, use that
+        if not method_receiver and #method_instances == 1 then
+          method_receiver = method_instances[1].receiver
+        end
+      end
+
+      if method_receiver then
+        -- Find the suite function for this receiver
+        ---@type string | nil
+        local suite_function = replacements[method_receiver]
+
+        if suite_function then
+          -- Create or get synthetic suite namespace
+          if not synthetic_suites[suite_function] then
+            ---@type neotest.Position
+            local synthetic_suite_pos = {
+              type = "namespace",
+              name = suite_function,
+              id = tree:data().path .. "::" .. suite_function,
+              path = tree:data().path,
+              range = nil, -- Synthetic position, no real range
+            }
+            synthetic_suites[suite_function] = {
+              suite_pos = synthetic_suite_pos,
+              methods = {},
+            }
+          end
+
+          -- Update method ID to include the namespace
+          ---@type string
+          local pattern = "::" .. method_pos.name .. "$"
+          ---@type string
+          local replacement = "::" .. suite_function .. "::" .. method_pos.name
+          method_pos.id = method_pos.id:gsub(pattern, replacement)
+
+          -- Add subtests as children of this method
+          ---@type neotest.Tree[]
+          local method_children = {}
+          for _, subtest_pos in ipairs(subtests) do
+            if
+              subtest_pos.id:find("::" .. method_pos.name .. "::", 1, true)
+            then
+              subtest_pos.id = subtest_pos.id:gsub(
+                "::" .. method_pos.name .. "::",
+                "::" .. suite_function .. "::" .. method_pos.name .. "::"
+              )
+              table.insert(method_children, create_tree_node(subtest_pos, {}))
+            end
+          end
+
+          -- Add method to synthetic suite
+          table.insert(
+            synthetic_suites[suite_function].methods,
+            create_tree_node(method_pos, method_children)
+          )
+        end
+      end
+    end
+  end
+
+  -- Add synthetic suites to root children
+  for suite_function, suite_data in pairs(synthetic_suites) do
+    -- Adjust namespace range to encompass all children
+    adjust_namespace_range(suite_data.suite_pos, suite_data.methods)
+
+    table.insert(
+      root_children,
+      create_tree_node(suite_data.suite_pos, suite_data.methods)
+    )
   end
 
   -- Add regular tests with their subtests
@@ -286,7 +449,7 @@ end
 
 --- Find which receiver a method position belongs to by matching line ranges
 --- @param method_pos neotest.Position The neotest position for the method
---- @param method_instances table[] | nil List of instances with receiver and definition info
+--- @param method_instances TestifyMethodInstance[] | nil List of instances with receiver and definition info
 --- @param target_receiver string | nil The receiver type we're looking for
 --- @return boolean True if the method belongs to the target receiver
 function M.find_method_receiver(method_pos, method_instances, target_receiver)
