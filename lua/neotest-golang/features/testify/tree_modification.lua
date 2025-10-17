@@ -106,7 +106,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   -- Collect all positions
   ---@type neotest.Position[]
   local positions = {}
-  for i, pos in tree:iter() do
+  for _, pos in tree:iter() do
     table.insert(positions, pos)
   end
 
@@ -168,6 +168,22 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     end)
   end
 
+  -- Helper function to sort tree nodes by line number
+  ---@param nodes neotest.Tree[] List of tree nodes to sort in place
+  local function sort_by_line_number(nodes)
+    table.sort(nodes, function(a, b)
+      local a_range = a:data().range
+      local b_range = b:data().range
+      if not a_range then
+        return false
+      end
+      if not b_range then
+        return true
+      end
+      return a_range[1] < b_range[1]
+    end)
+  end
+
   -- Helper function to separate contiguous from non-contiguous children
   -- Returns two lists: contiguous children (for namespace) and non-contiguous (for root)
   ---@param children neotest.Tree[] List of child tree nodes
@@ -179,17 +195,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     end
 
     -- Sort children by start line
-    table.sort(children, function(a, b)
-      local a_range = a:data().range
-      local b_range = b:data().range
-      if not a_range then
-        return false
-      end
-      if not b_range then
-        return true
-      end
-      return a_range[1] < b_range[1]
-    end)
+    sort_by_line_number(children)
 
     ---@type neotest.Tree[]
     local contiguous = {}
@@ -336,11 +342,13 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     local contiguous_children, non_contiguous_children =
       separate_contiguous_children(suite_children, suite_pos)
 
-    -- Add namespace with only contiguous children
-    table.insert(
-      root_children,
-      create_tree_node(suite_pos, contiguous_children)
-    )
+    -- Only add namespace if it has contiguous children
+    if #contiguous_children > 0 then
+      table.insert(
+        root_children,
+        create_tree_node(suite_pos, contiguous_children)
+      )
+    end
 
     -- Add non-contiguous children directly to root (but they still have suite in their ID)
     for _, child in ipairs(non_contiguous_children) do
@@ -455,11 +463,13 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     local contiguous_children, non_contiguous_children =
       separate_contiguous_children(suite_data.methods, suite_data.suite_pos)
 
-    -- Add namespace with only contiguous children
-    table.insert(
-      root_children,
-      create_tree_node(suite_data.suite_pos, contiguous_children)
-    )
+    -- Only add namespace if it has contiguous children
+    if #contiguous_children > 0 then
+      table.insert(
+        root_children,
+        create_tree_node(suite_data.suite_pos, contiguous_children)
+      )
+    end
 
     -- Add non-contiguous children directly to root
     for _, child in ipairs(non_contiguous_children) do
@@ -495,17 +505,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   end
 
   -- Sort root_children by line number to ensure correct nearest detection
-  table.sort(root_children, function(a, b)
-    local a_range = a:data().range
-    local b_range = b:data().range
-    if not a_range then
-      return false
-    end
-    if not b_range then
-      return true
-    end
-    return a_range[1] < b_range[1]
-  end)
+  sort_by_line_number(root_children)
 
   -- Create new tree with file as root and sorted children
   return create_tree_node(file_pos, root_children)
