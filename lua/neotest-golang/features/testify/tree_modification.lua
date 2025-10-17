@@ -1,4 +1,43 @@
---- Functions to modify the Neotest tree, for testify suite support.
+--- Tree Modification for Testify Suite Support
+---
+--- This module transforms Neotest's tree structure to properly represent testify test suites.
+---
+--- ## The Problem
+--- Testify suites use Go receiver methods, but these appear as regular tests in the initial tree:
+---   File
+---   ├─ TestMySuite (the suite function with suite.Run())
+---   ├─ TestMethod1 (actually a receiver method: func (s *MySuite) TestMethod1())
+---   └─ TestMethod2 (actually a receiver method: func (s *MySuite) TestMethod2())
+---
+--- To run these tests, we need to execute: `go test -run TestMySuite/TestMethod1`
+---
+--- ## The Solution
+--- Transform the tree so receiver methods become children of their suite:
+---   File
+---   └─ TestMySuite (namespace, converted from suite function)
+---      ├─ TestMethod1 (ID: path::TestMySuite::TestMethod1)
+---      └─ TestMethod2 (ID: path::TestMySuite::TestMethod2)
+---
+--- ## Special Cases Handled
+---
+--- 1. **Non-contiguous methods**: When test methods are spread throughout a file with
+---    large gaps (>20 lines), only contiguous methods remain as children. Non-contiguous
+---    methods become root-level siblings to prevent Neotest's "nearest test" algorithm
+---    from getting stuck during depth-first traversal.
+---
+---    Example:
+---      File
+---      ├─ TestMySuite (namespace, lines 10-30)
+---      │  ├─ TestMethod1 (line 15)
+---      │  └─ TestMethod2 (line 25)
+---      ├─ TestOtherSuite (namespace, lines 40-50)
+---      │  └─ TestOtherMethod (line 45)
+---      └─ TestMethod3 (line 100, ID: path::TestMySuite::TestMethod3) ← Root-level but still part of suite!
+---
+--- 2. **Cross-file suites**: When test methods exist in a different file than their
+---    suite function, we create synthetic namespace entries.
+---
+--- 3. **Subtests**: Table-driven subtests are properly nested under their parent tests.
 
 local lib = require("neotest-golang.lib")
 local logger = require("neotest-golang.lib.logging")
@@ -76,7 +115,114 @@ function M.modify_neotest_tree(file_path, tree)
   return modified_tree
 end
 
+--- Process a suite function: convert it to namespace and attach its receiver methods as children
+--- @param suite_function string The suite function name (e.g., "TestMySuite")
+--- @param suite_pos neotest.Position The position of the suite function
+--- @param replacements table<string, string> Map of receiver type to suite function name
+--- @param receiver_methods neotest.Position[] All receiver methods found in the file
+--- @param method_positions table<string, TestifyMethodInstance[]> Map of method names to their instances
+--- @param subtests neotest.Position[] All subtests found in the file
+--- @param tree neotest.Tree The original tree (for path information)
+--- @param create_tree_node function Helper to create tree nodes
+--- @param processed_methods table<string, boolean> Track which methods have been processed
+--- @param M table Module table (for calling M.find_method_receiver)
+--- @return neotest.Tree[], neotest.Tree[] contiguous_children, non_contiguous_children
+local function process_suite(
+  suite_function,
+  suite_pos,
+  replacements,
+  receiver_methods,
+  method_positions,
+  subtests,
+  tree,
+  create_tree_node,
+  processed_methods,
+  M
+)
+  -- Convert suite function to namespace
+  suite_pos.type = "namespace"
+
+  -- Find the receiver type for this suite function
+  ---@type string | nil
+  local receiver_type = nil
+  for recv_type, suite_func in pairs(replacements) do
+    if suite_func == suite_function then
+      receiver_type = recv_type
+      break
+    end
+  end
+
+  ---@type neotest.Tree[]
+  local suite_children = {}
+
+  -- Process methods from current file that belong to this receiver
+  for _, method_pos in ipairs(receiver_methods) do
+    local belongs_to_receiver = M.find_method_receiver(
+      method_pos,
+      method_positions[method_pos.name],
+      receiver_type
+    )
+
+    if belongs_to_receiver then
+      processed_methods[method_pos.name] = true
+
+      -- Update the method's ID to include the namespace
+      local pattern = "::" .. method_pos.name .. "$"
+      local replacement_str = "::" .. suite_function .. "::" .. method_pos.name
+      method_pos.id = method_pos.id:gsub(pattern, replacement_str)
+
+      -- Attach subtests as children of this method
+      ---@type neotest.Tree[]
+      local method_children = {}
+      for _, subtest_pos in ipairs(subtests) do
+        if subtest_pos.id:find("::" .. method_pos.name .. "::", 1, true) then
+          subtest_pos.id = subtest_pos.id:gsub(
+            "::" .. method_pos.name .. "::",
+            "::" .. suite_function .. "::" .. method_pos.name .. "::"
+          )
+          table.insert(method_children, create_tree_node(subtest_pos, {}))
+        end
+      end
+
+      table.insert(
+        suite_children,
+        create_tree_node(method_pos, method_children)
+      )
+    end
+  end
+
+  -- Add cross-file methods for this receiver type (methods defined in other files)
+  for method_name, instances in pairs(method_positions) do
+    for _, instance in ipairs(instances) do
+      if
+        instance.receiver == receiver_type
+        and instance.source_file ~= tree:data().path
+      then
+        -- Create synthetic position for cross-file method
+        ---@type neotest.Position
+        local synthetic_pos = {
+          type = "test",
+          name = method_name,
+          id = tree:data().path
+            .. "::"
+            .. suite_function
+            .. "::"
+            .. method_name,
+          path = tree:data().path,
+          range = nil, -- No range because method is in another file
+        }
+
+        table.insert(suite_children, create_tree_node(synthetic_pos, {}))
+      end
+    end
+  end
+
+  return suite_children
+end
+
 --- Create proper testify hierarchy where receiver methods become children of suite functions
+---
+--- This is the main entry point that orchestrates the tree transformation.
 --- @param tree neotest.Tree The original tree
 --- @param replacements table<string, string> Receiver type to suite function mappings
 --- @param global_lookup_table TestifyLookupTable The global lookup table for cross-file method discovery
@@ -249,100 +395,31 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     return contiguous, non_contiguous
   end
 
-  -- Track which methods have been processed
+  -- Track which methods have been processed to avoid duplicates
   ---@type table<string, boolean>
   local processed_methods = {}
 
-  -- Add suite functions as namespaces with their methods as children
+  -- Step 1: Process suite functions that exist in this file
+  -- These are the `func TestMySuite(t *testing.T)` functions that call suite.Run()
   for suite_function, suite_pos in pairs(suite_functions) do
-    -- Convert suite function to namespace
-    suite_pos.type = "namespace"
+    local suite_children = process_suite(
+      suite_function,
+      suite_pos,
+      replacements,
+      receiver_methods,
+      method_positions,
+      subtests,
+      tree,
+      create_tree_node,
+      processed_methods,
+      M
+    )
 
-    -- Find the receiver type for this suite function
-    ---@type string | nil
-    local receiver_type = nil
-    for recv_type, suite_func in pairs(replacements) do
-      if suite_func == suite_function then
-        receiver_type = recv_type
-        break
-      end
-    end
-
-    -- Find methods that belong to this receiver type (from current file AND other files)
-    ---@type neotest.Tree[]
-    local suite_children = {}
-
-    -- First, process methods from current file
-    for _, method_pos in ipairs(receiver_methods) do
-      -- Find which receiver this method belongs to by matching position ranges
-      ---@type boolean
-      local belongs_to_receiver = M.find_method_receiver(
-        method_pos,
-        method_positions[method_pos.name],
-        receiver_type
-      )
-
-      if belongs_to_receiver then
-        -- Mark this method as processed
-        processed_methods[method_pos.name] = true
-
-        -- Update the method's ID to include the namespace
-        ---@type string
-        local pattern = "::" .. method_pos.name .. "$"
-        ---@type string
-        local replacement = "::" .. suite_function .. "::" .. method_pos.name
-        method_pos.id = method_pos.id:gsub(pattern, replacement)
-
-        -- Add subtests as children of this method
-        ---@type neotest.Tree[]
-        local method_children = {}
-        for _, subtest_pos in ipairs(subtests) do
-          if subtest_pos.id:find("::" .. method_pos.name .. "::", 1, true) then
-            subtest_pos.id = subtest_pos.id:gsub(
-              "::" .. method_pos.name .. "::",
-              "::" .. suite_function .. "::" .. method_pos.name .. "::"
-            )
-            table.insert(method_children, create_tree_node(subtest_pos, {}))
-          end
-        end
-
-        table.insert(
-          suite_children,
-          create_tree_node(method_pos, method_children)
-        )
-      end
-    end
-
-    -- Add cross-file methods for this receiver type
-    for method_name, instances in pairs(method_positions) do
-      for _, instance in ipairs(instances) do
-        if
-          instance.receiver == receiver_type
-          and instance.source_file ~= tree:data().path
-        then
-          ---@type neotest.Position
-          local synthetic_pos = {
-            type = "test",
-            name = method_name,
-            id = tree:data().path
-              .. "::"
-              .. suite_function
-              .. "::"
-              .. method_name,
-            path = tree:data().path,
-            range = nil,
-          }
-
-          table.insert(suite_children, create_tree_node(synthetic_pos, {}))
-        end
-      end
-    end
-
-    -- Separate contiguous from non-contiguous children
+    -- Separate contiguous from non-contiguous children to fix "nearest test" behavior
     local contiguous_children, non_contiguous_children =
       separate_contiguous_children(suite_children, suite_pos)
 
-    -- Only add namespace if it has contiguous children
+    -- Only add namespace if it has contiguous children (avoids empty namespaces)
     if #contiguous_children > 0 then
       table.insert(
         root_children,
@@ -350,27 +427,31 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
       )
     end
 
-    -- Add non-contiguous children directly to root (but they still have suite in their ID)
+    -- Add non-contiguous children to root but they keep their suite ID for execution
     for _, child in ipairs(non_contiguous_children) do
       table.insert(root_children, child)
     end
   end
 
-  -- Handle orphaned receiver methods (methods whose suite is in another file)
+  -- Step 2: Handle "orphaned" receiver methods
+  -- These are receiver methods whose suite function is in a different file.
+  -- Example: File A has `func (s *MySuite) TestFoo()` but the suite function
+  --          `func TestMySuite(t *testing.T)` is in File B.
+  -- We create a synthetic namespace for these methods.
   ---@type table<string, {suite_pos: neotest.Position, methods: neotest.Tree[]}>
   local synthetic_suites = {}
 
   for _, method_pos in ipairs(receiver_methods) do
-    -- Skip methods that were already processed above
+    -- Skip methods already processed as part of a real suite
     if not processed_methods[method_pos.name] then
-      -- Find which receiver this method belongs to
+      -- Determine which receiver type this method belongs to by matching line ranges
       ---@type string | nil
       local method_receiver = nil
       ---@type TestifyMethodInstance[] | nil
       local method_instances = method_positions[method_pos.name]
 
       if method_instances and #method_instances > 0 then
-        -- Find the instance that matches this method's position
+        -- Try to match by line range using tree-sitter node information
         for _, instance in ipairs(method_instances) do
           if instance.source_file == tree:data().path then
             if
@@ -380,15 +461,12 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
             then
               ---@type TSNode
               local node = instance.definition.node
-              ---@type number, number, number, number
               local start_row, _, end_row, _ = node:range()
-              ---@type number
-              local method_start_line = method_pos.range[1]
-              ---@type number
-              local method_end_line = method_pos.range[3]
 
+              -- Check if ranges overlap
               if
-                start_row <= method_end_line and end_row >= method_start_line
+                start_row <= method_pos.range[3]
+                and end_row >= method_pos.range[1]
               then
                 method_receiver = instance.receiver
                 break
@@ -397,42 +475,40 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
           end
         end
 
-        -- Fallback: if only one instance, use that
+        -- Fallback: if only one instance exists, use that receiver
         if not method_receiver and #method_instances == 1 then
           method_receiver = method_instances[1].receiver
         end
       end
 
       if method_receiver then
-        -- Find the suite function for this receiver
-        ---@type string | nil
+        -- Look up the suite function name for this receiver
         local suite_function = replacements[method_receiver]
 
         if suite_function then
-          -- Create or get synthetic suite namespace
+          -- Create synthetic suite namespace if it doesn't exist
           if not synthetic_suites[suite_function] then
-            ---@type neotest.Position
-            local synthetic_suite_pos = {
-              type = "namespace",
-              name = suite_function,
-              id = tree:data().path .. "::" .. suite_function,
-              path = tree:data().path,
-              range = nil, -- Synthetic position, no real range
-            }
             synthetic_suites[suite_function] = {
-              suite_pos = synthetic_suite_pos,
+              suite_pos = {
+                type = "namespace",
+                name = suite_function,
+                id = tree:data().path .. "::" .. suite_function,
+                path = tree:data().path,
+                range = nil, -- No range because suite function is in another file
+              },
               methods = {},
             }
           end
 
-          -- Update method ID to include the namespace
-          ---@type string
+          -- Update method ID to include suite namespace
           local pattern = "::" .. method_pos.name .. "$"
-          ---@type string
-          local replacement = "::" .. suite_function .. "::" .. method_pos.name
-          method_pos.id = method_pos.id:gsub(pattern, replacement)
+          local replacement_str = "::"
+            .. suite_function
+            .. "::"
+            .. method_pos.name
+          method_pos.id = method_pos.id:gsub(pattern, replacement_str)
 
-          -- Add subtests as children of this method
+          -- Attach subtests to this method
           ---@type neotest.Tree[]
           local method_children = {}
           for _, subtest_pos in ipairs(subtests) do
@@ -447,7 +523,6 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
             end
           end
 
-          -- Add method to synthetic suite
           table.insert(
             synthetic_suites[suite_function].methods,
             create_tree_node(method_pos, method_children)
@@ -457,13 +532,11 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     end
   end
 
-  -- Add synthetic suites to root children
-  for suite_function, suite_data in pairs(synthetic_suites) do
-    -- Separate contiguous from non-contiguous children
+  -- Add synthetic suites to tree
+  for _, suite_data in pairs(synthetic_suites) do
     local contiguous_children, non_contiguous_children =
       separate_contiguous_children(suite_data.methods, suite_data.suite_pos)
 
-    -- Only add namespace if it has contiguous children
     if #contiguous_children > 0 then
       table.insert(
         root_children,
@@ -471,22 +544,22 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
       )
     end
 
-    -- Add non-contiguous children directly to root
     for _, child in ipairs(non_contiguous_children) do
       table.insert(root_children, child)
     end
   end
 
-  -- Add regular tests with their subtests
+  -- Step 3: Add regular tests (non-testify tests) with their subtests
+  -- These are standard Go tests that don't use testify suites
   for _, test_pos in ipairs(regular_tests) do
     ---@type neotest.Tree[]
     local test_children = {}
 
-    -- Find subtests that belong to this regular test
+    -- Attach subtests (table-driven tests) to their parent test
     for _, subtest_pos in ipairs(subtests) do
-      -- Check if this subtest belongs to this test (not already assigned to a suite method)
+      -- Check if this subtest belongs to this test by ID pattern matching
       if subtest_pos.id:find("::" .. test_pos.name .. "::", 1, true) then
-        -- Make sure it's not a suite subtest (those were already processed above)
+        -- Skip if it's already been processed as part of a suite method
         local already_processed = false
         for _, suite_pos in pairs(suite_functions) do
           if subtest_pos.id:find("::" .. suite_pos.name .. "::", 1, true) then
@@ -504,10 +577,11 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     table.insert(root_children, create_tree_node(test_pos, test_children))
   end
 
-  -- Sort root_children by line number to ensure correct nearest detection
+  -- Sort all root children by line number to ensure correct behavior for Neotest's
+  -- "nearest test" feature, which uses depth-first traversal
   sort_by_line_number(root_children)
 
-  -- Create new tree with file as root and sorted children
+  -- Return the final transformed tree
   return create_tree_node(file_pos, root_children)
 end
 
