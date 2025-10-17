@@ -168,45 +168,79 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     end)
   end
 
-  -- Helper function to calculate namespace range that encompasses all children
-  ---@param namespace_pos neotest.Position The namespace position
+  -- Helper function to separate contiguous from non-contiguous children
+  -- Returns two lists: contiguous children (for namespace) and non-contiguous (for root)
   ---@param children neotest.Tree[] List of child tree nodes
-  ---@return nil
-  local function adjust_namespace_range(namespace_pos, children)
+  ---@param namespace_pos neotest.Position The namespace position
+  ---@return neotest.Tree[], neotest.Tree[] contiguous_children, non_contiguous_children
+  local function separate_contiguous_children(children, namespace_pos)
     if #children == 0 then
-      return
+      return {}, {}
     end
 
-    ---@type number | nil
-    local min_start = nil
-    ---@type number | nil
-    local max_end = nil
+    -- Sort children by start line
+    table.sort(children, function(a, b)
+      local a_range = a:data().range
+      local b_range = b:data().range
+      if not a_range then
+        return false
+      end
+      if not b_range then
+        return true
+      end
+      return a_range[1] < b_range[1]
+    end)
 
-    -- Find the min and max lines from all children with ranges
-    for _, child_tree in ipairs(children) do
-      ---@type neotest.Position
+    ---@type neotest.Tree[]
+    local contiguous = {}
+    ---@type neotest.Tree[]
+    local non_contiguous = {}
+    ---@type number
+    local MAX_GAP = 20
+
+    -- First child is always contiguous
+    local prev_end = nil
+    for i, child_tree in ipairs(children) do
       local child_pos = child_tree:data()
       if child_pos.range then
-        if not min_start or child_pos.range[1] < min_start then
-          min_start = child_pos.range[1]
+        if prev_end == nil then
+          -- First child with range
+          table.insert(contiguous, child_tree)
+          prev_end = child_pos.range[3]
+        else
+          local gap = child_pos.range[1] - prev_end
+          if gap <= MAX_GAP then
+            -- Contiguous with previous
+            table.insert(contiguous, child_tree)
+            prev_end = child_pos.range[3]
+          else
+            -- Non-contiguous, add to separate list
+            table.insert(non_contiguous, child_tree)
+          end
         end
-        if not max_end or child_pos.range[3] > max_end then
-          max_end = child_pos.range[3]
+      else
+        -- No range (synthetic), add to contiguous
+        table.insert(contiguous, child_tree)
+      end
+    end
+
+    -- Adjust namespace range based on contiguous children
+    if #contiguous > 0 then
+      local first_range = contiguous[1]:data().range
+      local last_range = contiguous[#contiguous]:data().range
+
+      if first_range and last_range then
+        if namespace_pos.range then
+          namespace_pos.range[1] = first_range[1]
+          namespace_pos.range[3] =
+            math.max(last_range[3], namespace_pos.range[3])
+        else
+          namespace_pos.range = { first_range[1], 0, last_range[3], 0 }
         end
       end
     end
 
-    -- If we found child ranges, adjust the namespace range
-    if min_start and max_end and namespace_pos.range then
-      -- Start from the earliest child, end at the latest of:
-      -- - last child's end line
-      -- - namespace's original end line (suite function)
-      namespace_pos.range[1] = min_start
-      namespace_pos.range[3] = math.max(max_end, namespace_pos.range[3])
-    elseif min_start and max_end then
-      -- Namespace had no range (synthetic), create one from children
-      namespace_pos.range = { min_start, 0, max_end, 0 }
-    end
+    return contiguous, non_contiguous
   end
 
   -- Track which methods have been processed
@@ -298,10 +332,20 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
       end
     end
 
-    -- Adjust namespace range to encompass all children
-    adjust_namespace_range(suite_pos, suite_children)
+    -- Separate contiguous from non-contiguous children
+    local contiguous_children, non_contiguous_children =
+      separate_contiguous_children(suite_children, suite_pos)
 
-    table.insert(root_children, create_tree_node(suite_pos, suite_children))
+    -- Add namespace with only contiguous children
+    table.insert(
+      root_children,
+      create_tree_node(suite_pos, contiguous_children)
+    )
+
+    -- Add non-contiguous children directly to root (but they still have suite in their ID)
+    for _, child in ipairs(non_contiguous_children) do
+      table.insert(root_children, child)
+    end
   end
 
   -- Handle orphaned receiver methods (methods whose suite is in another file)
@@ -407,13 +451,20 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
 
   -- Add synthetic suites to root children
   for suite_function, suite_data in pairs(synthetic_suites) do
-    -- Adjust namespace range to encompass all children
-    adjust_namespace_range(suite_data.suite_pos, suite_data.methods)
+    -- Separate contiguous from non-contiguous children
+    local contiguous_children, non_contiguous_children =
+      separate_contiguous_children(suite_data.methods, suite_data.suite_pos)
 
+    -- Add namespace with only contiguous children
     table.insert(
       root_children,
-      create_tree_node(suite_data.suite_pos, suite_data.methods)
+      create_tree_node(suite_data.suite_pos, contiguous_children)
     )
+
+    -- Add non-contiguous children directly to root
+    for _, child in ipairs(non_contiguous_children) do
+      table.insert(root_children, child)
+    end
   end
 
   -- Add regular tests with their subtests
@@ -443,7 +494,20 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     table.insert(root_children, create_tree_node(test_pos, test_children))
   end
 
-  -- Create new tree with file as root and updated children
+  -- Sort root_children by line number to ensure correct nearest detection
+  table.sort(root_children, function(a, b)
+    local a_range = a:data().range
+    local b_range = b:data().range
+    if not a_range then
+      return false
+    end
+    if not b_range then
+      return true
+    end
+    return a_range[1] < b_range[1]
+  end)
+
+  -- Create new tree with file as root and sorted children
   return create_tree_node(file_pos, root_children)
 end
 
