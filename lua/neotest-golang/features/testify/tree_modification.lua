@@ -675,7 +675,7 @@ function M.find_method_receiver(method_pos, method_instances, target_receiver)
     ---@type number
     local method_end_line = method_pos.range[3]
 
-    ---@type table | nil
+    ---@type TestifyMethodInstance | nil
     local best_match = nil
     ---@type number
     local best_distance = math.huge
