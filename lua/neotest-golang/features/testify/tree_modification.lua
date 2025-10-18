@@ -50,6 +50,14 @@ local lookup_table = lookup.get_lookup()
 ---@type string[]
 local ignore_filepaths_during_init = {}
 
+--- Escape special Lua pattern characters in a string
+--- @param str string The string to escape
+--- @return string The escaped string safe to use in Lua patterns
+local function escape_pattern(str)
+  -- Escape all Lua pattern special characters: ^$()%.[]*+-?
+  return str:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1")
+end
+
 --- Modify the neotest tree, so that testify suites can be executed
 --- as Neotest namespaces.
 ---
@@ -167,7 +175,7 @@ local function process_suite(
       processed_methods[method_pos.name] = true
 
       -- Update the method's ID to include the namespace
-      local pattern = "::" .. method_pos.name .. "$"
+      local pattern = "::" .. escape_pattern(method_pos.name) .. "$"
       local replacement_str = "::" .. suite_function .. "::" .. method_pos.name
       method_pos.id = method_pos.id:gsub(pattern, replacement_str)
 
@@ -502,7 +510,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
           end
 
           -- Update method ID to include suite namespace
-          local pattern = "::" .. method_pos.name .. "$"
+          local pattern = "::" .. escape_pattern(method_pos.name) .. "$"
           local replacement_str = "::"
             .. suite_function
             .. "::"
