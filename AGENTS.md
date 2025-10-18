@@ -35,6 +35,25 @@ and handles:
 - Integration with DAP for debugging
 - Rudimental support for testify test suites (although provided via a "hack")
 
+## Test ID Format Patterns
+
+Neotest uses hierarchical IDs to uniquely identify tests. Understanding these
+patterns is crucial for debugging and extending the adapter:
+
+- **Regular test**: `/path/to/file_test.go::TestRegular`
+- **Suite method (contiguous)**: `/path/to/file_test.go::TestMySuite::TestMethod`
+  - Suite methods that are close together (≤20 lines apart) appear as children
+    of the suite namespace
+- **Suite method (non-contiguous)**:
+  `/path/to/file_test.go::TestMySuite::TestMethod`
+  - Methods >20 lines apart from other suite methods appear at root level but
+    still include the suite namespace in their ID for correct execution
+- **Subtest**: `/path/to/file_test.go::TestRegular::"subtest name"`
+- **Suite subtest**:
+  `/path/to/file_test.go::TestMySuite::TestMethod::"subtest name"`
+- **Cross-file suite method**: `/path/to/fileA_test.go::TestMySuite::TestMethod`
+  - When TestMethod is defined in fileA but the TestMySuite function is in fileB
+
 ## Development Commands
 
 ### Testing

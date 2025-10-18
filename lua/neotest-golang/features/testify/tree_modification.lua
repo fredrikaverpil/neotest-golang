@@ -209,8 +209,9 @@ local function process_suite(
       local method_children = {}
       for _, subtest_pos in ipairs(subtests) do
         -- Match exact method name boundaries: ::MethodName::"SubTest"
-        -- Use pattern to ensure we don't match ::MethodNameOther::
-        local pattern = "::" .. escape_pattern(method_pos.name) .. '::"%w'
+        -- The escaped method name prevents substring matches (TestFoo won't match TestFooBar)
+        -- We match up to the opening quote of the subtest name to support any characters in names
+        local pattern = "::" .. escape_pattern(method_pos.name) .. '::"'
         if subtest_pos.id:find(pattern) then
           subtest_pos.id = subtest_pos.id:gsub(
             "::" .. escape_pattern(method_pos.name) .. "::",
@@ -574,7 +575,9 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
           local method_children = {}
           for _, subtest_pos in ipairs(subtests) do
             -- Match exact method name boundaries: ::MethodName::"SubTest"
-            local pattern = "::" .. escape_pattern(method_pos.name) .. '::"%w'
+            -- The escaped method name prevents substring matches (TestFoo won't match TestFooBar)
+            -- We match up to the opening quote of the subtest name to support any characters in names
+            local pattern = "::" .. escape_pattern(method_pos.name) .. '::"'
             if subtest_pos.id:find(pattern) then
               subtest_pos.id = subtest_pos.id:gsub(
                 "::" .. escape_pattern(method_pos.name) .. "::",
@@ -619,7 +622,9 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     -- Attach subtests (table-driven tests) to their parent test
     for _, subtest_pos in ipairs(subtests) do
       -- Check if this subtest belongs to this test: ::TestName::"SubTest"
-      local pattern = "::" .. escape_pattern(test_pos.name) .. '::"%w'
+      -- The escaped test name prevents substring matches (TestFoo won't match TestFooBar)
+      -- We match up to the opening quote of the subtest name to support any characters in names
+      local pattern = "::" .. escape_pattern(test_pos.name) .. '::"'
       if subtest_pos.id:find(pattern) then
         -- Skip if it's already been processed as part of a suite method
         local already_processed = false
