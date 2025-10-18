@@ -60,6 +60,7 @@ describe("go list output from features/internal", function()
       Name = "testifysuites",
       TestGoFiles = {
         "diagnostics_test.go",
+        "gaps_test.go",
         "othersuite_test.go",
         "positions_test.go",
         "regression_test.go",
@@ -90,6 +91,7 @@ describe("go list output from features/internal/testifysuites", function()
       Name = "testifysuites",
       TestGoFiles = {
         "diagnostics_test.go",
+        "gaps_test.go",
         "othersuite_test.go",
         "positions_test.go",
         "regression_test.go",

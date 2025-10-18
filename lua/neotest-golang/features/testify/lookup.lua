@@ -4,6 +4,19 @@ local options = require("neotest-golang.options")
 local query = require("neotest-golang.features.testify.query")
 local query_loader = require("neotest-golang.lib.query_loader")
 
+---@class TestifyMethodInstance
+---@field receiver string The receiver type (e.g., "MySuite", "*MySuite")
+---@field definition table Tree-sitter match object containing the method definition
+---@field source_file string Absolute path to the file where this method is defined
+
+---@class TestifyFileData
+---@field package string The Go package name
+---@field replacements table<string, string> Map of receiver type to suite function name (e.g., {"MySuite" -> "TestMySuite"})
+---@field methods table<string, TestifyMethodInstance[]> Map of method name to list of method instances (supports multiple receivers with same method name)
+
+---@class TestifyLookupTable
+---@field [string] TestifyFileData Map of file path to file data
+
 local M = {}
 
 -- TreeSitter query for identifying testify suites and their components.
@@ -49,13 +62,27 @@ end
 local lookup_manager = create_lookup_manager()
 
 --- Public lookup functions.
+
+--- Initialize the lookup table for all test files in the given paths
+---@param file_paths string[] List of file paths to process
+---@return TestifyLookupTable The initialized lookup table
 M.initialize_lookup = lookup_manager.init
+
+--- Create or update lookup data for a single file
+---@param file_path string The file path to process
+---@return TestifyLookupTable The updated lookup table
 M.create_lookup = lookup_manager.create
+
+--- Get the current lookup table
+---@return TestifyLookupTable The current lookup table
 M.get_lookup = lookup_manager.get
+
+--- Clear the lookup table
 M.clear_lookup = lookup_manager.clear
 
 --- Generate the lookup data for the given file.
---- @return table<string, table> The generated lookup table
+---@param file_path string The file path to analyze
+---@return TestifyFileData The generated file data
 function M.generate_data(file_path)
   local data = {}
 
