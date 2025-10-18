@@ -194,9 +194,12 @@ local function process_suite(
       ---@type neotest.Tree[]
       local method_children = {}
       for _, subtest_pos in ipairs(subtests) do
-        if subtest_pos.id:find("::" .. method_pos.name .. "::", 1, true) then
+        -- Match exact method name boundaries: ::MethodName::"SubTest"
+        -- Use pattern to ensure we don't match ::MethodNameOther::
+        local pattern = "::" .. escape_pattern(method_pos.name) .. '::"%w'
+        if subtest_pos.id:find(pattern) then
           subtest_pos.id = subtest_pos.id:gsub(
-            "::" .. method_pos.name .. "::",
+            "::" .. escape_pattern(method_pos.name) .. "::",
             "::" .. suite_function .. "::" .. method_pos.name .. "::"
           )
           table.insert(method_children, create_tree_node(subtest_pos, {}))
@@ -532,11 +535,11 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
           ---@type neotest.Tree[]
           local method_children = {}
           for _, subtest_pos in ipairs(subtests) do
-            if
-              subtest_pos.id:find("::" .. method_pos.name .. "::", 1, true)
-            then
+            -- Match exact method name boundaries: ::MethodName::"SubTest"
+            local pattern = "::" .. escape_pattern(method_pos.name) .. '::"%w'
+            if subtest_pos.id:find(pattern) then
               subtest_pos.id = subtest_pos.id:gsub(
-                "::" .. method_pos.name .. "::",
+                "::" .. escape_pattern(method_pos.name) .. "::",
                 "::" .. suite_function .. "::" .. method_pos.name .. "::"
               )
               table.insert(method_children, create_tree_node(subtest_pos, {}))
@@ -577,12 +580,14 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
 
     -- Attach subtests (table-driven tests) to their parent test
     for _, subtest_pos in ipairs(subtests) do
-      -- Check if this subtest belongs to this test by ID pattern matching
-      if subtest_pos.id:find("::" .. test_pos.name .. "::", 1, true) then
+      -- Check if this subtest belongs to this test: ::TestName::"SubTest"
+      local pattern = "::" .. escape_pattern(test_pos.name) .. '::"%w'
+      if subtest_pos.id:find(pattern) then
         -- Skip if it's already been processed as part of a suite method
         local already_processed = false
         for _, suite_pos in pairs(suite_functions) do
-          if subtest_pos.id:find("::" .. suite_pos.name .. "::", 1, true) then
+          local suite_pattern = "::" .. escape_pattern(suite_pos.name) .. "::"
+          if subtest_pos.id:find(suite_pattern, 1, true) then
             already_processed = true
             break
           end
