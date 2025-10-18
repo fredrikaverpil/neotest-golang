@@ -160,6 +160,17 @@ local function process_suite(
     end
   end
 
+  -- Early return if receiver type not found
+  if not receiver_type then
+    logger.warn(
+      string.format(
+        "Could not find receiver type for suite function '%s'",
+        suite_function
+      )
+    )
+    return {}
+  end
+
   ---@type neotest.Tree[]
   local suite_children = {}
 
