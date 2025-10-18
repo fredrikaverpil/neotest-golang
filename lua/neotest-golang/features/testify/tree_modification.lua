@@ -3,13 +3,27 @@
 --- This module transforms Neotest's tree structure to properly represent testify test suites.
 ---
 --- ## The Problem
---- Testify suites use Go receiver methods, but these appear as regular tests in the initial tree:
+--- Testify suites use Go receiver methods, but these appear as regular tests in the initial tree.
+---
+--- Given this Go code:
+--- ```go
+--- type MySuite struct { suite.Suite }
+---
+--- func (s *MySuite) TestMethod1() { s.Equal(1, 1) }  // line 5
+--- func (s *MySuite) TestMethod2() { s.Equal(2, 2) }  // line 6
+---
+--- func TestMySuite(t *testing.T) {                   // line 8
+---     suite.Run(t, new(MySuite))
+--- }
+--- ```
+---
+--- Initial tree structure (before transformation):
 ---   File
 ---   ├─ TestMySuite (the suite function with suite.Run())
 ---   ├─ TestMethod1 (actually a receiver method: func (s *MySuite) TestMethod1())
 ---   └─ TestMethod2 (actually a receiver method: func (s *MySuite) TestMethod2())
 ---
---- To run these tests, we need to execute: `go test -run TestMySuite/TestMethod1`
+--- To run TestMethod1, we need: `go test -run TestMySuite/TestMethod1`
 ---
 --- ## The Solution
 --- Transform the tree so receiver methods become children of their suite:
@@ -371,6 +385,23 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     ---@type neotest.Tree[]
     local non_contiguous = {}
     ---@type number
+    -- Maximum gap (in lines) between test methods to consider them "contiguous".
+    -- Methods separated by >20 lines are moved to root level to prevent
+    -- Neotest's depth-first "nearest test" search from getting stuck in large files.
+    --
+    -- Example scenarios:
+    --   - TestMethod1 (lines 10-12) -> TestMethod2 (lines 30-32): gap = 18, CONTIGUOUS ✓
+    --   - TestMethod1 (lines 10-12) -> TestMethod3 (lines 33-35): gap = 21, NON-CONTIGUOUS ✗
+    --
+    -- Why this matters: When using "run nearest test" in Neotest, the algorithm
+    -- performs depth-first traversal. If a namespace spans lines 10-100 but the
+    -- cursor is at line 95 (where TestMethod3 is defined), and TestMethod3 is a
+    -- child of the namespace, Neotest would traverse all methods (lines 10-100)
+    -- to find the nearest. By moving TestMethod3 to root level, "nearest" works correctly.
+    --
+    -- Note: Non-contiguous methods still retain their suite namespace in their IDs
+    -- (e.g., path::TestMySuite::TestMethod3) so they execute correctly with
+    -- `go test -run TestMySuite/TestMethod3`.
     local MAX_GAP = 20
 
     -- First child is always contiguous
@@ -383,6 +414,13 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
           table.insert(contiguous, child_tree)
           prev_end = child_pos.range[3]
         else
+          -- Calculate gap between methods using line ranges
+          -- range[1] = start line (0-indexed)
+          -- range[3] = end line (0-indexed)
+          -- Example:
+          --   Method1 ends at line 12 (range[3] = 12)
+          --   Method2 starts at line 33 (range[1] = 33)
+          --   Gap = 33 - 12 = 21 lines
           local gap = child_pos.range[1] - prev_end
           if gap <= MAX_GAP then
             -- Contiguous with previous
