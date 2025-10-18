@@ -126,7 +126,7 @@ end
 --- @param create_tree_node function Helper to create tree nodes
 --- @param processed_methods table<string, boolean> Track which methods have been processed
 --- @param M table Module table (for calling M.find_method_receiver)
---- @return neotest.Tree[], neotest.Tree[] contiguous_children, non_contiguous_children
+--- @return neotest.Tree[] suite_children All children for this suite
 local function process_suite(
   suite_function,
   suite_pos,
@@ -316,6 +316,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
 
   -- Helper function to sort tree nodes by line number
   ---@param nodes neotest.Tree[] List of tree nodes to sort in place
+  ---@return nil
   local function sort_by_line_number(nodes)
     table.sort(nodes, function(a, b)
       local a_range = a:data().range
