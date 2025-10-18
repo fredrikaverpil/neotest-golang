@@ -375,7 +375,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
 
     -- First child is always contiguous
     local prev_end = nil
-    for i, child_tree in ipairs(children) do
+    for _, child_tree in ipairs(children) do
       local child_pos = child_tree:data()
       if child_pos.range then
         if prev_end == nil then
