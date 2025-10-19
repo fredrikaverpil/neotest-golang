@@ -34,17 +34,12 @@ describe("Integration: testify regression test", function()
             status = "passed",
             errors = {},
           },
-          -- Parent test suite result (now detected due to parent lookup generation)
-          [position_id .. "::Test_MySuite"] = {
+          -- Testify test method results (flat structure - no suite namespace)
+          [position_id .. "::Test_MySuite/Test_MyTest1"] = {
             status = "passed",
             errors = {},
           },
-          -- Individual test method results
-          [position_id .. "::Test_MySuite::Test_MyTest1"] = {
-            status = "passed",
-            errors = {},
-          },
-          [position_id .. "::Test_MySuite::Test_MyTest2"] = {
+          [position_id .. "::Test_MySuite/Test_MyTest2"] = {
             status = "passed",
             errors = {},
           },

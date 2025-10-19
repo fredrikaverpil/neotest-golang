@@ -1,7 +1,8 @@
 ; ============================================================================
-; RESPONSIBILITY: Testify suite receiver types (used as namespaces)
+; RESPONSIBILITY: Testify suite receiver type detection
 ; ============================================================================
-; Detects receiver types in testify suite test methods to create namespaces.
+; Detects receiver types in testify suite test methods for method-to-suite
+; mapping in the flat structure implementation.
 ;
 ; In testify suites, test methods are defined on a receiver type:
 ;   type ExampleSuite struct {
@@ -19,11 +20,11 @@
 ;     // test code
 ;   }
 ;
-; The receiver type becomes a Neotest namespace, allowing the tree structure:
-;   File -> TestXxxSuite (namespace) -> TestMethod (test)
+; The flat structure approach:
+;   File -> TestSuiteName/MethodName (no namespace nodes)
 ;
-; This is later processed by tree_modification.lua to map receiver types
-; to their corresponding suite initialization functions (TestXxxSuite).
+; This data is used by lookup.lua to build a mapping between receiver types
+; and their suite functions, which tree_modification.lua uses to rename test IDs.
 ; ============================================================================
 (method_declaration
   receiver: (parameter_list

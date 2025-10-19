@@ -11,18 +11,15 @@ local lookup_table = lookup.get_lookup()
 ---@type string[]
 local ignore_filepaths_during_init = {}
 
---- Modify the neotest tree, so that testify suites can be executed
---- as Neotest namespaces.
+--- Modify the neotest tree, so that testify suite tests can be executed.
 ---
---- When testify tests are discovered, they are discovered with the Go receiver
---- type as the Neotest namespace. However, to produce a valid test path,
---- this receiver type must be replaced with the testify suite name in the
---- Neotest tree.
+--- Testify test IDs are renamed from ::MethodName to ::SuiteName/MethodName
+--- to match go test -run syntax and enable proper "nearest test" behavior.
 --- @param file_path string The path to the test file
 --- @param tree neotest.Tree The original neotest tree
 --- @return neotest.Tree The modified tree
 function M.modify_neotest_tree(file_path, tree)
-  if vim.tbl_isempty(lookup_table) then
+  if not lookup_table or vim.tbl_isempty(lookup_table) then
     ---@type string[]
     ignore_filepaths_during_init = lib.find.go_test_filepaths(vim.fn.getcwd())
     ---@type table<string, any> | nil
@@ -30,8 +27,7 @@ function M.modify_neotest_tree(file_path, tree)
   end
 
   if vim.tbl_contains(ignore_filepaths_during_init, file_path) then
-    -- some optimization;
-    -- ignore the first call, as it is handled by the initialization above.
+    -- optimization: ignore the first call, as it is handled by the initialization above.
     for i, path in ipairs(ignore_filepaths_during_init) do
       if path == file_path then
         table.remove(ignore_filepaths_during_init, i)
@@ -58,7 +54,7 @@ function M.modify_neotest_tree(file_path, tree)
     return tree
   end
 
-  -- Collect all replacements from all files for cross-file suite support
+  -- Collect all replacements from all files (package-qualified receiver keys)
   ---@type table<string, string>
   local global_replacements = {}
   for _, data in pairs(lookup_table) do
@@ -76,27 +72,29 @@ function M.modify_neotest_tree(file_path, tree)
   return modified_tree
 end
 
---- Create proper testify hierarchy where receiver methods become children of suite functions
+--- Create flat testify hierarchy where receiver methods are renamed to include suite prefix
+--- with slash separator (e.g., ::SuiteName/MethodName). Suite functions are removed from tree.
 --- @param tree neotest.Tree The original tree
 --- @param replacements table<string, string> Receiver type to suite function mappings
---- @param global_lookup_table table The global lookup table for cross-file method discovery
---- @return neotest.Tree The tree with proper testify hierarchy
+--- @param global_lookup_table table The global lookup table
+--- @return neotest.Tree The tree with flat testify structure
 function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
-  -- Build method_positions map from lookup table data (no re-parsing!)
+  -- Build method_positions map from lookup table data
   ---@type table<string, table[]>
   local method_positions = {}
 
   if global_lookup_table then
     for file_path, file_data in pairs(global_lookup_table) do
       if file_data.methods then
-        -- Aggregate method information from all files
-        for method_name, instances in pairs(file_data.methods) do
-          if not method_positions[method_name] then
-            method_positions[method_name] = {}
-          end
-          -- Add all instances of this method from this file
-          for _, instance in ipairs(instances) do
-            table.insert(method_positions[method_name], instance)
+        -- Aggregate method information from current file only (no cross-file)
+        if file_path == tree:data().path then
+          for method_name, instances in pairs(file_data.methods) do
+            if not method_positions[method_name] then
+              method_positions[method_name] = {}
+            end
+            for _, instance in ipairs(instances) do
+              table.insert(method_positions[method_name], instance)
+            end
           end
         end
       end
@@ -106,20 +104,20 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   -- Collect all positions
   ---@type neotest.Position[]
   local positions = {}
-  for i, pos in tree:iter() do
+  for _, pos in tree:iter() do
     table.insert(positions, pos)
   end
 
   -- Separate positions by type
   ---@type neotest.Position | nil
   local file_pos = nil
-  ---@type table<string, neotest.Position> -- TestExampleTestSuite, TestExampleTestSuite2
-  local suite_functions = {}
-  ---@type neotest.Position[] -- TestExample, TestExample2 (from receivers)
-  local receiver_methods = {}
-  ---@type neotest.Position[] -- TestTrivial
+  ---@type table<string, neotest.Position>
+  local suite_functions = {} -- Will be removed from tree
+  ---@type neotest.Position[]
+  local receiver_methods = {} -- Will be renamed
+  ---@type neotest.Position[]
   local regular_tests = {}
-  ---@type neotest.Position[] -- subtest positions
+  ---@type neotest.Position[]
   local subtests = {}
 
   for _, pos in ipairs(positions) do
@@ -129,7 +127,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
       -- Check if this is a suite function
       ---@type boolean
       local is_suite_function = false
-      for receiver_type, suite_function in pairs(replacements) do
+      for _, suite_function in pairs(replacements) do
         if pos.name == suite_function then
           suite_functions[suite_function] = pos
           is_suite_function = true
@@ -163,94 +161,101 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   ---@return neotest.Tree
   local function create_tree_node(pos, children)
     children = children or {}
+    ---@diagnostic disable-next-line: invisible
     return Tree:new(pos, children, function(data)
       return data.id
     end)
   end
 
-  -- Add suite functions as namespaces with their methods as children
-  for suite_function, suite_pos in pairs(suite_functions) do
-    -- Convert suite function to namespace
-    suite_pos.type = "namespace"
+  -- Get the current file's package name from lookup table
+  ---@type string | nil
+  local current_package = nil
+  for file_path, file_data in pairs(global_lookup_table) do
+    if file_path == tree:data().path then
+      current_package = file_data.package
+      break
+    end
+  end
 
-    -- Find the receiver type for this suite function
+  -- Process receiver methods: rename IDs to SuiteName/MethodName format
+  for _, method_pos in ipairs(receiver_methods) do
+    -- Find which receiver this method belongs to
     ---@type string | nil
     local receiver_type = nil
-    for recv_type, suite_func in pairs(replacements) do
-      if suite_func == suite_function then
-        receiver_type = recv_type
-        break
-      end
-    end
+    ---@type string | nil
+    local suite_function_name = nil
 
-    -- Find methods that belong to this receiver type (from current file AND other files)
-    ---@type neotest.Tree[]
-    local suite_children = {}
+    for _, instance in ipairs(method_positions[method_pos.name] or {}) do
+      if method_pos.range then
+        ---@type number
+        local method_start_line = method_pos.range[1]
+        ---@type number
+        local method_end_line = method_pos.range[3]
 
-    -- First, process methods from current file
-    for _, method_pos in ipairs(receiver_methods) do
-      -- Find which receiver this method belongs to by matching position ranges
-      ---@type boolean
-      local belongs_to_receiver = M.find_method_receiver(
-        method_pos,
-        method_positions[method_pos.name],
-        receiver_type
-      )
+        if instance.definition and instance.definition.node then
+          ---@type TSNode
+          local node = instance.definition.node
+          ---@type number, number, number, number
+          local start_row, _, end_row, _ = node:range()
 
-      if belongs_to_receiver then
-        -- Update the method's ID to include the namespace
-        ---@type string
-        local pattern = "::" .. method_pos.name .. "$"
-        ---@type string
-        local replacement = "::" .. suite_function .. "::" .. method_pos.name
-        method_pos.id = method_pos.id:gsub(pattern, replacement)
-
-        -- Add subtests as children of this method
-        ---@type neotest.Tree[]
-        local method_children = {}
-        for _, subtest_pos in ipairs(subtests) do
-          if subtest_pos.id:find("::" .. method_pos.name .. "::", 1, true) then
-            subtest_pos.id = subtest_pos.id:gsub(
-              "::" .. method_pos.name .. "::",
-              "::" .. suite_function .. "::" .. method_pos.name .. "::"
-            )
-            table.insert(method_children, create_tree_node(subtest_pos, {}))
+          -- Check if this instance's node matches this position
+          if start_row <= method_end_line and end_row >= method_start_line then
+            receiver_type = instance.receiver
+            -- Find suite function for this receiver
+            for recv, suite_func in pairs(replacements) do
+              if recv == receiver_type then
+                -- Verify package matches to avoid cross-package collisions
+                local recv_package = recv:match("^([^%.]+)%.")
+                if recv_package == current_package then
+                  suite_function_name = suite_func
+                  break
+                end
+              end
+            end
+            break
           end
         end
-
-        table.insert(
-          suite_children,
-          create_tree_node(method_pos, method_children)
-        )
       end
     end
 
-    -- Add cross-file methods for this receiver type
-    for method_name, instances in pairs(method_positions) do
-      for _, instance in ipairs(instances) do
-        if
-          instance.receiver == receiver_type
-          and instance.source_file ~= tree:data().path
-        then
-          ---@type neotest.Position
-          local synthetic_pos = {
-            type = "test",
-            name = method_name,
-            id = tree:data().path
-              .. "::"
-              .. suite_function
-              .. "::"
-              .. method_name,
-            path = tree:data().path,
-            range = nil,
-          }
+    if suite_function_name then
+      -- Rename method ID: ::MethodName -> ::SuiteName/MethodName
+      ---@type string
+      local pattern = "::" .. method_pos.name .. "$"
+      ---@type string
+      local replacement = "::" .. suite_function_name .. "/" .. method_pos.name
+      method_pos.id = method_pos.id:gsub(pattern, replacement)
 
-          table.insert(suite_children, create_tree_node(synthetic_pos, {}))
+      -- Process subtests for this method
+      ---@type neotest.Tree[]
+      local method_children = {}
+      for _, subtest_pos in ipairs(subtests) do
+        -- Check if this subtest belongs to this method
+        -- Original subtest ID: path::MethodName::"SubtestName"
+        -- Need to update to: path::SuiteName/MethodName::"SubtestName"
+        local subtest_pattern = "::"
+          .. method_pos.name:match("([^/]+)$")
+          .. "::"
+        if subtest_pos.id:find(subtest_pattern, 1, true) then
+          -- Update subtest ID to match new parent format
+          -- Keep :: separator before subtest name (required for convert.lua)
+          subtest_pos.id = subtest_pos.id:gsub(
+            "::" .. method_pos.name:match("([^/]+)$") .. "::",
+            "::"
+              .. suite_function_name
+              .. "/"
+              .. method_pos.name:match("([^/]+)$")
+              .. "::"
+          )
+          table.insert(method_children, create_tree_node(subtest_pos, {}))
         end
       end
-    end
 
-    table.insert(root_children, create_tree_node(suite_pos, suite_children))
+      table.insert(root_children, create_tree_node(method_pos, method_children))
+    else
+      -- If we can't find a suite function, treat as regular test
+      table.insert(root_children, create_tree_node(method_pos, {}))
+    end
   end
 
   -- Add regular tests with their subtests
@@ -260,12 +265,12 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
 
     -- Find subtests that belong to this regular test
     for _, subtest_pos in ipairs(subtests) do
-      -- Check if this subtest belongs to this test (not already assigned to a suite method)
+      -- Check if this subtest belongs to this test
       if subtest_pos.id:find("::" .. test_pos.name .. "::", 1, true) then
-        -- Make sure it's not a suite subtest (those were already processed above)
+        -- Make sure it's not a suite subtest (already processed above)
         local already_processed = false
         for _, suite_pos in pairs(suite_functions) do
-          if subtest_pos.id:find("::" .. suite_pos.name .. "::", 1, true) then
+          if subtest_pos.id:find("/" .. suite_pos.name .. "/", 1, true) then
             already_processed = true
             break
           end
@@ -280,63 +285,24 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     table.insert(root_children, create_tree_node(test_pos, test_children))
   end
 
-  -- Create new tree with file as root and updated children
-  return create_tree_node(file_pos, root_children)
-end
-
---- Find which receiver a method position belongs to by matching line ranges
---- @param method_pos neotest.Position The neotest position for the method
---- @param method_instances table[] | nil List of instances with receiver and definition info
---- @param target_receiver string | nil The receiver type we're looking for
---- @return boolean True if the method belongs to the target receiver
-function M.find_method_receiver(method_pos, method_instances, target_receiver)
-  if not method_instances or #method_instances == 0 then
-    return false
-  end
-
-  -- If there's only one instance, check if it matches
-  if #method_instances == 1 then
-    return method_instances[1].receiver == target_receiver
-  end
-
-  -- For multiple instances, match by line range using node information
-  if method_pos.range then
-    ---@type number
-    local method_start_line = method_pos.range[1]
-    ---@type number
-    local method_end_line = method_pos.range[3]
-
-    ---@type table | nil
-    local best_match = nil
-    ---@type number
-    local best_distance = math.huge
-
-    for _, instance in ipairs(method_instances) do
-      if instance.definition and instance.definition.node then
-        ---@type TSNode
-        local node = instance.definition.node
-        ---@type number, number, number, number
-        local start_row, _, end_row, _ = node:range()
-
-        if start_row <= method_end_line and end_row >= method_start_line then
-          ---@type number
-          local distance = math.abs(start_row - method_start_line)
-
-          if
-            instance.receiver == target_receiver and distance < best_distance
-          then
-            best_match = instance
-            best_distance = distance
-          end
-        end
-      end
+  -- Sort children by line number to ensure tree iteration order matches file line order
+  -- This is critical for Neotest's "nearest test" algorithm to work correctly
+  table.sort(root_children, function(a, b)
+    local a_pos = a:data()
+    local b_pos = b:data()
+    -- Use range start line for comparison
+    if a_pos.range and b_pos.range then
+      return a_pos.range[1] < b_pos.range[1]
     end
+    return false
+  end)
 
-    return best_match ~= nil
+  -- Create new tree with file as root and updated children
+  if not file_pos then
+    logger.error("No file position found in tree")
+    return tree
   end
-
-  -- Fallback: if no range info, don't assign to avoid duplicates
-  return false
+  return create_tree_node(file_pos, root_children)
 end
 
 return M

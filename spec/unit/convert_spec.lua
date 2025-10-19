@@ -97,6 +97,31 @@ describe("Convert pos_id to go test name", function()
       lib.convert.pos_id_to_go_test_name(input)
     )
   end)
+
+  -- Testify suite tests (flat structure with suite prefix)
+  it("handles testify suite test (flat structure)", function()
+    local input = "/path/file.go::TestSuite/TestMethod"
+    assert.are_equal(
+      "TestSuite/TestMethod",
+      lib.convert.pos_id_to_go_test_name(input)
+    )
+  end)
+
+  it("handles testify suite test with subtest", function()
+    local input = '/path/file.go::TestSuite/TestMethod::"subtest"'
+    assert.are_equal(
+      "TestSuite/TestMethod/subtest",
+      lib.convert.pos_id_to_go_test_name(input)
+    )
+  end)
+
+  it("handles testify suite test with nested subtests", function()
+    local input = '/path/file.go::TestSuite/TestMethod::"level1"::"level2"'
+    assert.are_equal(
+      "TestSuite/TestMethod/level1/level2",
+      lib.convert.pos_id_to_go_test_name(input)
+    )
+  end)
 end)
 
 describe("Convert go test name to pos_id", function()

@@ -52,32 +52,28 @@ describe("Integration: testify mixed (regular + suite) test", function()
             status = "passed",
             errors = {},
           },
-          -- Testify suite tests
-          [position_id .. "::TestMixedTestSuite"] = {
+          -- Testify suite tests (flat structure - no suite namespace)
+          [position_id .. "::TestMixedTestSuite/TestSuiteMethod1"] = {
             status = "passed",
             errors = {},
           },
-          [position_id .. "::TestMixedTestSuite::TestSuiteMethod1"] = {
+          [position_id .. "::TestMixedTestSuite/TestSuiteMethodWithSubtests"] = {
             status = "passed",
             errors = {},
           },
-          [position_id .. "::TestMixedTestSuite::TestSuiteMethodWithSubtests"] = {
+          [position_id .. '::TestMixedTestSuite/TestSuiteMethodWithSubtests::"SuiteSubtest1"'] = {
             status = "passed",
             errors = {},
           },
-          [position_id .. '::TestMixedTestSuite::TestSuiteMethodWithSubtests::"SuiteSubtest1"'] = {
+          [position_id .. '::TestMixedTestSuite/TestSuiteMethodWithSubtests::"SuiteSubtest2"'] = {
             status = "passed",
             errors = {},
           },
-          [position_id .. '::TestMixedTestSuite::TestSuiteMethodWithSubtests::"SuiteSubtest2"'] = {
+          [position_id .. "::TestMixedTestSuite/TestSuiteMethodWithSubtests2"] = {
             status = "passed",
             errors = {},
           },
-          [position_id .. "::TestMixedTestSuite::TestSuiteMethodWithSubtests2"] = {
-            status = "passed",
-            errors = {},
-          },
-          [position_id .. '::TestMixedTestSuite::TestSuiteMethodWithSubtests2::"SuiteSubtest3"'] = {
+          [position_id .. '::TestMixedTestSuite/TestSuiteMethodWithSubtests2::"SuiteSubtest3"'] = {
             status = "passed",
             errors = {},
           },

@@ -1,4 +1,4 @@
---- Lookup table for renaming Neotest namespaces (receiver type to testify suite function).
+--- Lookup table for mapping testify receiver methods to their suite functions (flat structure).
 
 local options = require("neotest-golang.options")
 local query = require("neotest-golang.features.testify.query")
@@ -77,11 +77,13 @@ function M.generate_data(file_path)
   for i, struct in ipairs(matches.suite_struct or {}) do
     local func = matches.test_function[i]
     if func then
-      data.replacements[struct.text] = func.text
+      -- Use package-qualified receiver type to avoid collisions across packages
+      local qualified_receiver = package_name .. "." .. struct.text
+      data.replacements[qualified_receiver] = func.text
     end
   end
 
-  -- Second pass: collect method information for cross-file support
+  -- Second pass: collect method information from receiver functions
   -- Run namespace query to find all receiver methods in this file
   local namespace_matches =
     query.run_query_on_file(file_path, query.namespace_query)
@@ -97,11 +99,13 @@ function M.generate_data(file_path)
           definition_match.text:match("func %([^)]+%) ([%w_]+)%(")
         if method_name then
           -- Store method info: name -> {receiver, definition, source_file}
+          -- Use package-qualified receiver to avoid collisions
           if not data.methods[method_name] then
             data.methods[method_name] = {}
           end
+          local qualified_receiver = package_name .. "." .. receiver_match.text
           table.insert(data.methods[method_name], {
-            receiver = receiver_match.text,
+            receiver = qualified_receiver,
             definition = definition_match,
             source_file = file_path,
           })
