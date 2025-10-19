@@ -59,21 +59,25 @@ suite names.
 **Commit:** `067ba45` - feat(testify): use package-qualified receiver keys to
 prevent suite collisions
 
-### Phase 2: Implement Flat Tree Structure
+### Phase 2: Implement Flat Tree Structure ✅
 
-- [ ] **Refactor `tree_modification.lua:M.create_testify_hierarchy`**
-  - [ ] Remove namespace node creation logic
-  - [ ] Remove suite functions from tree (don't show them)
-  - [ ] Rename testify method IDs: `path::SuiteName/TestName` format
-  - [ ] Keep subtests nested under methods:
-        `path::SuiteName/TestName/SubtestName`
-  - [ ] Keep regular tests unchanged
-  - [ ] Remove all gap logic code (no longer needed)
-  - [ ] Remove cross-file method support (synthetic nodes)
+- [x] **Refactor `tree_modification.lua:M.create_testify_hierarchy`**
+  - [x] Remove namespace node creation logic
+  - [x] Remove suite functions from tree (don't show them)
+  - [x] Rename testify method IDs: `path::SuiteName/TestName` format
+  - [x] Keep subtests nested under methods: `path::SuiteName/TestName::"SubtestName"`
+  - [x] Keep regular tests unchanged
+  - [x] Remove all gap logic code (no longer needed)
+  - [x] Remove cross-file method support (synthetic nodes)
 
-- [ ] **Update subtests handling**
-  - [ ] Ensure subtests maintain proper nesting under methods
-  - [ ] Update subtest ID format to match new parent format
+- [x] **Update subtests handling**
+  - [x] Ensure subtests maintain proper nesting under methods
+  - [x] Update subtest ID format to match new parent format (uses :: separator)
+
+**Commits:**
+- `2e79dbd` - refactor(testify): implement flat tree structure without namespaces
+- `c359691` - fix(testify): use :: separator for subtests to match convert.lua expectations
+- `cc27dfd` - test(testify): update integration tests for flat tree structure
 
 ### Phase 3: Update Runspec Builders
 
@@ -103,19 +107,21 @@ prevent suite collisions
   - [ ] Test cursor on suite function line (should select what?)
   - [ ] Test cursor between tests
 
-### Phase 5: Update Existing Tests
+### Phase 5: Update Existing Tests ✅
 
-- [ ] **Update `spec/integration/testifysuites_*_spec.lua`**
-  - [ ] Update expected tree structure (no namespaces)
-  - [ ] Update expected test IDs (new format with slash)
-  - [ ] Verify all testify integration tests pass
+- [x] **Update `spec/integration/testifysuites_*_spec.lua`**
+  - [x] Update expected tree structure (no namespaces)
+  - [x] Update expected test IDs (new format with slash)
+  - [x] Verify all testify integration tests pass
 
-- [ ] **Update unit tests if applicable**
-  - [ ] Check `spec/unit/*` for testify-related tests
-  - [ ] Update expectations for new tree structure
+- [x] **Update unit tests if applicable**
+  - [x] Check `spec/unit/*` for testify-related tests (none needed updates)
+  - [x] All convert.lua unit tests pass with new format
 
-- [ ] **Update test fixtures if needed**
-  - [ ] Ensure `tests/features/internal/testifysuites/*` cover edge cases
+- [x] **Update test fixtures if needed**
+  - [x] Existing fixtures adequate for testing
+
+**Note:** `testifysuites_othersuite_spec.lua` marked as pending (cross-file support removed)
 
 ### Phase 6: Documentation and Cleanup
 
@@ -170,11 +176,11 @@ prevent suite collisions
 ## Success Criteria
 
 - [x] Issue #482 fixed - no test leaking between packages
-- [ ] "Run nearest test" works correctly for all cursor positions
-- [ ] All existing tests updated and passing
-- [ ] New "nearest test" infrastructure working
-- [ ] Documentation updated
-- [ ] Code simplified (less complexity than gap logic)
+- [ ] "Run nearest test" works correctly for all cursor positions (Phase 4 - not yet started)
+- [x] All existing tests updated and passing
+- [ ] New "nearest test" infrastructure working (Phase 4 - not yet started)
+- [ ] Documentation updated (Phase 6 - not yet started)
+- [x] Code simplified (less complexity than gap logic) - ~63 lines net reduction!
 
 ## Estimated Impact
 
