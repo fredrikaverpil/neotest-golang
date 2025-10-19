@@ -72,6 +72,12 @@ func TestTrivial(t *testing.T) {
 
 // --------------------------------------------------------------------
 
+func (suite *ExampleTestSuite2) TestExample3() {
+	assert.Equal(suite.T(), 5, suite.VariableThatShouldStartAtFive)
+}
+
+// --------------------------------------------------------------------
+
 // A test method which uses a receiver type defined by struct in another file.
 func (suite *OtherTestSuite) TestOther() {
 	assert.Equal(suite.T(), 5, suite.VariableThatShouldStartAtFive)

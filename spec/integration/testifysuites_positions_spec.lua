@@ -53,6 +53,10 @@ describe("Integration: testify suites positions test", function()
             status = "passed",
             errors = {},
           },
+          [position_id .. "::TestExampleTestSuite2::TestExample3"] = {
+            status = "passed",
+            errors = {},
+          },
           [position_id .. "::TestExampleTestSuite::TestExample"] = {
             status = "passed",
             errors = {},
