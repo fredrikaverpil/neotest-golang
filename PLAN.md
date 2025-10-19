@@ -113,11 +113,12 @@ prevent suite collisions
   - [x] Test cross-file method behavior
   - [x] Document helper usage with assert_nearest
 
-**Key Discovery:** Neotest's "nearest test" algorithm uses **tree iteration order**, not file line order. This means:
-- The flat structure doesn't fully solve the "nearest test" problem
-- Tree iteration can place regular tests before/after testify methods in unexpected ways
-- The tests document this actual behavior for future reference
-- Cross-file methods ARE still in the tree (support not removed as originally planned)
+- [x] **Fix tree iteration order**
+  - [x] Add sorting in `tree_modification.lua` to ensure children are ordered by line number
+  - [x] Tree iteration order now matches file line order
+  - [x] All 14 nearest test scenarios pass
+
+**Key Discovery & Solution:** Neotest's "nearest test" algorithm uses **tree iteration order**, not file line order. Initial tests revealed that tree children weren't sorted, causing incorrect nearest test selection. **Solution:** Sort `root_children` by `range[1]` (start line) before creating the final tree. This ensures tree iteration order matches file line order, making "nearest test" work correctly with the flat structure.
 
 ### Phase 5: Update Existing Tests ✅
 
@@ -197,9 +198,9 @@ prevent suite collisions
 - [x] Documentation updated (config, test docs, HISTORY entry) ✅
 - [x] Code simplified (less complexity than gap logic) - ~63 lines net reduction! ✅
 - [x] New "nearest test" infrastructure working (Phase 4) ✅
-- [~] "Run nearest test" determined by tree iteration order (Phase 4 - documented behavior) ⚠️
+- [x] "Run nearest test" works correctly with sorted tree (Phase 4 - all 14 tests pass) ✅
 
-**Note on "nearest test":** The flat structure improves testify support, but Neotest's nearest algorithm uses tree iteration order rather than file line order. This is now documented via comprehensive tests.
+**Note on "nearest test":** The flat structure combined with sorted tree children ensures "nearest test" works correctly. Tree children are sorted by line number to match file line order, making Neotest's iteration-based nearest algorithm work as expected.
 
 ## Estimated Impact
 

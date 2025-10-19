@@ -73,20 +73,16 @@ describe("Integration: testify suites nearest test", function()
 
   describe("cursor on regular test", function()
     it(
-      "selects testify test when cursor is on TestTrivial line (line 69)",
+      "selects regular test when cursor is on TestTrivial (line 69)",
       function()
         -- Line 69 in editor = index 68 for Neotest (0-indexed)
-        -- UNEXPECTED: Tree iteration order means TestExample2 comes after TestTrivial
-        -- So cursor at line 68 selects TestExample2 (line 58) not TestTrivial
+        -- With sorted tree, cursor at line 68 correctly selects TestTrivial
         local position = nearest.get_nearest_position(test_file, 68)
 
         assert.is_not_nil(position)
-        assert.equals(
-          test_file .. "::TestExampleTestSuite2/TestExample2",
-          position.id,
-          "Due to tree iteration order, nearest at line 68 is TestExample2"
-        )
+        assert.equals(test_file .. "::TestTrivial", position.id)
         assert.equals("test", position.type)
+        assert.equals("TestTrivial", position.name)
       end
     )
   end)
@@ -147,20 +143,23 @@ describe("Integration: testify suites nearest test", function()
   end)
 
   describe("cursor between tests", function()
-    it("selects test based on tree iteration order (line 71)", function()
-      -- Line 71 in editor = index 70 for Neotest (0-indexed)
-      -- Between TestTrivial (line 69) and TestExample3 (line 75)
-      -- Due to tree iteration order, selects TestExample2 (same as line 68)
-      local position = nearest.get_nearest_position(test_file, 70)
+    it(
+      "selects previous test when cursor is between TestTrivial and TestExample3 (line 71)",
+      function()
+        -- Line 71 in editor = index 70 for Neotest (0-indexed)
+        -- Between TestTrivial (line 69) and TestExample3 (line 75)
+        -- With sorted tree, correctly selects TestTrivial as nearest test
+        local position = nearest.get_nearest_position(test_file, 70)
 
-      assert.is_not_nil(position)
-      assert.equals(
-        test_file .. "::TestExampleTestSuite2/TestExample2",
-        position.id,
-        "Tree iteration order determines nearest, not file line order"
-      )
-      assert.equals("test", position.type)
-    end)
+        assert.is_not_nil(position)
+        assert.equals(
+          test_file .. "::TestTrivial",
+          position.id,
+          "Sorted tree ensures file line order"
+        )
+        assert.equals("test", position.type)
+      end
+    )
 
     it(
       "selects previous test when cursor is in comment block (line 41)",
@@ -194,75 +193,77 @@ describe("Integration: testify suites nearest test", function()
     )
 
     it(
-      "selects last test in tree iteration order when cursor is after all tests (line 103)",
+      "selects last subtest when cursor is after all tests (line 103)",
       function()
         -- Line 103 in editor = index 102 for Neotest (0-indexed)
-        -- After the last test in file (TestSubTestOperand2 at line 97)
-        -- But tree iteration makes TestTrivial the last node processed
+        -- After the last test TestSubTestOperand2 (line 97) which contains a subtest
+        -- Nearest algorithm selects the subtest since it's the deepest node that contains this line
         local position = nearest.get_nearest_position(test_file, 102)
 
         assert.is_not_nil(position)
         assert.equals(
-          test_file .. "::TestTrivial",
+          test_file .. '::TestExampleTestSuite/TestSubTestOperand2::"subtest"',
           position.id,
-          "Last in tree iteration order, not file line order"
+          "Subtest is selected as nearest (deepest matching node)"
         )
         assert.equals("test", position.type)
       end
     )
   end)
 
-  describe("flat structure with tree iteration", function()
-    it("documents actual nearest behavior with tree iteration order", function()
-      -- This test documents that the flat structure (no namespace nodes) uses
-      -- tree iteration order, not file line order, to determine nearest test
-      -- DISCOVERY: Tree iteration order doesn't match file line order!
+  describe("flat structure with sorted tree", function()
+    it(
+      "correctly handles mixed testify and regular tests in file line order",
+      function()
+        -- This test validates that the flat structure with sorted children
+        -- allows nearest test to work correctly based on actual file line order
 
-      -- Get positions at various points in the file
-      local pos_at_27 = nearest.get_nearest_id(test_file, 26) -- Line 27: TestExample (Suite1)
-      local pos_at_54 = nearest.get_nearest_id(test_file, 53) -- Line 54: TestExample (Suite2)
-      local pos_at_69 = nearest.get_nearest_id(test_file, 68) -- Line 69: TestTrivial
-      local pos_at_75 = nearest.get_nearest_id(test_file, 74) -- Line 75: TestExample3 (Suite2)
+        -- Get positions at various points in the file
+        local pos_at_27 = nearest.get_nearest_id(test_file, 26) -- Line 27: TestExample (Suite1)
+        local pos_at_54 = nearest.get_nearest_id(test_file, 53) -- Line 54: TestExample (Suite2)
+        local pos_at_69 = nearest.get_nearest_id(test_file, 68) -- Line 69: TestTrivial
+        local pos_at_75 = nearest.get_nearest_id(test_file, 74) -- Line 75: TestExample3 (Suite2)
 
-      -- Verify positions at cursor locations
-      assert.equals(
-        test_file .. "::TestExampleTestSuite/TestExample",
-        pos_at_27
-      )
-      assert.equals(
-        test_file .. "::TestExampleTestSuite2/TestExample",
-        pos_at_54
-      )
-      -- Line 69 gets TestExample2 due to tree iteration order
-      assert.equals(
-        test_file .. "::TestExampleTestSuite2/TestExample2",
-        pos_at_69,
-        "Tree iteration makes TestExample2 nearest at line 69"
-      )
-      assert.equals(
-        test_file .. "::TestExampleTestSuite2/TestExample3",
-        pos_at_75
-      )
+        -- Verify positions at cursor locations match file line order
+        assert.equals(
+          test_file .. "::TestExampleTestSuite/TestExample",
+          pos_at_27
+        )
+        assert.equals(
+          test_file .. "::TestExampleTestSuite2/TestExample",
+          pos_at_54
+        )
+        -- With sorted tree, line 69 correctly gets TestTrivial
+        assert.equals(
+          test_file .. "::TestTrivial",
+          pos_at_69,
+          "Sorted tree makes TestTrivial nearest at line 69"
+        )
+        assert.equals(
+          test_file .. "::TestExampleTestSuite2/TestExample3",
+          pos_at_75
+        )
 
-      -- Document tree iteration behavior
-      local pos_between_suite_and_regular =
-        nearest.get_nearest_id(test_file, 65)
-      assert.equals(
-        test_file .. "::TestExampleTestSuite2/TestExample2",
-        pos_between_suite_and_regular,
-        "Tree iteration order, not file line order"
-      )
-    end)
+        -- Verify positions work correctly with mixed test types
+        local pos_between_suite_and_regular =
+          nearest.get_nearest_id(test_file, 65)
+        assert.equals(
+          test_file .. "::TestExampleTestSuite2/TestExample2",
+          pos_between_suite_and_regular,
+          "Sorted tree ensures file line order"
+        )
+      end
+    )
   end)
 
   describe("assert_nearest helper", function()
     it("provides concise assertion syntax", function()
       -- Demonstrate the helper function for cleaner test syntax
-      -- At line 68, tree iteration makes TestExample2 the nearest
+      -- At line 68, sorted tree makes TestTrivial the nearest (line 69 = index 68)
       nearest.assert_nearest(
         test_file,
         68,
-        test_file .. "::TestExampleTestSuite2/TestExample2",
+        test_file .. "::TestTrivial",
         "Custom error message"
       )
     end)

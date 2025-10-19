@@ -288,6 +288,18 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
 
   -- Note: Suite functions are NOT added to the tree (they are hidden)
 
+  -- Sort children by line number to ensure tree iteration order matches file line order
+  -- This is critical for Neotest's "nearest test" algorithm to work correctly
+  table.sort(root_children, function(a, b)
+    local a_pos = a:data()
+    local b_pos = b:data()
+    -- Use range start line for comparison
+    if a_pos.range and b_pos.range then
+      return a_pos.range[1] < b_pos.range[1]
+    end
+    return false
+  end)
+
   -- Create new tree with file as root and updated children
   return create_tree_node(file_pos, root_children)
 end
