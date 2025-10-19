@@ -23,8 +23,7 @@ describe("Testify suite name collisions", function()
 
     -- The tree should contain:
     -- - File position
-    -- - Test_TestSuite namespace
-    --   - Test_FooFunc method
+    -- - Test_TestSuite/Test_FooFunc method (flat structure - no namespace)
     -- It should NOT contain Test_BarFunc from the bar_test package
 
     local tree_string = vim.inspect(result.tree)
@@ -56,8 +55,7 @@ describe("Testify suite name collisions", function()
 
     -- The tree should contain:
     -- - File position
-    -- - Test_TestSuite namespace
-    --   - Test_BarFunc method
+    -- - Test_TestSuite/Test_BarFunc method (flat structure - no namespace)
     -- It should NOT contain Test_FooFunc from the foo_test package
 
     local tree_string = vim.inspect(result.tree)
