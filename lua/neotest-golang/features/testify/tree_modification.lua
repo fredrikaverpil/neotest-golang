@@ -11,8 +11,7 @@ local lookup_table = lookup.get_lookup()
 ---@type string[]
 local ignore_filepaths_during_init = {}
 
---- Modify the neotest tree, so that testify suite tests can be executed
---- with proper IDs in a flat structure (no namespace nodes).
+--- Modify the neotest tree, so that testify suite tests can be executed.
 ---
 --- Testify test IDs are renamed from ::MethodName to ::SuiteName/MethodName
 --- to match go test -run syntax and enable proper "nearest test" behavior.
@@ -28,8 +27,7 @@ function M.modify_neotest_tree(file_path, tree)
   end
 
   if vim.tbl_contains(ignore_filepaths_during_init, file_path) then
-    -- some optimization;
-    -- ignore the first call, as it is handled by the initialization above.
+    -- optimization: ignore the first call, as it is handled by the initialization above.
     for i, path in ipairs(ignore_filepaths_during_init) do
       if path == file_path then
         table.remove(ignore_filepaths_during_init, i)
@@ -286,8 +284,6 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
 
     table.insert(root_children, create_tree_node(test_pos, test_children))
   end
-
-  -- Note: Suite functions are NOT added to the tree (they are hidden)
 
   -- Sort children by line number to ensure tree iteration order matches file line order
   -- This is critical for Neotest's "nearest test" algorithm to work correctly

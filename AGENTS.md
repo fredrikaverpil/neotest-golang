@@ -33,7 +33,7 @@ and handles:
 - Command generation for various test scopes (directory, file, individual tests)
 - Result processing from `go test` and `gotestsum` output
 - Integration with DAP for debugging
-- Testify suite support using flat structure (suite methods prefixed with suite name)
+- Rudimental support for testify test suites (although provided via a "hack")
 
 ## Development Commands
 
@@ -134,6 +134,7 @@ When running `task test`, Neovim launches headlessly and:
 - Core adapter logic in `lua/neotest-golang/`
 - Features and extensions in `lua/neotest-golang/features/`
 - Library utilities in `lua/neotest-golang/lib/`
-- Tree-sitter queries in `lua/neotest-golang/queries/go/` and `lua/neotest-golang/features/testify/queries/go/`
+- Tree-sitter queries in `lua/neotest-golang/queries/go/` and
+  `lua/neotest-golang/features/testify/queries/go/`
 - Test specifications in `spec/`
 - Go test fixtures in `tests/go/`

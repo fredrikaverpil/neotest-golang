@@ -173,22 +173,24 @@ Default value: `false`
 
 Enable support for [testify](https://github.com/stretchr/testify) suites and
 other testify related features, such as testify-specific diagnostics. Please
-note that this requires `nvim-treesitter` (`main` branch).
+note that this feature requires `nvim-treesitter` (`main` branch).
 
 !!! warning "Not enabled by default"
 
     This feature comes with some caveats and nuances, which is why it is not enabled
     by default. I advise you to only enable this if you need it.
 
-    Behind the scenes, testify suite tests are represented using a flat structure
-    where test IDs are prefixed with the suite name (e.g., `SuiteName/TestMethod`).
-    An in-memory lookup of "receiver type-to-suite test function" is created from
-    all Go test files in your project to map test methods to their parent suites.
+    There are some real shenaningans going on behind the scenes to make this work.
+    😅 First, an in-memory lookup of "receiver type-to-suite test function" will be
+    created of all Go test files in your project. Then, the generated Neotest node
+    tree is modified by mutating private attributes, so to prefix test IDs with the
+    suite name (e.g. `SuiteName/TestMethod`).
+    I'm personally a bit afraid of the maintenance burden of this feature... 🙈
 
 !!! note "Table tests not supported"
 
     Right now, table tests are not supported for testify suites. This can be
-    remedied at any time by extending the treesitter queries. Feel free to dig in
+    remedied by extending the treesitter queries. Feel free to dig in
     and open a PR!
 
 ### `testify_operand`
