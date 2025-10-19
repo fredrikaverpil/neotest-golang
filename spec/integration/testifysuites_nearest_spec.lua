@@ -28,7 +28,7 @@ describe("Integration: testify suites nearest test", function()
         -- Line 54 in editor = index 53 for Neotest (0-indexed)
         local position = nearest.get_nearest_position(test_file, 53)
 
-        assert.is_not_nil(position, "Should find a nearest position")
+        assert.is_not_nil(position)
         assert.equals(
           test_file .. "::TestExampleTestSuite2/TestExample",
           position.id,
@@ -279,10 +279,8 @@ describe("Integration: testify suites nearest test", function()
       end)
 
       assert.is_false(success, "Should throw error on assertion failure")
-      assert.is_not_nil(
-        err:match("Should fail"),
-        "Should include custom message"
-      )
+      -- Verify error message contains custom message
+      assert.truthy(err and err:match("Should fail"))
     end)
   end)
 end)
