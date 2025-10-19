@@ -79,18 +79,25 @@ prevent suite collisions
 - `c359691` - fix(testify): use :: separator for subtests to match convert.lua expectations
 - `cc27dfd` - test(testify): update integration tests for flat tree structure
 
-### Phase 3: Update Runspec Builders
+### Phase 3: Update Runspec Builders ✅
 
-- [ ] **Update `runspec/test.lua` (or relevant builder)**
-  - [ ] Parse new ID format: extract suite and method names
-  - [ ] Generate correct `-run` flag: `SuiteName/TestMethodName`
-  - [ ] Handle subtests: `SuiteName/TestMethodName/SubtestName`
-  - [ ] Ensure regular tests continue to work
+- [x] **Update `runspec/test.lua` (or relevant builder)**
+  - [x] Parse new ID format: extract suite and method names (already works via `pos_id_to_go_test_name`)
+  - [x] Generate correct `-run` flag: `SuiteName/TestMethodName` (working correctly)
+  - [x] Handle subtests: `SuiteName/TestMethodName/SubtestName` (working correctly)
+  - [x] Ensure regular tests continue to work (verified)
+  - [x] Add unit tests for testify format in `convert_spec.lua`
 
-- [ ] **Update other runspec builders if needed**
-  - [ ] Check `runspec/file.lua` - should work without changes
-  - [ ] Check `runspec/dir.lua` - should work without changes
-  - [ ] Check `runspec/namespace.lua` - may need removal or updates
+- [x] **Update other runspec builders if needed**
+  - [x] Check `runspec/file.lua` - works without changes (uses regex to find all `func Test*`)
+  - [x] Check `runspec/dir.lua` - works without changes (runs all tests in dir)
+  - [x] Check `runspec/namespace.lua` - works without changes (uses same conversion function)
+
+**Commits:**
+- (pending) - test(convert): add unit tests for testify flat structure format
+- (pending) - docs(plan): mark Phase 3 complete
+
+**Key Finding:** The `pos_id_to_go_test_name()` function already handles the flat structure correctly because it preserves the first part after `::`, which now includes `SuiteName/TestName`. No code changes were needed, only verification via unit tests.
 
 ### Phase 4: Add "Nearest Test" Testing Infrastructure
 
@@ -176,6 +183,7 @@ prevent suite collisions
 ## Success Criteria
 
 - [x] Issue #482 fixed - no test leaking between packages
+- [x] Runspec builders generate correct `-run` flags for testify tests (Phase 3 complete)
 - [ ] "Run nearest test" works correctly for all cursor positions (Phase 4 - not yet started)
 - [x] All existing tests updated and passing
 - [ ] New "nearest test" infrastructure working (Phase 4 - not yet started)
