@@ -233,22 +233,21 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
       for _, subtest_pos in ipairs(subtests) do
         -- Check if this subtest belongs to this method
         -- Original subtest ID: path::MethodName::"SubtestName"
-        -- Need to update to: path::SuiteName/MethodName/"SubtestName"
+        -- Need to update to: path::SuiteName/MethodName::"SubtestName"
         local subtest_pattern = "::"
           .. method_pos.name:match("([^/]+)$")
           .. "::"
         if subtest_pos.id:find(subtest_pattern, 1, true) then
           -- Update subtest ID to match new parent format
+          -- Keep :: separator before subtest name (required for convert.lua)
           subtest_pos.id = subtest_pos.id:gsub(
             "::" .. method_pos.name:match("([^/]+)$") .. "::",
             "::"
               .. suite_function_name
               .. "/"
               .. method_pos.name:match("([^/]+)$")
-              .. "/"
+              .. "::"
           )
-          -- Replace :: with / for subtest separator
-          subtest_pos.id = subtest_pos.id:gsub('::(".*")$', "/%1")
           table.insert(method_children, create_tree_node(subtest_pos, {}))
         end
       end
