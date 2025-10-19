@@ -93,9 +93,7 @@ prevent suite collisions
   - [x] Check `runspec/dir.lua` - works without changes (runs all tests in dir)
   - [x] Check `runspec/namespace.lua` - works without changes (uses same conversion function)
 
-**Commits:**
-- (pending) - test(convert): add unit tests for testify flat structure format
-- (pending) - docs(plan): mark Phase 3 complete
+**Commit:** `3487184` - test(convert): add unit tests for testify flat structure format
 
 **Key Finding:** The `pos_id_to_go_test_name()` function already handles the flat structure correctly because it preserves the first part after `::`, which now includes `SuiteName/TestName`. No code changes were needed, only verification via unit tests.
 
