@@ -22,21 +22,23 @@ Based on your answers to clarifying questions:
 
 ## Implementation Checklist
 
-### Phase 1: Fix Issue #482 - Package-Qualified Lookup Keys
+### Phase 1: Fix Issue #482 - Package-Qualified Lookup Keys ✅
 
-- [ ] **Update `lookup.lua:M.generate_data`**
-  - [ ] Modify to use package-qualified receiver keys: `package.ReceiverType`
-  - [ ] Ensure replacements map uses: `{"foo_test.TestAlfaSuite": "Test_TestSuite"}`
-  - [ ] Update methods map to use package-qualified receiver names
+- [x] **Update `lookup.lua:M.generate_data`**
+  - [x] Modify to use package-qualified receiver keys: `package.ReceiverType`
+  - [x] Ensure replacements map uses: `{"foo_test.TestAlfaSuite": "Test_TestSuite"}`
+  - [x] Update methods map to use package-qualified receiver names
 
-- [ ] **Update `tree_modification.lua` to use new lookup format**
-  - [ ] Adjust `M.create_testify_hierarchy` to work with package-qualified keys
-  - [ ] Update `M.find_method_receiver` if needed
+- [x] **Update `tree_modification.lua` to use new lookup format**
+  - [x] Adjust `M.create_testify_hierarchy` to work with package-qualified keys
+  - [x] Match receiver type by both suite function name AND package
 
-- [ ] **Add tests for issue #482**
-  - [ ] Create test fixtures: two packages with same suite struct name
-  - [ ] Verify methods don't leak between suites
-  - [ ] Test in `spec/integration/testifysuites_issue482_spec.lua`
+- [x] **Add tests for issue #482**
+  - [x] Create test fixtures: two packages with same suite struct name
+  - [x] Verify methods don't leak between suites
+  - [x] Test in `spec/integration/testifysuites_issue482_spec.lua`
+
+**Commit:** `067ba45` - feat(testify): use package-qualified receiver keys to prevent suite collisions
 
 ### Phase 2: Implement Flat Tree Structure
 
@@ -144,7 +146,7 @@ Based on your answers to clarifying questions:
 
 ## Success Criteria
 
-- [ ] Issue #482 fixed - no test leaking between packages
+- [x] Issue #482 fixed - no test leaking between packages
 - [ ] "Run nearest test" works correctly for all cursor positions
 - [ ] All existing tests updated and passing
 - [ ] New "nearest test" infrastructure working
