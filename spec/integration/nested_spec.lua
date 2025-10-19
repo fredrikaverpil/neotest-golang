@@ -78,14 +78,8 @@ describe("Integration: nested subpackage2 test", function()
       end
 
       -- Assert that the nested directory has output populated
-      assert.is_not_nil(
-        got.results[nested_dir_id],
-        "Nested directory should have results"
-      )
-      assert.is_not_nil(
-        got.results[nested_dir_id].output,
-        "Nested directory should have output"
-      )
+      assert.is_not_nil(got.results[nested_dir_id])
+      assert.is_not_nil(got.results[nested_dir_id].output)
     end
   )
   it(

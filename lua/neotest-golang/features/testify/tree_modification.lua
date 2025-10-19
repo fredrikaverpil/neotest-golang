@@ -20,7 +20,7 @@ local ignore_filepaths_during_init = {}
 --- @param tree neotest.Tree The original neotest tree
 --- @return neotest.Tree The modified tree
 function M.modify_neotest_tree(file_path, tree)
-  if vim.tbl_isempty(lookup_table) then
+  if not lookup_table or vim.tbl_isempty(lookup_table) then
     ---@type string[]
     ignore_filepaths_during_init = lib.find.go_test_filepaths(vim.fn.getcwd())
     ---@type table<string, any> | nil
@@ -129,7 +129,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
       -- Check if this is a suite function
       ---@type boolean
       local is_suite_function = false
-      for receiver_type, suite_function in pairs(replacements) do
+      for _, suite_function in pairs(replacements) do
         if pos.name == suite_function then
           suite_functions[suite_function] = pos
           is_suite_function = true
@@ -163,6 +163,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   ---@return neotest.Tree
   local function create_tree_node(pos, children)
     children = children or {}
+    ---@diagnostic disable-next-line: invisible
     return Tree:new(pos, children, function(data)
       return data.id
     end)
@@ -301,6 +302,10 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   end)
 
   -- Create new tree with file as root and updated children
+  if not file_pos then
+    logger.error("No file position found in tree")
+    return tree
+  end
   return create_tree_node(file_pos, root_children)
 end
 
