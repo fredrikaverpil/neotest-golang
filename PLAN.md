@@ -1,28 +1,36 @@
 # Implementation Plan: Flat Testify Support
 
-> **Source:** This plan implements the approach described in [TASK.md](./TASK.md)
+> **Source:** This plan implements the approach described in
+> [TASK.md](./TASK.md)
 
 ## Development Workflow
 
 **IMPORTANT**: For each significant step forward:
-1. Run `task format` before committing (formatting failures are OK, especially git diff at the end)
-2. Create a git commit with descriptive message
-3. Continue to next step
+
+1. Run `task test` to run all tests or `task test-file -- file_spec.lua` to run
+   a single test file.
+2. Run `task format` before committing (formatting failures are OK, especially
+   git diff at the end)
+3. Create a git commit with descriptive message
+4. Continue to next step
 
 ## User Preferences
 
 Based on your answers to clarifying questions:
 
-- **Suite Function Visibility**: Hide/remove suite functions entirely (e.g., `TestExampleTestSuite`)
+- **Suite Function Visibility**: Hide/remove suite functions entirely (e.g.,
+  `TestExampleTestSuite`)
 - **ID Format**: Use slash separator → `path::SuiteName/TestName`
 - **Nearest Test Infrastructure**: Yes, add testing infrastructure
 - **Cross-File Methods**: Simplify - only show methods from current file
 
 ## Chosen Approach
 
-**Flat Structure** - Remove namespace nodes and prefix testify test IDs with suite names.
+**Flat Structure** - Remove namespace nodes and prefix testify test IDs with
+suite names.
 
 ### Rationale:
+
 - ✅ Simpler implementation - straightforward ID renaming
 - ✅ No namespace overlap issues - all tests at file level
 - ✅ "Nearest test" works correctly - no traversal problems
@@ -35,7 +43,8 @@ Based on your answers to clarifying questions:
 
 - [x] **Update `lookup.lua:M.generate_data`**
   - [x] Modify to use package-qualified receiver keys: `package.ReceiverType`
-  - [x] Ensure replacements map uses: `{"foo_test.TestAlfaSuite": "Test_TestSuite"}`
+  - [x] Ensure replacements map uses:
+        `{"foo_test.TestAlfaSuite": "Test_TestSuite"}`
   - [x] Update methods map to use package-qualified receiver names
 
 - [x] **Update `tree_modification.lua` to use new lookup format**
@@ -47,7 +56,8 @@ Based on your answers to clarifying questions:
   - [x] Verify methods don't leak between suites
   - [x] Test in `spec/integration/testifysuites_issue482_spec.lua`
 
-**Commit:** `067ba45` - feat(testify): use package-qualified receiver keys to prevent suite collisions
+**Commit:** `067ba45` - feat(testify): use package-qualified receiver keys to
+prevent suite collisions
 
 ### Phase 2: Implement Flat Tree Structure
 
@@ -55,7 +65,8 @@ Based on your answers to clarifying questions:
   - [ ] Remove namespace node creation logic
   - [ ] Remove suite functions from tree (don't show them)
   - [ ] Rename testify method IDs: `path::SuiteName/TestName` format
-  - [ ] Keep subtests nested under methods: `path::SuiteName/TestName/SubtestName`
+  - [ ] Keep subtests nested under methods:
+        `path::SuiteName/TestName/SubtestName`
   - [ ] Keep regular tests unchanged
   - [ ] Remove all gap logic code (no longer needed)
   - [ ] Remove cross-file method support (synthetic nodes)
@@ -127,11 +138,13 @@ Based on your answers to clarifying questions:
 ## Testing Strategy
 
 ### Unit Tests
+
 - Lookup table generation with package-qualified keys
 - ID format transformation logic
 - Subtest ID updates
 
 ### Integration Tests
+
 - Issue #482: Same suite name in different packages
 - "Nearest test" with various cursor positions
 - Mixed regular + testify tests in same file
@@ -139,6 +152,7 @@ Based on your answers to clarifying questions:
 - File/dir level test execution
 
 ### Manual Testing
+
 - Test in real project with testify suites
 - Verify "run nearest test" behavior
 - Check tree visualization in Neotest UI
@@ -146,12 +160,12 @@ Based on your answers to clarifying questions:
 
 ## Potential Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
+| Risk                            | Mitigation                          |
+| ------------------------------- | ----------------------------------- |
 | Breaking existing testify users | Clear migration notes, version bump |
-| Runspec parsing edge cases | Comprehensive tests for ID parsing |
-| Subtest nesting issues | Dedicated subtest integration tests |
-| "Nearest test" still broken | Extensive cursor position tests |
+| Runspec parsing edge cases      | Comprehensive tests for ID parsing  |
+| Subtest nesting issues          | Dedicated subtest integration tests |
+| "Nearest test" still broken     | Extensive cursor position tests     |
 
 ## Success Criteria
 
@@ -165,6 +179,7 @@ Based on your answers to clarifying questions:
 ## Estimated Impact
 
 **Files to modify:**
+
 - `lua/neotest-golang/features/testify/lookup.lua` - Medium changes
 - `lua/neotest-golang/features/testify/tree_modification.lua` - Major refactor
 - `lua/neotest-golang/runspec/test.lua` - Medium changes
@@ -172,6 +187,7 @@ Based on your answers to clarifying questions:
 - `spec/helpers/nearest.lua` - New file
 
 **Lines of code:**
+
 - ~200 lines removed (gap logic, cross-file, namespace creation)
 - ~100 lines added (ID renaming, nearest test helpers, tests)
 - Net: Simpler codebase!
