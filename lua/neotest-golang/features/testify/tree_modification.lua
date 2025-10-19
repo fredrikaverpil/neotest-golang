@@ -59,6 +59,8 @@ function M.modify_neotest_tree(file_path, tree)
   end
 
   -- Collect all replacements from all files for cross-file suite support
+  -- Receiver keys are package-qualified (e.g., "package.ReceiverType")
+  -- to prevent collisions when different packages use the same struct name
   ---@type table<string, string>
   local global_replacements = {}
   for _, data in pairs(lookup_table) do
@@ -168,18 +170,33 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     end)
   end
 
+  -- Get the current file's package name from lookup table
+  ---@type string | nil
+  local current_package = nil
+  for file_path, file_data in pairs(global_lookup_table) do
+    if file_path == tree:data().path then
+      current_package = file_data.package
+      break
+    end
+  end
+
   -- Add suite functions as namespaces with their methods as children
   for suite_function, suite_pos in pairs(suite_functions) do
     -- Convert suite function to namespace
     suite_pos.type = "namespace"
 
     -- Find the receiver type for this suite function
+    -- Must match both suite function name AND package to avoid cross-package collisions
     ---@type string | nil
     local receiver_type = nil
     for recv_type, suite_func in pairs(replacements) do
       if suite_func == suite_function then
-        receiver_type = recv_type
-        break
+        -- Check if this receiver type belongs to the current package
+        local recv_package = recv_type:match("^([^%.]+)%.")
+        if recv_package == current_package then
+          receiver_type = recv_type
+          break
+        end
       end
     end
 

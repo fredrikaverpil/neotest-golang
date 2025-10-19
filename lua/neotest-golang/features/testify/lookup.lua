@@ -77,7 +77,9 @@ function M.generate_data(file_path)
   for i, struct in ipairs(matches.suite_struct or {}) do
     local func = matches.test_function[i]
     if func then
-      data.replacements[struct.text] = func.text
+      -- Use package-qualified receiver type to avoid collisions across packages
+      local qualified_receiver = package_name .. "." .. struct.text
+      data.replacements[qualified_receiver] = func.text
     end
   end
 
@@ -97,11 +99,13 @@ function M.generate_data(file_path)
           definition_match.text:match("func %([^)]+%) ([%w_]+)%(")
         if method_name then
           -- Store method info: name -> {receiver, definition, source_file}
+          -- Use package-qualified receiver to avoid collisions
           if not data.methods[method_name] then
             data.methods[method_name] = {}
           end
+          local qualified_receiver = package_name .. "." .. receiver_match.text
           table.insert(data.methods[method_name], {
-            receiver = receiver_match.text,
+            receiver = qualified_receiver,
             definition = definition_match,
             source_file = file_path,
           })
