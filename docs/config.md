@@ -180,12 +180,10 @@ note that this requires `nvim-treesitter` (`main` branch).
     This feature comes with some caveats and nuances, which is why it is not enabled
     by default. I advise you to only enable this if you need it.
 
-    There are some real shenaningans going on behind the scenes to make this work.
-    😅 First, an in-memory lookup of "receiver type-to-suite test function" will be
-    created of all Go test files in your project. Then, the generated Neotest node
-    tree is modified by mutating private attributes and merging of nodes to avoid
-    duplicates. I'm personally a bit afraid of the maintenance burden of this
-    feature... 🙈
+    Behind the scenes, testify suite tests are represented using a flat structure
+    where test IDs are prefixed with the suite name (e.g., `SuiteName/TestMethod`).
+    An in-memory lookup of "receiver type-to-suite test function" is created from
+    all Go test files in your project to map test methods to their parent suites.
 
 !!! note "Table tests not supported"
 

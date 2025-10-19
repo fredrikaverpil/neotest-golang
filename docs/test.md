@@ -128,15 +128,14 @@ When writing tests...
 
 ## Debugging Testify Suite Issues
 
-The testify suite feature in neotest-golang is complex because it requires
-transforming the neotest tree to create proper namespace hierarchies for testify
-receiver methods. This section documents debugging techniques for
-testify-related issues.
+The testify suite feature in neotest-golang requires special handling to map
+receiver methods to their parent suites. This section documents debugging
+techniques for testify-related issues.
 
 ### Understanding Testify Architecture
 
-Testify suites use Go receiver methods that need to be converted into neotest
-namespace structures:
+Testify suites use Go receiver methods that are represented as flat test IDs
+prefixed with the suite name:
 
 ```go
 // Receiver type
@@ -148,22 +147,25 @@ type ExampleTestSuite struct {
 func (suite *ExampleTestSuite) TestExample() { ... }
 func (suite *ExampleTestSuite) TestExample2() { ... }
 
-// Suite runner function (discovered by regular Go queries)
+// Suite runner function (discovered by regular Go queries, but hidden in tree)
 func TestExampleTestSuite(t *testing.T) {
     suite.Run(t, new(ExampleTestSuite))
 }
 ```
 
-The expected neotest tree structure should be:
+The neotest tree structure uses a flat representation with prefixed test IDs:
 
 ```
-- TestExampleTestSuite (namespace)
-  ├── TestExample (test)
-  ├── TestExample2 (test)
-  └── TestSubTest (test)
+- file_test.go
+  ├── TestExampleTestSuite/TestExample (test)
+  ├── TestExampleTestSuite/TestExample2 (test)
+  └── TestExampleTestSuite/TestSubTest (test)
     └── "subtest" (test)
-- TestTrivial (regular test)
+  └── TestTrivial (regular test)
 ```
+
+Note: The suite runner function (`TestExampleTestSuite`) is not shown in the
+tree to avoid confusion and improve usability.
 
 ### Debugging Tree Modification Issues
 
@@ -261,12 +263,13 @@ print("=====================================")
   (not `@test_name`)
 - **Check**: Enable debug output in query detection to see if methods are found
 
-#### Issue: Methods not properly namespaced
+#### Issue: Methods not properly prefixed
 
-- **Symptom**: Flat test structure instead of namespace hierarchy
-- **Cause**: Tree modification not creating proper parent-child relationships
-- **Solution**: Check method-to-receiver mapping and tree creation logic
-- **Check**: Debug tree structure before/after modification
+- **Symptom**: Test IDs missing suite name prefix (e.g., `TestMethod` instead of
+  `SuiteName/TestMethod`)
+- **Cause**: Tree modification not properly renaming test IDs with suite prefix
+- **Solution**: Check method-to-receiver mapping and ID renaming logic
+- **Check**: Debug tree structure to verify test IDs have correct format
 
 #### Issue: Duplicate method names causing confusion
 
@@ -281,8 +284,8 @@ print("=====================================")
 
 - **Symptom**: Test execution fails or doesn't match expected IDs
 - **Cause**: ID replacement logic not updating position IDs correctly
-- **Solution**: Ensure regex replacement updates IDs from `::MethodName` to
-  `::SuiteFunction::MethodName`
+- **Solution**: Ensure ID renaming updates test IDs from `::MethodName` to
+  `::SuiteName/MethodName` (using `/` separator to match `go test -run` format)
 - **Check**: Compare expected vs actual position IDs in test assertions
 
 ### Treesitter Query Compatibility

@@ -1,4 +1,4 @@
---- Lookup table for renaming Neotest namespaces (receiver type to testify suite function).
+--- Lookup table for mapping testify receiver methods to their suite functions (flat structure).
 
 local options = require("neotest-golang.options")
 local query = require("neotest-golang.features.testify.query")
@@ -83,7 +83,7 @@ function M.generate_data(file_path)
     end
   end
 
-  -- Second pass: collect method information for cross-file support
+  -- Second pass: collect method information from receiver functions
   -- Run namespace query to find all receiver methods in this file
   local namespace_matches =
     query.run_query_on_file(file_path, query.namespace_query)
