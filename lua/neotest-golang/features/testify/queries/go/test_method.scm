@@ -20,9 +20,9 @@
 ; - @test.name = The method name (e.g., "TestExample")
 ; - @test.definition = The entire method declaration
 ;
-; Tree structure: File -> TestXxxSuite (namespace) -> TestExample (test)
-; The receiver type (namespace) is captured by namespace.scm, this query only
-; identifies which methods are tests.
+; Flat structure: File -> TestSuiteName/TestExample (test)
+; The receiver type is captured by namespace.scm for lookup purposes.
+; This query identifies which methods are tests.
 ; ============================================================================
 (method_declaration
   name: (field_identifier) @test.name

@@ -33,7 +33,7 @@ and handles:
 - Command generation for various test scopes (directory, file, individual tests)
 - Result processing from `go test` and `gotestsum` output
 - Integration with DAP for debugging
-- Rudimental support for testify test suites (although provided via a "hack")
+- Testify suite support using flat structure (suite methods prefixed with suite name)
 
 ## Development Commands
 
@@ -112,7 +112,7 @@ When running `task test`, Neovim launches headlessly and:
 1. **Position Types**: The adapter handles 4 position types from Neotest:
    - `dir` - Directory of tests
    - `file` - Single test file
-   - `namespace` - Group of tests (used only by testify suites)
+   - `namespace` - Group of tests (not used by this adapter)
    - `test` - Individual test function
 
 2. **Runspec Strategy**: Each position type has its own runspec builder in

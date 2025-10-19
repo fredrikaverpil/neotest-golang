@@ -106,7 +106,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   -- Collect all positions
   ---@type neotest.Position[]
   local positions = {}
-  for i, pos in tree:iter() do
+  for _, pos in tree:iter() do
     table.insert(positions, pos)
   end
 

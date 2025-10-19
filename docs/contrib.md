@@ -51,11 +51,12 @@ looks for these captures:
 - `@test.definition` - The AST node representing the entire test definition
   (required)
 
-**For namespaces (e.g., testify suites):**
+**For testify suites:**
 
-- `@namespace.name` - The name/identifier of the namespace (required)
-- `@namespace.definition` - The AST node representing the entire namespace
-  definition (required)
+Testify suites use a flat structure. Receiver methods are identified via
+`@namespace.name` and `@namespace.definition` captures for lookup purposes, but
+these are not converted into namespace position nodes. Instead, test IDs are
+prefixed with suite names (e.g., `::SuiteName/MethodName`).
 
 The `build_position` function in Neotest's treesitter library extracts text from
 the `.name` capture and uses the `.definition` capture's range to determine the
@@ -93,8 +94,8 @@ adapter supplies queries so to figure out what is considered a test.
 From the result of these queries, a Neotest "position" tree is built (can be
 visualized through the "Neotest summary"). Each position in the tree represents
 either a `dir`, `file` or `test` type. Neotest also has a notion of a
-`namespace` position type, but this is ignored by default by this adapter (but
-leveraged to supply testify support).
+`namespace` position type, but this adapter does not use it (testify support
+uses a flat structure).
 
 ### Generating valid `go test` commands
 
