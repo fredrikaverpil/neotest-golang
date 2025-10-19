@@ -1,5 +1,7 @@
 # Implementation Plan: Flat Testify Support
 
+> **Source:** This plan implements the approach described in [TASK.md](./TASK.md)
+
 ## User Preferences
 
 Based on your answers to clarifying questions:
