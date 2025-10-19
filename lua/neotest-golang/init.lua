@@ -116,9 +116,8 @@ function M.Adapter.build_spec(args)
     -- file.
     return runspec.file.build(pos, tree, args.strategy)
   elseif pos.type == "namespace" then
-    -- A runspec is to be created, based on running all tests in the given
-    -- namespace.
-    return runspec.namespace.build(pos, tree)
+    logger.error("Namespace positions are not supported", true)
+    return nil
   elseif pos.type == "test" then
     -- A runspec is to be created, based on on running the given test.
     return runspec.test.build(pos, tree, args.strategy)
@@ -154,11 +153,8 @@ function M.Adapter.results(spec, result, tree)
     M.workaround_neotest_issue_391(result)
     return results
   elseif pos.type == "namespace" then
-    -- A test command executed a namespace and the output/status must now be
-    -- processed.
-    local results = results_finalize.test_results(spec, result, tree)
-    M.workaround_neotest_issue_391(result)
-    return results
+    logger.error("Namespace positions are not supported", true)
+    return {}
   elseif pos.type == "test" then
     -- A test command executed a single test and the output/status must now be
     -- processed.
