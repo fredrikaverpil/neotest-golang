@@ -29,13 +29,13 @@ describe("Testify suite name collisions", function()
     local tree_string = vim.inspect(result.tree)
 
     -- Should contain foo package's method
-    assert.is_not_nil(
+    assert.truthy(
       tree_string:match("Test_FooFunc"),
       "Expected to find Test_FooFunc in foo package tree"
     )
 
     -- Should NOT contain bar package's method
-    assert.is_nil(
+    assert.falsy(
       tree_string:match("Test_BarFunc"),
       "Did not expect to find Test_BarFunc in foo package tree"
     )
@@ -61,13 +61,13 @@ describe("Testify suite name collisions", function()
     local tree_string = vim.inspect(result.tree)
 
     -- Should contain bar package's method
-    assert.is_not_nil(
+    assert.truthy(
       tree_string:match("Test_BarFunc"),
       "Expected to find Test_BarFunc in bar package tree"
     )
 
     -- Should NOT contain foo package's method
-    assert.is_nil(
+    assert.falsy(
       tree_string:match("Test_FooFunc"),
       "Did not expect to find Test_FooFunc in bar package tree"
     )
@@ -84,10 +84,10 @@ describe("Testify suite name collisions", function()
 
     local result = integration.execute_adapter_direct(file_path)
 
-    assert.is_not_nil(result.tree, "Expected tree to be generated")
+    assert.truthy(result.tree, "Expected tree to be generated")
 
     -- Verify test execution produces valid results
-    assert.is_not_nil(result.results, "Expected test results")
+    assert.truthy(result.results, "Expected test results")
   end)
 
   it("bar package test executes successfully", function()
@@ -101,9 +101,9 @@ describe("Testify suite name collisions", function()
 
     local result = integration.execute_adapter_direct(file_path)
 
-    assert.is_not_nil(result.tree, "Expected tree to be generated")
+    assert.truthy(result.tree, "Expected tree to be generated")
 
     -- Verify test execution produces valid results
-    assert.is_not_nil(result.results, "Expected test results")
+    assert.truthy(result.results, "Expected test results")
   end)
 end)
