@@ -2,6 +2,13 @@
 
 > **Source:** This plan implements the approach described in [TASK.md](./TASK.md)
 
+## Development Workflow
+
+**IMPORTANT**: For each significant step forward:
+1. Run `task format` before committing (formatting failures are OK, especially git diff at the end)
+2. Create a git commit with descriptive message
+3. Continue to next step
+
 ## User Preferences
 
 Based on your answers to clarifying questions:
