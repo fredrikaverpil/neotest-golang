@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.3.0...v2.4.0) (2025-10-20)
+
+
+### Features
+
+* **testify:** use flat test structure ([#483](https://github.com/fredrikaverpil/neotest-golang/issues/483)) ([4664e7d](https://github.com/fredrikaverpil/neotest-golang/commit/4664e7d3b1cb5a3b915b3840651dc6f54c8565ac))
+
 ## [2.3.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.2.0...v2.3.0) (2025-10-15)
 
 
