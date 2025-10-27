@@ -13,6 +13,7 @@ local M = {}
 ---@field dap_mode string|fun(): string "dap-go" or "manual"
 ---@field dap_manual_config table|fun(): table Manual DAP configuration
 ---@field env table|fun(): table Environment variables
+---@field filter_dirs string[]|fun(): table Filtered directories
 ---@field testify_enabled boolean Enable testify suite support
 ---@field testify_operand string Regex pattern for testify suite variables
 ---@field testify_import_identifier string Regex pattern for testify import identifiers
@@ -33,6 +34,7 @@ local opts = {
   dap_mode = "dap-go", -- NOTE: or "manual" ; can also be a function
   dap_manual_config = {}, -- NOTE: can also be a function
   env = {}, -- NOTE: can also be a function
+  filter_dirs = { ".git", "node_modules", ".venv", "venv" }, -- NOTE: can also be a function
   testify_enabled = false,
   testify_operand = "^(s|suite)$",
   testify_import_identifier = "^(suite)$",

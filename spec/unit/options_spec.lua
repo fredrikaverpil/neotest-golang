@@ -16,6 +16,7 @@ describe("Options are set up", function()
       dap_mode = "dap-go",
       dap_manual_config = {},
       env = {},
+      filter_dirs = { ".git", "node_modules", ".venv", "venv" },
       testify_enabled = false,
       testify_operand = "^(s|suite)$",
       testify_import_identifier = "^(suite)$",
@@ -47,6 +48,7 @@ describe("Options are set up", function()
       dap_mode = "dap-go",
       dap_manual_config = {},
       env = {},
+      filter_dirs = {},
       testify_enabled = false,
       testify_operand = "^(s|suite)$",
       testify_import_identifier = "^(suite)$",
@@ -86,6 +88,9 @@ describe("Options are set up", function()
         return {}
       end,
       env = function()
+        return {}
+      end,
+      filter_dirs = function()
         return {}
       end,
       testify_enabled = false,
