@@ -52,17 +52,16 @@
               (interpreted_string_literal) @test.name)
             (literal_element)) @test.definition))))
   body: (block
-    (statement_list
-      (expression_statement
-        (call_expression
-          function: (selector_expression
-            operand: (identifier) @test.operand
-            (#match? @test.operand "^[t]$")
-            field: (field_identifier) @test.method
-            (#match? @test.method "^Run$"))
-          arguments: (argument_list
-            (selector_expression
-              operand: (identifier) @test.case1
-              (#eq? @test.case @test.case1)
-              field: (field_identifier) @test.field.name1
-              (#eq? @test.field.name @test.field.name1))))))))
+    (expression_statement
+      (call_expression
+        function: (selector_expression
+          operand: (identifier) @test.operand
+          (#match? @test.operand "^[t]$")
+          field: (field_identifier) @test.method
+          (#match? @test.method "^Run$"))
+        arguments: (argument_list
+          (selector_expression
+            operand: (identifier) @test.case1
+            (#eq? @test.case @test.case1)
+            field: (field_identifier) @test.field.name1
+            (#eq? @test.field.name @test.field.name1)))))))

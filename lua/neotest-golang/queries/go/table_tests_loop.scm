@@ -50,14 +50,13 @@
               (literal_element
                 (interpreted_string_literal) @test.name))) @test.definition))))
   body: (block
-    (statement_list
-      (expression_statement
-        (call_expression
-          function: (selector_expression
+    (expression_statement
+      (call_expression
+        function: (selector_expression
+          operand: (identifier)
+          field: (field_identifier))
+        arguments: (argument_list
+          (selector_expression
             operand: (identifier)
-            field: (field_identifier))
-          arguments: (argument_list
-            (selector_expression
-              operand: (identifier)
-              field: (field_identifier) @test.field.name1)
-            (#eq? @test.field.name @test.field.name1)))))))
+            field: (field_identifier) @test.field.name1)
+          (#eq? @test.field.name @test.field.name1))))))
