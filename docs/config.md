@@ -167,6 +167,49 @@ The value can also be passed in as a function.
     You can also pass in environment variables via Neotest's `extra_args` feature,
     see the [recipes](recipes.md) for more info.
 
+### `filter_dirs`
+
+Default value: `{ ".git", "node_modules", ".venv", "venv" }`
+
+A list of directory names to exclude when searching for test files. These
+directories will be filtered out during test discovery.
+
+The value can also be passed in as a function.
+
+??? example "Filter custom directories"
+
+    ```lua
+    local config = { -- Specify configuration
+      filter_dirs = {
+        ".git",
+        "node_modules",
+        ".venv",
+        "venv",
+        "vendor",  -- Add custom directory
+      },
+    }
+    require("neotest").setup({
+      adapters = {
+        require("neotest-golang")(config), -- Apply configuration
+      },
+    })
+    ```
+
+    Or use a function for dynamic filtering:
+
+    ```lua
+    local config = {
+      filter_dirs = function()
+        return { ".git", "vendor", "third_party" }
+      end,
+    }
+    require("neotest").setup({
+      adapters = {
+        require("neotest-golang")(config), -- Apply configuration
+      },
+    })
+    ```
+
 ### `testify_enabled`
 
 Default value: `false`

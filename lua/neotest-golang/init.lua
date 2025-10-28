@@ -36,7 +36,11 @@ end
 --- @param root string Root directory of project
 --- @return boolean
 function M.Adapter.filter_dir(name, rel_path, root)
-  local ignore_dirs = { ".git", "node_modules", ".venv", "venv" }
+  local ignore_dirs = M.Adapter.options.filter_dirs
+  if type(ignore_dirs) == "function" then
+    ignore_dirs = ignore_dirs()
+  end
+
   for _, ignore in ipairs(ignore_dirs) do
     if name == ignore then
       return false
