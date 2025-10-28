@@ -13,7 +13,7 @@ local M = {}
 ---@field dap_mode string|fun(): string "dap-go" or "manual"
 ---@field dap_manual_config table|fun(): table Manual DAP configuration
 ---@field env table|fun(): table Environment variables
----@field filter_dirs string[]|fun(): table Filtered directories
+---@field filter_dirs string[]|fun(): string[] Filtered directories
 ---@field testify_enabled boolean Enable testify suite support
 ---@field testify_operand string Regex pattern for testify suite variables
 ---@field testify_import_identifier string Regex pattern for testify import identifiers
