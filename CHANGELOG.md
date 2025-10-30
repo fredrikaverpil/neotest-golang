@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.5.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.4.0...v2.5.0) (2025-10-30)
+
+
+### Features
+
+* filter_dirs option ([#487](https://github.com/fredrikaverpil/neotest-golang/issues/487)) ([d03e6bb](https://github.com/fredrikaverpil/neotest-golang/commit/d03e6bbfcc101e204954e0237340f42e464383ec))
+
+
+### Bug Fixes
+
+* search for go.work or go.mod upwards to decide root dir ([#490](https://github.com/fredrikaverpil/neotest-golang/issues/490)) ([3f40cd5](https://github.com/fredrikaverpil/neotest-golang/commit/3f40cd5bd2299ba0534e09706bdfe42aa74cba67))
+
 ## [2.4.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.3.0...v2.4.0) (2025-10-20)
 
 
