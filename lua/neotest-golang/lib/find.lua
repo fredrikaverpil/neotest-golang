@@ -1,5 +1,6 @@
 --- File system search operations for Go test discovery.
 
+local lib_neotest = require("neotest.lib")
 local scandir = require("plenary.scandir")
 
 local logger = require("neotest-golang.lib.logging")
@@ -31,6 +32,35 @@ function M.file_upwards(filename, start_path)
   end
 
   return nil
+end
+
+--- Find go.mod files downward to determine monorepo root.
+--- @param folderpath string Directory path to search from
+--- @return string|nil Root directory path or nil if no go.mod files found
+function M.root_for_tests(folderpath)
+  -- First, check for go.work or go.mod at cwd or above (stop at $HOME)
+  local root =
+    lib_neotest.files.match_root_pattern("go.work", "go.mod")(folderpath)
+  if root then
+    return root
+  end
+
+  -- Second, find all go.mod files recursively (monorepo-style)
+  local go_mod_files = scandir.scan_dir(
+    folderpath,
+    { search_pattern = "go%.mod$", respect_gitignore = true }
+  )
+
+  if #go_mod_files == 0 then
+    -- No go.mod files found, no tests can run (disables adapter's test discovery)
+    return nil
+  elseif #go_mod_files == 1 then
+    -- Single go.mod found, return its directory
+    return path.get_directory(go_mod_files[1])
+  else
+    -- Multiple go.mod files (monorepo), return the search root
+    return folderpath
+  end
 end
 
 --- Get all *_test.go files in a directory recursively.
