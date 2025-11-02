@@ -22,7 +22,7 @@ return {
       "antoinemadec/FixCursorHold.nvim",
       {
         "nvim-treesitter/nvim-treesitter", -- Optional, but recommended
-        branch = "main"  -- NOTE; not the master branch!
+        branch = "main",  -- NOTE; not the master branch!
         build = function()
           vim.cmd(":TSUpdate go")
         end,
