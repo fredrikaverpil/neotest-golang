@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1](https://github.com/fredrikaverpil/neotest-golang/compare/v2.5.0...v2.5.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* also search go.mod downwards, return nil if no go.mod found ([#499](https://github.com/fredrikaverpil/neotest-golang/issues/499)) ([0e85149](https://github.com/fredrikaverpil/neotest-golang/commit/0e8514999ffff8055f2152a05d12cb6741606741))
+
 ## [2.5.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.4.0...v2.5.0) (2025-10-30)
 
 
