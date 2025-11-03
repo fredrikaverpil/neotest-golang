@@ -2,7 +2,6 @@
 --- Neotest interface: https://github.com/nvim-neotest/neotest/blob/master/lua/neotest/adapters/interface.lua
 
 local lib = require("neotest-golang.lib")
-local lib_neotest = require("neotest.lib")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
 local query = require("neotest-golang.query")
@@ -19,18 +18,12 @@ M.Adapter = {
   init = function() end,
 }
 
---- Searches upward from the given directory for go.work or go.mod files.
---- Should no root be found, just return the current working directory.
+--- Find root path for test suite.
 --- @async
 --- @param dir string @Directory to treat as cwd
 --- @return string | nil @Absolute root dir of test suite
 function M.Adapter.root(dir)
-  local root = lib_neotest.files.match_root_pattern("go.work", "go.mod")(dir)
-  if root then
-    return root
-  end
-
-  return dir
+  return lib.find.root_for_tests(dir)
 end
 
 --- Filter directories when searching for test files
