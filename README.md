@@ -1,5 +1,7 @@
 # neotest-golang
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fredrikaverpil/neotest-golang)
+
 Reliable Neotest adapter for running Go tests in Neovim.
 
 ![neotest-golang](https://github.com/fredrikaverpil/neotest-golang/assets/994357/afb6e936-b355-4d7b-ab73-65c21ee66ae7)
