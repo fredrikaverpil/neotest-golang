@@ -148,7 +148,7 @@ function M.get_regexp(filepath)
   local regexp = nil
   local lines = {}
   for line in io.lines(filepath) do
-    if line:match("func Test") then
+    if line:match("func Test") or line:match("func Example") then
       line = line:gsub("func ", "")
       line = line:gsub("%(.*", "")
       table.insert(lines, lib.convert.to_gotest_regex_pattern(line))
