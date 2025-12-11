@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.5.1...v2.6.0) (2025-12-11)
+
+
+### Features
+
+* support example tests ([#508](https://github.com/fredrikaverpil/neotest-golang/issues/508)) ([2abf503](https://github.com/fredrikaverpil/neotest-golang/commit/2abf5031aefc56de0a00aa0df9f8b3b40b409283))
+
 ## [2.5.1](https://github.com/fredrikaverpil/neotest-golang/compare/v2.5.0...v2.5.1) (2025-11-03)
 
 
