@@ -1,5 +1,6 @@
 --- DAP (dap-go) setup related functions.
 
+local dupe = require("neotest-golang.lib.dupe")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
 
@@ -20,6 +21,11 @@ function M.setup_debugging(cwd)
   logger.debug({ "Provided dap_go_opts for DAP: ", dap_go_opts })
   require("dap-go").setup(dap_go_opts)
 
+  -- Suppress duplicate test warning since DAP triggers rediscovery of tests
+  local opts = options.get()
+  opts.warn_test_name_dupes = false
+  options.set(opts)
+
   -- reset nvim-dap-go (and cwd) after debugging with nvim-dap
   require("dap").listeners.after.event_terminated["neotest-golang-debug"] = function()
     logger.debug({
@@ -27,6 +33,10 @@ function M.setup_debugging(cwd)
       dap_go_opts_original,
     })
     require("dap-go").setup(dap_go_opts_original)
+
+    -- Re-enable duplicate test warning
+    -- opts.warn_test_name_dupes = true
+    -- options.set(opts)
   end
 end
 

@@ -1,6 +1,10 @@
 package dupes
 
-import "testing"
+import (
+	"testing"
+
+	"gotest.tools/v3/assert"
+)
 
 // TestRegressuion demonstrates what should _not_ be flagged as a duplicate.
 // This was fixed in PR #461.
@@ -36,10 +40,20 @@ func TestRegression(t *testing.T) {
 // func TestDupe(t *testing.T) {
 // 	t.Run("foo", func(t *testing.T) {
 // 		t.Run("bar", func(t *testing.T) {
-// 		})
+// 	u	})
 // 	})
 // 	t.Run("foo", func(t *testing.T) {
 // 		t.Run("bar", func(t *testing.T) {
 // 		})
 // 	})
 // }
+
+func TestSomething(t *testing.T) {
+	t.Run("Test Something", func(t *testing.T) {
+		assert.Equal(t, 123, 123, "they should be equal")
+	})
+
+	t.Run("Test Something", func(t *testing.T) {
+		assert.Equal(t, 123, 123, "they should be equal")
+	})
+}
