@@ -162,4 +162,45 @@ function M.has_drive_letter(path)
   return path:match("^[A-Za-z]:") ~= nil
 end
 
+--- Check if a glob pattern is an absolute path pattern.
+--- @param pattern string The glob pattern to check
+--- @return boolean True if the pattern is absolute (starts with / or drive letter)
+function M.is_absolute_pattern(pattern)
+  if not pattern or type(pattern) ~= "string" or pattern == "" then
+    return false
+  end
+
+  -- Unix absolute path or Windows drive letter
+  return pattern:match("^/") ~= nil or pattern:match("^[A-Za-z]:[/\\]") ~= nil
+end
+
+--- Match a path against a glob pattern using vim.glob.to_lpeg.
+--- Patterns follow the LSP 3.17 glob specification:
+--- - `*` matches zero or more characters in a path segment
+--- - `?` matches a single character in a path segment
+--- - `**` matches any number of path segments, including none
+--- - `{}` for grouping conditions (e.g., `**/*.{ts,js}`)
+--- - `[]` for character ranges (e.g., `example.[0-9]`)
+--- @param path string The path to match against
+--- @param pattern string The glob pattern
+--- @return boolean True if the path matches the pattern
+function M.matches_glob_pattern(path, pattern)
+  if not path or path == "" or not pattern or pattern == "" then
+    return false
+  end
+
+  -- Normalize path to use forward slashes for matching (glob patterns use /)
+  local normalized_path = path:gsub("\\", "/")
+
+  -- Compile glob pattern to lpeg
+  local ok, lpeg_pattern = pcall(vim.glob.to_lpeg, pattern)
+  if not ok or not lpeg_pattern then
+    -- Invalid pattern, return false
+    return false
+  end
+
+  -- Match returns position (number) on success, nil on failure
+  return lpeg_pattern:match(normalized_path) ~= nil
+end
+
 return M

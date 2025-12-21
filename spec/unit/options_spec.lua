@@ -17,6 +17,7 @@ describe("Options are set up", function()
       dap_manual_config = {},
       env = {},
       filter_dirs = { ".git", "node_modules", ".venv", "venv" },
+      filter_dir_patterns = {},
       testify_enabled = false,
       testify_operand = "^(s|suite)$",
       testify_import_identifier = "^(suite)$",
@@ -49,6 +50,7 @@ describe("Options are set up", function()
       dap_manual_config = {},
       env = {},
       filter_dirs = {},
+      filter_dir_patterns = {},
       testify_enabled = false,
       testify_operand = "^(s|suite)$",
       testify_import_identifier = "^(suite)$",
@@ -91,6 +93,9 @@ describe("Options are set up", function()
         return {}
       end,
       filter_dirs = function()
+        return {}
+      end,
+      filter_dir_patterns = function()
         return {}
       end,
       testify_enabled = false,
