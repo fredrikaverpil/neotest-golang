@@ -83,4 +83,104 @@ describe("Filter directories", function()
       assert.is_true(adapter.filter_dir("src", ".", "/project/root"))
     end)
   end)
+
+  describe("With filter_dir_patterns configuration", function()
+    it("Filters directories matching double-star pattern", function()
+      local adapter = adapter_module({
+        filter_dirs = {},
+        filter_dir_patterns = { "**/vendor" },
+      })
+      -- vendor at root level
+      assert.is_false(adapter.filter_dir("vendor", ".", "/project/root"))
+      -- vendor nested in src
+      assert.is_false(adapter.filter_dir("vendor", "src", "/project/root"))
+      -- vendor deeply nested
+      assert.is_false(adapter.filter_dir("vendor", "a/b/c", "/project/root"))
+      -- unrelated directory
+      assert.is_true(adapter.filter_dir("src", ".", "/project/root"))
+    end)
+
+    it("Filters directories matching single-level pattern", function()
+      local adapter = adapter_module({
+        filter_dirs = {},
+        filter_dir_patterns = { "foo/*" },
+      })
+      -- Matches foo/bar
+      assert.is_false(adapter.filter_dir("bar", "foo", "/project/root"))
+      -- Does not match baz/bar
+      assert.is_true(adapter.filter_dir("bar", "baz", "/project/root"))
+      -- Does not match foo itself at root
+      assert.is_true(adapter.filter_dir("foo", ".", "/project/root"))
+    end)
+
+    it("Filters specific nested path without affecting others", function()
+      local adapter = adapter_module({
+        filter_dirs = {},
+        filter_dir_patterns = { "foo/baz/**" },
+      })
+      -- Filters foo/baz/anything
+      assert.is_false(
+        adapter.filter_dir("anything", "foo/baz", "/project/root")
+      )
+      -- Does NOT filter bar/baz
+      assert.is_true(adapter.filter_dir("anything", "bar/baz", "/project/root"))
+    end)
+
+    it("Filters directories matching absolute path pattern", function()
+      local adapter = adapter_module({
+        filter_dirs = {},
+        filter_dir_patterns = { "/usr/local/go/**" },
+      })
+      -- Matches absolute path
+      assert.is_false(adapter.filter_dir("src", ".", "/usr/local/go"))
+      assert.is_false(adapter.filter_dir("runtime", "src", "/usr/local/go"))
+      -- Does not match other roots
+      assert.is_true(adapter.filter_dir("src", ".", "/project/root"))
+    end)
+
+    it("Works with filter_dir_patterns as function", function()
+      local adapter = adapter_module({
+        filter_dirs = {},
+        filter_dir_patterns = function()
+          return { "**/build" }
+        end,
+      })
+      assert.is_false(adapter.filter_dir("build", ".", "/project/root"))
+      assert.is_false(adapter.filter_dir("build", "src", "/project/root"))
+      assert.is_true(adapter.filter_dir("src", ".", "/project/root"))
+    end)
+
+    it("Works alongside filter_dirs", function()
+      local adapter = adapter_module({
+        filter_dirs = { ".git" },
+        filter_dir_patterns = { "**/vendor" },
+      })
+      -- filter_dirs still works
+      assert.is_false(adapter.filter_dir(".git", ".", "/project/root"))
+      -- filter_dir_patterns works
+      assert.is_false(adapter.filter_dir("vendor", ".", "/project/root"))
+      -- unrelated directory allowed
+      assert.is_true(adapter.filter_dir("src", ".", "/project/root"))
+    end)
+
+    it("Handles empty filter_dir_patterns", function()
+      local adapter = adapter_module({
+        filter_dirs = {},
+        filter_dir_patterns = {},
+      })
+      assert.is_true(adapter.filter_dir("vendor", ".", "/project/root"))
+      assert.is_true(adapter.filter_dir("build", ".", "/project/root"))
+    end)
+
+    it("Handles multiple patterns", function()
+      local adapter = adapter_module({
+        filter_dirs = {},
+        filter_dir_patterns = { "**/vendor", "**/node_modules", "build/*" },
+      })
+      assert.is_false(adapter.filter_dir("vendor", ".", "/project/root"))
+      assert.is_false(adapter.filter_dir("node_modules", ".", "/project/root"))
+      assert.is_false(adapter.filter_dir("output", "build", "/project/root"))
+      assert.is_true(adapter.filter_dir("src", ".", "/project/root"))
+    end)
+  end)
 end)
