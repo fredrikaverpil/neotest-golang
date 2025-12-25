@@ -50,6 +50,9 @@ end
 --- @param file_path string
 --- @return boolean
 function M.Adapter.is_test_file(file_path)
+  if lib.goenv.should_skip(file_path, vim.uv.cwd()) then
+    return false
+  end
   return vim.endswith(file_path, "_test.go")
 end
 
