@@ -23,9 +23,6 @@ M.Adapter = {
 --- @param dir string @Directory to treat as cwd
 --- @return string | nil @Absolute root dir of test suite
 function M.Adapter.root(dir)
-  if lib.path.must_skip_path(dir, vim.fn.getcwd()) then
-    return nil
-  end
   return lib.find.root_for_tests(dir)
 end
 
