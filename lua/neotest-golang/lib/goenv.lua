@@ -33,7 +33,10 @@ end
 --- Set the go env cache directly (useful for testing).
 --- @param env {gopath: string, goroot: string}
 function M.set_cache_for_testing(env)
-  go_env_cache = env
+  go_env_cache = {
+    gopath = path.normalize_path(env.gopath or ""),
+    goroot = path.normalize_path(env.goroot or ""),
+  }
 end
 
 --- Check if a path starts with a prefix and respects path boundaries.
