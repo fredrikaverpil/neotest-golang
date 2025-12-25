@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.1](https://github.com/fredrikaverpil/neotest-golang/compare/v2.6.0...v2.6.1) (2025-12-25)
+
+
+### Bug Fixes
+
+* ignore $GOPATH/$GOROOT, unless part of cwd ([#513](https://github.com/fredrikaverpil/neotest-golang/issues/513)) ([97bf34a](https://github.com/fredrikaverpil/neotest-golang/commit/97bf34a811806166b62494b40bbd4959c221647f))
+
 ## [2.6.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.5.1...v2.6.0) (2025-12-11)
 
 
