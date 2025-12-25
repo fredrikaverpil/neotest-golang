@@ -67,20 +67,75 @@ describe("Go environment utilities", function()
     end)
   end)
 
-  describe("should_skip edge cases", function()
+  describe("should_skip", function()
     before_each(function()
+      goenv.clear_cache()
+      -- Set up mock GOPATH and GOROOT for testing
+      goenv.set_cache_for_testing({
+        gopath = "/home/user/go",
+        goroot = "/usr/local/go",
+      })
+    end)
+
+    after_each(function()
       goenv.clear_cache()
     end)
 
     it("returns false when cwd is nil", function()
-      -- Can't test async functions directly without neotest context,
-      -- but we can verify the nil handling
       local result = goenv.should_skip("/some/path", nil)
       assert.is_false(result)
     end)
 
     it("returns false when path is nil", function()
       local result = goenv.should_skip(nil, "/home/user")
+      assert.is_false(result)
+    end)
+
+    it("returns true when path is in GOPATH but cwd is not", function()
+      local result = goenv.should_skip(
+        "/home/user/go/pkg/mod/github.com/foo/bar",
+        "/home/user/myproject"
+      )
+      assert.is_true(result)
+    end)
+
+    it("returns true when path is in GOROOT but cwd is not", function()
+      local result = goenv.should_skip(
+        "/usr/local/go/src/fmt/print.go",
+        "/home/user/myproject"
+      )
+      assert.is_true(result)
+    end)
+
+    it("returns false when both path and cwd are in GOPATH", function()
+      local result = goenv.should_skip(
+        "/home/user/go/src/myproject/main_test.go",
+        "/home/user/go/src/myproject"
+      )
+      assert.is_false(result)
+    end)
+
+    it("returns false when neither path nor cwd is in GOPATH/GOROOT", function()
+      local result = goenv.should_skip(
+        "/home/user/myproject/main_test.go",
+        "/home/user/myproject"
+      )
+      assert.is_false(result)
+    end)
+
+    it("returns false when path is outside but cwd is in GOPATH", function()
+      -- Edge case: user is working inside GOPATH
+      local result =
+        goenv.should_skip("/tmp/some/test.go", "/home/user/go/src/myproject")
+      assert.is_false(result)
+    end)
+
+    it("does not match paths with similar prefix (the bug fix)", function()
+      -- GOPATH is /home/user/go, but /home/user/golang should NOT match
+      local result = goenv.should_skip(
+        "/home/user/golang/myproject/main_test.go",
+        "/home/user/myproject"
+      )
       assert.is_false(result)
     end)
   end)

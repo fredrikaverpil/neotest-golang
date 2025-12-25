@@ -30,6 +30,12 @@ function M.clear_cache()
   go_env_cache = nil
 end
 
+--- Set the go env cache directly (useful for testing).
+--- @param env {gopath: string, goroot: string}
+function M.set_cache_for_testing(env)
+  go_env_cache = env
+end
+
 --- Check if a path starts with a prefix and respects path boundaries.
 --- Ensures the prefix match ends at a path separator or at the end of the path.
 --- @param path_str string Path to check
