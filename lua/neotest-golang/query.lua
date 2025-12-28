@@ -2,6 +2,7 @@
 
 local lib = require("neotest.lib")
 
+local discovery_cache = require("neotest-golang.lib.discovery_cache")
 local dupe = require("neotest-golang.lib.dupe")
 local logger = require("neotest-golang.lib.logging")
 local options = require("neotest-golang.options")
@@ -39,9 +40,17 @@ function M.has_go_parser()
 end
 
 --- Detect test names in Go *._test.go files.
+--- Uses caching to avoid redundant parsing when the file hasn't changed.
+--- This prevents performance issues when DAP-UI or other plugins trigger
+--- multiple buffer events rapidly.
 --- @param file_path string Absolute path to the Go test file
 --- @return neotest.Tree|nil Tree of detected tests, or nil if parsing failed
 function M.detect_tests(file_path)
+  local cached = discovery_cache.get(file_path)
+  if cached then
+    return cached
+  end
+
   if not M.has_go_parser() then
     logger.error(
       "Go tree-sitter parser not found. Install with :TSInstall go",
@@ -86,6 +95,7 @@ function M.detect_tests(file_path)
     dupe.warn_duplicate_tests(tree)
   end
 
+  discovery_cache.set(file_path, tree)
   return tree
 end
 
