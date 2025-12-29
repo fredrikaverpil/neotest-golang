@@ -18,9 +18,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  USE_MKDOCS_MATERIAL_INSIDERS: false
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -28,11 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 0 # for rss
-
-      # for social cards
-      - run: sudo apt update
-      - run: sudo apt-get install libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
+          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -45,17 +38,11 @@ jobs:
         with:
           python-version-file: "pyproject.toml"
 
-      - name: Install Mkdocs-Material
+      - name: Install dependencies
         run: uv sync
 
-      - name: Install Mkdocs-Material-Insiders
-        run: |
-          uv pip uninstall mkdocs-material
-          uv pip install --upgrade git+https://${{ secrets.MKDOCS_MATERIAL_INSIDERS }}@github.com/squidfunk/mkdocs-material-insiders.git
-        if: ${{ env.USE_MKDOCS_MATERIAL_INSIDERS == 'true' }}
-
       - name: Build
-        run: uv run mkdocs build
+        run: uv run zensical build
 
       - name: Setup Pages
         if: github.event_name != 'pull_request'
