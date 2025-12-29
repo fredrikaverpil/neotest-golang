@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.7.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.6.0...v2.7.0) (2025-12-29)
+
+
+### Features
+
+* **docs:** mkdocs -&gt; zensical ([#519](https://github.com/fredrikaverpil/neotest-golang/issues/519)) ([3312276](https://github.com/fredrikaverpil/neotest-golang/commit/33122765061db725c67aa7b31fb0afd1a06cfd54))
+* pattern matching based filtering ([#514](https://github.com/fredrikaverpil/neotest-golang/issues/514)) ([5dc7644](https://github.com/fredrikaverpil/neotest-golang/commit/5dc76446fbfd67ac637565f5af41aff6db1835c1))
+* test discovery cache ([#516](https://github.com/fredrikaverpil/neotest-golang/issues/516)) ([71f7335](https://github.com/fredrikaverpil/neotest-golang/commit/71f7335e32e98643d8652699ab045697356b99fb))
+
+
+### Bug Fixes
+
+* **dap:** restart by disabling delve's native restart capability ([#517](https://github.com/fredrikaverpil/neotest-golang/issues/517)) ([9cd3cb8](https://github.com/fredrikaverpil/neotest-golang/commit/9cd3cb85a2d3a1331c6e8d33c21077f22df3b927))
+* ignore $GOPATH/$GOROOT, unless part of cwd ([#513](https://github.com/fredrikaverpil/neotest-golang/issues/513)) ([97bf34a](https://github.com/fredrikaverpil/neotest-golang/commit/97bf34a811806166b62494b40bbd4959c221647f))
+
 ## [2.6.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.5.1...v2.6.0) (2025-12-11)
 
 
