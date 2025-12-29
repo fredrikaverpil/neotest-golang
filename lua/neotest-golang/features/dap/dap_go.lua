@@ -30,8 +30,11 @@ function M.setup_debugging(cwd)
   end
 
   -- Workaround: Disable native restart to force terminate+rerun.
-  -- Delve's native DAP restart doesn't work reliably for test debugging.
+  -- Delve supports restart with rebuild (go-delve/delve#4103), but nvim-dap
+  -- doesn't format the restart request correctly (missing `arguments.rebuild`).
+  -- Until nvim-dap supports proper restart arguments, we force terminate+rerun.
   -- See: https://github.com/go-delve/delve/issues/4102
+  -- See: https://github.com/mfussenegger/nvim-dap/issues/1575
   require("dap").listeners.after.event_initialized["neotest-golang-debug"] = function(
     session
   )
