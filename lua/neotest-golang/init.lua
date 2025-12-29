@@ -33,6 +33,7 @@ end
 --- @param root string Root directory of project
 --- @return boolean
 function M.Adapter.filter_dir(name, rel_path, root)
+  -- Check filter_dirs (simple name matching)
   local ignore_dirs = M.Adapter.options.filter_dirs
   if type(ignore_dirs) == "function" then
     ignore_dirs = ignore_dirs()
@@ -43,6 +44,38 @@ function M.Adapter.filter_dir(name, rel_path, root)
       return false
     end
   end
+
+  -- Check filter_dir_patterns (glob pattern matching)
+  local patterns = M.Adapter.options.filter_dir_patterns
+  if type(patterns) == "function" then
+    patterns = patterns()
+  end
+
+  if patterns and #patterns > 0 then
+    for _, pattern in ipairs(patterns) do
+      local path_to_match
+      if lib.path.is_absolute_pattern(pattern) then
+        -- For absolute patterns, construct full path
+        if rel_path == "." then
+          path_to_match = root .. "/" .. name
+        else
+          path_to_match = root .. "/" .. rel_path .. "/" .. name
+        end
+      else
+        -- For relative patterns, use rel_path + name
+        if rel_path == "." then
+          path_to_match = name
+        else
+          path_to_match = rel_path .. "/" .. name
+        end
+      end
+
+      if lib.path.matches_glob_pattern(path_to_match, pattern) then
+        return false
+      end
+    end
+  end
+
   return true
 end
 

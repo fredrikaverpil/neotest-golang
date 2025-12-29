@@ -169,6 +169,12 @@ The value can also be passed in as a function.
 
 ### `filter_dirs`
 
+!!! warning "Deprecated"
+
+    This option is deprecated and will be removed in a future version.
+    Use [`filter_dir_patterns`](#filter_dir_patterns) instead, which provides
+    more powerful glob pattern matching.
+
 Default value: `{ ".git", "node_modules", ".venv", "venv" }`
 
 A list of directory names to exclude when searching for test files. These
@@ -206,6 +212,106 @@ The value can also be passed in as a function.
     require("neotest").setup({
       adapters = {
         require("neotest-golang")(config), -- Apply configuration
+      },
+    })
+    ```
+
+### `filter_dir_patterns`
+
+Default value: `{}`
+
+A list of glob patterns to exclude when searching for test files. This option
+provides more powerful filtering than `filter_dirs` by supporting glob patterns
+that can match against directory paths (not just names).
+
+Supported glob patterns follow the
+[LSP 3.17 specification](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentFilter):
+
+- `*` matches zero or more characters in a path segment
+- `?` matches a single character in a path segment
+- `**` matches any number of path segments, including none
+- `{}` for grouping conditions (e.g., `**/*.{ts,js}`)
+- `[]` for character ranges (e.g., `example.[0-9]`)
+
+Patterns starting with `/` or a Windows drive letter (e.g., `C:\`) are treated
+as absolute paths. Other patterns are matched against relative paths from the
+project root.
+
+The value can also be passed in as a function.
+
+!!! note "Pattern behavior"
+
+    Use `**/vendor` to match a directory named `vendor` at any depth.
+    The pattern `**/vendor/**` would only match directories *inside* vendor,
+    not vendor itself.
+
+??? example "Filter with glob patterns"
+
+    ```lua
+    local config = {
+      filter_dir_patterns = {
+        "**/vendor",        -- Any directory named 'vendor' at any depth
+        "**/testdata",      -- Any directory named 'testdata' at any depth
+        "third_party/**",   -- Everything inside 'third_party' at project root
+      },
+    }
+    require("neotest").setup({
+      adapters = {
+        require("neotest-golang")(config),
+      },
+    })
+    ```
+
+??? example "Filter specific nested paths"
+
+    Unlike `filter_dirs` which matches by name only, `filter_dir_patterns`
+    can target specific paths:
+
+    ```lua
+    local config = {
+      filter_dir_patterns = {
+        "foo/baz",     -- Only matches ./foo/baz, not ./bar/baz
+        "src/vendor",  -- Only matches ./src/vendor, not ./pkg/vendor
+      },
+    }
+    require("neotest").setup({
+      adapters = {
+        require("neotest-golang")(config),
+      },
+    })
+    ```
+
+??? example "Filter absolute paths (e.g., GOROOT)"
+
+    ```lua
+    local config = {
+      filter_dir_patterns = {
+        "/usr/local/go/**",  -- Filter Go installation directory
+      },
+    }
+    require("neotest").setup({
+      adapters = {
+        require("neotest-golang")(config),
+      },
+    })
+    ```
+
+??? example "Use function for dynamic patterns"
+
+    ```lua
+    local config = {
+      filter_dir_patterns = function()
+        -- Get GOROOT dynamically
+        local goroot = vim.fn.system("go env GOROOT"):gsub("\n", "")
+        return {
+          "**/vendor",
+          goroot .. "/**",
+        }
+      end,
+    }
+    require("neotest").setup({
+      adapters = {
+        require("neotest-golang")(config),
       },
     })
     ```
