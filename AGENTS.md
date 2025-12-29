@@ -55,7 +55,7 @@ and handles:
 
 ### Documentation
 
-- **Serve docs locally**: Uses mkdocs-material (see pyproject.toml)
+- **Serve docs locally**: Uses zensical (see pyproject.toml)
 
 ## Test Framework
 
@@ -127,7 +127,7 @@ When running `task test`, Neovim launches headlessly and:
 
 - **Lua**: uga-rosa/utf8.nvim for UTF-8 handling
 - **Go**: Uses `go test` and optionally `gotestsum` for enhanced output
-- **Python**: mkdocs-material for documentation (development only)
+- **Python**: zensical for documentation (development only)
 
 ## File Structure Conventions
 
