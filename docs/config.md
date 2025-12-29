@@ -169,6 +169,12 @@ The value can also be passed in as a function.
 
 ### `filter_dirs`
 
+!!! warning "Deprecated"
+
+    This option is deprecated and will be removed in a future version.
+    Use [`filter_dir_patterns`](#filter_dir_patterns) instead, which provides
+    more powerful glob pattern matching.
+
 Default value: `{ ".git", "node_modules", ".venv", "venv" }`
 
 A list of directory names to exclude when searching for test files. These
