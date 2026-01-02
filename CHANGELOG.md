@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.1](https://github.com/fredrikaverpil/neotest-golang/compare/v2.7.0...v2.7.1) (2026-01-02)
+
+
+### Bug Fixes
+
+* **dap:** remove nvim-dap workaround for restarting dlv ([#524](https://github.com/fredrikaverpil/neotest-golang/issues/524)) ([604cc9a](https://github.com/fredrikaverpil/neotest-golang/commit/604cc9a95b1975943a34a8a89d5d676616b400e7))
+
 ## [2.7.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.6.0...v2.7.0) (2025-12-29)
 
 
