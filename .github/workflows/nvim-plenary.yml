@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .tests
           key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ hashFiles('spec/minimal_init.lua') }}-${{ hashFiles('spec/bootstrap.lua') }}
@@ -36,7 +36,7 @@ jobs:
           go-version-file: tests/go/go.mod
           cache: false
       - name: Cache Go tools
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/go/bin
@@ -47,7 +47,7 @@ jobs:
             ${{ runner.os }}-go-tools-
       - name: Cache Windows build tools
         if: runner.os == 'Windows'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             C:\ProgramData\chocolatey\lib
