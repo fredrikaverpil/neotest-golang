@@ -37,16 +37,3 @@ updates:
     labels:
       - "dependencies"
 
-# custom updates for .tools directory
-  - package-ecosystem: "gomod"
-    directories: ["/.tools"]
-    allow:
-      - dependency-type: indirect
-    schedule:
-      interval: "monthly"
-    groups:
-      gomod-tools:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
-    labels:
-      - "dependencies"
