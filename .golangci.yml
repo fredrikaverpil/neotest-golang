@@ -105,7 +105,8 @@ linters:
     - protogetter  # reports direct reads from proto message fields when getters should be used
     - reassign  # checks that package variables are not reassigned
     - recvcheck  # checks for receiver type consistency
-    - revive  # fast, configurable, extensible, flexible, and beautiful linter for Go, drop-in replacement of golint
+    # TODO: this requires changes to tests
+    # - revive  # fast, configurable, extensible, flexible, and beautiful linter for Go, drop-in replacement of golint
     - rowserrcheck  # checks whether Err of rows is checked successfully
     - sloglint  # ensure consistent code style when using log/slog
     - spancheck  # checks for mistakes with OpenTelemetry/Census spans
@@ -113,7 +114,8 @@ linters:
     - staticcheck  # is a go vet on steroids, applying a ton of static analysis checks
     - testableexamples  # checks if examples are testable (have an expected output)
     - testifylint  # checks usage of github.com/stretchr/testify
-    - testpackage  # makes you use a separate _test package
+    # TODO: this requires changes to tests, and I also don't think we want _test packages for everything
+    # - testpackage  # makes you use a separate _test package
     - tparallel  # detects inappropriate usage of t.Parallel() method in your Go test codes
     - unconvert  # removes unnecessary type conversions
     - unparam  # reports unused function parameters

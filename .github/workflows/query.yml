@@ -14,17 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Install Task
-        uses: arduino/setup-task@v2
+      - name: Setup Go
+        uses: actions/setup-go@v6
         with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install ts_query_ls
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: ts_query_ls
-          git: https://github.com/ribru17/ts_query_ls
+          go-version-file: tests/go/go.mod
+          cache: false
 
       - name: Neovim setup
         uses: rhysd/action-setup-vim@v1
@@ -50,7 +44,7 @@ jobs:
           ls -la .tests/all/site/parser/
 
       - name: Format tree-sitter queries
-        run: task format-query
+        run: make query-format
 
       - name: Lint tree-sitter queries
-        run: task lint-query
+        run: make query-lint

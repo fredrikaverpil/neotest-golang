@@ -3,7 +3,7 @@ name: github pages
 on:
   push:
     branches:
-      - main # Set a branch to deploy
+      - main  # Set a branch to deploy
   workflow_dispatch:
   # pull_request:
 
@@ -27,22 +27,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - name: Setup Go
+        uses: actions/setup-go@v6
         with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "pyproject.toml"
+          go-version-file: .sage/go.mod
+          cache: false
 
       - name: Install dependencies
-        run: uv sync
+        run: make zensical-sync
 
       - name: Build
-        run: uv run zensical build
+        run: make zensical-build
 
       - name: Setup Pages
         if: github.event_name != 'pull_request'

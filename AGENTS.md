@@ -39,19 +39,16 @@ and handles:
 
 ### Testing
 
-- **Run all tests**: `task test`
-- **Run tests with clean state**: `task test-clean && task test`
-- **Run specific test file**: `task test-file -- path/to/test_spec.lua`
+- **Run all tests**: `make plenary-test`
+- **Run specific test file**:
+  `make plenary-test-file test_path=path/to/test_spec.lua`
 
-### Linting and Formatting
+### Formatting and Linting
 
-- **Format all code**: `task format` (runs stylua and ts_query_ls)
-- **Format Lua code**: `task -t Taskfile.lua.yml format` (uses stylua)
-- **Format tree-sitter queries**: `task format-query` (uses ts_query_ls)
-- **Lint tree-sitter queries**: `task lint-query` (uses ts_query_ls)
-- **Lint and auto-fix queries**: `task lint-query-fix`
-- **Format Go test fixtures**: `task -t tests/go/Taskfile.go.yml format`
-- **Lint Go test fixtures**: `task -t tests/go/Taskfile.go.yml lint`
+- **Format tree-sitter queries**: `make query-format` (uses ts_query_ls)
+- **Lint tree-sitter queries**: `make query-lint` (uses ts_query_ls)
+- **Lint and auto-fix queries**: `make query-lint`
+- **Install ts_query_ls**: `make install-ts-query-ls`
 
 ### Documentation
 
@@ -78,7 +75,7 @@ Test files use the `*_spec.lua` naming convention.
 
 ### Test Execution Flow
 
-When running `task test`, Neovim launches headlessly and:
+When running `make plenary-test`, Neovim launches headlessly and:
 
 1. Bootstrap script resets runtime path and installs required plugins
 2. PlenaryBustedDirectory discovers and runs all `*_spec.lua` files
@@ -103,9 +100,7 @@ When running `task test`, Neovim launches headlessly and:
 - **`stylua.toml`** - Code formatting rules for Lua
 - **`.tsqueryrc.json`** - Tree-sitter query language server configuration
 - **`.golangci.yml`** - Linting configuration for Go test fixtures
-- **`Taskfile.yml`** - Main task runner configuration
-- **`Taskfile.lua.yml`** - Lua-specific tasks
-- **`tests/go/Taskfile.go.yml`** - Go test fixture tasks
+- **`.sage/`** - Sage build configuration and targets
 
 ## Key Patterns
 

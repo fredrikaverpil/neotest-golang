@@ -1,0 +1,4 @@
+github.com/fredrikaverpil/sage-ci v0.4.0 h1:wGdea5tXjCfRTBCD7tzOT57eA8aHGUNrZxhFK0ubYss=
+github.com/fredrikaverpil/sage-ci v0.4.0/go.mod h1:4vso10t0GLL+EVO1mk1cWJWf5pG+Ro6tA3+9TKuwrIU=
+go.einride.tech/sage v0.391.1 h1:sBVdHKaAWRFL1H32Nv5BmvouvJ/6ybZpSmHGCVBlgbk=
+go.einride.tech/sage v0.391.1/go.mod h1:t5X6A8IrxcJV+HnP8mOo0fgvn3XgLu58C3DUMP6v35E=

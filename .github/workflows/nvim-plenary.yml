@@ -18,23 +18,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
       - name: Cache
         uses: actions/cache@v5
         with:
           path: .tests
           key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ hashFiles('spec/minimal_init.lua') }}-${{ hashFiles('spec/bootstrap.lua') }}
+
       - name: Neovim setup
         uses: rhysd/action-setup-vim@v1
         with:
           neovim: true
           version: ${{ matrix.version }}
+
       - name: Neovim version
         run: nvim --version
+
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
           go-version-file: tests/go/go.mod
           cache: false
+
       - name: Cache Go tools
         uses: actions/cache@v5
         with:
@@ -45,6 +50,7 @@ jobs:
           key: ${{ runner.os }}-go-tools-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-tools-
+
       - name: Cache Windows build tools
         if: runner.os == 'Windows'
         uses: actions/cache@v5
@@ -55,6 +61,7 @@ jobs:
           key: ${{ runner.os }}-build-tools-${{ hashFiles('.github/workflows/nvim-plenary.yml') }}
           restore-keys: |
             ${{ runner.os }}-build-tools-
+
       - name: Setup build tools (Windows)
         if: runner.os == 'Windows'
         run: |
@@ -67,16 +74,20 @@ jobs:
           }
           # Add MSYS2 bin to PATH (this includes GNU find)
           echo "C:\msys64\usr\bin" >> $env:GITHUB_PATH
+
       - name: Verify build tools
         shell: bash
         run: |
           gcc --version
           node --version
           npm --version
+
       - name: Install tree-sitter-cli
         run: npm install -g tree-sitter-cli@latest
+
       - name: Verify tree-sitter-cli
         run: tree-sitter --version
+
       - name: Install gotestsum
         shell: bash
         run: |
@@ -85,8 +96,10 @@ jobs:
           else
             echo "gotestsum already installed"
           fi
+
       - name: gotestsum version
         run: gotestsum --version
+
       - name: "Debug: go list"
         shell: bash
         working-directory: tests/go
@@ -99,19 +112,19 @@ jobs:
           "XTestGoFiles": [{{range $i, $f := .XTestGoFiles}}{{if ne $i 0}},{{end}}"{{$f}}"{{end}}],
           "Module": { "GoMod": {{printf "%q" .Module.GoMod}} }
           }]' ./...
+
       - name: "Debug: go test"
         shell: bash
         working-directory: tests/go
         run: go test -v -json ./... || true
-      - name: Install Task
-        uses: go-task/setup-task@v1
+
       - name: Run tests
         shell: bash
         run: |
-          if ! task test-plenary; then
+          if ! make plenary-test; then
             echo "::group::Neovim logs"
             echo "Tests failed, searching for nvim logs..."
-            
+
             # Common nvim log locations across platforms
             LOG_PATHS=(
               "$HOME/.local/state/nvim"
@@ -121,7 +134,7 @@ jobs:
               "/tmp"
               "."
             )
-            
+
             for path in "${LOG_PATHS[@]}"; do
               if [ -d "$path" ]; then
                 echo "Checking $path for logs..."
@@ -134,7 +147,7 @@ jobs:
                 done
               fi
             done
-            
+
             echo "::endgroup::"
             exit 1
           fi
