@@ -21,25 +21,9 @@ jobs:
   ci:
     uses: fredrikaverpil/github/.github/workflows/dependabot.yml@main
     with:
-      exclude-paths: ".tools"
       update-interval: "monthly"
-      additional-yaml: |
-        # custom updates for .tools directory
-          - package-ecosystem: "gomod"
-            directories: ["/.tools"]
-            allow:
-              - dependency-type: indirect
-            schedule:
-              interval: "monthly"
-            groups:
-              gomod-tools:
-                patterns: ["*"]
-                update-types: ["minor", "patch"]
-            labels:
-              - "dependencies"
     # NOTE: optionally customize configuration
     # with:
-    #   exclude-paths: ".tools"
     #   update-interval: "monthly"
     #   skip-dependabot: false
     secrets:

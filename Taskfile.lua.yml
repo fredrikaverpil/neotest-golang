@@ -7,15 +7,8 @@ version: '3'
 vars:
   ROOT_DIR:
     sh: git rev-parse --show-toplevel
-  TOOLS_DIR:
-    sh: |
-      git_root=$(git rev-parse --show-toplevel 2>/dev/null)
-      if [ $? -eq 0 ] && [ -d "$git_root/.tools" ]; then
-        echo "$git_root/.tools"
-      else
-        echo "Error: Could not find .tools directory in git root" >&2
-        exit 1
-      fi
+  # renovate: datasource=crate depName=stylua
+  STYLUA_VERSION: 2.0.0
 
 tasks:
   default:
@@ -31,18 +24,15 @@ tasks:
       - git diff --color=always --exit-code
 
   install-stylua:
-    desc: Install stylua using version from .tools/Cargo.toml
+    desc: Install stylua
     aliases: ["install"]
-    dir: '{{.TOOLS_DIR}}'
     cmds:
-      - |
-        VERSION=$(sed -n 's/^stylua = "\([^"]*\)"$/\1/p' Cargo.toml)
-        cargo install stylua --version $VERSION
+      - cargo install stylua --version {{.STYLUA_VERSION}} --force
 
   ensure-stylua:
     internal: true
     status:
-      - which stylua >/dev/null 2>&1
+      - which stylua >/dev/null 2>&1 && stylua --version | grep -q {{.STYLUA_VERSION}}
     cmds:
       - task: install-stylua
 
