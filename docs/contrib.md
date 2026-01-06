@@ -1,6 +1,6 @@
----
-icon: material/heart-multiple-outline
----
+______________________________________________________________________
+
+## icon: material/heart-multiple-outline
 
 # Contributing
 
@@ -81,8 +81,8 @@ Install [uv](https://docs.astral.sh/uv/) with e.g. `brew install uv` or
 - Activate the virtual environment with `source .venv/bin/activate`
 - Run `uv sync` to install dependencies
 
-Finally, run `uv run zensical serve` to serve the documentation and preview it on
-`http://localhost:8000`.
+Finally, run `uv run zensical serve` to serve the documentation and preview it
+on `http://localhost:8000`.
 
 ## General design of the adapter
 
@@ -121,7 +121,6 @@ go test github.com/fredrikaverpil/neotest-golang -run "^(^TestFoo$|^TestBar$)$"
 ```
 
 !!! note "Note on `go.mod`"
-
     All the above commands must be run somewhere beneath the location of the
     `go.mod` file specifying the _module_ name, which in this example is
     `github.com/fredrikaverpil/neotest-golang`.
