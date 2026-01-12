@@ -1,13 +1,12 @@
----
-icon: material/cog
----
+______________________________________________________________________
+
+## icon: material/cog
 
 # Configuration
 
 ## Options
 
 !!! tip "Recipes"
-
     See [the recipes](recipes.md) for usage examples of the below options.
 
 ### `runner`
@@ -18,7 +17,6 @@ This option defines the test execution runner, which by default is set to `"go"`
 and will use `go test` to write test output to stdout.
 
 !!! warning "Windows, Ubuntu Snaps"
-
     If you are on Windows or using Ubuntu snaps, you might want to set the runner
     to `"gotestsum"` and/or enable the [`sanitize_output`](#sanitize_output) option. See
     [this issue comment](https://github.com/fredrikaverpil/neotest-golang/issues/193#issuecomment-2362845806)
@@ -46,26 +44,28 @@ configuration remains valid and will still apply.
 
 ??? example "Configure neotest-golang to use `gotestsum` as test runner"
 
-    Make the `gotestsum` command available via e.g.
-    [mason.nvim](https://github.com/williamboman/mason.nvim) or by running the
-    following in your shell:
+````
+Make the `gotestsum` command available via e.g.
+[mason.nvim](https://github.com/williamboman/mason.nvim) or by running the
+following in your shell:
 
-    ```bash
-    go install gotest.tools/gotestsum@latest
-    ```
+```bash
+go install gotest.tools/gotestsum@latest
+```
 
-    Then add the required configuration:
+Then add the required configuration:
 
-    ```lua
-    local config = { -- Specify configuration
-      runner = "gotestsum"
-    }
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config), -- Apply configuration
-      },
-    })
-    ```
+```lua
+local config = { -- Specify configuration
+  runner = "gotestsum"
+}
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config), -- Apply configuration
+  },
+})
+```
+````
 
 ### `go_test_args`
 
@@ -79,7 +79,6 @@ The `-json` flag is mandatory and is always appended to `go test` automatically.
 The value can also be passed in as a function.
 
 !!! warning "CGO"
-
     The `-race` flag (in `go_test_args`) requires CGO to be enabled
     (`CGO_ENABLED=1` is the default) and a C compiler (such as GCC) to be
     installed. However, since Go 1.20, this is not a requirement on macOS. I have
@@ -146,31 +145,31 @@ The value can also be passed in as a function.
 
 ??? example "Pass environment variables"
 
-    Provide environment variables like `table<string, string>`:
+````
+Provide environment variables like `table<string, string>`:
 
-    ```lua
-    local config = { -- Specify configuration
-      env = {
-        TEST_VAR1 = "test1",
-        TEST_VAR2 = "test2",
-      },
-    }
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config), -- Apply configuration
-      },
-    })
-    ```
+```lua
+local config = { -- Specify configuration
+  env = {
+    TEST_VAR1 = "test1",
+    TEST_VAR2 = "test2",
+  },
+}
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config), -- Apply configuration
+  },
+})
+```
+````
 
 !!! tip "Extra args"
-
     You can also pass in environment variables via Neotest's `extra_args` feature,
     see the [recipes](recipes.md) for more info.
 
 ### `filter_dirs`
 
 !!! warning "Deprecated"
-
     This option is deprecated and will be removed in a future version.
     Use [`filter_dir_patterns`](#filter_dir_patterns) instead, which provides
     more powerful glob pattern matching.
@@ -184,37 +183,39 @@ The value can also be passed in as a function.
 
 ??? example "Filter custom directories"
 
-    ```lua
-    local config = { -- Specify configuration
-      filter_dirs = {
-        ".git",
-        "node_modules",
-        ".venv",
-        "venv",
-        "vendor",  -- Add custom directory
-      },
-    }
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config), -- Apply configuration
-      },
-    })
-    ```
+````
+```lua
+local config = { -- Specify configuration
+  filter_dirs = {
+    ".git",
+    "node_modules",
+    ".venv",
+    "venv",
+    "vendor",  -- Add custom directory
+  },
+}
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config), -- Apply configuration
+  },
+})
+```
 
-    Or use a function for dynamic filtering:
+Or use a function for dynamic filtering:
 
-    ```lua
-    local config = {
-      filter_dirs = function()
-        return { ".git", "vendor", "third_party" }
-      end,
-    }
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config), -- Apply configuration
-      },
-    })
-    ```
+```lua
+local config = {
+  filter_dirs = function()
+    return { ".git", "vendor", "third_party" }
+  end,
+}
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config), -- Apply configuration
+  },
+})
+```
+````
 
 ### `filter_dir_patterns`
 
@@ -240,81 +241,88 @@ project root.
 The value can also be passed in as a function.
 
 !!! note "Pattern behavior"
-
     Use `**/vendor` to match a directory named `vendor` at any depth.
     The pattern `**/vendor/**` would only match directories *inside* vendor,
     not vendor itself.
 
 ??? example "Filter with glob patterns"
 
-    ```lua
-    local config = {
-      filter_dir_patterns = {
-        "**/vendor",        -- Any directory named 'vendor' at any depth
-        "**/testdata",      -- Any directory named 'testdata' at any depth
-        "third_party/**",   -- Everything inside 'third_party' at project root
-      },
-    }
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config),
-      },
-    })
-    ```
+````
+```lua
+local config = {
+  filter_dir_patterns = {
+    "**/vendor",        -- Any directory named 'vendor' at any depth
+    "**/testdata",      -- Any directory named 'testdata' at any depth
+    "third_party/**",   -- Everything inside 'third_party' at project root
+  },
+}
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config),
+  },
+})
+```
+````
 
 ??? example "Filter specific nested paths"
 
-    Unlike `filter_dirs` which matches by name only, `filter_dir_patterns`
-    can target specific paths:
+````
+Unlike `filter_dirs` which matches by name only, `filter_dir_patterns`
+can target specific paths:
 
-    ```lua
-    local config = {
-      filter_dir_patterns = {
-        "foo/baz",     -- Only matches ./foo/baz, not ./bar/baz
-        "src/vendor",  -- Only matches ./src/vendor, not ./pkg/vendor
-      },
-    }
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config),
-      },
-    })
-    ```
+```lua
+local config = {
+  filter_dir_patterns = {
+    "foo/baz",     -- Only matches ./foo/baz, not ./bar/baz
+    "src/vendor",  -- Only matches ./src/vendor, not ./pkg/vendor
+  },
+}
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config),
+  },
+})
+```
+````
 
 ??? example "Filter absolute paths (e.g., GOROOT)"
 
-    ```lua
-    local config = {
-      filter_dir_patterns = {
-        "/usr/local/go/**",  -- Filter Go installation directory
-      },
-    }
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config),
-      },
-    })
-    ```
+````
+```lua
+local config = {
+  filter_dir_patterns = {
+    "/usr/local/go/**",  -- Filter Go installation directory
+  },
+}
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config),
+  },
+})
+```
+````
 
 ??? example "Use function for dynamic patterns"
 
-    ```lua
-    local config = {
-      filter_dir_patterns = function()
-        -- Get GOROOT dynamically
-        local goroot = vim.fn.system("go env GOROOT"):gsub("\n", "")
-        return {
-          "**/vendor",
-          goroot .. "/**",
-        }
-      end,
+````
+```lua
+local config = {
+  filter_dir_patterns = function()
+    -- Get GOROOT dynamically
+    local goroot = vim.fn.system("go env GOROOT"):gsub("\n", "")
+    return {
+      "**/vendor",
+      goroot .. "/**",
     }
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config),
-      },
-    })
-    ```
+  end,
+}
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config),
+  },
+})
+```
+````
 
 ### `testify_enabled`
 
@@ -325,7 +333,6 @@ other testify related features, such as testify-specific diagnostics. Please
 note that this feature requires `nvim-treesitter` (`main` branch).
 
 !!! warning "Not enabled by default"
-
     This feature comes with some caveats and nuances, which is why it is not enabled
     by default. I advise you to only enable this if you need it.
 
@@ -337,7 +344,6 @@ note that this feature requires `nvim-treesitter` (`main` branch).
     I'm personally a bit afraid of the maintenance burden of this feature... 🙈
 
 !!! note "Table tests not supported"
-
     Right now, table tests are not supported for testify suites. This can be
     remedied by extending the treesitter queries. Feel free to dig in
     and open a PR!
@@ -351,20 +357,22 @@ Extend this regex value to support something other than e.g. `s.Run` or
 
 ??? example "Custom subtest operand"
 
-    If `x` is used as operand for the `Run` method, you must set this option
-    and extend the regex.
+````
+If `x` is used as operand for the `Run` method, you must set this option
+and extend the regex.
 
-    ```go
-    func (x *TestSuite) TestFoo() {
-        x.Run("foo", func() {
-            ...
-        })
-    }
-    ```
+```go
+func (x *TestSuite) TestFoo() {
+    x.Run("foo", func() {
+        ...
+    })
+}
+```
 
-    ```lua
-    opts = { testify_operand = "^(s|suite|x)$" }
-    ```
+```lua
+opts = { testify_operand = "^(s|suite|x)$" }
+```
+````
 
 ### `testify_import_identifier`
 
@@ -374,18 +382,20 @@ Extend this regex value if you use a custom import identifier.
 
 ??? example "Custom import identifier"
 
-    If `suite` is available under the import identifier `testifysuite`,
-    you need to set this option and extend the regex.
+````
+If `suite` is available under the import identifier `testifysuite`,
+you need to set this option and extend the regex.
 
-    ```go
-    import (
-        testifysuite "github.com/stretchr/testify/suite"
-    )
-    ```
+```go
+import (
+    testifysuite "github.com/stretchr/testify/suite"
+)
+```
 
-    ```lua
-    opts = { testify_import_identifier = "^(suite|testifysuite)$" }
-    ```
+```lua
+opts = { testify_import_identifier = "^(suite|testifysuite)$" }
+```
+````
 
 ### `colorize_test_output`
 
@@ -409,25 +419,26 @@ this. See `:h vim.log.levels` for all levels.
 
 ??? example "Increasing the log level"
 
-    ```lua
-    local config = {
-        log_level = vim.log.levels.DEBUG, -- set log level
-    }
+````
+```lua
+local config = {
+    log_level = vim.log.levels.DEBUG, -- set log level
+}
 
-    require("neotest").setup({
-      adapters = {
-        require("neotest-golang")(config), -- Apply configuration
-      },
-    })
-    ```
+require("neotest").setup({
+  adapters = {
+    require("neotest-golang")(config), -- Apply configuration
+  },
+})
+```
 
-    !!! warn "Do not forget to revert"
+!!! warn "Do not forget to revert"
 
-        Don't forget to revert back to `WARN` level once you are done troubleshooting,
-        as the `DEBUG` level can degrade performance.
+    Don't forget to revert back to `WARN` level once you are done troubleshooting,
+    as the `DEBUG` level can degrade performance.
+````
 
 !!! tip "Convenience command"
-
     The neotest-golang logs can be opened using this convenient vim command:
 
     ```vim
@@ -461,32 +472,34 @@ newlines, and carriage returns.
 
 ??? example "Example config"
 
-    ```diff
-    return {
-      {
-        "nvim-neotest/neotest",
-        dependencies = {
-          "nvim-neotest/nvim-nio",
-          "nvim-lua/plenary.nvim",
-          "antoinemadec/FixCursorHold.nvim",
-          { "nvim-treesitter/nvim-treesitter", branch = "main" },
-    -      "fredrikaverpil/neotest-golang", -- Installation
-    +      {
-    +        "fredrikaverpil/neotest-golang", -- Installation
-    +        version = "*",
-    +        dependencies = {
-    +          "uga-rosa/utf8.nvim", -- Additional dependency required
-    +        },
-    +      },
+````
+```diff
+return {
+  {
+    "nvim-neotest/neotest",
+    dependencies = {
+      "nvim-neotest/nvim-nio",
+      "nvim-lua/plenary.nvim",
+      "antoinemadec/FixCursorHold.nvim",
+      { "nvim-treesitter/nvim-treesitter", branch = "main" },
+-      "fredrikaverpil/neotest-golang", -- Installation
++      {
++        "fredrikaverpil/neotest-golang", -- Installation
++        version = "*",
++        dependencies = {
++          "uga-rosa/utf8.nvim", -- Additional dependency required
++        },
++      },
+    },
+    config = function()
+      require("neotest").setup({
+        adapters = {
+-          require("neotest-golang"), -- Registration
++          require("neotest-golang")({ sanitize_output = true }), -- Registration
         },
-        config = function()
-          require("neotest").setup({
-            adapters = {
-    -          require("neotest-golang"), -- Registration
-    +          require("neotest-golang")({ sanitize_output = true }), -- Registration
-            },
-          })
-        end,
-      },
-    }
-    ```
+      })
+    end,
+  },
+}
+```
+````

@@ -36,7 +36,7 @@ Reliable Neotest adapter for running Go tests in Neovim.
 
 ...and more!
 
----
+______________________________________________________________________
 
 Documentation is available at
 [https://fredrikaverpil.github.io/neotest-golang](https://fredrikaverpil.github.io/neotest-golang)

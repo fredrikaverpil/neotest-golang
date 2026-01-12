@@ -1,6 +1,6 @@
----
-icon: material/test-tube
----
+______________________________________________________________________
+
+## icon: material/test-tube
 
 # Test setup
 
@@ -16,7 +16,6 @@ the terminal. To run tests from the terminal, use these commands (requires
 - `task test-file -- spec/unit/convert_spec.lua` - Run a single test file
 
 !!! warning "Tests timing out"
-
     Nvim-nio will hit a hard-coded 2000 millisecond timeout if you are running the
     entire test suite. I have mitigated this in the bootstraping script and also
     opened an issue about that in
@@ -42,26 +41,28 @@ When you run tests, the following sequence occurs:
 
 ??? tip "Neovim vs Busted execution"
 
-    The below outlines why BustedPlenary was chosen instead of Busted.
+```
+The below outlines why BustedPlenary was chosen instead of Busted.
 
-    This setup uses Neovim's `-c` flag to execute commands within Neovim's context,
-    rather than Busted's `-l` flag which loads Lua files externally.
+This setup uses Neovim's `-c` flag to execute commands within Neovim's context,
+rather than Busted's `-l` flag which loads Lua files externally.
 
-    **Strengths of plenary-busted approach:**
+**Strengths of plenary-busted approach:**
 
-    - Tests run within actual Neovim instances, providing authentic plugin behavior
-    - Full access to Neovim APIs (vim.*, treesitter, etc.) during testing
-    - Each test gets a clean Neovim environment via the minimal init
-    - Integration tests can interact with real neotest functionality
-    - No need to mock Neovim-specific behavior
+- Tests run within actual Neovim instances, providing authentic plugin behavior
+- Full access to Neovim APIs (vim.*, treesitter, etc.) during testing
+- Each test gets a clean Neovim environment via the minimal init
+- Integration tests can interact with real neotest functionality
+- No need to mock Neovim-specific behavior
 
-    **Weaknesses compared to pure Busted:**
+**Weaknesses compared to pure Busted:**
 
-    - Slower execution due to Neovim startup overhead per test
-    - More complex setup and bootstrapping process
-    - Harder to debug test failures (headless Neovim environment)
-    - Potential for Neovim version-specific test behavior
-    - More memory and resource intensive
+- Slower execution due to Neovim startup overhead per test
+- More complex setup and bootstrapping process
+- Harder to debug test failures (headless Neovim environment)
+- Potential for Neovim version-specific test behavior
+- More memory and resource intensive
+```
 
 ## Writing tests
 
@@ -79,7 +80,8 @@ executing actual Go tests via the neotest-golang adapter.
 The general workflow of adding a new integration test:
 
 1. Add a new `yourtestname_test.go` file in `tests/go/internal/yourpkgname`
-2. Add a new lua integration test in
+
+1. Add a new lua integration test in
    `spec/integration/yourpkgname[_yourtestname]_spec.lua` and from it, execute
    all tests in a dir, a file or specifiy individual test(s):
 
@@ -294,9 +296,9 @@ When upgrading nvim-treesitter (especially from master to main branch):
 
 1. **Capture name format**: Main branch requires dots (`@test.name`) not
    underscores (`@test_name`)
-2. **Statement list wrappers**: Some queries need additional
+1. **Statement list wrappers**: Some queries need additional
    `(statement_list ...)` wrappers
-3. **Query validation**: Test queries individually with
+1. **Query validation**: Test queries individually with
    `testify.query.run_query_on_file`
 
 ### Testing Testify Changes
@@ -304,11 +306,11 @@ When upgrading nvim-treesitter (especially from master to main branch):
 When modifying testify functionality:
 
 1. **Enable testify**: Set `testify_enabled = true` in test options
-2. **Use integration tests**: Run
+1. **Use integration tests**: Run
    `spec/integration/testifysuites_positions_spec.lua`
-3. **Check Go command**: Verify the generated go test command targets suite
+1. **Check Go command**: Verify the generated go test command targets suite
    functions
-4. **Validate tree structure**: Ensure namespace hierarchy matches expected test
+1. **Validate tree structure**: Ensure namespace hierarchy matches expected test
    position IDs
-5. **Test edge cases**: Files with multiple suites, duplicate method names,
+1. **Test edge cases**: Files with multiple suites, duplicate method names,
    subtests

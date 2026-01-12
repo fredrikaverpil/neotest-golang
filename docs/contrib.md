@@ -1,6 +1,6 @@
----
-icon: material/heart-multiple-outline
----
+______________________________________________________________________
+
+## icon: material/heart-multiple-outline
 
 # Contributing
 
@@ -121,7 +121,6 @@ go test github.com/fredrikaverpil/neotest-golang -run "^(^TestFoo$|^TestBar$)$"
 ```
 
 !!! note "Note on `go.mod`"
-
     All the above commands must be run somewhere beneath the location of the
     `go.mod` file specifying the _module_ name, which in this example is
     `github.com/fredrikaverpil/neotest-golang`.

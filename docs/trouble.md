@@ -1,6 +1,6 @@
----
-icon: material/bug
----
+______________________________________________________________________
+
+## icon: material/bug
 
 # Troubleshooting
 
@@ -27,20 +27,23 @@ issue.
   and to mitigate it, use the [`gotestsum` runner](config.md#runner) instead.
   Gotestsum writes all JSON test output to file, which is a lot more reliable.
   This particular problem has been reported to happen in some specific cases:
-      - When on Windows:
-        [issues/147](https://github.com/fredrikaverpil/neotest-golang/issues/147)
-      - When using Ubuntu snaps:
-        [discussions/161](https://github.com/fredrikaverpil/neotest-golang/discussions/161)
-      - When using the mongodb test-container:
-        [discussions/256](https://github.com/fredrikaverpil/neotest-golang/discussions/256)
+  \- When on Windows:
+  [issues/147](https://github.com/fredrikaverpil/neotest-golang/issues/147)
+  \- When using Ubuntu snaps:
+  [discussions/161](https://github.com/fredrikaverpil/neotest-golang/discussions/161)
+  \- When using the mongodb test-container:
+  [discussions/256](https://github.com/fredrikaverpil/neotest-golang/discussions/256)
 
 - If you see non-UTF8 characters written to test output, you may want to enable
   the [`sanitize_output`](config.md#sanitize_output) option.
+
 - You are using the default `go_test_args` (or use the `-race` flag), which
   requires CGO but you don't have `gcc` installed. Read more about this in the
   [`go_test_args`](config.md#go_test_args) option description.
+
 - You are passing invalid args to `go_test_args`, e.g., `'-vet="all"'` instead
   of `'-vet=all'`. (Quotes are valid in a shell, not `go test` itself)
+
 - Go did not compile and Neotest-golang failed to pick up on it. The intent is
   that neotest-golang should show a compilation error (please file a bug report
   if this happens).

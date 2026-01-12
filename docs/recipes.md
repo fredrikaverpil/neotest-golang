@@ -1,6 +1,6 @@
----
-icon: material/food
----
+______________________________________________________________________
+
+## icon: material/food
 
 # Recipes
 
@@ -18,90 +18,93 @@ Then you have two options:
 
 ??? example "Adapter-provided (recommended)"
 
-    ```diff
-    return {
-    +  {
-    +    "rcarriga/nvim-dap-ui",
-    +    dependencies = {
-    +      "nvim-neotest/nvim-nio",
-    +      "mfussenegger/nvim-dap",
-    +    },
-    +  },
-    +
-      {
-        "nvim-neotest/neotest",
-        dependencies = {
-          "nvim-neotest/nvim-nio",
-          "nvim-lua/plenary.nvim",
-          "antoinemadec/FixCursorHold.nvim",
-          { "nvim-treesitter/nvim-treesitter", branch = "main" },
-    -     { "fredrikaverpil/neotest-golang", version = "*" }, -- Installation
-    +      {
-    +        "fredrikaverpil/neotest-golang", -- Installation
-    +        version = "*",
-    +        dependencies = {
-    +          "leoluz/nvim-dap-go",
-    +        },
-    +      },
+````
+```diff
+return {
++  {
++    "rcarriga/nvim-dap-ui",
++    dependencies = {
++      "nvim-neotest/nvim-nio",
++      "mfussenegger/nvim-dap",
++    },
++  },
++
+  {
+    "nvim-neotest/neotest",
+    dependencies = {
+      "nvim-neotest/nvim-nio",
+      "nvim-lua/plenary.nvim",
+      "antoinemadec/FixCursorHold.nvim",
+      { "nvim-treesitter/nvim-treesitter", branch = "main" },
+-     { "fredrikaverpil/neotest-golang", version = "*" }, -- Installation
++      {
++        "fredrikaverpil/neotest-golang", -- Installation
++        version = "*",
++        dependencies = {
++          "leoluz/nvim-dap-go",
++        },
++      },
+    },
+    config = function()
+      require("neotest").setup({
+        adapters = {
+          require("neotest-golang"), -- Registration
         },
-        config = function()
-          require("neotest").setup({
-            adapters = {
-              require("neotest-golang"), -- Registration
-            },
-          })
-        end,
-      },
-    }
-    ```
+      })
+    end,
+  },
+}
+```
+````
 
 ??? example "Use your own custom DAP configuration"
 
-    ```diff
-    return {
-    +  {
-    +    "rcarriga/nvim-dap-ui",
-    +    dependencies = {
-    +      "nvim-neotest/nvim-nio",
-    +      "mfussenegger/nvim-dap",
-    +    },
-    +  },
-    +
-      {
-        "nvim-neotest/neotest",
-        dependencies = {
-          "nvim-neotest/nvim-nio",
-          "nvim-lua/plenary.nvim",
-          "antoinemadec/FixCursorHold.nvim",
-          { "nvim-treesitter/nvim-treesitter", branch = "main" },
-          { "fredrikaverpil/neotest-golang", version = "*" }, -- Installation
+````
+```diff
+return {
++  {
++    "rcarriga/nvim-dap-ui",
++    dependencies = {
++      "nvim-neotest/nvim-nio",
++      "mfussenegger/nvim-dap",
++    },
++  },
++
+  {
+    "nvim-neotest/neotest",
+    dependencies = {
+      "nvim-neotest/nvim-nio",
+      "nvim-lua/plenary.nvim",
+      "antoinemadec/FixCursorHold.nvim",
+      { "nvim-treesitter/nvim-treesitter", branch = "main" },
+      { "fredrikaverpil/neotest-golang", version = "*" }, -- Installation
+    },
+    config = function()
++      local options = {
++        dap_mode = "manual",
++        dap_manual_config = {
++          name = "Debug go tests",
++          type = "go", -- Preconfigured DAP adapter name
++          request = "launch",
++          mode = "test",
++        },
++      }
+      require("neotest").setup({
+        adapters = {
++         require("neotest-golang")(options) -- Registration
         },
-        config = function()
-    +      local options = {
-    +        dap_mode = "manual",
-    +        dap_manual_config = {
-    +          name = "Debug go tests",
-    +          type = "go", -- Preconfigured DAP adapter name
-    +          request = "launch",
-    +          mode = "test",
-    +        },
-    +      }
-          require("neotest").setup({
-            adapters = {
-    +         require("neotest-golang")(options) -- Registration
-            },
-          })
-        end,
-      },
-    }
-    ```
+      })
+    end,
+  },
+}
+```
+````
 
 </details>
 
 Finally, set keymaps to run Neotest commands.
 
 !!! example "Keymap for debugging nearest test"
-
     ```lua
     return {
       {
@@ -127,7 +130,6 @@ You can use
 show coverage in Neovim.
 
 !!! example "Coverage"
-
     ```lua
     return {
       {
@@ -178,7 +180,6 @@ you need to provide these arguments both in the `go_test_args` and
 to set `dap_go_opts`. Full example:
 
 !!! example "Build tags"
-
     ```lua
     return {
       {
@@ -212,7 +213,6 @@ For instance, if you want to run `go test` with the
 `-v -race -count=1 -p=1 -parallel=10 -tags=integration` flags, you could call:
 
 !!! example "Extra args"
-
     ```lua
     require('neotest').run.run(
       {
@@ -232,7 +232,6 @@ For instance, if you want to run `go test` with the
     ```
 
 !!! note "Limited support"
-
     Currently, overriding `go list` or DAP arguments via `extra_args` is not
     currently supported but could easily be implemented
     [in a similar way](https://github.com/fredrikaverpil/neotest-golang/pull/348),
@@ -250,7 +249,6 @@ You can pass in environment variables by providing a table of key-value pairs to
 the `env` option in the adapter configuration.
 
 !!! example "Custom env variables"
-
     ```lua
     return {
       {
@@ -278,7 +276,6 @@ running tests. This allows you to set environment variables dynamically at
 runtime, without needing to restart Neovim.
 
 !!! example "Custom env variables via extra_args"
-
     ```lua
     require('neotest').run.run(
       {
@@ -299,7 +296,6 @@ Some use cases may require you to pass in dynamically generated arguments during
 runtime. To cater for this, you can provide arguments as a function.
 
 !!! example "Args passed as functions"
-
     ```lua
     return {
       {
@@ -353,7 +349,6 @@ files, see:
 - [lang/go.lua](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/fredrik/plugins/lang/go.lua)
 
 !!! tip "Extra everything"
-
     ```lua
     return {
 

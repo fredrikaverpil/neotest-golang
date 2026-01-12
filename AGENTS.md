@@ -81,9 +81,9 @@ Test files use the `*_spec.lua` naming convention.
 When running `task test`, Neovim launches headlessly and:
 
 1. Bootstrap script resets runtime path and installs required plugins
-2. PlenaryBustedDirectory discovers and runs all `*_spec.lua` files
-3. Each test gets a fresh Neovim instance using minimal init
-4. Integration tests use `spec/helpers/integration.lua` to run actual Go tests
+1. PlenaryBustedDirectory discovers and runs all `*_spec.lua` files
+1. Each test gets a fresh Neovim instance using minimal init
+1. Integration tests use `spec/helpers/integration.lua` to run actual Go tests
 
 ### Writing Tests
 
@@ -110,18 +110,19 @@ When running `task test`, Neovim launches headlessly and:
 ## Key Patterns
 
 1. **Position Types**: The adapter handles 4 position types from Neotest:
+
    - `dir` - Directory of tests
    - `file` - Single test file
    - `namespace` - Group of tests (not used by this adapter)
    - `test` - Individual test function
 
-2. **Runspec Strategy**: Each position type has its own runspec builder in
+1. **Runspec Strategy**: Each position type has its own runspec builder in
    `lua/neotest-golang/runspec/`
 
-3. **Streaming Support**: Recent additions include streaming strategy support
+1. **Streaming Support**: Recent additions include streaming strategy support
    for live test output
 
-4. **Error Handling**: Logging through `lua/neotest-golang/logging.lua`
+1. **Error Handling**: Logging through `lua/neotest-golang/logging.lua`
 
 ## Dependencies
 
