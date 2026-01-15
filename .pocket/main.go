@@ -4,12 +4,8 @@
 
 package main
 
-import (
-	"github.com/fredrikaverpil/pocket"
-	"github.com/fredrikaverpil/pocket/tasks"
-)
+import "github.com/fredrikaverpil/pocket/tasks"
 
 func main() {
-	t := tasks.NewRunner(Config)
-	pocket.Main(t.AllTasks(), t.All, t.PathMappings(), t.AutoRunTaskNames())
+	tasks.Run(Config)
 }

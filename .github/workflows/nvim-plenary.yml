@@ -103,12 +103,10 @@ jobs:
         shell: bash
         working-directory: tests/go
         run: go test -v -json ./... || true
-      - name: Install Task
-        uses: go-task/setup-task@v1
       - name: Run tests
         shell: bash
         run: |
-          if ! task test-plenary; then
+          if ! ./pok plenary-test; then
             echo "::group::Neovim logs"
             echo "Tests failed, searching for nvim logs..."
             
