@@ -22,7 +22,7 @@ var Config = pocket.Config{
 		pocket.Paths(python.Tasks()).DetectBy(python.Detect()),
 
 		// Go workflow for test code
-		pocket.Paths(golang.Tasks()).DetectBy(golang.Detect()),
+		pocket.Paths(golang.Tasks()).SkipTask(golang.Test, "testing/go", "testing/features").DetectBy(golang.Detect()),
 
 		// Tree-sitter query formatting
 		QueryFormat,
@@ -74,10 +74,17 @@ func plenaryTest(ctx context.Context) error {
 
 	if opts.File != "" {
 		// Run single test file
-		return pocket.Exec(ctx, nvim.Name,
-			"--headless", "--noplugin", "-i", "NONE",
-			"-u", "spec/bootstrap.lua",
-			"-c", "lua require('plenary.test_harness').test_directory_command('"+opts.File+" { minimal_init = \"spec/minimal_init.lua\", timeout = 500000 }')",
+		return pocket.Exec(
+			ctx,
+			nvim.Name,
+			"--headless",
+			"--noplugin",
+			"-i",
+			"NONE",
+			"-u",
+			"spec/bootstrap.lua",
+			"-c",
+			"lua require('plenary.test_harness').test_directory_command('"+opts.File+" { minimal_init = \"spec/minimal_init.lua\", timeout = 500000 }')",
 		)
 	}
 
