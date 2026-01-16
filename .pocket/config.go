@@ -16,13 +16,13 @@ import (
 var Config = pocket.Config{
 	AutoRun: pocket.Serial(
 		// Lua formatting
-		pocket.Paths(lua.Workflow()).DetectBy(lua.Detect()),
+		pocket.Paths(lua.Tasks()).DetectBy(lua.Detect()),
 
 		// Python workflow (format, lint, typecheck, test)
-		pocket.Paths(python.Workflow()).DetectBy(python.Detect()),
+		pocket.Paths(python.Tasks()).DetectBy(python.Detect()),
 
 		// Go workflow for test code
-		pocket.Paths(golang.Workflow()).DetectBy(golang.Detect()),
+		pocket.Paths(golang.Tasks()).DetectBy(golang.Detect()),
 
 		// Tree-sitter query formatting
 		QueryFormat,
