@@ -7,7 +7,6 @@ import (
 	"github.com/fredrikaverpil/pocket/tasks/github"
 	"github.com/fredrikaverpil/pocket/tasks/golang"
 	"github.com/fredrikaverpil/pocket/tasks/lua"
-	"github.com/fredrikaverpil/pocket/tasks/python"
 	"github.com/fredrikaverpil/pocket/tools/nvim"
 	"github.com/fredrikaverpil/pocket/tools/tsqueryls"
 )
@@ -16,9 +15,6 @@ import (
 var autoRun = pocket.Serial(
 	// Lua formatting
 	pocket.RunIn(lua.Tasks(), pocket.Detect(lua.Detect())),
-
-	// Python workflow (format, lint, typecheck, test)
-	pocket.RunIn(python.Tasks(), pocket.Detect(python.Detect())),
 
 	// Go workflow for test code
 	pocket.RunIn(golang.Tasks(),
