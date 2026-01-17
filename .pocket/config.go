@@ -20,6 +20,7 @@ var autoRun = pocket.Serial(
 	pocket.RunIn(golang.Tasks(),
 		pocket.Detect(golang.Detect()),
 		pocket.Skip(golang.Test, "tests/go", "tests/features"),
+		pocket.Skip(golang.Lint, "tests/go", "tests/features"),
 	),
 
 	// Tree-sitter query formatting

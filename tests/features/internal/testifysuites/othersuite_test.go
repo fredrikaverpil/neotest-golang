@@ -1,6 +1,6 @@
 package testifysuites
 
-// Basic imports
+// Basic imports.
 import (
 	"testing"
 
