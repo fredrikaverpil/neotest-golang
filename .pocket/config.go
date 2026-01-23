@@ -18,7 +18,6 @@ var Config = &pk.Config{
 		pk.Parallel(
 			markdown.Tasks(),
 			lua.Tasks(),
-			treesitter.Tasks(),
 			github.Tasks(),
 		),
 		pk.WithOptions(
@@ -34,5 +33,8 @@ var Config = &pk.Config{
 			neovim.Test(neovim.WithVersion(neovim.Stable)),
 			neovim.Test(neovim.WithVersion(neovim.Nightly)),
 		),
+		// Run treesitter query tasks after neovim tests - they need the Go parser
+		// which is installed during neovim bootstrap
+		treesitter.Tasks(),
 	),
 }
