@@ -116,9 +116,8 @@ function M.init()
   end
 
   -- Install Go parser if not already installed
-  -- Note: On Windows the extension is .dll, on Unix it's .so
-  local parser_ext = vim.fn.has("win32") == 1 and ".dll" or ".so"
-  local parser_path = site_dir .. "/parser/go" .. parser_ext
+  -- Note: nvim-treesitter uses .so extension on all platforms (including Windows)
+  local parser_path = site_dir .. "/parser/go.so"
   local parser_installed = vim.fn.filereadable(parser_path) == 1
 
   if not parser_installed then
