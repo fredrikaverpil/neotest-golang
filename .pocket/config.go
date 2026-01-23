@@ -7,6 +7,7 @@ import (
 	"github.com/fredrikaverpil/pocket/tasks/lua"
 	"github.com/fredrikaverpil/pocket/tasks/markdown"
 	"github.com/fredrikaverpil/pocket/tasks/neovim"
+	"github.com/fredrikaverpil/pocket/tasks/treesitter"
 	"github.com/fredrikaverpil/pocket/tools/gotestsum"
 )
 
@@ -17,6 +18,7 @@ var Config = &pk.Config{
 		pk.Parallel(
 			markdown.Tasks(),
 			lua.Tasks(),
+			treesitter.Tasks(),
 			github.Tasks(),
 		),
 		pk.WithOptions(

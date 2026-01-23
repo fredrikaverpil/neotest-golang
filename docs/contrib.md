@@ -11,12 +11,11 @@ you to begin by reading the below paragraph on the adapter design and engage in
 the [discussions](https://github.com/fredrikaverpil/neotest-golang/discussions)
 in case the change is not trivial.
 
-You can run tests, formatting and linting locally with `task all` (requires
-[Taskfile](https://taskfile.dev/)). Install dependencies with `task install`.
-Have a look at the `Taskfile.yml` for more details. You can also use the
-neotest-plenary and neotest-golang adapters to run the tests of this repo within
-Neovim. Please refer to the [Test setup](test.md) for detail on how to run
-tests.
+You can run tests, formatting and linting locally with `./pok` (requires
+[Pocket](https://github.com/fredrikaverpil/pocket) and Go). Run `./pok -h` to
+see available tasks. You can also use the neotest-plenary and neotest-golang
+adapters to run the tests of this repo within Neovim. Please refer to the
+[Test setup](test.md) for detail on how to run tests.
 
 ## AST and tree-sitter
 
