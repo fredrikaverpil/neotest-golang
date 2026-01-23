@@ -25,7 +25,26 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: .pocket/go.mod
-          cache-dependency-path: '**/go.sum'
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/tools
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
       - name: Run pocket
         shell: bash
         run: ./pok -v
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/tools
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
