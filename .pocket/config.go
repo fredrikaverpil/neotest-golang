@@ -37,4 +37,5 @@ var Config = &pk.Config{
 		// which is installed during neovim bootstrap
 		treesitter.Tasks(),
 	),
+	Manual: []pk.Runnable{Zensical},
 }
