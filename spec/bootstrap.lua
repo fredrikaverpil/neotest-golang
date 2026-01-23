@@ -52,10 +52,9 @@ function M.init()
       print("Plugin " .. plugin .. " already downloaded")
       if data.hash then
         -- Verify we're on the right hash
-        local current_hash =
-          io.popen("cd " .. plugin_path .. " && git rev-parse HEAD")
-            :read("*a")
-            :gsub("%s+", "")
+        local handle = io.popen("cd " .. plugin_path .. " && git rev-parse HEAD")
+        local current_hash = handle:read("*a"):gsub("%s+", "")
+        handle:close()
         if current_hash ~= data.hash then
           print("Updating " .. plugin .. " to hash " .. data.hash)
           os.execute(
@@ -72,17 +71,20 @@ function M.init()
     print("Adding to runtimepath: " .. plugin_path)
     vim.opt.runtimepath:append(plugin_path)
 
-    -- HACK: Update nvim-nio timeout value if this is the nvim-nio plugin
+    -- HACK: Update nvim-nio timeout value if this is the nvim-nio plugin.
+    -- nvim-nio has a hardcoded 2000ms timeout that's too short for CI.
     if plugin == "nvim-nio" then
       local tests_file_path = plugin_path .. "/lua/nio/tests.lua"
       if vim.fn.filereadable(tests_file_path) == 1 then
         print("Updating timeout in nvim-nio tests.lua...")
-        local content = io.open(tests_file_path, "r"):read("*all")
+        local read_handle = io.open(tests_file_path, "r")
+        local content = read_handle:read("*all")
+        read_handle:close()
         -- Replace the hardcoded 2000 timeout with our variable
         content = content:gsub("timeout or 2000", "timeout or " .. TEST_TIMEOUT)
-        local file = io.open(tests_file_path, "w")
-        file:write(content)
-        file:close()
+        local write_handle = io.open(tests_file_path, "w")
+        write_handle:write(content)
+        write_handle:close()
         print("Updated nvim-nio timeout to " .. TEST_TIMEOUT .. "ms")
       end
     end
@@ -101,7 +103,7 @@ function M.init()
     print("Created parser directory: " .. parser_dir)
   end
 
-  -- Configuare nvim-treesitter to use the site directory for parsers
+  -- Configure nvim-treesitter to use the site directory for parsers
   print("Configuring nvim-treesitter install directory...")
   ---@type TSConfig
   local treesitter_opts = { install_dir = site_dir }
