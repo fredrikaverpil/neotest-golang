@@ -81,8 +81,8 @@ Install [uv](https://docs.astral.sh/uv/) with e.g. `brew install uv` or
 - Activate the virtual environment with `source .venv/bin/activate`
 - Run `uv sync` to install dependencies
 
-Finally, run `uv run zensical serve` to serve the documentation and preview it on
-`http://localhost:8000`.
+Finally, run `uv run zensical serve` to serve the documentation and preview it
+on `http://localhost:8000`.
 
 ## General design of the adapter
 
