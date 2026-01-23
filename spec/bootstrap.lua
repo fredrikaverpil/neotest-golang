@@ -52,7 +52,8 @@ function M.init()
       print("Plugin " .. plugin .. " already downloaded")
       if data.hash then
         -- Verify we're on the right hash
-        local handle = io.popen("cd " .. plugin_path .. " && git rev-parse HEAD")
+        local handle =
+          io.popen("cd " .. plugin_path .. " && git rev-parse HEAD")
         local current_hash = handle:read("*a"):gsub("%s+", "")
         handle:close()
         if current_hash ~= data.hash then
@@ -114,7 +115,9 @@ function M.init()
   if tree_sitter ~= "" then
     print("tree-sitter CLI: " .. tree_sitter)
   else
-    print("WARNING: tree-sitter CLI not found in PATH - parser compilation may fail")
+    print(
+      "WARNING: tree-sitter CLI not found in PATH - parser compilation may fail"
+    )
   end
 
   -- Install Go parser if not already installed
@@ -146,7 +149,9 @@ function M.init()
       end, 50)
       waited = waited + (poll_interval_ms / 1000)
       if waited % 30 < (poll_interval_ms / 1000) then
-        print(string.format("  Waiting for parser compilation... (%ds)", waited))
+        print(
+          string.format("  Waiting for parser compilation... (%ds)", waited)
+        )
       end
     end
 
