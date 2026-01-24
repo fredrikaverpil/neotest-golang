@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.2](https://github.com/fredrikaverpil/neotest-golang/compare/v2.7.1...v2.7.2) (2026-01-24)
+
+
+### Bug Fixes
+
+* **testdetection:** do not create new root in submodules ([#531](https://github.com/fredrikaverpil/neotest-golang/issues/531)) ([4d562c4](https://github.com/fredrikaverpil/neotest-golang/commit/4d562c44cc6efe7611b3f3148cd2681b0088e36c))
+
 ## [2.7.1](https://github.com/fredrikaverpil/neotest-golang/compare/v2.7.0...v2.7.1) (2026-01-02)
 
 ### Bug Fixes
