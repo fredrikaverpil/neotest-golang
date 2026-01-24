@@ -103,7 +103,8 @@ When running `./pok test`, Neovim launches headlessly and:
 - **`stylua.toml`** - Code formatting rules for Lua
 - **`.tsqueryrc.json`** - Tree-sitter query language server configuration
 - **`.golangci.yml`** - Linting configuration for Go test fixtures
-- **`.pocket/config.go`** - Task runner configuration (uses [Pocket](https://github.com/fredrikaverpil/pocket))
+- **`.pocket/config.go`** - Task runner configuration (uses
+  [Pocket](https://github.com/fredrikaverpil/pocket))
 
 ## Key Patterns
 
