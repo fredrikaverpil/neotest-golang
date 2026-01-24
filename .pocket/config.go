@@ -30,12 +30,11 @@ var Config = &pk.Config{
 		// NOTE: Must be Serial, not Parallel - they share .tests/all/site/ directory
 		pk.Serial(
 			gotestsum.Install, // Required for streaming test results in integration tests
-			neovim.Test(neovim.WithVersion(neovim.Stable)),
-			neovim.Test(neovim.WithVersion(neovim.Nightly)),
+			neovim.PlenaryTest(neovim.WithPlenaryNvimVersion(neovim.Stable)),
+			neovim.PlenaryTest(neovim.WithPlenaryNvimVersion(neovim.Nightly)),
 		),
 		// Run treesitter query tasks after neovim tests - they need the Go parser
 		// which is installed during neovim bootstrap
 		treesitter.Tasks(),
 	),
-	Manual: []pk.Runnable{Zensical},
 }
