@@ -52,10 +52,10 @@ function M.init()
       print("Plugin " .. plugin .. " already downloaded")
       if data.hash then
         -- Verify we're on the right hash
-        local current_hash =
+        local handle =
           io.popen("cd " .. plugin_path .. " && git rev-parse HEAD")
-            :read("*a")
-            :gsub("%s+", "")
+        local current_hash = handle:read("*a"):gsub("%s+", "")
+        handle:close()
         if current_hash ~= data.hash then
           print("Updating " .. plugin .. " to hash " .. data.hash)
           os.execute(
@@ -72,17 +72,20 @@ function M.init()
     print("Adding to runtimepath: " .. plugin_path)
     vim.opt.runtimepath:append(plugin_path)
 
-    -- HACK: Update nvim-nio timeout value if this is the nvim-nio plugin
+    -- HACK: Update nvim-nio timeout value if this is the nvim-nio plugin.
+    -- nvim-nio has a hardcoded 2000ms timeout that's too short for CI.
     if plugin == "nvim-nio" then
       local tests_file_path = plugin_path .. "/lua/nio/tests.lua"
       if vim.fn.filereadable(tests_file_path) == 1 then
         print("Updating timeout in nvim-nio tests.lua...")
-        local content = io.open(tests_file_path, "r"):read("*all")
+        local read_handle = io.open(tests_file_path, "r")
+        local content = read_handle:read("*all")
+        read_handle:close()
         -- Replace the hardcoded 2000 timeout with our variable
         content = content:gsub("timeout or 2000", "timeout or " .. TEST_TIMEOUT)
-        local file = io.open(tests_file_path, "w")
-        file:write(content)
-        file:close()
+        local write_handle = io.open(tests_file_path, "w")
+        write_handle:write(content)
+        write_handle:close()
         print("Updated nvim-nio timeout to " .. TEST_TIMEOUT .. "ms")
       end
     end
@@ -101,25 +104,68 @@ function M.init()
     print("Created parser directory: " .. parser_dir)
   end
 
-  -- Configuare nvim-treesitter to use the site directory for parsers
+  -- Configure nvim-treesitter to use the site directory for parsers
   print("Configuring nvim-treesitter install directory...")
   ---@type TSConfig
   local treesitter_opts = { install_dir = site_dir }
   require("nvim-treesitter.config").setup(treesitter_opts)
 
+  -- Verify tree-sitter CLI is available (required for parser compilation)
+  local tree_sitter = vim.fn.exepath("tree-sitter")
+  if tree_sitter ~= "" then
+    print("tree-sitter CLI: " .. tree_sitter)
+  else
+    print(
+      "WARNING: tree-sitter CLI not found in PATH - parser compilation may fail"
+    )
+  end
+
   -- Install Go parser if not already installed
+  -- Note: nvim-treesitter uses .so extension on all platforms (including Windows)
   local parser_path = site_dir .. "/parser/go.so"
   local parser_installed = vim.fn.filereadable(parser_path) == 1
 
   if not parser_installed then
     print("Go parser not found, installing...")
+    print("  Expected path: " .. parser_path)
+
+    -- Start async installation
     local success, result = pcall(function()
-      return require("nvim-treesitter.install").install({ "go" }):wait(300000) -- wait max. 5 minutes
+      require("nvim-treesitter.install").install({ "go" })
     end)
 
     if not success then
-      print("Parser installation failed: " .. tostring(result))
+      error("Failed to start parser installation: " .. tostring(result))
     end
+
+    -- Poll for parser file existence (wait() doesn't block in headless mode)
+    local max_wait_seconds = 300 -- 5 minutes
+    local poll_interval_ms = 500
+    local waited = 0
+
+    while vim.fn.filereadable(parser_path) == 0 and waited < max_wait_seconds do
+      vim.wait(poll_interval_ms, function()
+        return vim.fn.filereadable(parser_path) == 1
+      end, 50)
+      waited = waited + (poll_interval_ms / 1000)
+      if waited % 30 < (poll_interval_ms / 1000) then
+        print(
+          string.format("  Waiting for parser compilation... (%ds)", waited)
+        )
+      end
+    end
+
+    if vim.fn.filereadable(parser_path) == 0 then
+      error(
+        "Parser installation timed out after "
+          .. max_wait_seconds
+          .. " seconds. "
+          .. "Parser file not found at: "
+          .. parser_path
+      )
+    end
+
+    print("Go parser installed successfully at: " .. parser_path)
   else
     print("Go parser already installed at: " .. parser_path)
   end

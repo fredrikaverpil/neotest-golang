@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestHints tests mixed diagnostics (t.Log, t.Error, assert with/without messages)
+// TestHints tests mixed diagnostics (t.Log, t.Error, assert with/without messages).
 func TestHints(t *testing.T) {
 	t.Log("hello world")
 	t.Error("whuat")
@@ -19,7 +19,7 @@ func TestHints(t *testing.T) {
 	t.Log("goodbye world")
 }
 
-// TestConsecutiveFailures tests multiple consecutive testify failures
+// TestConsecutiveFailures tests multiple consecutive testify failures.
 func TestConsecutiveFailures(t *testing.T) {
 	// First failure without custom message
 	assert.Equal(t, 1, 2)
@@ -29,7 +29,7 @@ func TestConsecutiveFailures(t *testing.T) {
 	assert.Containsf(t, "hello", "x", "expected x in string")
 }
 
-// TestMixedAssertTypes tests different assertion types
+// TestMixedAssertTypes tests different assertion types.
 func TestMixedAssertTypes(t *testing.T) {
 	t.Log("starting mixed test")
 
