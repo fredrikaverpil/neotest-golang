@@ -12,6 +12,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  workflows: write
 
 jobs:
   sync:
@@ -23,7 +24,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: .pocket/go.mod
-          cache-dependency-path: '**/go.sum'
+          cache: false
 
       - name: Update pocket
         run: ./pok -v self-update
