@@ -22,11 +22,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: .pocket/go.mod
           cache-dependency-path: '**/go.sum'
 
       - name: Update pocket
-        run: ./pok -v update
+        run: ./pok -v self-update
 
       - name: Run pocket
         run: ./pok -v
