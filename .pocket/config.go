@@ -18,7 +18,19 @@ var Config = &pk.Config{
 		pk.Parallel(
 			markdown.Tasks(),
 			lua.Tasks(),
-			github.Tasks(),
+
+			// GitHub workflows, including matrix-based task execution
+			pk.WithOptions(
+				github.Tasks(),
+				github.WithSkipPocket(), // skip the simple workflow variant
+				github.WithMatrixWorkflow(github.MatrixConfig{
+					DefaultPlatforms: []string{"ubuntu-latest"},
+					TaskOverrides: map[string]github.TaskOverride{
+						"nvim-test-nightly": {Platforms: []string{"ubuntu-latest", "macos-latest", "windows-latest"}},
+						"nvim-test-stable":  {Platforms: []string{"ubuntu-latest", "macos-latest", "windows-latest"}},
+					},
+				}),
+			),
 		),
 		pk.WithOptions(
 			golang.Tasks(),
@@ -26,6 +38,12 @@ var Config = &pk.Config{
 			pk.WithExcludeTask(golang.Test, "tests/go", "tests/features"),
 			pk.WithExcludeTask(golang.Lint, "tests/go", "tests/features"),
 		),
+
+		pk.WithOptions(
+			treesitter.Tasks(),
+			treesitter.WithParser("go"),
+		),
+
 		// Run plenary tests with both stable and nightly Neovim
 		// NOTE: Must be Serial, not Parallel - they share .tests/all/site/ directory
 		pk.Serial(
@@ -33,8 +51,5 @@ var Config = &pk.Config{
 			neovim.PlenaryTest(neovim.WithPlenaryNvimVersion(neovim.Stable)),
 			neovim.PlenaryTest(neovim.WithPlenaryNvimVersion(neovim.Nightly)),
 		),
-		// Run treesitter query tasks after neovim tests - they need the Go parser
-		// which is installed during neovim bootstrap
-		treesitter.Tasks(),
 	),
 }
