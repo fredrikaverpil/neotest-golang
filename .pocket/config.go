@@ -6,7 +6,6 @@ import (
 	"github.com/fredrikaverpil/pocket/tasks/golang"
 	"github.com/fredrikaverpil/pocket/tasks/lua"
 	"github.com/fredrikaverpil/pocket/tasks/markdown"
-	"github.com/fredrikaverpil/pocket/tasks/neovim"
 	"github.com/fredrikaverpil/pocket/tasks/treesitter"
 )
 
@@ -33,8 +32,8 @@ var Config = &pk.Config{
 		),
 
 		pk.Parallel(
-			neovim.PlenaryTestStable,
-			neovim.PlenaryTestNightly,
+			PlenaryTestStable,
+			PlenaryTestNightly,
 		),
 
 		// GitHub workflows, including matrix-based task execution
