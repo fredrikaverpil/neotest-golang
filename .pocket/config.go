@@ -8,8 +8,6 @@ import (
 	"github.com/fredrikaverpil/pocket/tasks/markdown"
 	"github.com/fredrikaverpil/pocket/tasks/neovim"
 	"github.com/fredrikaverpil/pocket/tasks/treesitter"
-	"github.com/fredrikaverpil/pocket/tools/gotestsum"
-	treesitterTool "github.com/fredrikaverpil/pocket/tools/treesitter"
 )
 
 // Config is the Pocket configuration for this project.
@@ -34,18 +32,9 @@ var Config = &pk.Config{
 			pk.WithFlag(treesitter.QueryLint, "parsers", "go"),
 		),
 
-		// Run plenary tests with both stable and nightly Neovim
-		pk.Serial(
-			pk.Parallel(
-				gotestsum.Install,
-				neovim.InstallStable,
-				neovim.InstallNightly,
-				treesitterTool.Install,
-			),
-			pk.Parallel(
-				neovim.PlenaryTestStable,
-				neovim.PlenaryTestNightly,
-			),
+		pk.Parallel(
+			neovim.PlenaryTestStable,
+			neovim.PlenaryTestNightly,
 		),
 
 		// GitHub workflows, including matrix-based task execution
