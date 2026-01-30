@@ -2,7 +2,7 @@
 # Run `./pok github-workflows` to regenerate.
 # See: https://github.com/fredrikaverpil/pocket
 
-name: pocket-matrix
+name: pocket
 
 on:
   push:
@@ -17,10 +17,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  plan:
+  md-format-ubuntu:
+    name: md-format (ubuntu-latest)
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Go
@@ -40,48 +39,9 @@ jobs:
           key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-pocket-
-      - id: matrix
-        run: echo "matrix=$(./pok gha-matrix)" >> "$GITHUB_OUTPUT"
-
-  run:
-    name: ${{ matrix.task }} (${{ matrix.os }})
-    needs: plan
-    if: ${{ needs.plan.outputs.matrix != '{"include":[]}' }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: true
-      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: .pocket/go.mod
-          cache: false
-      - name: Restore cache
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-            .pocket/bin
-            .pocket/tools
-            .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-pocket-
-      - name: ${{ matrix.task }} (unix)
-        if: ${{ !contains(matrix.os, 'windows') }}
+      - name: Run md-format
         shell: bash
-        run: ${{ matrix.shim }} -v ${{ matrix.gitDiff && '-g' || '' }} ${{ matrix.task }}
-      - name: ${{ matrix.task }} (windows)
-        if: ${{ contains(matrix.os, 'windows') }}
-        shell: pwsh
-        run: ${{ matrix.shim }} -v ${{ matrix.gitDiff && '-g' || '' }} ${{ matrix.task }}
-      - name: Check for uncommitted changes
-        if: ${{ matrix.gitDiff }}
-        shell: bash
-        run: git diff --exit-code
+        run: ./pok -v -g md-format
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: actions/cache/save@v4
@@ -93,3 +53,559 @@ jobs:
             .pocket/tools
             .pocket/venvs
           key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  lua-format-ubuntu:
+    name: lua-format (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run lua-format
+        shell: bash
+        run: ./pok -v -g lua-format
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  go-fix-ubuntu:
+    name: go-fix (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run go-fix
+        shell: bash
+        run: ./pok -v -g go-fix
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  go-format-ubuntu:
+    name: go-format (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run go-format
+        shell: bash
+        run: ./pok -v -g go-format
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  go-lint-ubuntu:
+    name: go-lint (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run go-lint
+        shell: bash
+        run: ./pok -v -g go-lint
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  go-test-ubuntu:
+    name: go-test (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run go-test
+        shell: bash
+        run: ./pok -v -g go-test
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  go-vulncheck-ubuntu:
+    name: go-vulncheck (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run go-vulncheck
+        shell: bash
+        run: ./pok -v -g go-vulncheck
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  query-format-ubuntu:
+    name: query-format (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run query-format
+        shell: bash
+        run: ./pok -v -g query-format -parsers go
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  query-lint-ubuntu:
+    name: query-lint (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run query-lint
+        shell: bash
+        run: ./pok -v -g query-lint -parsers go
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  nvim-test-stable-ubuntu:
+    name: nvim-test:stable (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run nvim-test:stable
+        shell: bash
+        run: ./pok -v -g nvim-test:stable
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  nvim-test-stable-macos:
+    name: nvim-test:stable (macos-latest)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run nvim-test:stable
+        shell: bash
+        run: ./pok -v -g nvim-test:stable
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  nvim-test-stable-windows:
+    name: nvim-test:stable (windows-latest)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run nvim-test:stable
+        shell: pwsh
+        run: .\pok.ps1 -v -g nvim-test:stable
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  nvim-test-nightly-ubuntu:
+    name: nvim-test:nightly (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run nvim-test:nightly
+        shell: bash
+        run: ./pok -v -g nvim-test:nightly
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  nvim-test-nightly-macos:
+    name: nvim-test:nightly (macos-latest)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run nvim-test:nightly
+        shell: bash
+        run: ./pok -v -g nvim-test:nightly
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  nvim-test-nightly-windows:
+    name: nvim-test:nightly (windows-latest)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run nvim-test:nightly
+        shell: pwsh
+        run: .\pok.ps1 -v -g nvim-test:nightly
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
+  github-workflows-ubuntu:
+    name: github-workflows (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-
+      - name: Run github-workflows
+        shell: bash
+        run: ./pok -v -g github-workflows -include-pocket-matrix -skip-pocket
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+
