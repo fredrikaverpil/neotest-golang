@@ -28,7 +28,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -44,7 +44,7 @@ jobs:
         run: ./pok -v -g md-format
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -65,7 +65,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -81,7 +81,7 @@ jobs:
         run: ./pok -v -g lua-format
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -102,7 +102,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -118,7 +118,7 @@ jobs:
         run: ./pok -v -g go-fix
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -139,7 +139,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -155,7 +155,7 @@ jobs:
         run: ./pok -v -g go-format
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -176,7 +176,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -192,7 +192,7 @@ jobs:
         run: ./pok -v -g go-lint
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -213,7 +213,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -229,7 +229,7 @@ jobs:
         run: ./pok -v -g go-test
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -250,7 +250,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -266,7 +266,7 @@ jobs:
         run: ./pok -v -g go-vulncheck
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -287,7 +287,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -303,7 +303,7 @@ jobs:
         run: ./pok -v -g query-format -parsers go
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -324,7 +324,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -340,7 +340,7 @@ jobs:
         run: ./pok -v -g query-lint -parsers go
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -361,7 +361,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -377,7 +377,7 @@ jobs:
         run: ./pok -v -g nvim-test:stable
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -398,7 +398,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -414,7 +414,7 @@ jobs:
         run: ./pok -v -g nvim-test:stable
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -435,7 +435,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -451,7 +451,7 @@ jobs:
         run: .\pok.ps1 -v -g nvim-test:stable
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -472,7 +472,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -488,7 +488,7 @@ jobs:
         run: ./pok -v -g nvim-test:nightly
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -509,7 +509,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -525,7 +525,7 @@ jobs:
         run: ./pok -v -g nvim-test:nightly
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -546,7 +546,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -562,7 +562,7 @@ jobs:
         run: .\pok.ps1 -v -g nvim-test:nightly
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
@@ -583,7 +583,7 @@ jobs:
           go-version-file: .pocket/go.mod
           cache: false
       - name: Restore cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.cache/go-build
@@ -599,7 +599,7 @@ jobs:
         run: ./pok -v -g github-workflows -include-pocket-matrix -skip-pocket
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ~/.cache/go-build
