@@ -6,7 +6,6 @@ local info = vim.health.info or vim.health.report_info
 
 local lib = require("neotest-golang.lib")
 local options = require("neotest-golang.options")
-local path = require("neotest-golang.lib.path")
 
 local M = {}
 
@@ -94,7 +93,7 @@ function M.is_problematic_path()
       Darwin = {
         "/private/tmp",
         "/tmp",
-        path.normalize_path(os.getenv("HOME") .. "/Public"),
+        lib.path.normalize_path(os.getenv("HOME") .. "/Public"),
       },
       Linux = { "/tmp" },
     }
