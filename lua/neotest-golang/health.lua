@@ -6,6 +6,7 @@ local info = vim.health.info or vim.health.report_info
 
 local lib = require("neotest-golang.lib")
 local options = require("neotest-golang.options")
+local query_loader = require("neotest-golang.lib.query_loader")
 
 local M = {}
 
@@ -20,6 +21,7 @@ function M.check()
   M.go_mod_found()
   M.is_problematic_path()
   M.treesitter_parser_installed("go")
+  M.treesitter_queries_compatible()
   M.is_plugin_available("neotest")
   M.is_plugin_available("nio")
   M.is_plugin_available("plenary")
@@ -126,9 +128,98 @@ function M.treesitter_parser_installed(lang)
   local has_parser = pcall(vim.treesitter.language.add, lang)
   if has_parser then
     ok("Treesitter parser for " .. lang .. " is installed")
+    return true
   else
     error("Treesitter parser for " .. lang .. " is not installed")
+    return false
   end
+end
+
+function M.treesitter_queries_compatible()
+  -- Skip if parser isn't available
+  local parser_ok = pcall(vim.treesitter.language.add, "go")
+  if not parser_ok then
+    warn("Skipping query compatibility check (Go parser not available)")
+    return false
+  end
+
+  -- Core queries that must work for basic functionality
+  local queries_to_check = {
+    { name = "test_function", path = "queries/go/test_function.scm" },
+    { name = "table_tests_list", path = "queries/go/table_tests_list.scm" },
+    { name = "table_tests_loop", path = "queries/go/table_tests_loop.scm" },
+    {
+      name = "table_tests_unkeyed",
+      path = "queries/go/table_tests_unkeyed.scm",
+    },
+    {
+      name = "table_tests_loop_unkeyed",
+      path = "queries/go/table_tests_loop_unkeyed.scm",
+    },
+    { name = "table_tests_map", path = "queries/go/table_tests_map.scm" },
+    {
+      name = "table_tests_inline_field_access",
+      path = "queries/go/table_tests_inline_field_access.scm",
+    },
+  }
+
+  -- Also check testify queries if enabled
+  if options.get().testify_enabled then
+    table.insert(queries_to_check, {
+      name = "testify/namespace",
+      path = "features/testify/queries/go/namespace.scm",
+    })
+    table.insert(queries_to_check, {
+      name = "testify/test_method",
+      path = "features/testify/queries/go/test_method.scm",
+    })
+  end
+
+  local all_ok = true
+  local failed_queries = {}
+
+  for _, q in ipairs(queries_to_check) do
+    local load_ok, query_str = pcall(query_loader.load_query, q.path)
+    if not load_ok then
+      all_ok = false
+      table.insert(
+        failed_queries,
+        { name = q.name, err = "Could not load query file" }
+      )
+    else
+      local parse_ok, err = pcall(vim.treesitter.query.parse, "go", query_str)
+      if not parse_ok then
+        all_ok = false
+        -- Extract useful info from error message
+        local err_msg = tostring(err)
+        -- Try to find the invalid node type from error like "Invalid node type 'xyz'"
+        local invalid_node = err_msg:match("Invalid node type '([^']+)'")
+          or err_msg:match("invalid node type '([^']+)'")
+        if invalid_node then
+          table.insert(
+            failed_queries,
+            { name = q.name, err = "Unknown node type: " .. invalid_node }
+          )
+        else
+          table.insert(failed_queries, { name = q.name, err = err_msg })
+        end
+      end
+    end
+  end
+
+  if all_ok then
+    ok("All tree-sitter queries are compatible with your Go parser")
+  else
+    for _, failed in ipairs(failed_queries) do
+      error("Query '" .. failed.name .. "' incompatible: " .. failed.err)
+    end
+    warn(
+      "Tree-sitter query/parser mismatch. Either update your Go parser "
+        .. "with :TSUpdate go, or update neotest-golang to the latest version."
+    )
+  end
+
+  return all_ok
 end
 
 local function is_windows_uname()
