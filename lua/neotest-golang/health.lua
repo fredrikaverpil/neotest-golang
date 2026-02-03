@@ -6,7 +6,6 @@ local info = vim.health.info or vim.health.report_info
 
 local lib = require("neotest-golang.lib")
 local options = require("neotest-golang.options")
-local path = require("neotest-golang.lib.path")
 
 local M = {}
 
@@ -94,7 +93,7 @@ function M.is_problematic_path()
       Darwin = {
         "/private/tmp",
         "/tmp",
-        path.normalize_path(os.getenv("HOME") .. "/Public"),
+        lib.path.normalize_path(os.getenv("HOME") .. "/Public"),
       },
       Linux = { "/tmp" },
     }
@@ -304,6 +303,7 @@ function M.nvim_treesitter_branch_check()
 
   for _, file in ipairs(main_indicators) do
     if vim.fn.filereadable(ts_path .. "/" .. file) == 1 then
+      info("Found " .. ts_path .. " (main)")
       has_main_files = true
       break
     end
@@ -311,6 +311,7 @@ function M.nvim_treesitter_branch_check()
 
   for _, file in ipairs(master_indicators) do
     if vim.fn.filereadable(ts_path .. "/" .. file) == 1 then
+      info("Found " .. ts_path .. " (master)")
       has_master_files = true
       break
     end
