@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/fredrikaverpil/pocket/pk"
+	"github.com/fredrikaverpil/pocket/pk/pcontext"
 	"github.com/fredrikaverpil/pocket/tools/gotestsum"
 	"github.com/fredrikaverpil/pocket/tools/neovim"
 	"github.com/fredrikaverpil/pocket/tools/treesitter"
@@ -102,7 +103,7 @@ func runPlenaryTests(version, siteDir, bootstrap, minInit, testDir *string, time
 		}
 
 		// Set NEOTEST_SITE_DIR so bootstrap.lua uses our isolated directory.
-		ctx = pk.WithEnv(ctx, fmt.Sprintf("NEOTEST_SITE_DIR=%s", absSiteDir))
+		ctx = pcontext.WithEnv(ctx, fmt.Sprintf("NEOTEST_SITE_DIR=%s", absSiteDir))
 
 		// Resolve paths from git root so they work regardless of execution directory.
 		bootstrapPath := pk.FromGitRoot(*bootstrap)
@@ -113,7 +114,7 @@ func runPlenaryTests(version, siteDir, bootstrap, minInit, testDir *string, time
 		// when running multiple versions in parallel.
 		nvimBinary := neovim.BinaryPath(*version)
 
-		if pk.Verbose(ctx) {
+		if pcontext.Verbose(ctx) {
 			pk.Printf(ctx, "  nvim:        %s\n", nvimBinary)
 			pk.Printf(ctx, "  bootstrap:   %s\n", bootstrapPath)
 			pk.Printf(ctx, "  minimal_init: %s\n", minimalInitPath)
