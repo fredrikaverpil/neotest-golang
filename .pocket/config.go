@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/fredrikaverpil/pocket/pk"
+	"github.com/fredrikaverpil/pocket/tasks/docs"
 	"github.com/fredrikaverpil/pocket/tasks/github"
 	"github.com/fredrikaverpil/pocket/tasks/golang"
 	"github.com/fredrikaverpil/pocket/tasks/lua"
@@ -16,6 +17,7 @@ var Config = &pk.Config{
 		pk.Parallel(
 			markdown.Tasks(),
 			lua.Tasks(),
+			docs.Tasks(),
 		),
 
 		pk.WithOptions(
