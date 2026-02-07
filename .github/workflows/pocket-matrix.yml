@@ -36,11 +36,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-md-format-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-md-format-ubuntu-
       - name: Run md-format
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g md-format
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -52,7 +54,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-md-format-ubuntu-${{ hashFiles('**/go.sum') }}
 
   lua-format-ubuntu:
     name: lua-format (ubuntu-latest)
@@ -73,11 +75,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-lua-format-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-lua-format-ubuntu-
       - name: Run lua-format
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g lua-format
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -89,7 +93,46 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-lua-format-ubuntu-${{ hashFiles('**/go.sum') }}
+
+  docs-ubuntu:
+    name: docs (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: .pocket/go.mod
+          cache: false
+      - name: Restore cache
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-docs-ubuntu-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-pocket-docs-ubuntu-
+      - name: Run docs
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./pok -v -g docs
+      - name: Save cache
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            .pocket/bin
+            .pocket/tools
+            .pocket/venvs
+          key: ${{ runner.os }}-pocket-docs-ubuntu-${{ hashFiles('**/go.sum') }}
 
   go-fix-ubuntu:
     name: go-fix (ubuntu-latest)
@@ -110,11 +153,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-go-fix-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-go-fix-ubuntu-
       - name: Run go-fix
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g go-fix
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -126,7 +171,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-go-fix-ubuntu-${{ hashFiles('**/go.sum') }}
 
   go-format-ubuntu:
     name: go-format (ubuntu-latest)
@@ -147,11 +192,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-go-format-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-go-format-ubuntu-
       - name: Run go-format
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g go-format
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -163,7 +210,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-go-format-ubuntu-${{ hashFiles('**/go.sum') }}
 
   go-lint-ubuntu:
     name: go-lint (ubuntu-latest)
@@ -184,11 +231,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-go-lint-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-go-lint-ubuntu-
       - name: Run go-lint
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g go-lint
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -200,7 +249,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-go-lint-ubuntu-${{ hashFiles('**/go.sum') }}
 
   go-test-ubuntu:
     name: go-test (ubuntu-latest)
@@ -221,11 +270,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-go-test-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-go-test-ubuntu-
       - name: Run go-test
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g go-test
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -237,7 +288,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-go-test-ubuntu-${{ hashFiles('**/go.sum') }}
 
   go-vulncheck-ubuntu:
     name: go-vulncheck (ubuntu-latest)
@@ -258,11 +309,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-go-vulncheck-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-go-vulncheck-ubuntu-
       - name: Run go-vulncheck
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g go-vulncheck
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -274,7 +327,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-go-vulncheck-ubuntu-${{ hashFiles('**/go.sum') }}
 
   query-format-ubuntu:
     name: query-format (ubuntu-latest)
@@ -295,11 +348,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-query-format-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-query-format-ubuntu-
       - name: Run query-format
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g query-format -parsers go
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -311,7 +366,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-query-format-ubuntu-${{ hashFiles('**/go.sum') }}
 
   query-lint-ubuntu:
     name: query-lint (ubuntu-latest)
@@ -332,11 +387,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-query-lint-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-query-lint-ubuntu-
       - name: Run query-lint
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g query-lint -parsers go
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -348,7 +405,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-query-lint-ubuntu-${{ hashFiles('**/go.sum') }}
 
   nvim-test-stable-ubuntu:
     name: nvim-test:stable (ubuntu-latest)
@@ -369,11 +426,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-stable-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-nvim-test-stable-ubuntu-
       - name: Run nvim-test:stable
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g nvim-test:stable
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -385,7 +444,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-stable-ubuntu-${{ hashFiles('**/go.sum') }}
 
   nvim-test-stable-macos:
     name: nvim-test:stable (macos-latest)
@@ -406,11 +465,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-stable-macos-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-nvim-test-stable-macos-
       - name: Run nvim-test:stable
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g nvim-test:stable
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -422,7 +483,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-stable-macos-${{ hashFiles('**/go.sum') }}
 
   nvim-test-stable-windows:
     name: nvim-test:stable (windows-latest)
@@ -443,11 +504,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-stable-windows-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-nvim-test-stable-windows-
       - name: Run nvim-test:stable
         shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: .\pok.ps1 -v -g nvim-test:stable
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -459,7 +522,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-stable-windows-${{ hashFiles('**/go.sum') }}
 
   nvim-test-nightly-ubuntu:
     name: nvim-test:nightly (ubuntu-latest)
@@ -480,11 +543,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-nightly-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-nvim-test-nightly-ubuntu-
       - name: Run nvim-test:nightly
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g nvim-test:nightly
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -496,7 +561,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-nightly-ubuntu-${{ hashFiles('**/go.sum') }}
 
   nvim-test-nightly-macos:
     name: nvim-test:nightly (macos-latest)
@@ -517,11 +582,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-nightly-macos-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-nvim-test-nightly-macos-
       - name: Run nvim-test:nightly
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g nvim-test:nightly
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -533,7 +600,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-nightly-macos-${{ hashFiles('**/go.sum') }}
 
   nvim-test-nightly-windows:
     name: nvim-test:nightly (windows-latest)
@@ -554,11 +621,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-nightly-windows-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-nvim-test-nightly-windows-
       - name: Run nvim-test:nightly
         shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: .\pok.ps1 -v -g nvim-test:nightly
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -570,7 +639,7 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-nvim-test-nightly-windows-${{ hashFiles('**/go.sum') }}
 
   github-workflows-ubuntu:
     name: github-workflows (ubuntu-latest)
@@ -591,11 +660,13 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-github-workflows-ubuntu-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-pocket-
+            ${{ runner.os }}-pocket-github-workflows-ubuntu-
       - name: Run github-workflows
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./pok -v -g github-workflows -include-pocket-matrix -skip-pocket
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -607,5 +678,5 @@ jobs:
             .pocket/bin
             .pocket/tools
             .pocket/venvs
-          key: ${{ runner.os }}-pocket-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-pocket-github-workflows-ubuntu-${{ hashFiles('**/go.sum') }}
 
