@@ -1,9 +1,0 @@
-[project]
-name = "neotest-golang"
-version = "0.1.0"
-description = "Neotest-golang docs"
-readme = "README.md"
-requires-python = ">=3.14"
-dependencies = [
-    "zensical",
-]
