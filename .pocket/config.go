@@ -41,13 +41,17 @@ var Config = &pk.Config{
 		// GitHub workflows, including matrix-based task execution
 		pk.WithOptions(
 			github.Tasks(),
-			pk.WithFlag(github.Workflows, "skip-pocket", true),
-			pk.WithFlag(github.Workflows, "include-pocket-matrix", true),
-			pk.WithContextValue(github.MatrixConfigKey{}, github.MatrixConfig{
+			pk.WithFlag(github.Workflows, github.FlagSkipPocket, true),
+			pk.WithFlag(github.Workflows, github.FlagIncludePocketPerjob, true),
+			pk.WithContextValue(github.PerJobConfigKey{}, github.PerJobConfig{
 				DefaultPlatforms: []string{"ubuntu-latest"},
 				TaskOverrides: map[string]github.TaskOverride{
-					"nvim-test:nightly": {Platforms: []string{"ubuntu-latest", "macos-latest", "windows-latest"}},
-					"nvim-test:stable":  {Platforms: []string{"ubuntu-latest", "macos-latest", "windows-latest"}},
+					PlenaryTestNightly.Name: {
+						Platforms: []string{github.PlatformUbuntu, github.PlatformMacOS, github.PlatformWindows},
+					},
+					PlenaryTestStable.Name: {
+						Platforms: []string{github.PlatformUbuntu, github.PlatformMacOS, github.PlatformWindows},
+					},
 				},
 			}),
 		),

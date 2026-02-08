@@ -355,7 +355,7 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: ./pok -v -g query-format -parsers go
+        run: ./pok -v -g query-format
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: actions/cache/save@v5
@@ -394,7 +394,7 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: ./pok -v -g query-lint -parsers go
+        run: ./pok -v -g query-lint
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: actions/cache/save@v5
@@ -667,7 +667,7 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: ./pok -v -g github-workflows -include-pocket-matrix -skip-pocket
+        run: ./pok -v -g github-workflows
       - name: Save cache
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: actions/cache/save@v5
