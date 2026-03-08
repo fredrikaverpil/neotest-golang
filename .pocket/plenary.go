@@ -12,17 +12,27 @@ import (
 	"github.com/fredrikaverpil/pocket/tools/treesitter"
 )
 
+// PlenaryFlags holds flags for the plenary test tasks.
+type PlenaryFlags struct {
+	Version     string `flag:"version"      usage:"neovim version"`
+	SiteDir     string `flag:"site-dir"     usage:"site directory"`
+	Bootstrap   string `flag:"bootstrap"    usage:"bootstrap.lua file path"`
+	MinimalInit string `flag:"minimal-init" usage:"minimal_init.lua file path"`
+	TestDir     string `flag:"test-dir"     usage:"test directory"`
+	Timeout     int    `flag:"timeout"      usage:"test timeout in ms"`
+}
+
 // PlenaryTestStable runs Neovim plenary tests with stable Neovim.
 var PlenaryTestStable = &pk.Task{
 	Name:  "nvim-test:stable",
 	Usage: "run neovim plenary tests (stable)",
-	Flags: map[string]pk.FlagDef{
-		"version":      {Default: neovim.Stable, Usage: "neovim version"},
-		"site-dir":     {Default: ".tests/stable", Usage: "site directory"},
-		"bootstrap":    {Default: "spec/bootstrap.lua", Usage: "bootstrap.lua file path"},
-		"minimal-init": {Default: "spec/minimal_init.lua", Usage: "minimal_init.lua file path"},
-		"test-dir":     {Default: "spec/", Usage: "test directory"},
-		"timeout":      {Default: 500000, Usage: "test timeout in ms"},
+	Flags: PlenaryFlags{
+		Version:     neovim.Stable,
+		SiteDir:     ".tests/stable",
+		Bootstrap:   "spec/bootstrap.lua",
+		MinimalInit: "spec/minimal_init.lua",
+		TestDir:     "spec/",
+		Timeout:     500000,
 	},
 	Body: pk.Serial(
 		pk.Parallel(
@@ -38,13 +48,13 @@ var PlenaryTestStable = &pk.Task{
 var PlenaryTestNightly = &pk.Task{
 	Name:  "nvim-test:nightly",
 	Usage: "run neovim plenary tests (nightly)",
-	Flags: map[string]pk.FlagDef{
-		"version":      {Default: neovim.Nightly, Usage: "neovim version"},
-		"site-dir":     {Default: ".tests/nightly", Usage: "site directory"},
-		"bootstrap":    {Default: "spec/bootstrap.lua", Usage: "bootstrap.lua file path"},
-		"minimal-init": {Default: "spec/minimal_init.lua", Usage: "minimal_init.lua file path"},
-		"test-dir":     {Default: "spec/", Usage: "test directory"},
-		"timeout":      {Default: 500000, Usage: "test timeout in ms"},
+	Flags: PlenaryFlags{
+		Version:     neovim.Nightly,
+		SiteDir:     ".tests/nightly",
+		Bootstrap:   "spec/bootstrap.lua",
+		MinimalInit: "spec/minimal_init.lua",
+		TestDir:     "spec/",
+		Timeout:     500000,
 	},
 	Body: pk.Serial(
 		pk.Parallel(
@@ -58,15 +68,10 @@ var PlenaryTestNightly = &pk.Task{
 
 func runPlenaryTests() pk.Runnable {
 	return pk.Do(func(ctx context.Context) error {
-		version := pk.GetFlag[string](ctx, "version")
-		siteDir := pk.GetFlag[string](ctx, "site-dir")
-		bootstrap := pk.GetFlag[string](ctx, "bootstrap")
-		minInit := pk.GetFlag[string](ctx, "minimal-init")
-		testDir := pk.GetFlag[string](ctx, "test-dir")
-		timeout := pk.GetFlag[int](ctx, "timeout")
+		f := pk.GetFlags[PlenaryFlags](ctx)
 
 		// Clean and create site directory for isolation.
-		absSiteDir := pk.FromGitRoot(siteDir)
+		absSiteDir := pk.FromGitRoot(f.SiteDir)
 		if err := os.RemoveAll(absSiteDir); err != nil {
 			return fmt.Errorf("clean site directory: %w", err)
 		}
@@ -78,20 +83,20 @@ func runPlenaryTests() pk.Runnable {
 		ctx = pk.ContextWithEnv(ctx, fmt.Sprintf("NEOTEST_SITE_DIR=%s", absSiteDir))
 
 		// Resolve paths from git root so they work regardless of execution directory.
-		bootstrapPath := pk.FromGitRoot(bootstrap)
-		minimalInitPath := pk.FromGitRoot(minInit)
-		testDirPath := pk.FromGitRoot(testDir)
+		bootstrapPath := pk.FromGitRoot(f.Bootstrap)
+		minimalInitPath := pk.FromGitRoot(f.MinimalInit)
+		testDirPath := pk.FromGitRoot(f.TestDir)
 
 		// Use the specific neovim binary for this version to avoid symlink collisions
 		// when running multiple versions in parallel.
-		nvimBinary := neovim.BinaryPath(version)
+		nvimBinary := neovim.BinaryPath(f.Version)
 
 		if pk.Verbose(ctx) {
 			pk.Printf(ctx, "  nvim:        %s\n", nvimBinary)
 			pk.Printf(ctx, "  bootstrap:   %s\n", bootstrapPath)
 			pk.Printf(ctx, "  minimal_init: %s\n", minimalInitPath)
 			pk.Printf(ctx, "  test_dir:    %s\n", testDirPath)
-			pk.Printf(ctx, "  timeout:     %d\n", timeout)
+			pk.Printf(ctx, "  timeout:     %d\n", f.Timeout)
 			pk.Printf(ctx, "  site_dir:    %s\n", absSiteDir)
 		}
 
@@ -104,7 +109,7 @@ func runPlenaryTests() pk.Runnable {
 
 		plenaryCmd := fmt.Sprintf(
 			"PlenaryBustedDirectory %s { minimal_init = '%s', timeout = %d }",
-			luaTestDir, luaMinInit, timeout,
+			luaTestDir, luaMinInit, f.Timeout,
 		)
 
 		return pk.Exec(ctx, nvimBinary,

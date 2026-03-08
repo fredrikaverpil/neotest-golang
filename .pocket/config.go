@@ -23,14 +23,14 @@ var Config = &pk.Config{
 		pk.WithOptions(
 			golang.Tasks(),
 			pk.WithDetect(golang.Detect()),
-			pk.WithExcludeTask(golang.Test, "tests/go", "tests/features"),
-			pk.WithExcludeTask(golang.Lint, "tests/go", "tests/features"),
+			pk.WithSkipTask(golang.Test, "tests/go", "tests/features"),
+			pk.WithSkipTask(golang.Lint, "tests/go", "tests/features"),
 		),
 
 		pk.WithOptions(
 			treesitter.Tasks(),
-			pk.WithFlag(treesitter.QueryFormat, "parsers", "go"),
-			pk.WithFlag(treesitter.QueryLint, "parsers", "go"),
+			pk.WithFlags(treesitter.QueryFormatFlags{Parsers: "go"}),
+			pk.WithFlags(treesitter.QueryLintFlags{Parsers: "go"}),
 		),
 
 		pk.Parallel(
@@ -41,17 +41,12 @@ var Config = &pk.Config{
 		// GitHub workflows, including matrix-based task execution
 		pk.WithOptions(
 			github.Tasks(),
-			pk.WithFlag(github.Workflows, github.FlagSkipPocket, true),
-			pk.WithFlag(github.Workflows, github.FlagIncludePocketPerjob, true),
-			pk.WithContextValue(github.PerJobConfigKey{}, github.PerJobConfig{
-				DefaultPlatforms: []string{"ubuntu-latest"},
-				TaskOverrides: map[string]github.TaskOverride{
-					PlenaryTestNightly.Name: {
-						Platforms: []string{github.PlatformUbuntu, github.PlatformMacOS, github.PlatformWindows},
-					},
-					PlenaryTestStable.Name: {
-						Platforms: []string{github.PlatformUbuntu, github.PlatformMacOS, github.PlatformWindows},
-					},
+			pk.WithFlags(github.WorkflowFlags{
+				PerPocketTaskJob: new(true),
+				Platforms:        []github.Platform{github.Ubuntu},
+				PerPocketTaskJobOptions: map[string]github.PerPocketTaskJobOption{
+					PlenaryTestNightly.Name: {Platforms: github.AllPlatforms()},
+					PlenaryTestStable.Name:  {Platforms: github.AllPlatforms()},
 				},
 			}),
 		),
