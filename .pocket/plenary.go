@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/fredrikaverpil/pocket/pk"
+	"github.com/fredrikaverpil/pocket/pk/repopath"
+	"github.com/fredrikaverpil/pocket/pk/run"
 	"github.com/fredrikaverpil/pocket/tools/gotestsum"
 	"github.com/fredrikaverpil/pocket/tools/neovim"
 	"github.com/fredrikaverpil/pocket/tools/treesitter"
@@ -68,10 +70,10 @@ var PlenaryTestNightly = &pk.Task{
 
 func runPlenaryTests() pk.Runnable {
 	return pk.Do(func(ctx context.Context) error {
-		f := pk.GetFlags[PlenaryFlags](ctx)
+		f := run.GetFlags[PlenaryFlags](ctx)
 
 		// Clean and create site directory for isolation.
-		absSiteDir := pk.FromGitRoot(f.SiteDir)
+		absSiteDir := repopath.FromGitRoot(f.SiteDir)
 		if err := os.RemoveAll(absSiteDir); err != nil {
 			return fmt.Errorf("clean site directory: %w", err)
 		}
@@ -80,24 +82,24 @@ func runPlenaryTests() pk.Runnable {
 		}
 
 		// Set NEOTEST_SITE_DIR so bootstrap.lua uses our isolated directory.
-		ctx = pk.ContextWithEnv(ctx, fmt.Sprintf("NEOTEST_SITE_DIR=%s", absSiteDir))
+		ctx = run.ContextWithEnv(ctx, fmt.Sprintf("NEOTEST_SITE_DIR=%s", absSiteDir))
 
 		// Resolve paths from git root so they work regardless of execution directory.
-		bootstrapPath := pk.FromGitRoot(f.Bootstrap)
-		minimalInitPath := pk.FromGitRoot(f.MinimalInit)
-		testDirPath := pk.FromGitRoot(f.TestDir)
+		bootstrapPath := repopath.FromGitRoot(f.Bootstrap)
+		minimalInitPath := repopath.FromGitRoot(f.MinimalInit)
+		testDirPath := repopath.FromGitRoot(f.TestDir)
 
 		// Use the specific neovim binary for this version to avoid symlink collisions
 		// when running multiple versions in parallel.
 		nvimBinary := neovim.BinaryPath(f.Version)
 
-		if pk.Verbose(ctx) {
-			pk.Printf(ctx, "  nvim:        %s\n", nvimBinary)
-			pk.Printf(ctx, "  bootstrap:   %s\n", bootstrapPath)
-			pk.Printf(ctx, "  minimal_init: %s\n", minimalInitPath)
-			pk.Printf(ctx, "  test_dir:    %s\n", testDirPath)
-			pk.Printf(ctx, "  timeout:     %d\n", f.Timeout)
-			pk.Printf(ctx, "  site_dir:    %s\n", absSiteDir)
+		if run.Verbose(ctx) {
+			run.Printf(ctx, "  nvim:        %s\n", nvimBinary)
+			run.Printf(ctx, "  bootstrap:   %s\n", bootstrapPath)
+			run.Printf(ctx, "  minimal_init: %s\n", minimalInitPath)
+			run.Printf(ctx, "  test_dir:    %s\n", testDirPath)
+			run.Printf(ctx, "  timeout:     %d\n", f.Timeout)
+			run.Printf(ctx, "  site_dir:    %s\n", absSiteDir)
 		}
 
 		// Convert paths to forward slashes for Lua command.
@@ -112,7 +114,7 @@ func runPlenaryTests() pk.Runnable {
 			luaTestDir, luaMinInit, f.Timeout,
 		)
 
-		return pk.Exec(ctx, nvimBinary,
+		return run.Exec(ctx, nvimBinary,
 			"--headless",
 			"--noplugin",
 			"-i", "NONE",
