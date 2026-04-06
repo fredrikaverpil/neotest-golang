@@ -5,7 +5,9 @@ local query_loader = require("neotest-golang.lib.query_loader")
 
 -- NOTE: this import cannot be removed. If removing it, lua tests will fail with:
 -- E5560: nvim_create_augroup must not be called in a fast event context.
-require("nvim-treesitter")
+if package.loaded["nvim-treesitter"] then
+  require("nvim-treesitter")
+end
 
 local M = {}
 
