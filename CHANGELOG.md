@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.8.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.7.2...v2.8.0) (2026-04-06)
+
+
+### Features
+
+* validate struct field name in unkeyed table test discovery ([#561](https://github.com/fredrikaverpil/neotest-golang/issues/561)) ([d278e8a](https://github.com/fredrikaverpil/neotest-golang/commit/d278e8a4da2259d7aab36e77453bd88e3e003525))
+
+
+### Bug Fixes
+
+* only load nvim-treesitter if available ([#559](https://github.com/fredrikaverpil/neotest-golang/issues/559)) ([e0ebd0a](https://github.com/fredrikaverpil/neotest-golang/commit/e0ebd0aca6a84c569d7cfb235a1e863c2688e11d))
+
 ## [2.7.2](https://github.com/fredrikaverpil/neotest-golang/compare/v2.7.1...v2.7.2) (2026-01-24)
 
 ### Bug Fixes
