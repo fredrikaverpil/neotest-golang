@@ -90,6 +90,10 @@ describe("Integration: positions test", function()
             status = "passed",
             errors = {},
           },
+          [position_id .. "::TestTableTestNamedStructUnkeyed"] = {
+            status = "passed",
+            errors = {},
+          },
           [position_id .. "::TestStructNotTableTest"] = {
             status = "passed",
             errors = {},

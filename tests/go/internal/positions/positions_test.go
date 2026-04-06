@@ -269,8 +269,9 @@ func TestTableTestMultipleStringFieldsUnkeyed(t *testing.T) {
 }
 
 // Table test where t.Run uses the second string field (desc, not name).
-// No subtests should be discovered because the first positional string
-// does not correspond to the field used in t.Run.
+// Subtests are NOT discovered because the query only matches when t.Run
+// uses the first string field in the struct. This documents a known
+// limitation that prevents capturing wrong test names.
 func TestTableTestSecondStringFieldUnkeyed(t *testing.T) {
 	testCases := []struct {
 		name  string
@@ -284,6 +285,27 @@ func TestTableTestSecondStringFieldUnkeyed(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			if tc.name == "" {
+				t.Fail()
+			}
+		})
+	}
+}
+
+// Table test with a named struct type and unkeyed (positional) literals.
+// Subtests are NOT discovered because the query requires an inline struct
+// definition to validate field names. This documents a known limitation.
+func TestTableTestNamedStructUnkeyed(t *testing.T) {
+	type tc struct {
+		name string
+		want int
+	}
+	tests := []tc{
+		{"test1", 1},
+		{"test2", 2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.want == 0 {
 				t.Fail()
 			}
 		})
