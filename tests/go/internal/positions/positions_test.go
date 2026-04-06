@@ -245,6 +245,51 @@ func TestTableTestInlineCompositeWithFieldAccess(t *testing.T) {
 	}
 }
 
+// Table test with multiple string fields and unkeyed struct literals.
+// Only the field used in t.Run (name) should be discovered as test name.
+// The desc field should NOT appear as a test name.
+func TestTableTestMultipleStringFieldsUnkeyed(t *testing.T) {
+	testCases := []struct {
+		name  string
+		desc  string
+		valid bool
+	}{
+		{"x", "John Doe", true},
+		{name: "y", desc: "J d", valid: true},
+		{"z", "  John   Doe  ", true},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.name, func(t *testing.T) {
+			if tC.desc == "" {
+				t.Fail()
+			}
+		})
+	}
+}
+
+// Table test where t.Run uses the second string field (desc, not name).
+// No subtests should be discovered because the first positional string
+// does not correspond to the field used in t.Run.
+func TestTableTestSecondStringFieldUnkeyed(t *testing.T) {
+	testCases := []struct {
+		name  string
+		desc  string
+		valid bool
+	}{
+		{"x", "John Doe", true},
+		{"y", "Jane Doe", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			if tc.name == "" {
+				t.Fail()
+			}
+		})
+	}
+}
+
 // Struct which is not a table test.
 func TestStructNotTableTest(t *testing.T) {
 	type item struct {
