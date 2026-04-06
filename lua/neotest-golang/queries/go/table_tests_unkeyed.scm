@@ -26,6 +26,11 @@
 ; What gets captured:
 ; - @test.name = The first string literal in the struct (e.g., "test1")
 ; - @test.definition = The entire struct literal (e.g., {"test1", 1})
+; - @test.field.name = The first string field from struct type (e.g., "name")
+;
+; The query validates that the field used in t.Run() matches the first string
+; field declared in the struct type. This prevents capturing wrong string
+; literals when the struct has multiple string fields.
 ;
 ; DISTINGUISHING FEATURE: No field names in the struct literal.
 ; Compare to table_tests_list.scm which uses {name: "test1"} syntax.
@@ -37,6 +42,14 @@
         (identifier) @test.cases)
       right: (expression_list
         (composite_literal
+          type: (slice_type
+            element: (struct_type
+              (field_declaration_list
+                .
+                (field_declaration
+                  name: (field_identifier) @test.field.name
+                  type: (type_identifier) @field.type
+                  (#eq? @field.type "string")))))
           body: (literal_value
             (literal_element
               (literal_value
@@ -63,4 +76,6 @@
               arguments: (argument_list
                 (selector_expression
                   operand: (identifier) @test.case1
-                  (#eq? @test.case @test.case1))))))))))
+                  (#eq? @test.case @test.case1)
+                  field: (field_identifier) @test.field.name1
+                  (#eq? @test.field.name @test.field.name1))))))))))
