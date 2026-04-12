@@ -87,6 +87,31 @@ local function is_sub_range(a, b)
     )
 end
 
+--- Merges range a and range b into the smallest range that contains both
+--- @param a integer[] range a represented as 4 integers: start_row, start_col, end_row, end_col
+--- @param b integer[] range b represented as 4 integers: start_row, start_col, end_row, end_col
+--- @return integer[] merged range
+local function merge_ranges(a, b)
+    local a_start_row, a_start_col, a_end_row, a_end_col = a[1], a[2], a[3], a[4]
+    local b_start_row, b_start_col, b_end_row, b_end_col = b[1], b[2], b[3], b[4]
+    local start_row, start_col, end_row, end_col = 0, 0, 0, 0
+    if a_start_row < b_start_row or (a_start_row == b_start_row and a_start_col < b_start_col) then
+        start_row = a_start_row
+        start_col = a_start_col
+    else
+        start_row = b_start_row
+        start_col = b_start_col
+    end
+    if a_end_row > b_end_row or (a_end_row == b_end_row and a_end_col > b_end_col) then
+        end_row = a_end_row
+        end_col = a_end_col
+    else
+        end_row = b_end_row
+        end_col = b_end_col
+    end
+    return { start_row, start_col, end_row, end_col }
+end
+
 --- Create flat testify hierarchy where receiver methods are renamed to include suite prefix
 --- with slash separator (e.g., ::SuiteName/MethodName). Suite functions are removed from tree.
 --- @param tree neotest.Tree The original tree
@@ -120,7 +145,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
     return tree
   end
 
-  ---@type neotest.Position | nil
+  ---@type neotest.Position
   local file_pos = tree:data()
 
   -- Build new tree structure
@@ -176,6 +201,9 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
           logger.error("No suitable parent test found for testify method")
           break
       end
+      if parent then
+          parent:data().range = merge_ranges(parent:data().range, pos.range)
+      end
       -- Add suite name as a prefix in the id of the current test and its sub-tests.
       -- This id is later converted to the relevant "go test" command to execute the test.
       local pattern = "::" .. pos.name
@@ -194,18 +222,6 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
         table.insert(root_children, method_node)
       end
   end
-
-  -- Sort children by line number to ensure tree iteration order matches file line order
-  -- This is critical for Neotest's "nearest test" algorithm to work correctly
-  table.sort(root_children, function(a, b)
-    local a_pos = a:data()
-    local b_pos = b:data()
-    -- Use range start line for comparison
-    if a_pos.range and b_pos.range then
-      return a_pos.range[1] < b_pos.range[1]
-    end
-    return false
-  end)
 
   -- Create new tree with file as root and updated children
   local Tree = require("neotest.types.tree")
