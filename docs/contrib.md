@@ -54,24 +54,24 @@ looks for these captures:
 
 Testify suites use a tree structure.
 
-The root of the suites are the "suite constructor" functions. They are
-initally identified by general-purpose queries as normal tests.
-Then, to be marked as roots for testify suites, a query has to capture
-`@test_function` and `@testify_suite_struct` where `@test_function` should match
-the `@test.name` from the other query. The `@testify_suite_struct` capture
-will be used for lookup purposes by `lookup.lua` later on.
+The root of the suites are the "suite constructor" functions. They are initally
+identified by general-purpose queries as normal tests. Then, to be marked as
+roots for testify suites, a query has to capture `@test_function` and
+`@testify_suite_struct` where `@test_function` should match the `@test.name`
+from the other query. The `@testify_suite_struct` capture will be used for
+lookup purposes by `lookup.lua` later on.
 
 Receiver methods are identified via `@test.name`, `@test.definition` and
 `@testify_suite_struct` captures. The `@test.name` and `@test.definition`
-captures is what the core library will use to detect the method as a test.
-The `@testify_suite_struct` is what will be used to attach the test method
-as a child to its "suite constructor" test in the tree, as well as to
-modify its id by prefixing it with the suite name (e.g., `::SuiteName/MethodName`).
-This is needed in order for the "go test" command to be constructed correctly.
+captures is what the core library will use to detect the method as a test. The
+`@testify_suite_struct` is what will be used to attach the test method as a
+child to its "suite constructor" test in the tree, as well as to modify its id
+by prefixing it with the suite name (e.g., `::SuiteName/MethodName`). This is
+needed in order for the "go test" command to be constructed correctly.
 
-Additional queries capturing `@test.name` and `@test.definition` whose
-ranges are within a receiver method's range will be nested as sub-tests of
-the receiver method (e. g. table tests).
+Additional queries capturing `@test.name` and `@test.definition` whose ranges
+are within a receiver method's range will be nested as sub-tests of the receiver
+method (e. g. table tests).
 
 Additional captures like `@test.method`, `@test.operand`, etc., can be used
 within queries for predicates and logic but are not directly consumed by

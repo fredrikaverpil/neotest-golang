@@ -285,8 +285,7 @@ When upgrading nvim-treesitter (especially from master to main branch):
 When modifying testify functionality:
 
 1. **Enable testify**: Set `testify_enabled = true` in test options
-2. **Use integration tests**: Run
-   `spec/integration/testify/positions_spec.lua`
+2. **Use integration tests**: Run `spec/integration/testify/positions_spec.lua`
 3. **Check Go command**: Verify the generated go test command targets suite
    functions
 4. **Validate tree structure**: Ensure namespace hierarchy matches expected test
