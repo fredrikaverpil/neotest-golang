@@ -35,7 +35,16 @@ describe("Integration: testify suites positions test", function()
             status = "passed",
             errors = {},
           },
-          -- Testify test method results (flat structure - no suite namespaces)
+          -- Testify suite constructor results
+          [position_id .. "::TestExampleTestSuite"] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. "::TestExampleTestSuite2"] = {
+            status = "passed",
+            errors = {},
+          },
+          -- Testify test method results
           [position_id .. "::TestExampleTestSuite2/TestExample"] = {
             status = "passed",
             errors = {},

@@ -209,7 +209,7 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
       -- Add suite name as a prefix in the id of the current test and its sub-tests.
       -- This id is later converted to the relevant "go test" command to execute the test.
       local pattern = "::" .. pos.name
-      local replacement = "::" .. parent_name .. "::" .. pos.name
+      local replacement = "::" .. parent_name .. "/" .. pos.name
       for _, test in method_node:iter() do
         test.id = test.id:gsub(pattern, replacement)
       end
