@@ -16,7 +16,6 @@ local M = {}
 ---@field filter_dirs string[]|fun(): string[] Filtered directories (deprecated, use filter_dir_patterns)
 ---@field filter_dir_patterns string[]|fun(): string[] Glob patterns for filtering directories
 ---@field testify_enabled boolean Enable testify suite support
----@field testify_operand string Regex pattern for testify suite variables
 ---@field testify_import_identifier string Regex pattern for testify import identifiers
 ---@field colorize_test_output boolean Enable colored test output
 ---@field warn_test_name_dupes boolean Warn about duplicate test names
@@ -38,7 +37,6 @@ local opts = {
   filter_dirs = { ".git", "node_modules", ".venv", "venv" }, -- DEPRECATED: use filter_dir_patterns instead
   filter_dir_patterns = {}, -- NOTE: can also be a function
   testify_enabled = false,
-  testify_operand = "^(s|suite)$",
   testify_import_identifier = "^(suite)$",
   colorize_test_output = true,
   warn_test_name_dupes = true,

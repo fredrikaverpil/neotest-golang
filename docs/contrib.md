@@ -52,20 +52,26 @@ looks for these captures:
 
 **For testify suites:**
 
-Testify suites use a flat structure. Receiver methods are identified via
-`@namespace.name` and `@namespace.definition` captures for lookup purposes, but
-these are not converted into namespace position nodes. Instead, test IDs are
-prefixed with suite names (e.g., `::SuiteName/MethodName`).
+Testify suites use a tree structure.
 
-The `build_position` function in Neotest's treesitter library extracts text from
-the `.name` capture and uses the `.definition` capture's range to determine the
-position. These captures are then converted into `neotest.Position` objects with
-these fields:
+The root of the suites are the "suite constructor" functions. They are
+initally identified by general-purpose queries as normal tests.
+Then, to be marked as roots for testify suites, a query has to capture
+`@test_function` and `@suite_struct` where `@test_function` should match
+the `@test.name` from the other query. The `@suite_struct` capture
+will be used for lookup purposes by `lookup.lua` later on.
 
-- `type` - Position type: `"test"` or `"namespace"` (or `"file"` / `"dir"`)
-- `path` - Absolute file path
-- `name` - Test or namespace name (extracted from `.name` capture)
-- `range` - Array of line/column positions from `.definition` capture's range
+Receiver methods are identified via `@test.name`, `@test.definition` and
+`@testify_suite_struct` captures. The `@test.name` and `@test.definition`
+captures is what the core library will use to detect the method as a test.
+The `@testify_suite_struct` is what will be used to attach the test method
+as a child to its "suite constructor" test in the tree, as well as to
+modify its id by prefixing it with the suite name (e.g., `::SuiteName/MethodName`).
+This is needed in order for the "go test" command to be constructed correctly.
+
+Additional queries capturing `@test.name` and `@test.definition` whose
+ranges are within a receiver method's range will be nested as sub-tests of
+the receiver method (e. g. table tests).
 
 Additional captures like `@test.method`, `@test.operand`, etc., can be used
 within queries for predicates and logic but are not directly consumed by
@@ -93,8 +99,7 @@ adapter supplies queries so to figure out what is considered a test.
 From the result of these queries, a Neotest "position" tree is built (can be
 visualized through the "Neotest summary"). Each position in the tree represents
 either a `dir`, `file` or `test` type. Neotest also has a notion of a
-`namespace` position type, but this adapter does not use it (testify support
-uses a flat structure).
+`namespace` position type, but this adapter does not use it.
 
 ### Generating valid `go test` commands
 

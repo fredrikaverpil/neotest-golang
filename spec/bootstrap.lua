@@ -13,7 +13,8 @@ local PLUGINS = {
     branch = "main",
   },
   neotest = {
-    url = "https://github.com/nvim-neotest/neotest",
+    url = "https://github.com/nvlbg/neotest",
+    branch = "allow_overlapping_ranges",
   },
 }
 

@@ -147,25 +147,23 @@ type ExampleTestSuite struct {
 func (suite *ExampleTestSuite) TestExample() { ... }
 func (suite *ExampleTestSuite) TestExample2() { ... }
 
-// Suite runner function (discovered by regular Go queries, but hidden in tree)
+// Suite runner function (discovered by regular Go queries)
 func TestExampleTestSuite(t *testing.T) {
     suite.Run(t, new(ExampleTestSuite))
 }
 ```
 
-The neotest tree structure uses a flat representation with prefixed test IDs:
+The neotest tree structure uses a tree representation:
 
 ```
 - file_test.go
-  ├── TestExampleTestSuite/TestExample (test)
-  ├── TestExampleTestSuite/TestExample2 (test)
-  └── TestExampleTestSuite/TestSubTest (test)
-    └── "subtest" (test)
-  └── TestTrivial (regular test)
+  ├╮ TestExampleTestSuite (test suite)
+  │├─ TestExample (test method)
+  │├─ TestExample2 (test method)
+  │╰╮ TestSubTestOperand1 (test method)
+  │ ╰─ "subtest" (sub test)
+  ╰─ TestTrivial (regular test)
 ```
-
-Note: The suite runner function (`TestExampleTestSuite`) is not shown in the
-tree to avoid confusion and improve usability.
 
 ### Debugging Tree Modification Issues
 
@@ -183,15 +181,6 @@ if options.get().testify_enabled == true then
   local testify_matches = testify.query.run_query_on_file(file_path, testify.query.test_method_query)
   print("Testify test methods found:")
   for name, matches in pairs(testify_matches) do
-    print("  " .. name .. ": " .. #matches .. " matches")
-    for i, match in ipairs(matches) do
-      print("    " .. i .. ". " .. match.text)
-    end
-  end
-
-  local namespace_matches = testify.query.run_query_on_file(file_path, testify.query.namespace_query)
-  print("Namespace matches found:")
-  for name, matches in pairs(namespace_matches) do
     print("  " .. name .. ": " .. #matches .. " matches")
     for i, match in ipairs(matches) do
       print("    " .. i .. ". " .. match.text)
@@ -263,14 +252,6 @@ print("=====================================")
   (not `@test_name`)
 - **Check**: Enable debug output in query detection to see if methods are found
 
-#### Issue: Methods not properly prefixed
-
-- **Symptom**: Test IDs missing suite name prefix (e.g., `TestMethod` instead of
-  `SuiteName/TestMethod`)
-- **Cause**: Tree modification not properly renaming test IDs with suite prefix
-- **Solution**: Check method-to-receiver mapping and ID renaming logic
-- **Check**: Debug tree structure to verify test IDs have correct format
-
 #### Issue: Duplicate method names causing confusion
 
 - **Symptom**: Some testify methods missing or assigned to wrong suites
@@ -305,7 +286,7 @@ When modifying testify functionality:
 
 1. **Enable testify**: Set `testify_enabled = true` in test options
 2. **Use integration tests**: Run
-   `spec/integration/testifysuites_positions_spec.lua`
+   `spec/integration/testify/positions_spec.lua`
 3. **Check Go command**: Verify the generated go test command targets suite
    functions
 4. **Validate tree structure**: Ensure namespace hierarchy matches expected test

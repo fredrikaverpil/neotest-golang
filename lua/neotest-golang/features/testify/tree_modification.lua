@@ -112,12 +112,11 @@ local function merge_ranges(a, b)
     return { start_row, start_col, end_row, end_col }
 end
 
---- Create flat testify hierarchy where receiver methods are renamed to include suite prefix
---- with slash separator (e.g., ::SuiteName/MethodName). Suite functions are removed from tree.
+--- Create testify hierarchy where receiver methods are attached to suite constructors
 --- @param tree neotest.Tree The original tree
 --- @param replacements table<string, string> Receiver type to suite function mappings
 --- @param global_lookup_table table The global lookup table
---- @return neotest.Tree The tree with flat testify structure
+--- @return neotest.Tree The modified tree
 function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   -- Build method_positions map from lookup table data
   ---@type table<string, table[]>

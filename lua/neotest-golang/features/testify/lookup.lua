@@ -1,4 +1,4 @@
---- Lookup table for mapping testify receiver methods to their suite functions (flat structure).
+--- Lookup table for mapping testify receiver methods to their suite functions.
 
 local options = require("neotest-golang.options")
 local query = require("neotest-golang.features.testify.query")
