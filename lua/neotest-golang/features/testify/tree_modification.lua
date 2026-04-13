@@ -77,14 +77,18 @@ end
 --- @param b integer[] range b represented as 4 integers: start_row, start_col, end_row, end_col
 --- @return boolean Is a subrange of b
 local function is_sub_range(a, b)
-    local a_start_row, a_start_col, a_end_row, a_end_col = a[1], a[2], a[3], a[4]
-    local b_start_row, b_start_col, b_end_row, b_end_col = b[1], b[2], b[3], b[4]
-    return (
-      (a_start_row > b_start_row or
-        (a_start_row == b_start_row and a_start_col >= b_start_col)) and
-      (a_end_row < b_end_row or
-        (a_end_row == b_end_row and a_end_col <= b_end_col))
+  local a_start_row, a_start_col, a_end_row, a_end_col = a[1], a[2], a[3], a[4]
+  local b_start_row, b_start_col, b_end_row, b_end_col = b[1], b[2], b[3], b[4]
+  return (
+    (
+      a_start_row > b_start_row
+      or (a_start_row == b_start_row and a_start_col >= b_start_col)
     )
+    and (
+      a_end_row < b_end_row
+      or (a_end_row == b_end_row and a_end_col <= b_end_col)
+    )
+  )
 end
 
 --- Merges range a and range b into the smallest range that contains both
@@ -92,24 +96,29 @@ end
 --- @param b integer[] range b represented as 4 integers: start_row, start_col, end_row, end_col
 --- @return integer[] merged range
 local function merge_ranges(a, b)
-    local a_start_row, a_start_col, a_end_row, a_end_col = a[1], a[2], a[3], a[4]
-    local b_start_row, b_start_col, b_end_row, b_end_col = b[1], b[2], b[3], b[4]
-    local start_row, start_col, end_row, end_col = 0, 0, 0, 0
-    if a_start_row < b_start_row or (a_start_row == b_start_row and a_start_col < b_start_col) then
-        start_row = a_start_row
-        start_col = a_start_col
-    else
-        start_row = b_start_row
-        start_col = b_start_col
-    end
-    if a_end_row > b_end_row or (a_end_row == b_end_row and a_end_col > b_end_col) then
-        end_row = a_end_row
-        end_col = a_end_col
-    else
-        end_row = b_end_row
-        end_col = b_end_col
-    end
-    return { start_row, start_col, end_row, end_col }
+  local a_start_row, a_start_col, a_end_row, a_end_col = a[1], a[2], a[3], a[4]
+  local b_start_row, b_start_col, b_end_row, b_end_col = b[1], b[2], b[3], b[4]
+  local start_row, start_col, end_row, end_col = 0, 0, 0, 0
+  if
+    a_start_row < b_start_row
+    or (a_start_row == b_start_row and a_start_col < b_start_col)
+  then
+    start_row = a_start_row
+    start_col = a_start_col
+  else
+    start_row = b_start_row
+    start_col = b_start_col
+  end
+  if
+    a_end_row > b_end_row or (a_end_row == b_end_row and a_end_col > b_end_col)
+  then
+    end_row = a_end_row
+    end_col = a_end_col
+  else
+    end_row = b_end_row
+    end_col = b_end_col
+  end
+  return { start_row, start_col, end_row, end_col }
 end
 
 --- Create testify hierarchy where receiver methods are attached to suite constructors
@@ -157,25 +166,25 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   -- First pass: identify test suites, suite methods and normal tests
   -- Leave suite methods and normal tests as-is in new tree structure
   for _, top_level_test in pairs(tree:children()) do
-      local pos = top_level_test:data()
-      local is_suite_function = false
-      for _, suite_function in pairs(replacements) do
-        if pos.name == suite_function then
-          is_suite_function = true
-          break
-        end
+    local pos = top_level_test:data()
+    local is_suite_function = false
+    for _, suite_function in pairs(replacements) do
+      if pos.name == suite_function then
+        is_suite_function = true
+        break
       end
-      if is_suite_function then
-        table.insert(root_children, top_level_test)
-        suite_constructors[pos.name] = top_level_test
+    end
+    if is_suite_function then
+      table.insert(root_children, top_level_test)
+      suite_constructors[pos.name] = top_level_test
+    else
+      local is_testify_method = method_positions[pos.name]
+      if is_testify_method then
+        table.insert(suite_methods, top_level_test)
       else
-          local is_testify_method = method_positions[pos.name]
-          if is_testify_method then
-            table.insert(suite_methods, top_level_test)
-          else
-            table.insert(root_children, top_level_test)
-          end
+        table.insert(root_children, top_level_test)
       end
+    end
   end
 
   -- Second pass: process suite methods:
@@ -183,45 +192,45 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
   --   2) attach them as children to their parent suites
   --   3) if parent suite is not in the same file, rename them by adding a prefix
   for _, method_node in pairs(suite_methods) do
-      ---@type neotest.Position
-      local pos = method_node:data()
-      ---@type neotest.Tree | nil
-      local parent = nil
-      ---@type string | nil
-      local parent_name = nil
-      for _, method in pairs(method_positions[pos.name]) do
-        if is_sub_range(pos.range, { method.definition.node:range(false) }) then
-            parent_name = replacements[method.receiver]
-            parent = suite_constructors[parent_name]
-            break
-        end
+    ---@type neotest.Position
+    local pos = method_node:data()
+    ---@type neotest.Tree | nil
+    local parent = nil
+    ---@type string | nil
+    local parent_name = nil
+    for _, method in pairs(method_positions[pos.name]) do
+      if is_sub_range(pos.range, { method.definition.node:range(false) }) then
+        parent_name = replacements[method.receiver]
+        parent = suite_constructors[parent_name]
+        break
       end
-      if not parent_name then
-          logger.error("No suitable parent test found for testify method")
-          break
-      end
-      if parent then
-          local parent_data = parent:data()
-          local parent_total_range = parent_data.total_range or parent_data.range
-          parent_data.total_range = merge_ranges(parent_total_range, pos.range)
-      end
-      -- Add suite name as a prefix in the id of the current test and its sub-tests.
-      -- This id is later converted to the relevant "go test" command to execute the test.
-      local pattern = "::" .. pos.name
-      local replacement = "::" .. parent_name .. "/" .. pos.name
-      for _, test in method_node:iter() do
-        test.id = test.id:gsub(pattern, replacement)
-      end
-      if parent ~= nil then
-        -- Suite is defined in the same file. Attach current method as child.
-        ---@diagnostic disable-next-line: invisible
-        parent:add_child(pos.name, method_node)
-      else
-        -- Suite is not defined in the same file.
-        -- Add prefix to current method name to make it clear and attach it to the root of the tree.
-        pos.name = parent_name .. "/" .. pos.name
-        table.insert(root_children, method_node)
-      end
+    end
+    if not parent_name then
+      logger.error("No suitable parent test found for testify method")
+      break
+    end
+    if parent then
+      local parent_data = parent:data()
+      local parent_total_range = parent_data.total_range or parent_data.range
+      parent_data.total_range = merge_ranges(parent_total_range, pos.range)
+    end
+    -- Add suite name as a prefix in the id of the current test and its sub-tests.
+    -- This id is later converted to the relevant "go test" command to execute the test.
+    local pattern = "::" .. pos.name
+    local replacement = "::" .. parent_name .. "/" .. pos.name
+    for _, test in method_node:iter() do
+      test.id = test.id:gsub(pattern, replacement)
+    end
+    if parent ~= nil then
+      -- Suite is defined in the same file. Attach current method as child.
+      ---@diagnostic disable-next-line: invisible
+      parent:add_child(pos.name, method_node)
+    else
+      -- Suite is not defined in the same file.
+      -- Add prefix to current method name to make it clear and attach it to the root of the tree.
+      pos.name = parent_name .. "/" .. pos.name
+      table.insert(root_children, method_node)
+    end
   end
 
   -- Sort children by start of range to ensure tree iteration order matches file line order

@@ -89,9 +89,9 @@ function M.generate_data(file_path)
     query.run_query_on_file(file_path, query.testify_method_query)
 
   if
-    testify_method_matches.testify_suite_struct and
-    testify_method_matches["test.name"] and
-    testify_method_matches["test.definition"]
+    testify_method_matches.testify_suite_struct
+    and testify_method_matches["test.name"]
+    and testify_method_matches["test.definition"]
   then
     for i, receiver_match in ipairs(testify_method_matches.testify_suite_struct) do
       local definition_match = testify_method_matches["test.definition"][i]

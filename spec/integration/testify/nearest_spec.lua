@@ -112,10 +112,7 @@ describe("Integration: testify suites nearest test", function()
         local position = nearest.get_nearest_position(test_file, 36)
 
         assert.is_not_nil(position)
-        assert.equals(
-          test_file .. "::TestExampleTestSuite",
-          position.id
-        )
+        assert.equals(test_file .. "::TestExampleTestSuite", position.id)
         assert.equals("test", position.type)
       end
     )
@@ -168,10 +165,7 @@ describe("Integration: testify suites nearest test", function()
         local position = nearest.get_nearest_position(test_file, 40)
 
         assert.is_not_nil(position)
-        assert.equals(
-          test_file .. "::TestExampleTestSuite",
-          position.id
-        )
+        assert.equals(test_file .. "::TestExampleTestSuite", position.id)
         assert.equals("test", position.type)
       end
     )
@@ -190,23 +184,20 @@ describe("Integration: testify suites nearest test", function()
       end
     )
 
-    it(
-      "selects last when cursor is after all tests (line 103)",
-      function()
-        -- Line 103 in editor = index 102 for Neotest (0-indexed)
-        -- After the last test TestSubTestOperand2 (line 97) which contains a subtest
-        -- Nearest algorithm selects the test since its last line is closest to the cursor
-        local position = nearest.get_nearest_position(test_file, 102)
+    it("selects last when cursor is after all tests (line 103)", function()
+      -- Line 103 in editor = index 102 for Neotest (0-indexed)
+      -- After the last test TestSubTestOperand2 (line 97) which contains a subtest
+      -- Nearest algorithm selects the test since its last line is closest to the cursor
+      local position = nearest.get_nearest_position(test_file, 102)
 
-        assert.is_not_nil(position)
-        assert.equals(
-          test_file .. '::TestExampleTestSuite/TestSubTestOperand2',
-          position.id,
-          "Subtest is selected as nearest (deepest matching node)"
-        )
-        assert.equals("test", position.type)
-      end
-    )
+      assert.is_not_nil(position)
+      assert.equals(
+        test_file .. "::TestExampleTestSuite/TestSubTestOperand2",
+        position.id,
+        "Subtest is selected as nearest (deepest matching node)"
+      )
+      assert.equals("test", position.type)
+    end)
   end)
 
   describe("structure with sorted tree", function()
