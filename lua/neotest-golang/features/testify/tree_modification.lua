@@ -202,7 +202,9 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
           break
       end
       if parent then
-          parent:data().range = merge_ranges(parent:data().range, pos.range)
+          local parent_data = parent:data()
+          local parent_total_range = parent_data.total_range or parent_data.range
+          parent_data.total_range = merge_ranges(parent_total_range, pos.range)
       end
       -- Add suite name as a prefix in the id of the current test and its sub-tests.
       -- This id is later converted to the relevant "go test" command to execute the test.
@@ -222,6 +224,20 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
         table.insert(root_children, method_node)
       end
   end
+
+  -- Sort children by start of range to ensure tree iteration order matches file line order
+  -- This is critical for Neotest's "nearest test" algorithm to work correctly
+  table.sort(root_children, function(a, b)
+    local a_pos = a:data()
+    local b_pos = b:data()
+    local a_range = a_pos.total_range or a_pos.range
+    local b_range = b_pos.total_range or b_pos.range
+    -- Use range start line for comparison
+    if a_range and b_range then
+      return a_range[1] < b_range[1]
+    end
+    return false
+  end)
 
   -- Create new tree with file as root and updated children
   local Tree = require("neotest.types.tree")
