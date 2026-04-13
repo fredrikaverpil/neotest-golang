@@ -74,7 +74,7 @@ function M.generate_data(file_path)
     methods = {}, -- Add methods collection
   }
 
-  for i, struct in ipairs(matches.suite_struct or {}) do
+  for i, struct in ipairs(matches.testify_suite_struct or {}) do
     local func = matches.test_function[i]
     if func then
       -- Use package-qualified receiver type to avoid collisions across packages

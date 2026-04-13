@@ -57,8 +57,8 @@ Testify suites use a tree structure.
 The root of the suites are the "suite constructor" functions. They are
 initally identified by general-purpose queries as normal tests.
 Then, to be marked as roots for testify suites, a query has to capture
-`@test_function` and `@suite_struct` where `@test_function` should match
-the `@test.name` from the other query. The `@suite_struct` capture
+`@test_function` and `@testify_suite_struct` where `@test_function` should match
+the `@test.name` from the other query. The `@testify_suite_struct` capture
 will be used for lookup purposes by `lookup.lua` later on.
 
 Receiver methods are identified via `@test.name`, `@test.definition` and
