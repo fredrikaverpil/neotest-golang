@@ -29,7 +29,6 @@
 ; by testify_method.scm, neotest will nest captured table tests from this
 ; query correctly under their parent test.
 ; ============================================================================
-
 (method_declaration
   receiver: (parameter_list
     (parameter_declaration
@@ -46,16 +45,16 @@
           (var_spec
             name: (identifier) @test.cases
             value: (expression_list
-            (composite_literal
-              body: (literal_value
-                (literal_element
-                  (literal_value
-                    (keyed_element
-                      key: (literal_element
-                        (identifier) @test.field.name)
-                      value: (literal_element
-                        (interpreted_string_literal
-                          (interpreted_string_literal_content) @test.name))))) @test.definition)))))
+              (composite_literal
+                body: (literal_value
+                  (literal_element
+                    (literal_value
+                      (keyed_element
+                        key: (literal_element
+                          (identifier) @test.field.name)
+                        value: (literal_element
+                          (interpreted_string_literal
+                            (interpreted_string_literal_content) @test.name))))) @test.definition)))))
         (short_var_declaration
           left: (expression_list
             (identifier) @test.cases)

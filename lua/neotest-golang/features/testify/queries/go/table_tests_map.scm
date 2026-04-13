@@ -6,7 +6,6 @@
 ;
 ; Example with captures:
 ;   type ExampleSuite struct { suite.Suite }
-
 ;   func (s *ExampleSuite) TestExample() {
 ;   	tests := map[string]struct {
 ;   		input int
@@ -27,7 +26,6 @@
 ; by testify_method.scm, neotest will nest captured table tests from this
 ; query correctly under their parent test.
 ; ============================================================================
-
 (method_declaration
   receiver: (parameter_list
     (parameter_declaration
