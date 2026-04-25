@@ -10,6 +10,10 @@ on:
       - main
       - master
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pull-requests: write
@@ -32,7 +36,7 @@ jobs:
             echo "release-type=simple" >> $GITHUB_OUTPUT
           fi
           exit 0
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         id: release
         with:
           token: ${{ secrets.RELEASE_PLEASE || github.token }}
