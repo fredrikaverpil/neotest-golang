@@ -336,36 +336,6 @@ note that this feature requires `nvim-treesitter` (`main` branch).
     suite name (e.g. `SuiteName/TestMethod`).
     I'm personally a bit afraid of the maintenance burden of this feature... 🙈
 
-!!! note "Table tests not supported"
-
-    Right now, table tests are not supported for testify suites. This can be
-    remedied by extending the treesitter queries. Feel free to dig in
-    and open a PR!
-
-### `testify_operand`
-
-Default value: `"^(s|suite)$"`
-
-Extend this regex value to support something other than e.g. `s.Run` or
-`suite.Run` for running subtests.
-
-??? example "Custom subtest operand"
-
-    If `x` is used as operand for the `Run` method, you must set this option
-    and extend the regex.
-
-    ```go
-    func (x *TestSuite) TestFoo() {
-        x.Run("foo", func() {
-            ...
-        })
-    }
-    ```
-
-    ```lua
-    opts = { testify_operand = "^(s|suite|x)$" }
-    ```
-
 ### `testify_import_identifier`
 
 Default value: `"^(suite)$"`

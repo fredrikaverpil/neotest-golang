@@ -98,8 +98,8 @@ describe("Convert pos_id to go test name", function()
     )
   end)
 
-  -- Testify suite tests (flat structure with suite prefix)
-  it("handles testify suite test (flat structure)", function()
+  -- Testify suite tests
+  it("handles testify suite test", function()
     local input = "/path/file.go::TestSuite/TestMethod"
     assert.are_equal(
       "TestSuite/TestMethod",
