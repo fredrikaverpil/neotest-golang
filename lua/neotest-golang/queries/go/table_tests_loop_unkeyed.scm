@@ -40,6 +40,7 @@
       type: (slice_type
         element: (struct_type
           (field_declaration_list
+            .
             (field_declaration
               name: (field_identifier) @test.field.name
               type: (type_identifier) @field.type

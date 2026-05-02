@@ -1,11 +1,11 @@
 module pocket
 
-go 1.25.5
+go 1.26.2
 
-require github.com/fredrikaverpil/pocket v0.0.0-20260124171939-5abf7f8a1602
+require github.com/fredrikaverpil/pocket v0.7.3
 
 require (
-	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
-	golang.org/x/term v0.39.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/term v0.42.0 // indirect
 )

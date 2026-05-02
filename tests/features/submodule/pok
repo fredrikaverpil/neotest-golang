@@ -4,8 +4,8 @@ set -e
 # Resolve shim directory to find .pocket
 SHIM_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-POCKET_DIR="$SHIM_DIR/.pocket"
-TASK_SCOPE="."
+POCKET_DIR="$SHIM_DIR/../../../.pocket"
+TASK_SCOPE="tests/features/submodule"
 GO_VERSION="1.26.2"
 GO_INSTALL_DIR="$POCKET_DIR/tools/go/$GO_VERSION"
 GO_BIN="$GO_INSTALL_DIR/go/bin/go"

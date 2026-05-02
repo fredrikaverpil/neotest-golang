@@ -82,6 +82,18 @@ describe("Integration: positions test", function()
             status = "passed",
             errors = {},
           },
+          [position_id .. "::TestTableTestMultipleStringFieldsUnkeyed"] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. "::TestTableTestSecondStringFieldUnkeyed"] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. "::TestTableTestNamedStructUnkeyed"] = {
+            status = "passed",
+            errors = {},
+          },
           [position_id .. "::TestStructNotTableTest"] = {
             status = "passed",
             errors = {},
@@ -180,6 +192,18 @@ describe("Integration: positions test", function()
             errors = {},
           },
           [position_id .. '::TestTableTestInlineCompositeWithFieldAccess::"user2"'] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. '::TestTableTestMultipleStringFieldsUnkeyed::"x"'] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. '::TestTableTestMultipleStringFieldsUnkeyed::"y"'] = {
+            status = "passed",
+            errors = {},
+          },
+          [position_id .. '::TestTableTestMultipleStringFieldsUnkeyed::"z"'] = {
             status = "passed",
             errors = {},
           },

@@ -1,16 +1,26 @@
 local M = {}
 
 -- Shared constants (duplicated from bootstrap.lua for simplicity)
-local SITE_DIR = ".tests/all/site"
+-- Use NEOTEST_SITE_DIR env var if set (for pocket integration), otherwise use cwd-relative path.
+local SITE_DIR = vim.env.NEOTEST_SITE_DIR or (vim.fn.getcwd() .. "/site")
 
 --- Initialize before running each test.
 --- Also see bootstrap.lua which runs once before all tests.
 function M.init()
   vim.cmd([[set runtimepath=$VIMRUNTIME]]) -- reset, otherwise it contains all of $PATH
 
+  local cwd = vim.fn.getcwd()
   local site_dir = SITE_DIR
 
-  vim.opt.runtimepath:append(".") -- add project root to runtime path so we can require our adapter
+  -- Set cache directory to site_dir so all caching stays within the isolated test directory.
+  vim.env.XDG_CACHE_HOME = site_dir .. "/cache"
+
+  -- Add project root to runtime path so we can require our adapter.
+  -- If NEOTEST_SITE_DIR is set, cwd is already the project root.
+  -- Otherwise, cwd is .tests/{version}/, so project root is 2 directories up.
+  local project_root = vim.env.NEOTEST_SITE_DIR and cwd
+    or vim.fn.fnamemodify(cwd, ":h:h")
+  vim.opt.runtimepath:append(project_root)
   vim.opt.runtimepath:append(site_dir) -- add site directory to runtime path so neovim can find parsers
   vim.opt.packpath = { site_dir } -- add site directory to packpath so plugins can be found
   vim.opt.swapfile = false

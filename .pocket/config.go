@@ -2,13 +2,12 @@ package main
 
 import (
 	"github.com/fredrikaverpil/pocket/pk"
+	"github.com/fredrikaverpil/pocket/tasks/docs"
 	"github.com/fredrikaverpil/pocket/tasks/github"
 	"github.com/fredrikaverpil/pocket/tasks/golang"
 	"github.com/fredrikaverpil/pocket/tasks/lua"
 	"github.com/fredrikaverpil/pocket/tasks/markdown"
-	"github.com/fredrikaverpil/pocket/tasks/neovim"
 	"github.com/fredrikaverpil/pocket/tasks/treesitter"
-	"github.com/fredrikaverpil/pocket/tools/gotestsum"
 )
 
 // Config is the Pocket configuration for this project.
@@ -18,23 +17,38 @@ var Config = &pk.Config{
 		pk.Parallel(
 			markdown.Tasks(),
 			lua.Tasks(),
-			github.Tasks(),
+			docs.Tasks(),
 		),
+
 		pk.WithOptions(
 			golang.Tasks(),
 			pk.WithDetect(golang.Detect()),
-			pk.WithExcludeTask(golang.Test, "tests/go", "tests/features"),
-			pk.WithExcludeTask(golang.Lint, "tests/go", "tests/features"),
+			pk.WithSkipTask(golang.Test, "tests/go", "tests/features"),
+			pk.WithSkipTask(golang.Lint, "tests/go", "tests/features"),
 		),
-		// Run plenary tests with both stable and nightly Neovim
-		// NOTE: Must be Serial, not Parallel - they share .tests/all/site/ directory
-		pk.Serial(
-			gotestsum.Install, // Required for streaming test results in integration tests
-			neovim.PlenaryTest(neovim.WithPlenaryNvimVersion(neovim.Stable)),
-			neovim.PlenaryTest(neovim.WithPlenaryNvimVersion(neovim.Nightly)),
+
+		pk.WithOptions(
+			treesitter.Tasks(),
+			pk.WithFlags(treesitter.QueryFormatFlags{Parsers: "go"}),
+			pk.WithFlags(treesitter.QueryLintFlags{Parsers: "go"}),
 		),
-		// Run treesitter query tasks after neovim tests - they need the Go parser
-		// which is installed during neovim bootstrap
-		treesitter.Tasks(),
+
+		pk.Parallel(
+			PlenaryTestStable,
+			PlenaryTestNightly,
+		),
+
+		// GitHub workflows, including matrix-based task execution
+		pk.WithOptions(
+			github.Tasks(),
+			pk.WithFlags(github.WorkflowFlags{
+				PerPocketTaskJob: new(true),
+				Platforms:        []github.Platform{github.Ubuntu},
+				PerPocketTaskJobOptions: map[string]github.PerPocketTaskJobOption{
+					PlenaryTestNightly.Name: {Platforms: github.AllPlatforms()},
+					PlenaryTestStable.Name:  {Platforms: github.AllPlatforms()},
+				},
+			}),
+		),
 	),
 }
