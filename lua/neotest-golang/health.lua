@@ -238,21 +238,10 @@ function M.race_detection_enabled_without_cgo_enabled()
     return
   end
 
-  local is_cgo_enabled = true
-  local env_cgo_enabled = vim.fn.getenv("CGO_ENABLED")
-  if env_cgo_enabled == vim.NIL or env_cgo_enabled == "0" then
-    is_cgo_enabled = false
-  end
-
+  local cgo = require("neotest-golang.lib.cgo")
   local go_test_args = options.get().go_test_args
-  local has_race_detection = false
-  for _, value in ipairs(go_test_args) do
-    if value == "-race" then
-      has_race_detection = true
-    end
-  end
 
-  if has_race_detection and not is_cgo_enabled then
+  if cgo.has_race_flag(go_test_args) and not cgo.is_cgo_enabled() then
     error("CGO_ENABLED is disabled but -race is part of go_test_args.")
   end
 end

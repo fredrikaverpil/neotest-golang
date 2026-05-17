@@ -32,15 +32,16 @@ function M.get_go_c_compiler()
   return nil
 end
 
---- Check if CGO is enabled in the environment
+--- Check if CGO is enabled according to Go's effective configuration.
 --- @return boolean True if CGO is enabled
 function M.is_cgo_enabled()
-  local cgo_enabled = vim.env.CGO_ENABLED
-  if cgo_enabled == nil then
-    -- CGO_ENABLED defaults to 1 if not set
-    return true
+  local result = vim
+    .system({ "go", "env", "CGO_ENABLED" }, { text = true })
+    :wait()
+  if result.code == 0 and result.stdout then
+    return vim.trim(result.stdout) ~= "0"
   end
-  return cgo_enabled == "1"
+  return true
 end
 
 --- Check if an executable is available in the system PATH
