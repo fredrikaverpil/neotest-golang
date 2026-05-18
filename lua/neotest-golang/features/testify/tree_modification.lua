@@ -205,31 +205,31 @@ function M.create_testify_hierarchy(tree, replacements, global_lookup_table)
         break
       end
     end
-    if not parent_name then
-      logger.error("No suitable parent test found for testify method")
-      break
-    end
     if parent then
       local parent_data = parent:data()
       local parent_total_range = parent_data.total_range or parent_data.range
       parent_data.total_range = merge_ranges(parent_total_range, pos.range)
     end
-    -- Add suite name as a prefix in the id of the current test and its sub-tests.
-    -- This id is later converted to the relevant "go test" command to execute the test.
-    local pattern = "::" .. pos.name
-    local replacement = "::" .. parent_name .. "/" .. pos.name
-    for _, test in method_node:iter() do
-      test.id = test.id:gsub(pattern, replacement)
-    end
-    if parent ~= nil then
-      -- Suite is defined in the same file. Attach current method as child.
-      ---@diagnostic disable-next-line: invisible
-      parent:add_child(pos.name, method_node)
+    if parent_name then
+      -- Add suite name as a prefix in the id of the current test and its sub-tests.
+      -- This id is later converted to the relevant "go test" command to execute the test.
+      local pattern = "::" .. pos.name
+      local replacement = "::" .. parent_name .. "/" .. pos.name
+      for _, test in method_node:iter() do
+        test.id = test.id:gsub(pattern, replacement)
+      end
+      if parent ~= nil then
+        -- Suite is defined in the same file. Attach current method as child.
+        ---@diagnostic disable-next-line: invisible
+        parent:add_child(pos.name, method_node)
+      else
+        -- Suite is not defined in the same file.
+        -- Add prefix to current method name to make it clear and attach it to the root of the tree.
+        pos.name = parent_name .. "/" .. pos.name
+        table.insert(root_children, method_node)
+      end
     else
-      -- Suite is not defined in the same file.
-      -- Add prefix to current method name to make it clear and attach it to the root of the tree.
-      pos.name = parent_name .. "/" .. pos.name
-      table.insert(root_children, method_node)
+      logger.error("No suitable parent test found for testify method")
     end
   end
 
