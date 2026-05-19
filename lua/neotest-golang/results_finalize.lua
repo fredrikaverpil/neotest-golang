@@ -10,6 +10,20 @@ require("neotest-golang.lib.types")
 
 local M = {}
 
+--- Write a list of lines to a file using Lua native I/O.
+--- Bypasses vim.fn.writefile and the Lua-Vimscript bridge, avoiding
+--- E974 errors in Neovim 0.12+ where Lua strings can be marshalled as Blobs.
+--- @param lines string[] Array of lines to write
+--- @param filepath string Path to the output file
+local function write_lines_to_file(lines, filepath)
+  local f = io.open(filepath, "w")
+  if f then
+    f:write(table.concat(lines, "\n"))
+    f:write("\n")
+    f:close()
+  end
+end
+
 --- Finalize test results by creating root result and populating missing aggregated results.
 --- This is the main orchestrator that processes test output and fills in missing file/directory results.
 --- @param spec neotest.RunSpec
@@ -181,7 +195,7 @@ function M.populate_missing_file_results(tree, results)
     if #test_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
       -- Write combined output to file
       local file_output_path = lib.path.normalize_path(async.fn.tempname())
-      async.fn.writefile(combined_output, file_output_path)
+      write_lines_to_file(combined_output, file_output_path)
 
       -- Create or update file node result
       if file_result then
@@ -243,7 +257,7 @@ function M.create_root_result(results_data, result, gotest_output)
   local full_output = lib.colorize.colorize_parts(output_parts)
 
   local output = lib.path.normalize_path(async.fn.tempname())
-  async.fn.writefile(full_output, output)
+  write_lines_to_file(full_output, output)
 
   return {
     status = status,
