@@ -11,11 +11,14 @@ end
 
 local M = {}
 
-M.namespace_query =
-  query_loader.load_query("features/testify/queries/go/namespace.scm")
+M.testify_method_query =
+  query_loader.load_query("features/testify/queries/go/testify_method.scm")
 
-M.test_method_query =
-  query_loader.load_query("features/testify/queries/go/test_method.scm")
+M.table_tests_map_query =
+  query_loader.load_query("features/testify/queries/go/table_tests_map.scm")
+
+M.table_tests_list_query =
+  query_loader.load_query("features/testify/queries/go/table_tests_list.scm")
 
 --- Run a TreeSitter query on a file and return the matches.
 --- @param filepath string The path to the file to query

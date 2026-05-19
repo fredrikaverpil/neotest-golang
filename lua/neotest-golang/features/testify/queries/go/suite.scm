@@ -15,7 +15,7 @@
 ; - @test_function: The test function name (e.g., "TestSuite")
 ; - @import_identifier: The suite import identifier (e.g., "suite")
 ; - @run_method: The Run method (always "Run")
-; - @suite_struct: The suite struct type (e.g., "testSuiteStruct")
+; - @testify_suite_struct: The suite struct type (e.g., "testSuiteStruct")
 ;
 ; Note: The %%s placeholder is replaced at runtime with the configured
 ; testify_import_identifier pattern (default: "^(suite)$").
@@ -44,4 +44,4 @@
             (identifier)
             (call_expression
               arguments: (argument_list
-                (type_identifier) @suite_struct))))))))
+                (type_identifier) @testify_suite_struct))))))))
