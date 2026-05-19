@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.9.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.8.0...v2.9.0) (2026-05-19)
+
+
+### Features
+
+* improve testify support ([#563](https://github.com/fredrikaverpil/neotest-golang/issues/563)) ([74a8b11](https://github.com/fredrikaverpil/neotest-golang/commit/74a8b11c31bd062979289bd133719d0ebd22ff5b))
+
+
+### Bug Fixes
+
+* **health:** use `go env` to resolve CGO_ENABLED value ([#567](https://github.com/fredrikaverpil/neotest-golang/issues/567)) ([0144c97](https://github.com/fredrikaverpil/neotest-golang/commit/0144c9794f32725770c5347fd4b3e1e8d5a0d3e2))
+
 ## [2.8.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.7.2...v2.8.0) (2026-04-06)
 
 
