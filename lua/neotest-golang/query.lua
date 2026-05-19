@@ -73,14 +73,15 @@ function M.detect_tests(file_path)
     -- This allows detection of both regular Go tests and testify suites in the same file.
     --
     -- Adds detection for:
-    -- - Receiver types (as namespaces): func (s *Suite) TestXxx()
-    -- - Test methods on those receivers
+    -- - Receiver types: func (s *Suite) TestXxx()
+    -- - Table tests inside those methods
     --
     -- Note: Subtest detection for both t.Run() and suite.Run() is already
     -- combined in test_function.scm to avoid query conflicts.
     query = query
-      .. testify.query.namespace_query
-      .. testify.query.test_method_query
+      .. testify.query.testify_method_query
+      .. testify.query.table_tests_map_query
+      .. testify.query.table_tests_list_query
   end
 
   ---@type neotest.Tree

@@ -87,37 +87,32 @@ describe("Integration: testify suites nearest test", function()
     )
   end)
 
-  describe("cursor on suite function (not in tree)", function()
+  describe("cursor on suite function", function()
     it(
-      "selects nearest test upward when cursor is on TestExampleTestSuite2 suite function (line 62)",
+      "selects suite constructor when cursor is on TestExampleTestSuite2 suite function (line 62)",
       function()
         -- Line 62 in editor = index 61 for Neotest (0-indexed)
-        -- Suite function is NOT in tree, so should find nearest test upward
-        -- The nearest test upward is TestExample2 at line 58
         local position = nearest.get_nearest_position(test_file, 61)
 
         assert.is_not_nil(position)
         assert.equals(
-          test_file .. "::TestExampleTestSuite2/TestExample2",
+          test_file .. "::TestExampleTestSuite2",
           position.id,
-          "Should select nearest test upward from suite function"
+          "Should select suite constructor function"
         )
         assert.equals("test", position.type)
       end
     )
 
     it(
-      "selects nearest test upward when cursor is on TestExampleTestSuite suite function (line 37)",
+      "selects suite constructor when cursor is on TestExampleTestSuite suite function (line 37)",
       function()
         -- Line 37 in editor = index 36 for Neotest (0-indexed)
         -- The nearest test upward is TestExample2 at line 31
         local position = nearest.get_nearest_position(test_file, 36)
 
         assert.is_not_nil(position)
-        assert.equals(
-          test_file .. "::TestExampleTestSuite/TestExample2",
-          position.id
-        )
+        assert.equals(test_file .. "::TestExampleTestSuite", position.id)
         assert.equals("test", position.type)
       end
     )
@@ -144,16 +139,16 @@ describe("Integration: testify suites nearest test", function()
 
   describe("cursor between tests", function()
     it(
-      "selects previous test when cursor is between TestTrivial and TestExample3 (line 71)",
+      "selects enclosing test suite when cursor is between TestTrivial and TestExample3 (line 72)",
       function()
-        -- Line 71 in editor = index 70 for Neotest (0-indexed)
+        -- Line 72 in editor = index 71 for Neotest (0-indexed)
         -- Between TestTrivial (line 69) and TestExample3 (line 75)
         -- With sorted tree, correctly selects TestTrivial as nearest test
-        local position = nearest.get_nearest_position(test_file, 70)
+        local position = nearest.get_nearest_position(test_file, 71)
 
         assert.is_not_nil(position)
         assert.equals(
-          test_file .. "::TestTrivial",
+          test_file .. "::TestExampleTestSuite2",
           position.id,
           "Sorted tree ensures file line order"
         )
@@ -162,18 +157,15 @@ describe("Integration: testify suites nearest test", function()
     )
 
     it(
-      "selects previous test when cursor is in comment block (line 41)",
+      "selects enclosing test suite when cursor is in comment block (line 41)",
       function()
         -- Line 41 in editor = index 40 for Neotest (0-indexed)
         -- In comment block between suite function (line 37) and next suite def (line 45)
-        -- Should select TestExample2 (line 31) as nearest test
+        -- Should select TestExampleTestSuite (line 37) as nearest test
         local position = nearest.get_nearest_position(test_file, 40)
 
         assert.is_not_nil(position)
-        assert.equals(
-          test_file .. "::TestExampleTestSuite/TestExample2",
-          position.id
-        )
+        assert.equals(test_file .. "::TestExampleTestSuite", position.id)
         assert.equals("test", position.type)
       end
     )
@@ -192,30 +184,27 @@ describe("Integration: testify suites nearest test", function()
       end
     )
 
-    it(
-      "selects last subtest when cursor is after all tests (line 103)",
-      function()
-        -- Line 103 in editor = index 102 for Neotest (0-indexed)
-        -- After the last test TestSubTestOperand2 (line 97) which contains a subtest
-        -- Nearest algorithm selects the subtest since it's the deepest node that contains this line
-        local position = nearest.get_nearest_position(test_file, 102)
+    it("selects last when cursor is after all tests (line 103)", function()
+      -- Line 103 in editor = index 102 for Neotest (0-indexed)
+      -- After the last test TestSubTestOperand2 (line 97) which contains a subtest
+      -- Nearest algorithm selects the test since its last line is closest to the cursor
+      local position = nearest.get_nearest_position(test_file, 102)
 
-        assert.is_not_nil(position)
-        assert.equals(
-          test_file .. '::TestExampleTestSuite/TestSubTestOperand2::"subtest"',
-          position.id,
-          "Subtest is selected as nearest (deepest matching node)"
-        )
-        assert.equals("test", position.type)
-      end
-    )
+      assert.is_not_nil(position)
+      assert.equals(
+        test_file .. "::TestExampleTestSuite/TestSubTestOperand2",
+        position.id,
+        "Subtest is selected as nearest (deepest matching node)"
+      )
+      assert.equals("test", position.type)
+    end)
   end)
 
-  describe("flat structure with sorted tree", function()
+  describe("structure with sorted tree", function()
     it(
       "correctly handles mixed testify and regular tests in file line order",
       function()
-        -- This test validates that the flat structure with sorted children
+        -- This test validates that the tree structure with sorted children
         -- allows nearest test to work correctly based on actual file line order
 
         -- Get positions at various points in the file
@@ -248,7 +237,7 @@ describe("Integration: testify suites nearest test", function()
         local pos_between_suite_and_regular =
           nearest.get_nearest_id(test_file, 65)
         assert.equals(
-          test_file .. "::TestExampleTestSuite2/TestExample2",
+          test_file .. "::TestExampleTestSuite2",
           pos_between_suite_and_regular,
           "Sorted tree ensures file line order"
         )

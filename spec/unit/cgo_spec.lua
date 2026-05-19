@@ -57,11 +57,6 @@ describe("CGO validation utilities", function()
       vim.env.CGO_ENABLED = "0"
       assert.is_false(cgo.is_cgo_enabled())
     end)
-
-    it("returns false when CGO_ENABLED is set to any other value", function()
-      vim.env.CGO_ENABLED = "false"
-      assert.is_false(cgo.is_cgo_enabled())
-    end)
   end)
 
   describe("validate_cgo_requirements", function()

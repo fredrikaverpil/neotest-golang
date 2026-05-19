@@ -14,7 +14,7 @@
 ;
 ; Captures:
 ; - @test_function: The test function name (e.g., "TestSuite")
-; - @suite_struct: The suite struct type (e.g., "testSuiteStruct")
+; - @testify_suite_struct: The suite struct type (e.g., "testSuiteStruct")
 ; - @import_identifier: The suite import identifier (e.g., "suite")
 ; - @run_method: The Run method (always "Run")
 ;
@@ -31,7 +31,7 @@
 ; query:
 ;
 ; func TestSuite(t *testing.T) {  // @test_function
-;   s := &testSuiteStruct{}  // @suite_struct
+;   s := &testSuiteStruct{}  // @testify_suite_struct
 ;   suite.Run(t, s) // @import_identifier, @run_method
 ; }
 (function_declaration
@@ -52,7 +52,7 @@
         right: (expression_list
           (unary_expression
             operand: (composite_literal
-              type: (type_identifier) @suite_struct
+              type: (type_identifier) @testify_suite_struct
               body: (literal_value)))))
       (expression_statement
         (call_expression

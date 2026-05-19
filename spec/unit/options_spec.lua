@@ -19,7 +19,6 @@ describe("Options are set up", function()
       filter_dirs = { ".git", "node_modules", ".venv", "venv" },
       filter_dir_patterns = {},
       testify_enabled = false,
-      testify_operand = "^(s|suite)$",
       testify_import_identifier = "^(suite)$",
       colorize_test_output = true,
       warn_test_name_dupes = true,
@@ -52,7 +51,6 @@ describe("Options are set up", function()
       filter_dirs = {},
       filter_dir_patterns = {},
       testify_enabled = false,
-      testify_operand = "^(s|suite)$",
       testify_import_identifier = "^(suite)$",
       colorize_test_output = false,
       warn_test_name_dupes = true,
@@ -99,7 +97,6 @@ describe("Options are set up", function()
         return {}
       end,
       testify_enabled = false,
-      testify_operand = "^(s|suite)$",
       testify_import_identifier = "^(suite)$",
       colorize_test_output = true,
       warn_test_name_dupes = true,
