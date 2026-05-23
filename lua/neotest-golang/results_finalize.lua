@@ -72,7 +72,7 @@ function M.test_results(spec, result, tree)
     if vim.fn.filereadable(result.output) ~= 1 then
       logger.error("Go test output file is not readable: " .. result.output)
     end
-    output = async.fn.readfile(result.output)
+    output = lib.file.read_lines(result.output)
   elseif runner == "gotestsum" then
     if not context.test_output_json_filepath then
       logger.error("Gotestsum JSON output file path not provided")
@@ -81,7 +81,7 @@ function M.test_results(spec, result, tree)
     if not file_stat or file_stat.size == 0 then -- check if file exists and is non-empty
       logger.error("Gotestsum JSON output file is missing or empty")
     end
-    output = async.fn.readfile(context.test_output_json_filepath)
+    output = lib.file.read_lines(context.test_output_json_filepath)
   end
   logger.debug({ "Runner '" .. runner .. "', raw output: ", output })
 
@@ -181,7 +181,7 @@ function M.populate_missing_file_results(tree, results)
 
       -- Collect output
       if test_result.output then
-        local test_output_lines = async.fn.readfile(test_result.output)
+        local test_output_lines = lib.file.read_lines(test_result.output)
         vim.list_extend(combined_output, test_output_lines)
       end
     end
@@ -190,7 +190,7 @@ function M.populate_missing_file_results(tree, results)
     if #test_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
       -- Write combined output to file
       local file_output_path = lib.path.normalize_path(async.fn.tempname())
-      async.fn.writefile(combined_output, file_output_path)
+      lib.file.write_lines(file_output_path, combined_output)
 
       -- Create or update file node result
       if file_result then
@@ -252,7 +252,7 @@ function M.create_root_result(results_data, result, gotest_output)
   local full_output = lib.colorize.colorize_parts(output_parts)
 
   local output = lib.path.normalize_path(async.fn.tempname())
-  async.fn.writefile(full_output, output)
+  lib.file.write_lines(output, full_output)
 
   return {
     status = status,

@@ -12,6 +12,7 @@
 --- 3. Concurrent Execution (multiple tests with streaming by default)
 ---    execute_adapter_concurrent(position_ids, use_blocking)
 
+local file = require("neotest-golang.lib.file")
 local lib = require("neotest-golang.lib")
 local path = require("neotest-golang.lib.path")
 
@@ -70,7 +71,7 @@ local function execute_command(run_spec)
           table.insert(lines, line)
         end
       end
-      vim.fn.writefile(lines, output_path)
+      file.write_lines(output_path, lines)
     end
 
     print("Exit code:", sys.code, "Output path:", output_path)
@@ -129,7 +130,7 @@ local function execute_command_streaming(run_spec, tree)
     local output_path = nil
     if #output_lines > 0 then
       output_path = path.normalize_path(nio.fn.tempname())
-      nio.fn.writefile(output_lines, output_path)
+      file.write_lines(output_path, output_lines)
     end
 
     -- Process streaming results using adapter's stream function if available
@@ -415,14 +416,13 @@ end
 --- @param context table|nil The run spec context (contains gotestsum JSON file path)
 --- @return table<string, neotest.Result> Individual test results
 function M.process_test_output_manually(tree, golist_data, output_path, context)
-  local async = require("neotest.async")
   local options = require("neotest-golang.options")
   local results_stream = require("neotest-golang.results_stream")
 
   -- Read the raw output (guard if file missing)
   local raw_output = {}
   if output_path and vim.fn.filereadable(output_path) == 1 then
-    raw_output = async.fn.readfile(output_path)
+    raw_output = file.read_lines(output_path)
   end
 
   -- For gotestsum, we need to read from the JSON file that was created
@@ -436,7 +436,7 @@ function M.process_test_output_manually(tree, golist_data, output_path, context)
       local json_filepath = context.test_output_json_filepath
       local file_stat = vim.uv.fs_stat(json_filepath)
       if file_stat and file_stat.size > 0 then
-        local json_lines = async.fn.readfile(json_filepath)
+        local json_lines = file.read_lines(json_filepath)
         gotest_output = lib.json.decode_from_table(json_lines, true)
       else
         gotest_output = lib.json.decode_from_table(raw_output, true)
