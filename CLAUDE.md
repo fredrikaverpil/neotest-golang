@@ -41,7 +41,8 @@ and handles:
 
 - **Run all tests**: `./pok test`
 - **Run tests with clean state**: `./pok test-clean && ./pok test`
-- **Run specific test file**: `./pok test-file -- path/to/test_spec.lua`
+- **Run specific test file**:
+  `./pok nvim-test:stable -- spec/unit/file_spec.lua`
 
 ### Linting and Formatting
 
