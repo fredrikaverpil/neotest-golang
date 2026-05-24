@@ -213,17 +213,8 @@ function M.workaround_neotest_issue_391(result)
   -- output panel. This is a workaround for now, only because of
   -- https://github.com/nvim-neotest/neotest/issues/391
 
-  -- NOTE: when emptying the file with vim.fn.writefil, this error was hit
-  -- when debugging:
-  -- E5560: Vimscript function must not be called in a lua loop callback
-  -- vim.fn.writefile({ "" }, result.output)
-
-  if result.output ~= nil then -- and vim.fn.filereadable(result.output) == 1 then
-    local file = io.open(result.output, "w")
-    if file ~= nil then
-      file:write("")
-      file:close()
-    end
+  if result.output ~= nil then
+    lib.file.write_lines(result.output, {})
   end
 end
 
