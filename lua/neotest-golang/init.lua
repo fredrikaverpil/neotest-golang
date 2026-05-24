@@ -207,6 +207,7 @@ function M.Adapter.results(spec, result, tree)
 end
 
 --- Workaround, to avoid JSON in output panel, erase contents of output.
+--- @async
 --- @param result neotest.StrategyResult
 function M.workaround_neotest_issue_391(result)
   -- FIXME: once output is processed, erase file contents, so to avoid JSON in
@@ -214,7 +215,7 @@ function M.workaround_neotest_issue_391(result)
   -- https://github.com/nvim-neotest/neotest/issues/391
 
   if result.output ~= nil then
-    lib.file.write_lines(result.output, {})
+    lib.file.write_lines_async(result.output, {})
   end
 end
 

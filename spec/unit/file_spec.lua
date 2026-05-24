@@ -35,4 +35,19 @@ describe("File utilities", function()
     vim.fn.delete(filepath)
     assert.are_same({ "before", "after" }, got)
   end)
+
+  it("Writes and reads lines asynchronously", function()
+    local nio = require("nio")
+
+    nio.tests.with_async_context(function()
+      local filepath = vim.fn.tempname()
+      local input = { "before\0after", "", "next line" }
+
+      file.write_lines_async(filepath, input)
+      local got = file.read_lines_async(filepath)
+
+      assert(vim.uv.fs_unlink(filepath))
+      assert.are_same(input, got)
+    end)
+  end)
 end)

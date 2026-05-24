@@ -71,7 +71,7 @@ local function execute_command(run_spec)
           table.insert(lines, line)
         end
       end
-      file.write_lines(output_path, lines)
+      file.write_lines_async(output_path, lines)
     end
 
     print("Exit code:", sys.code, "Output path:", output_path)
@@ -130,7 +130,7 @@ local function execute_command_streaming(run_spec, tree)
     local output_path = nil
     if #output_lines > 0 then
       output_path = path.normalize_path(nio.fn.tempname())
-      file.write_lines(output_path, output_lines)
+      file.write_lines_async(output_path, output_lines)
     end
 
     -- Process streaming results using adapter's stream function if available
