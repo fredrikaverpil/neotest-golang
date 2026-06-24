@@ -129,6 +129,7 @@ function M.return_skipped(pos)
   local context = {
     pos_id = pos.id,
     golist_data = {}, -- no golist output
+    skipped = true, -- no tests to run, skip result parsing
     stop_filestream = function() end, -- no stream to stop
   }
 

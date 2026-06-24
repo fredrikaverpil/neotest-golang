@@ -49,6 +49,15 @@ function M.test_results(spec, result, tree)
     return skipped_result
   end
 
+  if context.skipped then
+    -- The position has no tests to run (e.g. a file without Go test functions),
+    -- so there is no test output to parse.
+    skipped_result[context.pos_id] = {
+      status = "skipped",
+    }
+    return skipped_result
+  end
+
   --- The runner to use for running tests.
   --- @type string
   local runner = options.get().runner
