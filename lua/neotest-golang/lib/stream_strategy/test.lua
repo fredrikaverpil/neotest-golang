@@ -1,9 +1,10 @@
 ---Test streaming strategy for integration tests that read completed files
 local M = {}
+local file = require("neotest-golang.lib.file")
 
 ---Create a test streaming data source for integration tests
 ---This strategy reads from completed files rather than live streaming
----Integration tests run synchronously, so we use vim.fn.readfile instead of async.fn.readfile
+---Integration tests run synchronously, so we use synchronous vim.uv file I/O.
 ---@param json_filepath string|nil Path to the JSON output file
 ---@return function stream_data Function that returns lines from completed file
 ---@return function stop_filestream Function to stop the stream (no-op for tests)
@@ -17,9 +18,7 @@ function M.create_stream(json_filepath)
 
     local file_stat = vim.uv.fs_stat(json_filepath)
     if file_stat and file_stat.size > 0 then
-      -- Use synchronous file reading since integration tests run in sync context
-      -- and the gotestsum file is already complete when we read it
-      local file_lines = vim.fn.readfile(json_filepath)
+      local file_lines = file.read_lines(json_filepath)
       logger.debug(
         "Test strategy: read " .. #file_lines .. " lines from gotestsum file"
       )
