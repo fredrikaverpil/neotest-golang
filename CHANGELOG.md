@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.1](https://github.com/fredrikaverpil/neotest-golang/compare/v2.9.0...v2.9.1) (2026-06-24)
+
+
+### Bug Fixes
+
+* **results:** skip result parsing for files without tests ([#575](https://github.com/fredrikaverpil/neotest-golang/issues/575)) ([542cbaf](https://github.com/fredrikaverpil/neotest-golang/commit/542cbaf37f1233a2723ccd64ce8ed7e3acbd192b))
+
 ## [2.9.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.8.0...v2.9.0) (2026-05-19)
 
 
