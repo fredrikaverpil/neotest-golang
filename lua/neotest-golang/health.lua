@@ -95,7 +95,7 @@ function M.is_problematic_path()
       Darwin = {
         "/private/tmp",
         "/tmp",
-        lib.path.normalize_path(os.getenv("HOME") .. "/Public"),
+        lib.path.normalize_path(vim.fn.expand("$HOME") .. "/Public"),
       },
       Linux = { "/tmp" },
     }
