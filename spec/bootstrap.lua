@@ -15,6 +15,13 @@ local PLUGINS = {
   },
   neotest = {
     url = "https://github.com/nvim-neotest/neotest",
+    -- Pinned to the last commit before nvim-neotest/neotest#607 and #612
+    -- (merged 2026-07-02/03). Those commits correlate with the
+    -- nvim-test:nightly (windows-latest) CI failures that started between
+    -- the last green run (2026-07-01) and the first failing run
+    -- (2026-07-05). Unpin once the upstream regression is understood and
+    -- fixed.
+    hash = "ff5437f7d9af801917bed119082934b0eb6ee0e9",
   },
 }
 
