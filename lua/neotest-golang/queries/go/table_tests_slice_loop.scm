@@ -15,6 +15,7 @@
 ; t.Run() call on an unrelated variable does not validate the table.
 ;
 ; What gets captured (read by tabletest.lua):
+; - @loop      = the for-statement itself (to confirm the validated loop)
 ; - @range.src = the range expression (composite literal or variable)
 ; - @run.field = the struct field whose value t.Run() uses as the subtest name
 ; ============================================================================
@@ -38,4 +39,4 @@
             (selector_expression
               operand: (identifier) @_run.var
               (#eq? @_run.var @_range.val)
-              field: (field_identifier) @run.field)))))))
+              field: (field_identifier) @run.field))))))) @loop

@@ -13,6 +13,7 @@
 ;   for name, tc := range <src> { ... t.Run(name, ...) ... }
 ;
 ; What gets captured (read by tabletest.lua):
+; - @loop      = the for-statement itself (to confirm the validated loop)
 ; - @range.src = the range expression (the variable holding the map)
 ; ============================================================================
 (for_statement
@@ -33,4 +34,4 @@
           arguments: (argument_list
             .
             (identifier) @_run.arg
-            (#eq? @_run.arg @_range.key)))))))
+            (#eq? @_run.arg @_range.key))))))) @loop
