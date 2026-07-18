@@ -1,81 +1,45 @@
 ; ============================================================================
-; RESPONSIBILITY: Table tests with unkeyed (positional) struct fields
+; RESPONSIBILITY: Table-test cases with unkeyed (positional) fields
 ; ============================================================================
-; Detects table tests where struct literals use positional syntax instead of
-; field names. Fields are assigned by position, not by name.
+; Detects individual table-test cases whose struct literal uses positional
+; syntax instead of field names, e.g. {"test1", 1} rather than
+; {name: "test1", want: 1}. Covers both the named-variable and inline shapes:
+;   - named variable:   tt := []struct{ name string; ... }{ {"x", 1}, ... }
+;   - inline slice:      for _, tc := range []struct{...}{ {"x", 1}, ... }
 ;
-; Pattern structure:
-; 1. Variable declaration: tt := []struct{ name string; want int }{...}
-; 2. Unkeyed fields: {"test1", 1} instead of {name: "test1", want: 1}
-; 3. First field must be a string (the test name)
-; 4. For loop: for _, tc := range tt
-; 5. Loop body: t.Run(tc.name, ...)
+; Like table_tests_keyed.scm this query is ELEMENT-SCOPED (see that file and
+; issue #581 for why the surrounding loop is not part of the match). Loop
+; validation happens in Lua, in query._build_position via lib/tabletest.lua.
 ;
-; Example with captures:
-;   tt := []struct{
-;     name string
-;     want int
-;   }{
-;     {"test1", 1},  // @test.name = "test1", @test.definition = entire struct
-;     {"test2", 2},  // No "name:" prefix - values assigned by position
-;   }
-;   for _, tc := range tt {
-;     t.Run(tc.name, func(t *testing.T) { ... })
-;   }
+; The struct type must be defined INLINE (an anonymous struct) and its FIRST
+; field must be a string; that first field is treated as the subtest name. This
+; mirrors the previous behaviour and its known limitations:
+;   - a named struct type ([]tc, not []struct{...}) is not matched, because the
+;     field names are not visible at the literal, so the correct name field
+;     cannot be validated;
+;   - only the first string field is captured, so tables whose t.Run() uses a
+;     later string field are not detected.
 ;
 ; What gets captured:
-; - @test.name = The first string literal in the struct (e.g., "test1")
-; - @test.definition = The entire struct literal (e.g., {"test1", 1})
-; - @test.field.name = The first string field from struct type (e.g., "name")
-;
-; The query validates that the field used in t.Run() matches the first string
-; field declared in the struct type. This prevents capturing wrong string
-; literals when the struct has multiple string fields.
-;
-; DISTINGUISHING FEATURE: No field names in the struct literal.
-; Compare to table_tests_list.scm which uses {name: "test1"} syntax.
+; - @test.name            = The first string literal in the element (e.g. "x")
+; - @test.definition      = The entire struct element (e.g. {"x", 1})
+; - @test.tabletest.field = The first string field name from the struct type
+;                           (e.g. "name"); also marks this as a slice table-test
+;                           case to be validated.
 ; ============================================================================
-(block
-  (statement_list
-    (short_var_declaration
-      left: (expression_list
-        (identifier) @test.cases)
-      right: (expression_list
-        (composite_literal
-          type: (slice_type
-            element: (struct_type
-              (field_declaration_list
-                .
-                (field_declaration
-                  name: (field_identifier) @test.field.name
-                  type: (type_identifier) @field.type
-                  (#eq? @field.type "string")))))
-          body: (literal_value
-            (literal_element
-              (literal_value
-                .
-                (literal_element
-                  (interpreted_string_literal) @test.name)
-                (literal_element)) @test.definition)))))
-    (for_statement
-      (range_clause
-        left: (expression_list
-          (identifier) @test.key.name
-          (identifier) @test.case)
-        right: (identifier) @test.cases1
-        (#eq? @test.cases @test.cases1))
-      body: (block
-        (statement_list
-          (expression_statement
-            (call_expression
-              function: (selector_expression
-                operand: (identifier) @test.operand
-                (#match? @test.operand "^[t]$")
-                field: (field_identifier) @test.method
-                (#match? @test.method "^Run$"))
-              arguments: (argument_list
-                (selector_expression
-                  operand: (identifier) @test.case1
-                  (#eq? @test.case @test.case1)
-                  field: (field_identifier) @test.field.name1
-                  (#eq? @test.field.name @test.field.name1))))))))))
+(composite_literal
+  type: (slice_type
+    element: (struct_type
+      (field_declaration_list
+        .
+        (field_declaration
+          name: (field_identifier) @test.tabletest.field
+          type: (type_identifier) @_field.type
+          (#eq? @_field.type "string")))))
+  body: (literal_value
+    (literal_element
+      (literal_value
+        .
+        (literal_element
+          (interpreted_string_literal) @test.name)
+        (literal_element)) @test.definition)))

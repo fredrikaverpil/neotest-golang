@@ -146,20 +146,19 @@ function M.treesitter_queries_compatible()
   -- Core queries that must work for basic functionality
   local queries_to_check = {
     { name = "test_function", path = "queries/go/test_function.scm" },
-    { name = "table_tests_list", path = "queries/go/table_tests_list.scm" },
-    { name = "table_tests_loop", path = "queries/go/table_tests_loop.scm" },
+    { name = "table_tests_keyed", path = "queries/go/table_tests_keyed.scm" },
     {
       name = "table_tests_unkeyed",
       path = "queries/go/table_tests_unkeyed.scm",
     },
-    {
-      name = "table_tests_loop_unkeyed",
-      path = "queries/go/table_tests_loop_unkeyed.scm",
-    },
     { name = "table_tests_map", path = "queries/go/table_tests_map.scm" },
     {
-      name = "table_tests_inline_field_access",
-      path = "queries/go/table_tests_inline_field_access.scm",
+      name = "table_tests_slice_loop",
+      path = "queries/go/table_tests_slice_loop.scm",
+    },
+    {
+      name = "table_tests_map_loop",
+      path = "queries/go/table_tests_map_loop.scm",
     },
   }
 
