@@ -12,6 +12,7 @@ local M = {}
 
 --- Finalize test results by creating root result and populating missing aggregated results.
 --- This is the main orchestrator that processes test output and fills in missing file/directory results.
+--- @async
 --- @param spec neotest.RunSpec
 --- @param result neotest.StrategyResult
 --- @param tree neotest.Tree
@@ -72,7 +73,7 @@ function M.test_results(spec, result, tree)
     if vim.fn.filereadable(result.output) ~= 1 then
       logger.error("Go test output file is not readable: " .. result.output)
     end
-    output = async.fn.readfile(result.output)
+    output = lib.file.read_lines_async(result.output)
   elseif runner == "gotestsum" then
     if not context.test_output_json_filepath then
       logger.error("Gotestsum JSON output file path not provided")
@@ -81,7 +82,7 @@ function M.test_results(spec, result, tree)
     if not file_stat or file_stat.size == 0 then -- check if file exists and is non-empty
       logger.error("Gotestsum JSON output file is missing or empty")
     end
-    output = async.fn.readfile(context.test_output_json_filepath)
+    output = lib.file.read_lines_async(context.test_output_json_filepath)
   end
   logger.debug({ "Runner '" .. runner .. "', raw output: ", output })
 
@@ -126,6 +127,7 @@ end
 --- Populate missing file results with aggregated data from their child tests.
 --- Uses results-driven approach: extracts file paths from test position IDs and creates
 --- aggregated output for files that lack results or have nil output.
+--- @async
 --- @param tree neotest.Tree The neotest tree structure (unused but kept for compatibility)
 --- @param results table<string, neotest.Result> Current results
 --- @return table<string, neotest.Result> Updated results with missing file results populated
@@ -181,7 +183,7 @@ function M.populate_missing_file_results(tree, results)
 
       -- Collect output
       if test_result.output then
-        local test_output_lines = async.fn.readfile(test_result.output)
+        local test_output_lines = lib.file.read_lines_async(test_result.output)
         vim.list_extend(combined_output, test_output_lines)
       end
     end
@@ -190,7 +192,7 @@ function M.populate_missing_file_results(tree, results)
     if #test_entries > 0 and #combined_output > 1 then -- > 1 because we always add header
       -- Write combined output to file
       local file_output_path = lib.path.normalize_path(async.fn.tempname())
-      async.fn.writefile(combined_output, file_output_path)
+      lib.file.write_lines_async(file_output_path, combined_output)
 
       -- Create or update file node result
       if file_result then
@@ -229,6 +231,7 @@ end
 
 --- Create the root result for the executed position based on test execution output.
 --- Analyzes the overall test execution status and creates the primary result.
+--- @async
 --- @param results_data table Previous results data (may be nil)
 --- @param result neotest.StrategyResult Test execution result
 --- @param gotest_output GoTestEvent[] Array of go test JSON events
@@ -252,7 +255,7 @@ function M.create_root_result(results_data, result, gotest_output)
   local full_output = lib.colorize.colorize_parts(output_parts)
 
   local output = lib.path.normalize_path(async.fn.tempname())
-  async.fn.writefile(full_output, output)
+  lib.file.write_lines_async(output, full_output)
 
   return {
     status = status,

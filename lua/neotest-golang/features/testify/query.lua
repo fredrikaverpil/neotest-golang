@@ -1,5 +1,6 @@
 --- Helper functions around running Treesitter queries.
 
+local file = require("neotest-golang.lib.file")
 local options = require("neotest-golang.options")
 local query_loader = require("neotest-golang.lib.query_loader")
 
@@ -26,7 +27,7 @@ M.table_tests_list_query =
 --- @return table<string, table> A table of matches, where each key is a capture name and the value is a table of nodes
 function M.run_query_on_file(filepath, query_string)
   local bufnr = vim.api.nvim_create_buf(false, true)
-  local content = vim.fn.readfile(filepath)
+  local content = file.read_lines(filepath)
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
   vim.api.nvim_set_option_value("filetype", "go", { buf = bufnr })
 

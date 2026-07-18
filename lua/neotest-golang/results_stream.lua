@@ -7,6 +7,7 @@
 local colorize = require("neotest-golang.lib.colorize")
 local convert = require("neotest-golang.lib.convert")
 local diagnostics = require("neotest-golang.lib.diagnostics")
+local file = require("neotest-golang.lib.file")
 local mapping = require("neotest-golang.lib.mapping")
 local metrics = require("neotest-golang.lib.metrics")
 local path = require("neotest-golang.lib.path")
@@ -245,9 +246,9 @@ function M.make_stream_results_with_cache(accum, cache)
               colorize.colorize_parts(test_entry.metadata.output_parts)
 
             local success = pcall(
-              async.fn.writefile,
-              output_lines,
-              test_entry.metadata.output_path
+              file.write_lines,
+              test_entry.metadata.output_path,
+              output_lines
             )
             if not success then
               -- If file write fails, clear the output path so test still completes without output file
