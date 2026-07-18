@@ -85,24 +85,26 @@ function M.go_mod_found()
 end
 
 function M.is_problematic_path()
-  local go_mod_filepath = nil
+  local sysname = vim.uv.os_uname().sysname
+
+  local problematic_paths = nil
+  if sysname == "Darwin" then
+    problematic_paths = {
+      "/private/tmp",
+      "/tmp",
+      lib.path.normalize_path(vim.fn.expand("$HOME") .. "/Public"),
+    }
+  elseif sysname == "Linux" then
+    problematic_paths = { "/tmp" }
+  else
+    return
+  end
+
   local filepaths = lib.find.go_test_filepaths(vim.fn.getcwd())
   for _, filepath in ipairs(filepaths) do
     local start_path = lib.path.get_directory(filepath)
-    go_mod_filepath = lib.find.file_upwards("go.mod", start_path)
-    local sysname = vim.uv.os_uname().sysname
-    local problematic_paths = {
-      Darwin = {
-        "/private/tmp",
-        "/tmp",
-        lib.path.normalize_path(vim.fn.expand("$HOME") .. "/Public"),
-      },
-      Linux = { "/tmp" },
-    }
-    if problematic_paths[sysname] == nil then
-      return
-    end
-    for _, problematic_path in ipairs(problematic_paths[sysname]) do
+    local go_mod_filepath = lib.find.file_upwards("go.mod", start_path)
+    for _, problematic_path in ipairs(problematic_paths) do
       if go_mod_filepath ~= nil and go_mod_filepath:find(problematic_path) then
         warn(
           "Path reportedly problematic: "
