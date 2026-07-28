@@ -1,7 +1,6 @@
 --- File system search operations for Go test discovery.
 
 local lib_neotest = require("neotest.lib")
-local scandir = require("plenary.scandir")
 
 local logger = require("neotest-golang.lib.logging")
 local path = require("neotest-golang.lib.path")
@@ -86,10 +85,9 @@ function M.root_for_tests(folderpath)
   end
 
   -- Second, find all go.mod files recursively (monorepo-style)
-  local go_mod_files = scandir.scan_dir(
-    folderpath,
-    { search_pattern = "go%.mod$", respect_gitignore = true }
-  )
+  local go_mod_files = vim.fs.find(function(name, _)
+    return name:match("go%.mod$")
+  end, { limit = math.huge, type = "file", path = folderpath })
 
   if #go_mod_files == 0 then
     -- No go.mod files found, no tests can run (disables adapter's test discovery)
@@ -116,10 +114,9 @@ end
 --- @param folderpath string Directory path to search in
 --- @return string[] Array of full paths to test files
 function M.go_test_filepaths(folderpath)
-  local files = scandir.scan_dir(
-    folderpath,
-    { search_pattern = "_test%.go$", add_dirs = false }
-  )
+  local files = vim.fs.find(function(name, _)
+    return name:match("_test%.go$")
+  end, { limit = math.huge, type = "file", path = folderpath })
   return files
 end
 
