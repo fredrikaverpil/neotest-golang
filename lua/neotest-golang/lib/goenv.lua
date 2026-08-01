@@ -87,7 +87,10 @@ function M.should_skip(file_path, cwd)
   if not cwd or not file_path then
     return false
   end
-  local env = get_go_env_async()
+  local env_ok, env = pcall(get_go_env_async)
+  if not env_ok then
+    return true
+  end
   local norm_path = path.normalize_path(file_path)
   local norm_cwd = path.normalize_path(cwd)
   return not is_in_go_env(norm_cwd, env) and is_in_go_env(norm_path, env)
