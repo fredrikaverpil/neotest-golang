@@ -2,5 +2,5 @@
   "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
   "runtime.version": "LuaJIT",
   "workspace.checkThirdParty": false,
-  "workspace.ignoreDir": [".pocket", ".tests", ".venv", "site"]
+  "workspace.ignoreDir": [".vscode", ".pocket", ".tests", ".venv", "site"]
 }
