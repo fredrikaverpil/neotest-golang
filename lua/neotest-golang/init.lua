@@ -18,11 +18,23 @@ M.Adapter = {
   init = function() end,
 }
 
+--- Whether the Go toolchain is available. Without it, no tests can be
+--- executed, so the adapter disables itself. Reported by
+--- :checkhealth neotest-golang.
+--- @return boolean
+local function go_available()
+  return vim.fn.executable("go") == 1
+end
+
 --- Find root path for test suite.
 --- @async
 --- @param dir string @Directory to treat as cwd
 --- @return string | nil @Absolute root dir of test suite
 function M.Adapter.root(dir)
+  if not go_available() then
+    logger.debug("Binary 'go' not found on PATH, disabling adapter")
+    return nil
+  end
   return lib.find.root_for_tests(dir)
 end
 
@@ -83,6 +95,9 @@ end
 --- @param file_path string
 --- @return boolean
 function M.Adapter.is_test_file(file_path)
+  if not go_available() then
+    return false
+  end
   if lib.goenv.should_skip(file_path, vim.uv.cwd()) then
     return false
   end

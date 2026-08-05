@@ -17,6 +17,21 @@ describe("Is test file", function()
     assert.is_false(adapter.is_test_file(file_path))
   end)
 
+  it("False - Go binary not on PATH", function()
+    local original_executable = vim.fn.executable
+    vim.fn.executable = function(name)
+      if name == "go" then
+        return 0
+      end
+      return original_executable(name)
+    end
+
+    local result = adapter.is_test_file("foo/bar/baz_test.go")
+
+    vim.fn.executable = original_executable
+    assert.is_false(result)
+  end)
+
   describe("Windows path handling", function()
     it("True - Windows path with backslashes", function()
       local file_path = "foo\\bar\\baz_test.go"
