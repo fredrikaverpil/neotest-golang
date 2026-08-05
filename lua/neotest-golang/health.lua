@@ -16,7 +16,7 @@ function M.check()
 
   start("Requirements")
   M.neovim_version_check()
-  M.binary_found_on_path("go")
+  M.go_binary_found()
   M.go_version_check()
   M.go_mod_found()
   M.is_problematic_path()
@@ -66,6 +66,16 @@ function M.binary_found_on_path(executable, supress_warn)
     end
   end
   return false
+end
+
+--- The go binary is a hard requirement; without it, the adapter disables
+--- itself for any Go project found.
+function M.go_binary_found()
+  if vim.fn.executable("go") == 1 then
+    ok("Binary 'go' found on PATH: " .. vim.fn.exepath("go"))
+  else
+    error("Binary 'go' not found on PATH. The adapter is disabled without it.")
+  end
 end
 
 function M.go_mod_found()
