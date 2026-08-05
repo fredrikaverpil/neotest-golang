@@ -50,14 +50,16 @@ end
 --- @param folderpath string Directory path to search from
 --- @return string|nil Root directory path or nil if no go.mod files found
 function M.root_for_tests(folderpath)
+  folderpath = path.normalize_path(folderpath)
+
   -- If we have a cached root and folderpath is under it, reuse the cached root.
   -- This prevents Neotest from creating duplicate adapter trees for nested
   -- Go modules (e.g., submodules with their own go.mod).
   if primary_root_cache then
-    -- Normalize paths for comparison (ensure trailing slash for prefix match)
+    -- Normalize paths for comparison (ensure trailing separator for prefix match)
     local cached_prefix = primary_root_cache
-    if not vim.endswith(cached_prefix, "/") then
-      cached_prefix = cached_prefix .. "/"
+    if not vim.endswith(cached_prefix, path.os_path_sep) then
+      cached_prefix = cached_prefix .. path.os_path_sep
     end
     if
       folderpath == primary_root_cache
@@ -77,6 +79,11 @@ function M.root_for_tests(folderpath)
   local root =
     lib_neotest.files.match_root_pattern("go.work", "go.mod")(folderpath)
   if root then
+    root = path.normalize_path(root)
+    -- Strip any trailing slash
+    if vim.endswith(root, path.os_path_sep) then
+      root = root:sub(1, -2)
+    end
     -- Cache the first discovered root
     if not primary_root_cache then
       primary_root_cache = root

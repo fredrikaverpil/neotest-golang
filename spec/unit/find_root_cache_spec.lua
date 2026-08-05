@@ -1,10 +1,14 @@
 local _ = require("plenary")
 local find = require("neotest-golang.lib.find")
+local path = require("neotest-golang.lib.path")
 
 describe("Find root caching", function()
   -- Get the actual project root for testing
   local project_root = vim.fn.getcwd()
-  local submodule_path = project_root .. "/tests/features/submodule"
+  -- Use the platform's path separator, so that the paths under test have the
+  -- same shape as the ones Neotest passes to the adapter.
+  local submodule_path =
+    path.normalize_path(project_root .. "/tests/features/submodule")
 
   before_each(function()
     -- Clear cache before each test to ensure clean state
@@ -43,6 +47,15 @@ describe("Find root caching", function()
       -- Even though it has its own go.mod, we should get the cached project root
       local nested_root = find.root_for_tests(submodule_path)
       assert.equals(project_root, nested_root)
+    end)
+
+    it("reuses the cached root for a path with a trailing separator", function()
+      local first_root = find.root_for_tests(project_root)
+      assert.equals(project_root, first_root)
+
+      -- A trailing separator denotes the very same directory
+      local root = find.root_for_tests(project_root .. path.os_path_sep)
+      assert.equals(project_root, root)
     end)
 
     it("discovers submodule root when cache is empty", function()
