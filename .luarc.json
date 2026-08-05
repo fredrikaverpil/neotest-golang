@@ -2,6 +2,5 @@
   "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
   "runtime.version": "LuaJIT",
   "workspace.checkThirdParty": false,
-  "workspace.ignoreDir": [".pocket/tools"],
-  "workspace.library": ["$VIMRUNTIME"]
+  "workspace.ignoreDir": [".pocket", ".tests", ".venv", "site"]
 }
