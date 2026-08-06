@@ -130,6 +130,15 @@ describe("Go environment utilities", function()
       assert.is_false(result)
     end)
 
+    it("returns false when the environment could not be determined", function()
+      goenv.set_cache_for_testing({ gopath = "", goroot = "" })
+      local result = goenv.should_skip(
+        "/home/user/go/pkg/mod/github.com/foo/bar",
+        "/home/user/myproject"
+      )
+      assert.is_false(result)
+    end)
+
     it("does not match paths with similar prefix (the bug fix)", function()
       -- GOPATH is /home/user/go, but /home/user/golang should NOT match
       local result = goenv.should_skip(
