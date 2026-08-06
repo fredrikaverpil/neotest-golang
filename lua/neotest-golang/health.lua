@@ -39,7 +39,7 @@ function M.check()
 
   start("Gotestsum (optional)")
   M.gotestsum_recommended_on_windows()
-  M.gotestsum_installed_but_not_used()
+  M.gotestsum_status()
 
   start("Sanitization (optional)")
   M.sanitization_enabled_but_no_utf8_lib()
@@ -48,7 +48,7 @@ function M.check()
   M.display_current_configuration()
 end
 
-function M.binary_found_on_path(executable, supress_warn)
+function M.binary_found_on_path(executable)
   local found = vim.fn.executable(executable)
   if found == 1 then
     ok(
@@ -58,13 +58,8 @@ function M.binary_found_on_path(executable, supress_warn)
         .. vim.fn.exepath(executable)
     )
     return true
-  else
-    if supress_warn then
-      ok("Binary '" .. executable .. "' not found on PATH")
-    else
-      warn("Binary '" .. executable .. "' not found on PATH")
-    end
   end
+  warn("Binary '" .. executable .. "' not found on PATH")
   return false
 end
 
@@ -271,11 +266,20 @@ function M.gotestsum_recommended_on_windows()
   end
 end
 
-function M.gotestsum_installed_but_not_used()
-  local found = M.binary_found_on_path("gotestsum", true)
+function M.gotestsum_status()
+  local found = vim.fn.executable("gotestsum") == 1
+  local is_runner = options.get().runner == "gotestsum"
 
-  -- found but not active
-  if found and options.get().runner ~= "gotestsum" then
+  -- set as runner, but not installed
+  if is_runner and not found then
+    error("Binary 'gotestsum' is set as runner, but was not found on PATH.")
+
+  -- set as runner and installed
+  elseif is_runner then
+    ok("Tests will be executed by gotestsum: " .. vim.fn.exepath("gotestsum"))
+
+  -- installed, but not set as runner
+  elseif found then
     local msg = "Found gotestsum to be installed, but not set as test runner."
     if is_windows_uname() then
       warn(msg)
@@ -283,9 +287,9 @@ function M.gotestsum_installed_but_not_used()
       info(msg)
     end
 
-  -- found and active
-  elseif found and options.get().runner == "gotestsum" then
-    ok("Tests will be executed by gotestsum.")
+  -- neither installed nor set as runner
+  else
+    ok("Tests will not be executed by gotestsum.")
   end
 end
 
