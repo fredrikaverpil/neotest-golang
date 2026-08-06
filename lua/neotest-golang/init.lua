@@ -95,13 +95,13 @@ end
 --- @param file_path string
 --- @return boolean
 function M.Adapter.is_test_file(file_path)
+  if not vim.endswith(file_path, "_test.go") then
+    return false
+  end
   if not go_available() then
     return false
   end
-  if lib.goenv.should_skip(file_path, vim.uv.cwd()) then
-    return false
-  end
-  return vim.endswith(file_path, "_test.go")
+  return not lib.goenv.should_skip(file_path, vim.uv.cwd())
 end
 
 --- Given a file path, parse all the tests within it.
