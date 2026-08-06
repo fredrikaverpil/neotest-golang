@@ -1,6 +1,7 @@
 --- Go environment utilities for detecting GOPATH/GOROOT paths.
 --- Used to prevent discovering tests in Go's stdlib or installed packages.
 
+local logger = require("neotest-golang.lib.logging")
 local path = require("neotest-golang.lib.path")
 
 local M = {}
@@ -10,12 +11,25 @@ local M = {}
 local go_env_cache = nil
 
 --- Populate the go env cache (async version).
+--- A failing 'go env' is cached as empty paths, which match nothing, so the
+--- command is executed at most once per session.
 --- @async
 --- @return {gopath: string, goroot: string}
 local function get_go_env_async()
   if go_env_cache == nil then
     local async = require("neotest.async")
     local result = async.fn.system({ "go", "env", "GOPATH", "GOROOT" })
+    if vim.v.shell_error ~= 0 then
+      -- A failing 'go env' does not throw, it reports its error on stderr.
+      logger.error(
+        "Command 'go env GOPATH GOROOT' exited with code "
+          .. vim.v.shell_error
+          .. ": "
+          .. vim.trim(result or "")
+      )
+      go_env_cache = { gopath = "", goroot = "" }
+      return go_env_cache
+    end
     local lines = vim.split(vim.trim(result or ""), "\n")
     go_env_cache = {
       gopath = path.normalize_path(lines[1] or ""),
@@ -79,6 +93,8 @@ end
 --- Check if a path should be skipped because it's in GOPATH/GOROOT but cwd is not.
 --- This prevents the adapter from discovering tests in Go's stdlib or installed packages
 --- when the user is working in a different project.
+--- An environment which could not be determined holds no paths and therefore
+--- skips nothing: hiding tests which can be executed is the worse failure mode.
 --- @async
 --- @param file_path string Path to check
 --- @param cwd string|nil Current working directory
@@ -87,10 +103,7 @@ function M.should_skip(file_path, cwd)
   if not cwd or not file_path then
     return false
   end
-  local env_ok, env = pcall(get_go_env_async)
-  if not env_ok then
-    return true
-  end
+  local env = get_go_env_async()
   local norm_path = path.normalize_path(file_path)
   local norm_cwd = path.normalize_path(cwd)
   return not is_in_go_env(norm_cwd, env) and is_in_go_env(norm_path, env)
