@@ -19,8 +19,9 @@ and will use `go test` to write test output to stdout.
 
 !!! warning "Windows, Ubuntu Snaps"
 
-    If you are on Windows or using Ubuntu snaps, you might want to set the runner
-    to `"gotestsum"` and/or enable the [`sanitize_output`](#sanitize_output) option. See
+    If you are on Windows or using Ubuntu snaps, you might want to set the
+    runner to `"gotestsum"` and/or enable the
+    [`sanitize_output`](#sanitize_output) option. See
     [this issue comment](https://github.com/fredrikaverpil/neotest-golang/issues/193#issuecomment-2362845806)
     for more details and continue reading.
 
@@ -38,7 +39,7 @@ Using `gotestsum` offers the following benefits:
   test output is then written directly to file.
 - When you "attach" (in the Neotest summary window) to a running test, you'll
   see clean `go test` output instead of having to navigate through
-  difficult-to-read JSON, as `gotestsum` is configured to _also_ output non-JSON
+  difficult-to-read JSON, as `gotestsum` is configured to *also* output non-JSON
   test execution to stdout.
 
 Gotestsum calls `go test` behind the scenes, so your `go_test_args`
@@ -82,10 +83,10 @@ The value can also be passed in as a function.
 
     The `-race` flag (in `go_test_args`) requires CGO to be enabled
     (`CGO_ENABLED=1` is the default) and a C compiler (such as GCC) to be
-    installed. However, since Go 1.20, this is not a requirement on macOS. I have
-    included the `-race` argument as default, as it provides good production
-    defaults. See [this issue](https://github.com/golang/go/issues/9918) for more
-    details.
+    installed. However, since Go 1.20, this is not a requirement on macOS. I
+    have included the `-race` argument as default, as it provides good
+    production defaults. See
+    [this issue](https://github.com/golang/go/issues/9918) for more details.
 
 ### `gotestsum_args`
 
@@ -164,8 +165,8 @@ The value can also be passed in as a function.
 
 !!! tip "Extra args"
 
-    You can also pass in environment variables via Neotest's `extra_args` feature,
-    see the [recipes](recipes.md) for more info.
+    You can also pass in environment variables via Neotest's `extra_args`
+    feature, see the [recipes](recipes.md) for more info.
 
 ### `filter_dirs`
 
@@ -326,15 +327,15 @@ note that this feature requires `nvim-treesitter` (`main` branch).
 
 !!! warning "Not enabled by default"
 
-    This feature comes with some caveats and nuances, which is why it is not enabled
-    by default. I advise you to only enable this if you need it.
+    This feature comes with some caveats and nuances, which is why it is not
+    enabled by default. I advise you to only enable this if you need it.
 
-    There are some real shenaningans going on behind the scenes to make this work.
-    😅 First, an in-memory lookup of "receiver type-to-suite test function" will be
-    created of all Go test files in your project. Then, the generated Neotest node
-    tree is modified by mutating private attributes, so to prefix test IDs with the
-    suite name (e.g. `SuiteName/TestMethod`).
-    I'm personally a bit afraid of the maintenance burden of this feature... 🙈
+    There are some real shenaningans going on behind the scenes to make this
+    work. 😅 First, an in-memory lookup of "receiver type-to-suite test
+    function" will be created of all Go test files in your project. Then, the
+    generated Neotest node tree is modified by mutating private attributes, so
+    to prefix test IDs with the suite name (e.g. `SuiteName/TestMethod`). I'm
+    personally a bit afraid of the maintenance burden of this feature... 🙈
 
 ### `testify_import_identifier`
 
@@ -393,8 +394,8 @@ this. See `:h vim.log.levels` for all levels.
 
     !!! warn "Do not forget to revert"
 
-        Don't forget to revert back to `WARN` level once you are done troubleshooting,
-        as the `DEBUG` level can degrade performance.
+        Don't forget to revert back to `WARN` level once you are done
+        troubleshooting, as the `DEBUG` level can degrade performance.
 
 !!! tip "Convenience command"
 

@@ -17,9 +17,9 @@ the terminal. To run tests from the terminal, use these commands (requires
 
 !!! warning "Tests timing out"
 
-    Nvim-nio will hit a hard-coded 2000 millisecond timeout if you are running the
-    entire test suite. I have mitigated this in the bootstraping script and also
-    opened an issue about that in
+    Nvim-nio will hit a hard-coded 2000 millisecond timeout if you are running
+    the entire test suite. I have mitigated this in the bootstraping script and
+    also opened an issue about that in
     [nvim-neotest/nvim-nio#30](https://github.com/nvim-neotest/nvim-nio/issues/30).
 
 ## Test execution flow
@@ -44,8 +44,8 @@ When you run tests, the following sequence occurs:
 
     The below outlines why BustedPlenary was chosen instead of Busted.
 
-    This setup uses Neovim's `-c` flag to execute commands within Neovim's context,
-    rather than Busted's `-l` flag which loads Lua files externally.
+    This setup uses Neovim's `-c` flag to execute commands within Neovim's
+    context, rather than Busted's `-l` flag which loads Lua files externally.
 
     **Strengths of plenary-busted approach:**
 
@@ -83,27 +83,27 @@ The general workflow of adding a new integration test:
    `spec/integration/yourpkgname[_yourtestname]_spec.lua` and from it, execute
    all tests in a dir, a file or specifiy individual test(s):
 
-   ```lua
-   local integration = require("spec.helpers.integration")
+    ```lua
+    local integration = require("spec.helpers.integration")
 
-   -- Run all tests in a directory
-   local result = integration.execute_adapter_direct("/path/to/directory")
+    -- Run all tests in a directory
+    local result = integration.execute_adapter_direct("/path/to/directory")
 
-   -- Run all tests in a file
-   local result = integration.execute_adapter_direct("/path/to/file_test.go")
+    -- Run all tests in a file
+    local result = integration.execute_adapter_direct("/path/to/file_test.go")
 
-   -- Run a specific test function
-   local result = integration.execute_adapter_direct("/path/to/file_test.go::TestFunction")
+    -- Run a specific test function
+    local result = integration.execute_adapter_direct("/path/to/file_test.go::TestFunction")
 
-   -- Run a specific subtest
-   local result = integration.execute_adapter_direct("/path/to/file_test.go::TestFunction::\"SubTest\"")
+    -- Run a specific subtest
+    local result = integration.execute_adapter_direct("/path/to/file_test.go::TestFunction::\"SubTest\"")
 
-   -- Run a nested subtest
-   local result = integration.execute_adapter_direct("/path/to/file_test.go::TestFunction::\"SubTest\"::\"TableTest\"")
+    -- Run a nested subtest
+    local result = integration.execute_adapter_direct("/path/to/file_test.go::TestFunction::\"SubTest\"::\"TableTest\"")
 
-   -- Use blocking/synchronous execution (legacy, but could potentially be useful for debugging)
-   local result = integration.execute_adapter_direct("/path/to/file_test.go", { use_blocking = true })
-   ```
+    -- Use blocking/synchronous execution (legacy, but could potentially be useful for debugging)
+    local result = integration.execute_adapter_direct("/path/to/file_test.go", { use_blocking = true })
+    ```
 
 ### Best practices
 
