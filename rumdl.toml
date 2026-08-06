@@ -1,0 +1,4 @@
+extends = ".pocket/tools/rumdl/rumdl.toml"
+
+[per-file-flavor]
+"docs/**/*.md" = "mkdocs"

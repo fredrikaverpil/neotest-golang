@@ -8,14 +8,15 @@ icon: material/information
 
 ??? question "Why a second Neotest adapter for Go? 🤔"
 
-    While using [neotest-go](https://github.com/nvim-neotest/neotest-go) I stumbled
-    upon many problems which seemed difficult to solve in that codebase.
+    While using [neotest-go](https://github.com/nvim-neotest/neotest-go) I
+    stumbled upon many problems which seemed difficult to solve in that
+    codebase.
 
     I have full respect for the time and efforts put in by the developer(s) of
-    neotest-go. I do not aim in any way to diminish their needs or efforts. However,
-    I wanted to see if I could fix these issues by diving into the 🕳️🐇 of Neotest
-    and building my own adapter. Below is a list of neotest-go issues which are not
-    present in neotest-golang (this project):
+    neotest-go. I do not aim in any way to diminish their needs or efforts.
+    However, I wanted to see if I could fix these issues by diving into the 🕳️🐇
+    of Neotest and building my own adapter. Below is a list of neotest-go issues
+    which are not present in neotest-golang (this project):
 
     | Neotest-go issue                                        | URL                                                                   |
     | ------------------------------------------------------- | --------------------------------------------------------------------- |
