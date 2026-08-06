@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.10.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.9.0...v2.10.0) (2026-08-06)
+
+
+### Features
+
+* disable adapter when go is not on PATH ([#592](https://github.com/fredrikaverpil/neotest-golang/issues/592)) ([272cc53](https://github.com/fredrikaverpil/neotest-golang/commit/272cc5327fd5311ebf5c9fd8e046b606441443ab))
+
+
+### Bug Fixes
+
+* **file:** use vim.uv for test output I/O ([#572](https://github.com/fredrikaverpil/neotest-golang/issues/572)) ([652a3fe](https://github.com/fredrikaverpil/neotest-golang/commit/652a3fee7f6dd00c841f7362621edc39ec153a13))
+* **find:** strip trailing separator from discovered root ([#591](https://github.com/fredrikaverpil/neotest-golang/issues/591)) ([ac2949f](https://github.com/fredrikaverpil/neotest-golang/commit/ac2949f5e24872e220013a625ffb2978026d3824))
+* **goenv:** handle an undeterminable go env explicitly ([#595](https://github.com/fredrikaverpil/neotest-golang/issues/595)) ([d589d7a](https://github.com/fredrikaverpil/neotest-golang/commit/d589d7ac6cc9dfd2b8f4429060a4265e5b7229c6))
+* **health:** report a configured but missing gotestsum runner ([#594](https://github.com/fredrikaverpil/neotest-golang/issues/594)) ([cd02ab9](https://github.com/fredrikaverpil/neotest-golang/commit/cd02ab91935a2995456a4bb87fc0336ce45afc27))
+* **lib:** bail on failed `get_go_env_async` call ([#587](https://github.com/fredrikaverpil/neotest-golang/issues/587)) ([bc1c6c5](https://github.com/fredrikaverpil/neotest-golang/commit/bc1c6c520bf1cade11645bb8391ec911fe128423))
+* **results:** skip result parsing for files without tests ([#575](https://github.com/fredrikaverpil/neotest-golang/issues/575)) ([542cbaf](https://github.com/fredrikaverpil/neotest-golang/commit/542cbaf37f1233a2723ccd64ce8ed7e3acbd192b))
+* use vim.fn.expand for home path ([#580](https://github.com/fredrikaverpil/neotest-golang/issues/580)) ([26c3d99](https://github.com/fredrikaverpil/neotest-golang/commit/26c3d99107e3e2b4ba01ae734bbe22f28c917569)), closes [#579](https://github.com/fredrikaverpil/neotest-golang/issues/579)
+
+
+### Performance Improvements
+
+* check test file suffix before the go env lookup ([#593](https://github.com/fredrikaverpil/neotest-golang/issues/593)) ([c61cfdd](https://github.com/fredrikaverpil/neotest-golang/commit/c61cfdd781b940ea57807694c65b1bb2586d91cf))
+
 ## [2.9.0](https://github.com/fredrikaverpil/neotest-golang/compare/v2.8.0...v2.9.0) (2026-05-19)
 
 
