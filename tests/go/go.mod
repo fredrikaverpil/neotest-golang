@@ -1,6 +1,6 @@
 module github.com/fredrikaverpil/neotest-golang/tests/go
 
-go 1.26.2
+go 1.27.2
 
 require gotest.tools/v3 v3.5.2
 

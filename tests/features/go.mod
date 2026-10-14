@@ -1,6 +1,6 @@
 module github.com/fredrikaverpil/neotest-golang/tests/features
 
-go 1.25
+go 1.27.2
 
 require github.com/stretchr/testify v1.11.1
 
