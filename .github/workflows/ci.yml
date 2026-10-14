@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: ${{ matrix.task }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        task:
+          - format:md
+          - format:lua
+          - fix:go
+          - format:go
+          - vulncheck
+          - format:query
+          - lint:query
+          - docs
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+      - run: mise run ${{ matrix.task }}
+      - run: git diff --exit-code
+
+  test:
+    name: test:${{ matrix.neovim }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        neovim: [stable, nightly]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+      - if: matrix.neovim == 'nightly'
+        run: mise install --force neovim@nightly
+      - run: mise run test:${{ matrix.neovim }}
