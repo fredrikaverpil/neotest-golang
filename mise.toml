@@ -1,0 +1,96 @@
+[settings]
+lockfile = true
+minimum_release_age = "3d"
+
+[tools]
+go = "1.27.2"
+golangci-lint = "2.14.0"
+gotestsum = "1.13.0"
+python = "3.14"
+rumdl = "0.2.52"
+stylua = "2.5.2"
+tree-sitter = "0.26.11"
+uv = "0.13.0"
+"github:ribru17/ts_query_ls" = "3.16.0"
+"go:golang.org/x/vuln/cmd/govulncheck" = "1.8.0"
+"pypi:zensical" = "0.0.53"
+
+[vars]
+go_modules = "tests/go tests/features tests/features/submodule"
+query_dirs = "lua/neotest-golang/queries lua/neotest-golang/features/testify/queries"
+
+[tasks."format:md"]
+description = "Format Markdown files"
+run = "rumdl fmt ."
+
+[tasks."format:lua"]
+description = "Format Lua files"
+run = "stylua ."
+
+[tasks."fix:go"]
+description = "Update Go test fixtures for newer Go versions"
+run = 'for d in {{vars.go_modules}}; do (cd "$d" && go fix ./...); done'
+
+[tasks."format:go"]
+description = "Format Go test fixtures"
+run = 'for d in {{vars.go_modules}}; do (cd "$d" && golangci-lint fmt ./...); done'
+
+[tasks.vulncheck]
+description = "Check Go test fixtures for known vulnerabilities"
+run = 'for d in {{vars.go_modules}}; do (cd "$d" && govulncheck ./...); done'
+
+[tasks."query:parser"]
+description = "Build the tree-sitter Go parser used by ts_query_ls"
+hide = true
+run = '''
+out=.tests/all/site/parser/go.so
+[ -f "$out" ] && exit 0
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+git clone --depth 1 --quiet https://github.com/tree-sitter/tree-sitter-go "$tmp"
+mkdir -p "$(dirname "$out")"
+tree-sitter build -o "$out" "$tmp"
+'''
+
+[tasks."format:query"]
+description = "Format tree-sitter query files"
+depends = ["query:parser"]
+run = "ts_query_ls format {{vars.query_dirs}}"
+
+[tasks."lint:query"]
+description = "Lint tree-sitter query files"
+depends = ["query:parser"]
+run = "ts_query_ls check {{vars.query_dirs}}"
+
+[tasks.docs]
+description = "Build documentation"
+run = "zensical build"
+
+[tasks."docs:serve"]
+description = "Serve documentation locally"
+run = "zensical serve"
+
+[tasks."test:stable"]
+description = "Run plenary tests with stable Neovim"
+alias = "test"
+tools = { neovim = "0.12.6" }
+usage = 'arg "[path]" help="Spec file or directory" default="spec/"'
+run = "nvim -l spec/run.lua .tests/stable {{usage.path}}"
+
+[tasks."test:nightly"]
+description = "Run plenary tests with nightly Neovim"
+tools = { neovim = "nightly" }
+usage = 'arg "[path]" help="Spec file or directory" default="spec/"'
+run = "nvim -l spec/run.lua .tests/nightly {{usage.path}}"
+
+[tasks.all]
+description = "Run all checks"
+run = [
+  { tasks = ["format:md", "format:lua", "docs"] },
+  { task = "fix:go" },
+  { task = "format:go" },
+  { task = "vulncheck" },
+  { task = "format:query" },
+  { task = "lint:query" },
+  { tasks = ["test:stable", "test:nightly"] },
+]

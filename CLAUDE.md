@@ -37,26 +37,32 @@ and handles:
 
 ## Development Commands
 
+### Tasks
+
+Tasks are defined in `mise.toml` and run with [mise](https://mise.jdx.dev).
+List them with `mise tasks`; run everything with `mise run all`.
+
 ### Testing
 
-- **Run all tests**: `./pok test`
-- **Run tests with clean state**: `./pok test-clean && ./pok test`
-- **Run specific test file**:
-  `./pok nvim-test:stable -- spec/unit/file_spec.lua`
+- **Run all tests**: `mise run test` (stable Neovim) or `mise run test:nightly`
+- **Run specific test file**: `mise run test spec/unit/file_spec.lua`
+
+Each run wipes `.tests/<version>/` for a clean state; see `spec/run.lua`.
 
 ### Linting and Formatting
 
-- **Format all code**: `./pok format` (runs stylua and ts_query_ls)
-- **Format Lua code**: `./pok format-lua` (uses stylua)
-- **Format tree-sitter queries**: `./pok format-query` (uses ts_query_ls)
-- **Lint tree-sitter queries**: `./pok lint-query` (uses ts_query_ls)
-- **Lint and auto-fix queries**: `./pok lint-query-fix`
-- **Format Go test fixtures**: `./pok format-go`
-- **Lint Go test fixtures**: `./pok lint-go`
+- **Format Markdown**: `mise run format:md` (uses rumdl)
+- **Format Lua code**: `mise run format:lua` (uses stylua)
+- **Format tree-sitter queries**: `mise run format:query` (uses ts_query_ls)
+- **Lint tree-sitter queries**: `mise run lint:query` (uses ts_query_ls)
+- **Fix Go test fixtures**: `mise run fix:go` (uses go fix)
+- **Format Go test fixtures**: `mise run format:go` (uses golangci-lint)
+- **Check Go test fixtures for vulnerabilities**: `mise run vulncheck`
 
 ### Documentation
 
-- **Serve docs locally**: Uses zensical (see pyproject.toml)
+- **Build docs**: `mise run docs` (uses zensical)
+- **Serve docs locally**: `mise run docs:serve`
 
 ## Test Framework
 
@@ -79,7 +85,7 @@ Test files use the `*_spec.lua` naming convention.
 
 ### Test Execution Flow
 
-When running `./pok test`, Neovim launches headlessly and:
+When running `mise run test`, Neovim launches headlessly and:
 
 1. Bootstrap script resets runtime path and installs required plugins
 2. PlenaryBustedDirectory discovers and runs all `*_spec.lua` files
@@ -104,8 +110,7 @@ When running `./pok test`, Neovim launches headlessly and:
 - **`stylua.toml`** - Code formatting rules for Lua
 - **`.tsqueryrc.json`** - Tree-sitter query language server configuration
 - **`.golangci.yml`** - Linting configuration for Go test fixtures
-- **`.pocket/config.go`** - Task runner configuration (uses
-  [Pocket](https://github.com/fredrikaverpil/pocket))
+- **`mise.toml`** - Tools and tasks (uses [mise](https://mise.jdx.dev))
 
 ## Key Patterns
 

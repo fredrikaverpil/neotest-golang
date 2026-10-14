@@ -10,10 +10,11 @@ lua unit tests and integration tests.
 
 Tests can be executed either from within Neovim (using neotest-plenary) or in
 the terminal. To run tests from the terminal, use these commands (requires
-[Pocket](https://github.com/fredrikaverpil/pocket) and Go):
+[mise](https://mise.jdx.dev)):
 
-- `./pok test` - Run all tests
-- `./pok test-file -- spec/unit/convert_spec.lua` - Run a single test file
+- `mise run test` - Run all tests with stable Neovim
+- `mise run test:nightly` - Run all tests with nightly Neovim
+- `mise run test spec/unit/convert_spec.lua` - Run a single test file
 
 !!! warning "Tests timing out"
 
