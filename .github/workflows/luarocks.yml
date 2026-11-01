@@ -25,7 +25,7 @@ jobs:
         with:
           crate: tree-sitter-cli
       - name: LuaRocks Upload
-        uses: nvim-neorocks/luarocks-tag-release@v7
+        uses: nvim-neorocks/luarocks-tag-release@v8
         env:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
         with:
