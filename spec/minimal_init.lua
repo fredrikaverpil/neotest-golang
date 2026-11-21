@@ -1,7 +1,7 @@
 local M = {}
 
 -- Shared constants (duplicated from bootstrap.lua for simplicity)
--- Use NEOTEST_SITE_DIR env var if set (for pocket integration), otherwise use cwd-relative path.
+-- Use NEOTEST_SITE_DIR env var if set (set by spec/run.lua), otherwise use cwd-relative path.
 local SITE_DIR = vim.env.NEOTEST_SITE_DIR or (vim.fn.getcwd() .. "/site")
 
 --- Initialize before running each test.
@@ -36,7 +36,7 @@ function M.init()
           .. " not found at "
           .. plugin_path
           .. ". "
-          .. "Please run 'task test-clean && task test' first to initialize the test environment."
+          .. "Please run 'mise run test' first to initialize the test environment."
       )
     end
     vim.opt.runtimepath:append(plugin_path)
@@ -49,7 +49,7 @@ function M.init()
       "Go treesitter parser not found at "
         .. parser_path
         .. ". "
-        .. "Please run 'task test-clean && task test' first to initialize the test environment."
+        .. "Please run 'mise run test' first to initialize the test environment."
     )
   end
 

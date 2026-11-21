@@ -13,8 +13,8 @@ icon: material/bug
 - Enable logging with the [`log_level`](config.md#log_level) option to further
   inspect what's going on under the hood.
 
-If the problem persists and is configuration-related, please open a discussion
-[here](https://github.com/fredrikaverpil/neotest-golang/discussions/new?category=configuration).
+If the problem persists and is configuration-related, please
+[open a configuration discussion](https://github.com/fredrikaverpil/neotest-golang/discussions/new?category=configuration).
 
 For bugs and feature requests, feel free to use discussions or file a detailed
 issue.
@@ -88,10 +88,11 @@ return {
 
 See `:h neotest.Config` for more information.
 
-[Here](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/fredrik/plugins/core/neotest.lua)
-is my personal Neotest configuration, for inspiration. Please note that I am
-configuring Go and the neotest-golang adapter in a separate file
-[here](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/fredrik/plugins/lang/go.lua).
+See
+[my personal Neotest configuration](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/fredrik/plugins/core/neotest.lua)
+for inspiration. Please note that I am configuring Go and the neotest-golang
+adapter in a
+[separate file](https://github.com/fredrikaverpil/dotfiles/blob/main/nvim-fredrik/lua/fredrik/plugins/lang/go.lua).
 
 ## Go test execution and parallelism
 
@@ -99,9 +100,9 @@ You can set the optional `go_test_args` to control the number of test binaries
 and number of tests to run in parallel using the `-p` and `-parallel` flags,
 respectively. Execute `go help test`, `go help testflag`, `go help build` for
 more information on this. There's also an excellent article written by
-[@roblaszczak](https://github.com/roblaszczak) posted
-[here](https://threedots.tech/post/go-test-parallelism/) that touches on this
-subject further.
+[@roblaszczak](https://github.com/roblaszczak),
+[Go test parallelism](https://threedots.tech/post/go-test-parallelism/), that
+touches on this subject further.
 
 ## "Error on launch: Failed to launch"
 
