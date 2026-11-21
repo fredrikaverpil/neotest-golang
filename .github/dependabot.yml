@@ -1,52 +1,31 @@
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directories: ["/", ".github/actions/*/*.yml", ".github/actions/*/*.yaml", "action.yml", "action.yaml", "actions/*/*.yml", "actions/*/*.yaml"]
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "monthly"
+      interval: cron
+      cronjob: "0 6 1 * *"
+    cooldown:
+      default-days: 7
     groups:
       github-actions:
         patterns: ["*"]
-        update-types: ["minor", "patch"]
-    labels:
-      - "dependencies"
+    labels: [dependencies]
 
-  - package-ecosystem: "gomod"
-    directories: ["tests/features", "tests/go"]
+  - package-ecosystem: gomod
+    directories: ["**/*"]
     schedule:
-      interval: "monthly"
+      interval: cron
+      cronjob: "0 6 1 * *"
     allow:
-      - dependency-type: all
+      - dependency-type: direct
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
     groups:
       gomod:
         patterns: ["*"]
-        update-types: ["minor", "patch"]
-    labels:
-      - "dependencies"
-
-  - package-ecosystem: "uv"
-    directories: ["/"]
-    schedule:
-      interval: "monthly"
-    allow:
-      - dependency-type: all
-    groups:
-      uv:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
-    labels:
-      - "dependencies"
-
-# custom updates for .tools directory
-  - package-ecosystem: "gomod"
-    directories: ["/.tools"]
-    allow:
-      - dependency-type: indirect
-    schedule:
-      interval: "monthly"
-    groups:
-      gomod-tools:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
-    labels:
-      - "dependencies"
+        update-types: [minor, patch]
+    labels: [dependencies]
