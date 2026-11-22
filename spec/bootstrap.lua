@@ -1,7 +1,7 @@
 local M = {}
 
 -- Shared constants (duplicated in minimal_init.lua for simplicity)
--- Use NEOTEST_SITE_DIR env var if set (for pocket integration), otherwise use cwd-relative path.
+-- Use NEOTEST_SITE_DIR env var if set (set by spec/run.lua), otherwise use cwd-relative path.
 local SITE_DIR = vim.env.NEOTEST_SITE_DIR or (vim.fn.getcwd() .. "/site")
 local TEST_TIMEOUT = 500000
 

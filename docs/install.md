@@ -54,24 +54,29 @@ details._
 
 !!! danger "Required: Go tree-sitter parser"
 
-    - The [tree-sitter-go parser](https://github.com/tree-sitter/tree-sitter-go) is required for neotest-golang to detect and parse Go tests.
+    - The
+      [tree-sitter-go parser](https://github.com/tree-sitter/tree-sitter-go)
+      is required for neotest-golang to detect and parse Go tests.
         - Installation options:
             1. Via nvim-treesitter (recommended):
                ```vim
                :TSInstall go
                :TSUpdate go
                ```
-            2. Alternative methods: You can install the parser via system package managers, Nix, or other means.
-    - Nvim-treesitter is optional (parser can be installed via alternative methods) but
-      _required_ for [testify suite features](config.md#testify_enabled).
-    - The tree-sitter-go project unfortunately doesn't use semantic versioning and may introduce
-    breaking changes without notice. Therefore, neotest-golang tracks
-    nvim-treesitter's curated parser versions to provide stability.
+            2. Alternative methods: You can install the parser via system
+               package managers, Nix, or other means.
+    - Nvim-treesitter is optional (parser can be installed via alternative
+      methods) but _required_ for
+      [testify suite features](config.md#testify_enabled).
+    - The tree-sitter-go project unfortunately doesn't use semantic versioning
+    and may introduce breaking changes without notice. Therefore, neotest-golang
+    tracks nvim-treesitter's curated parser versions to provide stability.
         - ⚠️ neotest-golang v2+ expects the Go parser version from nvim-treesitter's
     [`main` branch](https://github.com/nvim-treesitter/nvim-treesitter/tree/main).
     The frozen `master` branch is no longer supported.
-        - If you experience issues after updating nvim-treesitter (and subsequently, the Go parser), consider rolling back nvim-treesitter
-        and re-installing the Go parser associated with that nvim-treesitter
+        - If you experience issues after updating nvim-treesitter (and
+        subsequently, the Go parser), consider rolling back nvim-treesitter and
+        re-installing the Go parser associated with that nvim-treesitter
         release. You can check the exact parser version being used in
         nvim-treesitter's
         [`parsers.lua`](https://github.com/nvim-treesitter/nvim-treesitter/blob/main/lua/nvim-treesitter/parsers.lua).
